@@ -298,7 +298,7 @@ export default function HomePage() {
               <Button
                 size="lg"
                 className="text-lg px-8 py-6 bg-white text-purple-600 hover:bg-gray-100 font-semibold shadow-2xl"
-                onClick={() => window.location.href = 'https://console.isolex.net/CL-signup.php'}
+                onClick={() => window.location.href = createPageUrl('MerchantOnboarding')}
               >
                 {heroSettings.cta_primary_text || 'Start Free Trial'}
                 <ArrowRight className="ml-2 w-5 h-5" />
@@ -308,9 +308,9 @@ export default function HomePage() {
                 size="lg"
                 variant="outline"
                 className="text-lg px-8 py-6 bg-white/20 backdrop-blur-sm border-2 border-white text-white hover:bg-white hover:text-purple-600 font-semibold transition-all"
-                onClick={() => window.location.href = createPageUrl('emaillogin')}
+                onClick={() => window.location.href = createPageUrl('PinLogin')}
               >
-                {heroSettings.cta_secondary_text || 'Login'}
+                {heroSettings.cta_secondary_text || 'Watch Demo'}
               </Button>
             </div>
           </motion.div>
