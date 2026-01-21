@@ -270,7 +270,7 @@ export default function PinLoginPage() {
             <Button
               variant="ghost"
               className="w-full text-sm text-gray-600 dark:text-gray-400"
-              onClick={() => window.location.href = createPageUrl('MerchantOnboarding')}
+              onClick={() => window.location.href = 'https://console.isolex.net/CL-signup.php'}
             >
               New merchant? Sign up here
             </Button>
