@@ -242,7 +242,7 @@ export default function HomePage() {
             </div>
             <div className="md:hidden">
               <Button
-                onClick={() => window.location.href = createPageUrl('PinLogin')}
+                onClick={() => window.location.href = createPageUrl('EmailLogin')}
                 size="sm"
                 className="bg-green-500 hover:bg-green-600 text-white"
               >
@@ -298,7 +298,7 @@ export default function HomePage() {
               <Button
                 size="lg"
                 className="text-lg px-8 py-6 bg-white text-purple-600 hover:bg-gray-100 font-semibold shadow-2xl"
-                onClick={() => window.location.href = createPageUrl('MerchantOnboarding')}
+                onClick={() => window.location.href = createPageUrl('https://console.isolex.net/CL-signup.php')}
               >
                 {heroSettings.cta_primary_text || 'Start Free Trial'}
                 <ArrowRight className="ml-2 w-5 h-5" />
@@ -308,9 +308,9 @@ export default function HomePage() {
                 size="lg"
                 variant="outline"
                 className="text-lg px-8 py-6 bg-white/20 backdrop-blur-sm border-2 border-white text-white hover:bg-white hover:text-purple-600 font-semibold transition-all"
-                onClick={() => window.location.href = createPageUrl('PinLogin')}
+                onClick={() => window.location.href = createPageUrl('EmailLogin')}
               >
-                {heroSettings.cta_secondary_text || 'Watch Demo'}
+                {heroSettings.cta_secondary_text || 'Sign In'}
               </Button>
             </div>
           </motion.div>
@@ -589,7 +589,7 @@ export default function HomePage() {
               <Button
                 size="lg"
                 className="bg-white text-blue-600 hover:bg-gray-100"
-                onClick={() => window.location.href = createPageUrl('MerchantOnboarding')}
+                onClick={() => window.location.href = createPageUrl('https://console.isolex.net/CL-signup.php')}
               >
                 {settings?.cta_section?.cta_text || 'Get Started Today'}
                 <ArrowRight className="ml-2 w-5 h-5" />
