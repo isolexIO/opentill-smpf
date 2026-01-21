@@ -234,7 +234,7 @@ export default function HomePage() {
                 Device Shop
               </a>
               <Button
-                onClick={() => window.location.href = createPageUrl('PinLogin')}
+                onClick={() => window.location.href = createPageUrl('emaillogin')}
                 className="bg-green-500 hover:bg-green-600 text-white"
               >
                 Sign In
@@ -242,7 +242,7 @@ export default function HomePage() {
             </div>
             <div className="md:hidden">
               <Button
-                onClick={() => window.location.href = createPageUrl('PinLogin')}
+                onClick={() => window.location.href = createPageUrl('emaillogin')}
                 size="sm"
                 className="bg-green-500 hover:bg-green-600 text-white"
               >
@@ -308,9 +308,9 @@ export default function HomePage() {
                 size="lg"
                 variant="outline"
                 className="text-lg px-8 py-6 bg-white/20 backdrop-blur-sm border-2 border-white text-white hover:bg-white hover:text-purple-600 font-semibold transition-all"
-                onClick={() => window.location.href = createPageUrl('PinLogin')}
+                onClick={() => window.location.href = createPageUrl('emaillogin')}
               >
-                {heroSettings.cta_secondary_text || 'Watch Demo'}
+                {heroSettings.cta_secondary_text || 'Login'}
               </Button>
             </div>
           </motion.div>
