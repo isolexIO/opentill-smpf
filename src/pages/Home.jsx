@@ -234,7 +234,7 @@ export default function HomePage() {
                 Device Shop
               </a>
               <Button
-                onClick={() => window.location.href = createPageUrl('EmailLogin')}
+                onClick={() => window.location.href = createPageUrl('PinLogin')}
                 className="bg-green-500 hover:bg-green-600 text-white"
               >
                 Sign In
@@ -242,7 +242,7 @@ export default function HomePage() {
             </div>
             <div className="md:hidden">
               <Button
-                onClick={() => window.location.href = createPageUrl('EmailLogin')}
+                onClick={() => window.location.href = createPageUrl('PinLogin')}
                 size="sm"
                 className="bg-green-500 hover:bg-green-600 text-white"
               >
@@ -298,7 +298,7 @@ export default function HomePage() {
               <Button
                 size="lg"
                 className="text-lg px-8 py-6 bg-white text-purple-600 hover:bg-gray-100 font-semibold shadow-2xl"
-                onClick={() => window.location.href =('https://console.isolex.net/CL-signup.php')}
+                onClick={() => window.location.href = 'https://console.isolex.net/CL-signup.php'}
               >
                 {heroSettings.cta_primary_text || 'Start Free Trial'}
                 <ArrowRight className="ml-2 w-5 h-5" />
@@ -308,9 +308,9 @@ export default function HomePage() {
                 size="lg"
                 variant="outline"
                 className="text-lg px-8 py-6 bg-white/20 backdrop-blur-sm border-2 border-white text-white hover:bg-white hover:text-purple-600 font-semibold transition-all"
-                onClick={() => window.location.href = createPageUrl('EmailLogin')}
+                onClick={() => window.location.href = createPageUrl('PinLogin')}
               >
-                {heroSettings.cta_secondary_text || 'Login'}
+                {heroSettings.cta_secondary_text || 'Watch Demo'}
               </Button>
             </div>
           </motion.div>
@@ -543,7 +543,7 @@ export default function HomePage() {
                       <Button
                         className={`w-full mb-6 ${plan.is_featured ? 'bg-gradient-to-r from-purple-600 to-green-500 hover:from-purple-700 hover:to-green-600 text-white' : 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100'}`}
                         size="lg"
-                        onClick={() => window.location.href = ('https://console.isolex.net/CL-signup.php')}
+                        onClick={() => window.location.href = createPageUrl('MerchantOnboarding')}
                       >
                         Get Started
                       </Button>
