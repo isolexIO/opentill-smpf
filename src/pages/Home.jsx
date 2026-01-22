@@ -310,7 +310,7 @@ export default function HomePage() {
                 className="text-lg px-8 py-6 bg-white/20 backdrop-blur-sm border-2 border-white text-white hover:bg-white hover:text-purple-600 font-semibold transition-all"
                 onClick={() => window.location.href = createPageUrl('emaillogin')}
               >
-                {heroSettings.cta_secondary_text || 'Watch Demo'}
+                {heroSettings.cta_secondary_text || 'Sign In'}
               </Button>
             </div>
           </motion.div>
