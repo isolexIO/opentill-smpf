@@ -17,6 +17,7 @@ import KitchenDisplay from './pages/KitchenDisplay';
 import LoyaltyProgram from './pages/LoyaltyProgram';
 import Marketplace from './pages/Marketplace';
 import MerchantOnboarding from './pages/MerchantOnboarding';
+import Motherboard from './pages/Motherboard';
 import OnlineMenu from './pages/OnlineMenu';
 import OnlineOrders from './pages/OnlineOrders';
 import Orders from './pages/Orders';
@@ -33,7 +34,7 @@ import Support from './pages/Support';
 import SystemMenu from './pages/SystemMenu';
 import TermsOfService from './pages/TermsOfService';
 import Users from './pages/Users';
-import Motherboard from './pages/Motherboard';
+import WalletLoginPage from './pages/WalletLoginPage';
 import __Layout from './Layout.jsx';
 
 
@@ -57,6 +58,7 @@ export const PAGES = {
     "LoyaltyProgram": LoyaltyProgram,
     "Marketplace": Marketplace,
     "MerchantOnboarding": MerchantOnboarding,
+    "Motherboard": Motherboard,
     "OnlineMenu": OnlineMenu,
     "OnlineOrders": OnlineOrders,
     "Orders": Orders,
@@ -73,7 +75,7 @@ export const PAGES = {
     "SystemMenu": SystemMenu,
     "TermsOfService": TermsOfService,
     "Users": Users,
-    "Motherboard": Motherboard,
+    "WalletLoginPage": WalletLoginPage,
 }
 
 export const pagesConfig = {
