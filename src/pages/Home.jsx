@@ -736,7 +736,7 @@ export default function HomePage() {
 
           <div className="border-t border-white/10 mt-8 pt-8 text-center">
             <p className="text-gray-400 text-sm">
-              {settings?.company_info?.copyright_text || '© 2024 Isolex Corporation. All rights reserved.'}
+              {settings?.company_info?.copyright_text || '© 2026 Isolex Corporation. All rights reserved.'}
             </p>
           </div>
         </div>
