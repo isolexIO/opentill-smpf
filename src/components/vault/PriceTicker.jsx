@@ -47,6 +47,17 @@ export default function PriceTicker() {
 
   return (
     <div className="bg-gradient-to-r from-gray-900 via-blue-900 to-gray-900 text-white py-2 overflow-hidden">
+      <style>
+        {`
+          @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+          }
+          .animate-marquee {
+            animation: marquee 20s linear infinite;
+          }
+        `}
+      </style>
       <div className="animate-marquee whitespace-nowrap inline-block">
         <span className="mx-8 inline-flex items-center space-x-2">
           <span className="font-bold text-yellow-400">$cLINK</span>
