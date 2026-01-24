@@ -48,7 +48,7 @@ export default function UserManual() {
         },
         {
           title: 'Logging In',
-          content: 'Employees can log in using multiple methods:\n• PIN Login - Quick 4-digit PIN for employee clock-in\n• Email Login - Full merchant account access with email/password\n• Wallet Login - Connect Solana wallets (Phantom, Solflare, Jupiter) for Web3 authentication\n\nOnce logged in, you'll see the System Menu with access to all features.'
+          content: 'Employees can log in using multiple methods:\n• PIN Login - Quick 4-digit PIN for employee clock-in\n• Email Login - Full merchant account access with email/password\n• Wallet Login - Connect Solana wallets (Phantom, Solflare, Jupiter) for Web3 authentication\n\nOnce logged in, you will see the System Menu with access to all features.'
         },
         {
           title: 'System Menu Navigation',
