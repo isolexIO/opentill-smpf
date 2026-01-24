@@ -31,17 +31,17 @@ export default function JupiterMobileQR({ onSuccess }) {
       setSessionId(newSessionId);
 
       const baseUrl = window.location.origin;
+      const appName = encodeURIComponent('ChainLINK POS');
       
-      // Create a simple callback URL that mobile wallets can open
-      // This URL will contain the session ID and redirect back after auth
-      const callbackUrl = `${baseUrl}?mobile_auth=${newSessionId}`;
+      // Jupiter mobile wallet deep link format
+      // jupiter://connect?dappUrl={url}&dappName={name}&sessionId={id}
+      const jupiterDeepLink = `jupiter://connect?dappUrl=${encodeURIComponent(baseUrl)}&dappName=${appName}&sessionId=${newSessionId}`;
       
-      // Generate QR code with just the callback URL
-      // Mobile app will scan this, connect wallet, sign message, and redirect back
-      const qrUrl = await QRCode.toDataURL(callbackUrl, {
+      // Generate QR code with Jupiter deep link
+      const qrUrl = await QRCode.toDataURL(jupiterDeepLink, {
         width: 300,
         margin: 2,
-        errorCorrectionLevel: 'H',
+        errorCorrectionLevel: 'M',
         color: {
           dark: '#000000',
           light: '#FFFFFF'
@@ -126,10 +126,10 @@ export default function JupiterMobileQR({ onSuccess }) {
                 <div className="space-y-2">
                   <p className="font-semibold">How to connect:</p>
                   <ol className="text-sm space-y-1 ml-4 list-decimal">
-                    <li>Scan this QR code with your phone camera or QR scanner</li>
-                    <li>Your browser will open and prompt you to open Jupiter wallet</li>
-                    <li>Approve the connection in Jupiter app</li>
-                    <li>You'll be redirected back after signing</li>
+                    <li>Open Jupiter mobile app on your phone</li>
+                    <li>Tap the scan icon in the app</li>
+                    <li>Scan this QR code</li>
+                    <li>Approve the connection request in Jupiter</li>
                   </ol>
                 </div>
               </AlertDescription>
