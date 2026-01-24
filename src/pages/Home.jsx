@@ -16,7 +16,9 @@ import {
   BarChart3,
   Loader2,
   MessageCircle,
-  Package
+  Package,
+  Cpu,
+  Shield
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -234,7 +236,7 @@ export default function HomePage() {
                 Device Shop
               </a>
               <Button
-                onClick={() => window.location.href = createPageUrl('emaillogin')}
+                onClick={() => window.location.href = createPageUrl('WalletLoginPage')}
                 className="bg-green-500 hover:bg-green-600 text-white"
               >
                 Sign In
@@ -242,7 +244,7 @@ export default function HomePage() {
             </div>
             <div className="md:hidden">
               <Button
-                onClick={() => window.location.href = createPageUrl('emaillogin')}
+                onClick={() => window.location.href = createPageUrl('WalletLoginPage')}
                 size="sm"
                 className="bg-green-500 hover:bg-green-600 text-white"
               >
@@ -308,7 +310,7 @@ export default function HomePage() {
                 size="lg"
                 variant="outline"
                 className="text-lg px-8 py-6 bg-white/20 backdrop-blur-sm border-2 border-white text-white hover:bg-white hover:text-purple-600 font-semibold transition-all"
-                onClick={() => window.location.href = createPageUrl('emaillogin')}
+                onClick={() => window.location.href = createPageUrl('WalletLoginPage')}
               >
                 {heroSettings.cta_secondary_text || 'Sign In'}
               </Button>
@@ -481,6 +483,71 @@ export default function HomePage() {
               </h3>
               <p className="text-gray-600 dark:text-gray-300">
                 Comprehensive sales reports, trends analysis, and performance insights.
+              </p>
+            </motion.div>
+
+            {/* NFT-Gated Features */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.6 }}
+              className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow border-2 border-blue-200 dark:border-blue-700"
+            >
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center mb-4">
+                <Cpu className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                NFT-Gated Features
+              </h3>
+              <p className="text-gray-600 dark:text-gray-300">
+                Unlock premium features by connecting your wallet and holding specific NFTs. True Web3 integration.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-full font-medium">
+                  🔓 Motherboard
+                </span>
+                <span className="text-xs px-2 py-1 bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 rounded-full font-medium">
+                  💎 NFT Verified
+                </span>
+              </div>
+            </motion.div>
+
+            {/* Wallet Authentication */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.7 }}
+              className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow border border-gray-200 dark:border-gray-700"
+            >
+              <div className="w-12 h-12 bg-gradient-to-br from-pink-400 to-pink-600 rounded-lg flex items-center justify-center mb-4">
+                <Shield className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                Multi-Wallet Login
+              </h3>
+              <p className="text-gray-600 dark:text-gray-300">
+                Sign in with Phantom, Solflare, Jupiter, Backpack, or MetaMask. Secure Web3 authentication.
+              </p>
+            </motion.div>
+
+            {/* Modular Feature System */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.8 }}
+              className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow border border-gray-200 dark:border-gray-700"
+            >
+              <div className="w-12 h-12 bg-gradient-to-br from-teal-400 to-teal-600 rounded-lg flex items-center justify-center mb-4">
+                <Package className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                Chip-Based Features
+              </h3>
+              <p className="text-gray-600 dark:text-gray-300">
+                Modular system where each "chip" represents a feature. Unlock what you need when you need it.
               </p>
             </motion.div>
           </div>
