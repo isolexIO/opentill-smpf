@@ -11,6 +11,8 @@ import {
   Loader2, AlertCircle, CheckCircle, ExternalLink, RefreshCw 
 } from 'lucide-react';
 import PermissionCheck from '@/components/auth/PermissionCheck';
+import PriceTicker from '@/components/vault/PriceTicker';
+import JupiterChart from '@/components/vault/JupiterChart';
 
 export default function cLINKVaultPage() {
   const [user, setUser] = useState(null);
@@ -204,8 +206,9 @@ export default function cLINKVaultPage() {
 
   return (
     <PermissionCheck requiredRole="merchant_admin" showWarning>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
-        <div className="max-w-7xl mx-auto space-y-6">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-16">
+        <div className="p-6">
+          <div className="max-w-7xl mx-auto space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -292,6 +295,9 @@ export default function cLINKVaultPage() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Jupiter Chart */}
+          <JupiterChart />
 
           {/* Actions Tabs */}
           <Tabs defaultValue="claim" className="space-y-4">
@@ -459,6 +465,12 @@ export default function cLINKVaultPage() {
               )}
             </CardContent>
           </Card>
+          </div>
+        </div>
+        
+        {/* Price Ticker at Bottom */}
+        <div className="fixed bottom-0 left-0 right-0 z-50">
+          <PriceTicker />
         </div>
       </div>
     </PermissionCheck>
