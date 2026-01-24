@@ -109,7 +109,7 @@ export default function MerchantManagement({ onUpdate }) {
         updates.suspension_reason = null;
       }
 
-      await base44.entities.Merchant.update(merchant.id, updates);
+      await base44.asServiceRole.entities.Merchant.update(merchant.id, updates);
       
       // Log the action
       await base44.entities.SystemLog.create({
@@ -195,7 +195,7 @@ export default function MerchantManagement({ onUpdate }) {
     }
 
     try {
-      await base44.entities.Merchant.delete(merchant.id);
+      await base44.asServiceRole.entities.Merchant.delete(merchant.id);
       
       await base44.entities.SystemLog.create({
         log_type: 'super_admin_action',
@@ -224,8 +224,8 @@ export default function MerchantManagement({ onUpdate }) {
       // Calculate trial end date (14 days from now)
       const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
 
-      // Create merchant
-      const merchant = await base44.entities.Merchant.create({
+      // Create merchant (Super Admin only via service role)
+      const merchant = await base44.asServiceRole.entities.Merchant.create({
         business_name: newMerchant.business_name,
         display_name: newMerchant.display_name || newMerchant.business_name,
         owner_name: newMerchant.owner_name,
@@ -259,7 +259,7 @@ export default function MerchantManagement({ onUpdate }) {
 
 
       // Create default subscription for the merchant
-      await base44.entities.Subscription.create({
+      await base44.asServiceRole.entities.Subscription.create({
         merchant_id: merchant.id,
         plan_name: newMerchant.subscription_plan,
         price: newMerchant.subscription_plan === 'free' ? 0 : (newMerchant.subscription_plan === 'basic' ? 49 : (newMerchant.subscription_plan === 'pro' ? 99 : 299)), // Example pricing

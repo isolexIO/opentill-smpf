@@ -50,8 +50,8 @@ export default function PendingMerchants() {
     setActivationError('');
     
     try {
-      // Step 1: Activate merchant and set trial period
-      await base44.entities.Merchant.update(selectedMerchant.id, {
+      // Step 1: Activate merchant and set trial period (Super Admin only)
+      await base44.asServiceRole.entities.Merchant.update(selectedMerchant.id, {
         status: 'trial',
         activated_at: new Date().toISOString(),
         trial_ends_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
@@ -131,7 +131,7 @@ ChainLINK POS Team
     }
 
     try {
-      await base44.entities.Merchant.update(merchant.id, { 
+      await base44.asServiceRole.entities.Merchant.update(merchant.id, { 
         status: 'cancelled',
         suspended_at: new Date().toISOString(),
         suspension_reason: 'Registration rejected by admin'

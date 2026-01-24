@@ -35,7 +35,8 @@ export default function ChipManager() {
   const loadChips = async () => {
     setLoading(true);
     try {
-      const allChips = await base44.entities.Chip.list('-display_order');
+      // Super Admin loads all chips via service role
+      const allChips = await base44.asServiceRole.entities.Chip.list('-display_order');
       setChips(allChips);
     } catch (error) {
       console.error('Error loading chips:', error);
@@ -47,10 +48,11 @@ export default function ChipManager() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Super Admin creates/updates chips via service role
       if (editingChip) {
-        await base44.entities.Chip.update(editingChip.id, formData);
+        await base44.asServiceRole.entities.Chip.update(editingChip.id, formData);
       } else {
-        await base44.entities.Chip.create(formData);
+        await base44.asServiceRole.entities.Chip.create(formData);
       }
       
       setDialogOpen(false);
@@ -83,7 +85,8 @@ export default function ChipManager() {
     if (!confirm('Are you sure you want to delete this chip?')) return;
     
     try {
-      await base44.entities.Chip.delete(chipId);
+      // Super Admin deletes chips via service role
+      await base44.asServiceRole.entities.Chip.delete(chipId);
       loadChips();
     } catch (error) {
       console.error('Error deleting chip:', error);
