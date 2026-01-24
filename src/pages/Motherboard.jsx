@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Cpu, Wallet, RefreshCw, AlertCircle } from 'lucide-react';
-import WalletConnectButton from '@/components/motherboard/WalletConnectButton';
-import ChipCard from '@/components/motherboard/ChipCard';
+import WalletConnectButton from '@/components/motherboard/WalletConnectButton.jsx';
+import ChipCard from '@/components/motherboard/ChipCard.jsx';
 
 export default function Motherboard() {
   const [user, setUser] = useState(null);
