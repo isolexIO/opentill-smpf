@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Cpu, Wallet, RefreshCw, AlertCircle } from 'lucide-react';
+import { Cpu, Wallet, RefreshCw, AlertCircle, Unlink } from 'lucide-react';
 import WalletConnectButton from '@/components/motherboard/WalletConnectButton.jsx';
 import ChipCard from '@/components/motherboard/ChipCard.jsx';
 
@@ -91,6 +91,21 @@ export default function Motherboard() {
     }
   };
 
+  const handleUnlinkWallet = async () => {
+    if (!confirm('Are you sure you want to unlink your wallet? This will lock all chip features.')) {
+      return;
+    }
+
+    try {
+      await base44.functions.invoke('unlinkWalletFromUser');
+      setWalletAddress(null);
+      setUnlockedChips({});
+    } catch (error) {
+      console.error('Error unlinking wallet:', error);
+      alert('Failed to unlink wallet');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -119,15 +134,26 @@ export default function Motherboard() {
 
           <div className="flex items-center gap-3">
             {walletAddress && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRefresh}
-                disabled={verifying}
-              >
-                <RefreshCw className={`w-4 h-4 mr-2 ${verifying ? 'animate-spin' : ''}`} />
-                Refresh
-              </Button>
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRefresh}
+                  disabled={verifying}
+                >
+                  <RefreshCw className={`w-4 h-4 mr-2 ${verifying ? 'animate-spin' : ''}`} />
+                  Refresh
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleUnlinkWallet}
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                >
+                  <Unlink className="w-4 h-4 mr-2" />
+                  Unlink Wallet
+                </Button>
+              </>
             )}
           </div>
         </div>

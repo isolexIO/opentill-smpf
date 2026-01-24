@@ -1,46 +1,34 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { wallet_type, user_id } = await req.json();
+    const user = await base44.auth.me();
 
-    if (!wallet_type || !user_id) {
-      return Response.json({
-        success: false,
-        error: 'wallet_type and user_id are required'
-      }, { status: 400 });
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get current user
-    const users = await base44.asServiceRole.entities.User.filter({ id: user_id });
-    if (!users || users.length === 0) {
-      return Response.json({
-        success: false,
-        error: 'User not found'
-      }, { status: 404 });
-    }
+    const previousWallet = user.wallet_address;
 
-    const user = users[0];
-
-    // Remove wallet from pos_settings
-    const walletField = `${wallet_type}_wallet`;
-    const updatedPosSettings = { ...(user.pos_settings || {}) };
-    delete updatedPosSettings[walletField];
-
-    await base44.asServiceRole.entities.User.update(user_id, {
-      pos_settings: updatedPosSettings
+    // Remove wallet address from user
+    await base44.auth.updateMe({
+      wallet_address: null
     });
 
     // Log the action
     await base44.asServiceRole.entities.SystemLog.create({
       merchant_id: user.merchant_id || null,
-      log_type: 'security',
+      log_type: 'merchant_action',
+      severity: 'info',
       action: 'Wallet Unlinked',
-      description: `User ${user.email} unlinked ${wallet_type} wallet`,
+      description: `User ${user.email} unlinked wallet: ${previousWallet}`,
       user_id: user.id,
       user_email: user.email,
-      severity: 'info'
+      user_role: user.role,
+      metadata: {
+        previous_wallet: previousWallet
+      }
     });
 
     return Response.json({
@@ -49,10 +37,10 @@ Deno.serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('unlinkWalletFromUser error:', error);
-    return Response.json({
-      success: false,
-      error: error.message || 'Failed to unlink wallet'
+    console.error('Unlink wallet error:', error);
+    return Response.json({ 
+      error: error.message,
+      success: false 
     }, { status: 500 });
   }
 });
