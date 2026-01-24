@@ -27,11 +27,9 @@ export default function PendingMerchants() {
   const { data: merchants = [], isLoading } = useQuery({
     queryKey: ['pending-merchants'],
     queryFn: async () => {
-      const allMerchants = await base44.entities.Merchant.list();
-      const allUsers = await base44.entities.User.list();
-      const merchantIdsWithUsers = new Set(allUsers.map(u => u.merchant_id).filter(Boolean));
-      
-      return allMerchants.filter(m => !merchantIdsWithUsers.has(m.id));
+      // Get all inactive merchants (pending activation)
+      const allMerchants = await base44.entities.Merchant.filter({ status: 'inactive' });
+      return allMerchants;
     },
   });
 
@@ -52,14 +50,22 @@ export default function PendingMerchants() {
     setActivationError('');
     
     try {
-      // Step 1: Activate merchant account and create admin user via backend function
+      // Step 1: Activate merchant and set trial period
+      await base44.entities.Merchant.update(selectedMerchant.id, {
+        status: 'trial',
+        activated_at: new Date().toISOString(),
+        trial_ends_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+      });
+
+      // Step 2: Create admin user via backend function
       const { data } = await base44.functions.invoke('createMerchantAccount', {
         merchant_id: selectedMerchant.id,
         owner_email: selectedMerchant.owner_email,
         owner_name: selectedMerchant.owner_name,
         dealer_id: selectedMerchant.dealer_id || null,
         pin: pin,
-        temp_password: tempPassword
+        temp_password: tempPassword,
+        activate: true
       });
 
       if (!data.success) {
@@ -104,7 +110,7 @@ ChainLINK POS Team
         console.warn('Email failed, but user was created successfully:', emailError);
       }
 
-      alert(`✅ Account activated successfully!\n\nAdmin user created for: ${selectedMerchant.owner_email}\n\nCredentials:\nPIN: ${pin}\nPassword: ${tempPassword}\n\n${selectedMerchant.settings?.demo_data_requested ? 'Demo data has been set up.\n\n' : ''}An activation email has been sent.`);
+      alert(`✅ Account activated successfully!\n\nMerchant: ${selectedMerchant.business_name}\nStatus: Trial (30 days)\nAdmin user created for: ${selectedMerchant.owner_email}\n\nCredentials:\nPIN: ${pin}\nPassword: ${tempPassword}\n\n${selectedMerchant.settings?.demo_data_requested ? 'Demo data has been set up.\n\n' : ''}An activation email has been sent.`);
       
       queryClient.invalidateQueries({ queryKey: ['pending-merchants'] });
       setSelectedMerchant(null);

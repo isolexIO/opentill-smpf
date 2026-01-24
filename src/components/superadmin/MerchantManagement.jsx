@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -294,7 +293,7 @@ export default function MerchantManagement({ onUpdate }) {
         address: '',
         tax_id: '',
         subscription_plan: 'free',
-        status: 'trial'
+        status: 'inactive'
       });
       
       await loadMerchants();
@@ -307,12 +306,13 @@ export default function MerchantManagement({ onUpdate }) {
 
   const getStatusBadge = (status) => {
     const configs = {
+      inactive: { color: 'bg-yellow-100 text-yellow-800', label: 'Inactive' },
       active: { color: 'bg-green-100 text-green-800', label: 'Active' },
       trial: { color: 'bg-blue-100 text-blue-800', label: 'Trial' },
       suspended: { color: 'bg-red-100 text-red-800', label: 'Suspended' },
       cancelled: { color: 'bg-gray-100 text-gray-800', label: 'Cancelled' }
     };
-    const config = configs[status] || configs.trial;
+    const config = configs[status] || configs.inactive;
     return <Badge className={config.color}>{config.label}</Badge>;
   };
 
@@ -345,6 +345,7 @@ export default function MerchantManagement({ onUpdate }) {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="inactive">Inactive</SelectItem>
               <SelectItem value="active">Active</SelectItem>
               <SelectItem value="trial">Trial</SelectItem>
               <SelectItem value="suspended">Suspended</SelectItem>
@@ -426,6 +427,15 @@ export default function MerchantManagement({ onUpdate }) {
                             onClick={() => handleStatusChange(merchant, 'suspended')}
                           >
                             <Ban className="w-4 h-4 text-red-500" />
+                          </Button>
+                        ) : merchant.status === 'inactive' ? (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleStatusChange(merchant, 'trial')}
+                            title="Activate Merchant"
+                          >
+                            <CheckCircle className="w-4 h-4 text-blue-500" />
                           </Button>
                         ) : (
                           <Button
@@ -630,6 +640,7 @@ export default function MerchantManagement({ onUpdate }) {
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="inactive">Inactive (Awaiting Activation)</SelectItem>
                     <SelectItem value="trial">Trial (14 days)</SelectItem>
                     <SelectItem value="active">Active</SelectItem>
                   </SelectContent>
