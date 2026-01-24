@@ -469,7 +469,7 @@ export default function cLINKVaultPage() {
         </div>
         
         {/* Price Ticker at Bottom */}
-        <div className="fixed bottom-0 left-0 right-0 z-50">
+        <div className="fixed bottom-0 left-0 right-0" style={{ zIndex: 99999 }}>
           <PriceTicker />
         </div>
       </div>

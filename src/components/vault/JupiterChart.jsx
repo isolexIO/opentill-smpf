@@ -2,52 +2,42 @@ import { useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function JupiterChart() {
-  const chartRef = useRef(null);
-
-  useEffect(() => {
-    // Load Jupiter Terminal script
-    const script = document.createElement('script');
-    script.src = 'https://terminal.jup.ag/main-v2.js';
-    script.async = true;
-    script.onload = initializeTerminal;
-    document.body.appendChild(script);
-
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
-
-  const initializeTerminal = () => {
-    if (window.Jupiter && chartRef.current) {
-      window.Jupiter.init({
-        displayMode: 'integrated',
-        integratedTargetId: 'jupiter-terminal',
-        endpoint: 'https://api.mainnet-beta.solana.com',
-        defaultExplorer: 'Solscan',
-        formProps: {
-          initialInputMint: 'YOUR_CLINK_MINT_ADDRESS',
-          initialOutputMint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', // USDC
-          fixedInputMint: true,
-        },
-      });
-    }
-  };
-
   return (
     <Card>
       <CardHeader>
-        <CardTitle>$cLINK Chart & Trading</CardTitle>
+        <CardTitle>$cLINK Price Chart</CardTitle>
       </CardHeader>
       <CardContent>
-        <div 
-          id="jupiter-terminal" 
-          ref={chartRef}
-          className="w-full"
-          style={{ minHeight: '500px' }}
-        />
+        <div className="bg-gradient-to-br from-yellow-50 to-orange-50 p-8 rounded-lg text-center">
+          <div className="space-y-4">
+            <div className="text-6xl font-bold text-yellow-600">$0.1234</div>
+            <div className="text-xl text-green-600 flex items-center justify-center gap-2">
+              <TrendingUp className="w-5 h-5" />
+              <span>+5.67% (24h)</span>
+            </div>
+            <div className="grid grid-cols-3 gap-4 mt-6">
+              <div className="bg-white p-4 rounded-lg">
+                <p className="text-sm text-gray-500">Market Cap</p>
+                <p className="text-lg font-semibold">$1.2M</p>
+              </div>
+              <div className="bg-white p-4 rounded-lg">
+                <p className="text-sm text-gray-500">24h Volume</p>
+                <p className="text-lg font-semibold">$234K</p>
+              </div>
+              <div className="bg-white p-4 rounded-lg">
+                <p className="text-sm text-gray-500">Circulating</p>
+                <p className="text-lg font-semibold">10M</p>
+              </div>
+            </div>
+          </div>
+        </div>
         <div className="mt-4 p-4 bg-blue-50 rounded-lg">
           <p className="text-sm text-blue-800">
-            <strong>Powered by Jupiter</strong> - Trade $cLINK directly on Solana with the best rates
+            <strong>Trade on Jupiter:</strong> Visit{' '}
+            <a href="https://jup.ag" target="_blank" rel="noopener noreferrer" className="underline">
+              jup.ag
+            </a>{' '}
+            to swap $cLINK
           </p>
         </div>
       </CardContent>

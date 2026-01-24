@@ -2,46 +2,9 @@ import { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 
 export default function PriceTicker() {
-  const [price, setPrice] = useState(null);
-  const [change24h, setChange24h] = useState(0);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchPrice();
-    const interval = setInterval(fetchPrice, 30000); // Update every 30 seconds
-    return () => clearInterval(interval);
-  }, []);
-
-  const fetchPrice = async () => {
-    try {
-      // Fetch Jupiter price for $cLINK token
-      // Replace with actual cLINK mint address
-      const clinkMint = 'YOUR_CLINK_MINT_ADDRESS';
-      const response = await fetch(`https://price.jup.ag/v4/price?ids=${clinkMint}`);
-      const data = await response.json();
-      
-      if (data.data && data.data[clinkMint]) {
-        setPrice(data.data[clinkMint].price);
-        // Calculate 24h change if available
-        const priceChange = ((data.data[clinkMint].price - (data.data[clinkMint].price * 0.95)) / (data.data[clinkMint].price * 0.95)) * 100;
-        setChange24h(priceChange);
-      }
-      setLoading(false);
-    } catch (error) {
-      console.error('Error fetching price:', error);
-      setLoading(false);
-    }
-  };
-
-  if (loading || !price) {
-    return (
-      <div className="bg-gray-900 text-white py-2 overflow-hidden">
-        <div className="animate-pulse flex items-center justify-center space-x-4">
-          <div className="h-4 w-32 bg-gray-700 rounded"></div>
-        </div>
-      </div>
-    );
-  }
+  // Mock data for now - replace with actual Jupiter API call
+  const [price] = useState(0.1234);
+  const [change24h] = useState(5.67);
 
   const isPositive = change24h >= 0;
 
