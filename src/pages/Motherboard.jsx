@@ -17,7 +17,16 @@ export default function Motherboard() {
 
   useEffect(() => {
     loadData();
-  }, []);
+
+    // Refresh chip access status every 5 minutes
+    const interval = setInterval(async () => {
+      if (user?.wallet_address) {
+        await checkNFTOwnership();
+      }
+    }, 5 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [user]);
 
   const loadData = async () => {
     setLoading(true);
