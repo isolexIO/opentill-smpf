@@ -30,21 +30,25 @@ export default function JupiterMobileQR({ onSuccess }) {
       const newSessionId = `jupiter_mobile_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       setSessionId(newSessionId);
 
-      // Create connection URL that Jupiter mobile app can recognize
-      // Use solana-wallet:// protocol for Solana Mobile Wallet Adapter
+      // Create WalletConnect-style deep link for Jupiter mobile
       const baseUrl = window.location.origin;
-      const callbackUrl = `${baseUrl}/api/mobile-auth-callback`;
       
-      // Create a simple connection URL with session ID
-      const connectUrl = `${baseUrl}?mobile_session=${newSessionId}`;
+      // Jupiter mobile app uses solana: scheme with custom parameters
+      const connectPayload = {
+        session: newSessionId,
+        app_url: baseUrl,
+        app_name: 'ChainLINK POS',
+        timestamp: Date.now()
+      };
       
-      // Use solana-wallet:// scheme for mobile wallet adapter
-      const deepLink = `solana-wallet://v1/connect?app_url=${encodeURIComponent(baseUrl)}&session=${newSessionId}&callback=${encodeURIComponent(callbackUrl)}`;
+      // Create deep link that Jupiter mobile can parse
+      const deepLink = `https://jup.ag/app?connect=${encodeURIComponent(JSON.stringify(connectPayload))}`;
       
-      // Generate QR code
+      // Generate QR code with larger size and better error correction
       const qrUrl = await QRCode.toDataURL(deepLink, {
-        width: 280,
-        margin: 2,
+        width: 300,
+        margin: 1,
+        errorCorrectionLevel: 'M',
         color: {
           dark: '#000000',
           light: '#FFFFFF'

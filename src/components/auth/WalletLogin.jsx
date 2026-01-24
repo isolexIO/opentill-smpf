@@ -151,18 +151,25 @@ export default function WalletLogin({ onSuccess, merchantId }) {
     setWalletType('Jupiter');
 
     try {
-      const provider = window?.jupiter?.solana;
+      // Jupiter wallet injects as window.jupiter
+      const provider = window?.jupiter;
       
       if (!provider) {
-        window.open('https://jup.ag/', '_blank');
-        throw new Error('Jupiter wallet is not installed. Please install it and refresh the page.');
+        window.open('https://chromewebstore.google.com/detail/jupiter-wallet/pcleombdedjjbncaalcjflmjffembhjo', '_blank');
+        throw new Error('Jupiter wallet extension is not installed. Please install it and refresh the page.');
       }
 
-      const resp = await provider.connect();
-      const publicKey = resp.publicKey.toString();
-
+      // Connect and get public key
+      await provider.connect();
+      
+      if (!provider.publicKey) {
+        throw new Error('Failed to get public key from Jupiter wallet');
+      }
+      
+      const publicKey = provider.publicKey.toString();
       console.log('Jupiter connected:', publicKey);
 
+      // Sign message for authentication
       const message = `Sign this message to login to ChainLINK POS\n\nWallet: ${publicKey}\nTimestamp: ${Date.now()}`;
       const encodedMessage = new TextEncoder().encode(message);
       const signedMessage = await provider.signMessage(encodedMessage, 'utf8');
