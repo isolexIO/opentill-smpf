@@ -2,9 +2,45 @@ import { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 
 export default function PriceTicker() {
-  // $cLINK Token Mint: FPzmBaifnDkTDi26cuiEkRGofnvF7ReXUtWT7Eebjupx
-  const [price] = useState(0.1234);
-  const [change24h] = useState(5.67);
+  const CLINK_MINT = 'FPzmBaifnDkTDi26cuiEkRGofnvF7ReXUtWT7Eebjupx';
+  const [price, setPrice] = useState(null);
+  const [change24h, setChange24h] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchLivePrice();
+    const interval = setInterval(fetchLivePrice, 60000); // Update every 60 seconds
+    return () => clearInterval(interval);
+  }, []);
+
+  const fetchLivePrice = async () => {
+    try {
+      const response = await fetch(`https://price.jup.ag/v4/price?ids=${CLINK_MINT}`);
+      const data = await response.json();
+      
+      if (data.data && data.data[CLINK_MINT]) {
+        const priceData = data.data[CLINK_MINT];
+        setPrice(priceData.price);
+        // Use price 24h ago if available, otherwise use mock change
+        const change = priceData.price24h ? ((priceData.price - priceData.price24h) / priceData.price24h) * 100 : 0;
+        setChange24h(change);
+      }
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching live price:', error);
+      setLoading(false);
+    }
+  };
+
+  if (loading || !price) {
+    return (
+      <div className="bg-gray-900 text-white py-2 overflow-hidden">
+        <div className="animate-pulse flex items-center justify-center">
+          <span className="text-sm">Loading $cLINK price...</span>
+        </div>
+      </div>
+    );
+  }
 
   const isPositive = change24h >= 0;
 

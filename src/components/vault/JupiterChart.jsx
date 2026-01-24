@@ -1,7 +1,37 @@
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TrendingUp } from 'lucide-react';
+import { TrendingUp, TrendingDown } from 'lucide-react';
 
 export default function JupiterChart() {
+  const CLINK_MINT = 'FPzmBaifnDkTDi26cuiEkRGofnvF7ReXUtWT7Eebjupx';
+  const [price, setPrice] = useState(null);
+  const [change24h, setChange24h] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchLivePrice();
+  }, []);
+
+  const fetchLivePrice = async () => {
+    try {
+      const response = await fetch(`https://price.jup.ag/v4/price?ids=${CLINK_MINT}`);
+      const data = await response.json();
+      
+      if (data.data && data.data[CLINK_MINT]) {
+        const priceData = data.data[CLINK_MINT];
+        setPrice(priceData.price);
+        const change = priceData.price24h ? ((priceData.price - priceData.price24h) / priceData.price24h) * 100 : 0;
+        setChange24h(change);
+      }
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching live price:', error);
+      setLoading(false);
+    }
+  };
+
+  const isPositive = change24h >= 0;
+
   return (
     <Card>
       <CardHeader>
@@ -10,10 +40,12 @@ export default function JupiterChart() {
       <CardContent>
         <div className="bg-gradient-to-br from-yellow-50 to-orange-50 p-8 rounded-lg text-center">
           <div className="space-y-4">
-            <div className="text-6xl font-bold text-yellow-600">$0.1234</div>
-            <div className="text-xl text-green-600 flex items-center justify-center gap-2">
-              <TrendingUp className="w-5 h-5" />
-              <span>+5.67% (24h)</span>
+            <div className="text-6xl font-bold text-yellow-600">
+              {loading ? '...' : `$${price?.toFixed(6) || '0'}`}
+            </div>
+            <div className={`text-xl flex items-center justify-center gap-2 ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+              {isPositive ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
+              <span>{change24h >= 0 ? '+' : ''}{change24h.toFixed(2)}% (24h)</span>
             </div>
             <div className="grid grid-cols-3 gap-4 mt-6">
               <div className="bg-white p-4 rounded-lg">
