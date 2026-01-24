@@ -464,53 +464,54 @@ export default function SuperAdminPage() {
           {/* Tab Content */}
           {activeTab === 'pending' && (
             <PendingMerchants />
-          </TabsContent>
+          )}
 
-          <TabsContent value="merchants">
+          {activeTab === 'merchants' && (
             <MerchantManagement />
-          </TabsContent>
+          )}
 
-          <TabsContent value="dealers">
+          {activeTab === 'dealers' && (
             <DealerManagement />
-          </TabsContent>
+          )}
 
-          <TabsContent value="subscriptions">
+          {activeTab === 'subscriptions' && (
             <SubscriptionManagement />
-          </TabsContent>
+          )}
 
-          <TabsContent value="devices">
+          {activeTab === 'devices' && (
             <DeviceShopManagement />
-          </TabsContent>
+          )}
 
-          <TabsContent value="amazon">
+          {activeTab === 'amazon' && (
             <AmazonAffiliateManager />
-          </TabsContent>
+          )}
 
-          <TabsContent value="vault">
+          {activeTab === 'vault' && (
             <VaultManager />
-          </TabsContent>
+          )}
 
-          <TabsContent value="chips">
+          {activeTab === 'chips' && (
             <ChipManager />
-          </TabsContent>
+          )}
 
-          <TabsContent value="logs">
+          {activeTab === 'logs' && (
             <SystemLogs />
-          </TabsContent>
+          )}
 
-          <TabsContent value="reports">
+          {activeTab === 'reports' && (
             <GlobalReports />
-          </TabsContent>
+          )}
 
-          <TabsContent value="ads">
+          {activeTab === 'ads' && (
             <AdvertisementManager />
-          </TabsContent>
+          )}
 
-          <TabsContent value="notifications">
+          {activeTab === 'notifications' && (
             <NotificationManager />
-          </TabsContent>
+          )}
 
-          <TabsContent value="settings" className="space-y-6">
+          {activeTab === 'settings' && (
+            <div className="space-y-6">
               {/* PIN Reset Tool */}
               <Card>
               <CardHeader>
