@@ -60,7 +60,7 @@ export default function PriceTicker() {
       <div className="animate-marquee whitespace-nowrap inline-block">
         <span className="mx-8 inline-flex items-center space-x-2">
           <span className="font-bold text-yellow-400">$cLINK</span>
-          <span className="text-lg font-semibold">${price?.toFixed(4)}</span>
+          <span className="text-lg font-semibold">${price?.toFixed(8)}</span>
           <span className={`inline-flex items-center text-sm ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
             {isPositive ? <TrendingUp className="w-3 h-3 mr-1" /> : <TrendingDown className="w-3 h-3 mr-1" />}
             {Math.abs(change24h).toFixed(2)}%
@@ -68,7 +68,7 @@ export default function PriceTicker() {
         </span>
         <span className="mx-8 inline-flex items-center space-x-2">
           <span className="font-bold text-yellow-400">$cLINK</span>
-          <span className="text-lg font-semibold">${price?.toFixed(4)}</span>
+          <span className="text-lg font-semibold">${price?.toFixed(8)}</span>
           <span className={`inline-flex items-center text-sm ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
             {isPositive ? <TrendingUp className="w-3 h-3 mr-1" /> : <TrendingDown className="w-3 h-3 mr-1" />}
             {Math.abs(change24h).toFixed(2)}%
@@ -76,7 +76,7 @@ export default function PriceTicker() {
         </span>
         <span className="mx-8 inline-flex items-center space-x-2">
           <span className="font-bold text-yellow-400">$cLINK</span>
-          <span className="text-lg font-semibold">${price?.toFixed(4)}</span>
+          <span className="text-lg font-semibold">${price?.toFixed(8)}</span>
           <span className={`inline-flex items-center text-sm ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
             {isPositive ? <TrendingUp className="w-3 h-3 mr-1" /> : <TrendingDown className="w-3 h-3 mr-1" />}
             {Math.abs(change24h).toFixed(2)}%
@@ -84,7 +84,7 @@ export default function PriceTicker() {
         </span>
         <span className="mx-8 inline-flex items-center space-x-2">
           <span className="font-bold text-yellow-400">$cLINK</span>
-          <span className="text-lg font-semibold">${price?.toFixed(4)}</span>
+          <span className="text-lg font-semibold">${price?.toFixed(8)}</span>
           <span className={`inline-flex items-center text-sm ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
             {isPositive ? <TrendingUp className="w-3 h-3 mr-1" /> : <TrendingDown className="w-3 h-3 mr-1" />}
             {Math.abs(change24h).toFixed(2)}%
