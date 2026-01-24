@@ -23,8 +23,10 @@ import {
   UserPlus
 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
+import { Cpu } from 'lucide-react';
 
 import MerchantManagement from '../components/superadmin/MerchantManagement';
+import ChipManager from '../components/superadmin/ChipManager';
 import SubscriptionManagement from '../components/superadmin/SubscriptionManagement';
 import DeviceShopManagement from '../components/superadmin/DeviceShopManagement';
 import SystemLogs from '../components/superadmin/SystemLogs';
@@ -293,7 +295,7 @@ export default function SuperAdminPage() {
 
         {/* Main Content */}
         <Tabs defaultValue="pending" className="space-y-6">
-          <TabsList className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-11 gap-2 w-full">
+          <TabsList className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-12 gap-2 w-full">
             <TabsTrigger value="pending">
               <UserPlus className="w-4 h-4 mr-2" />
               Pending
@@ -338,6 +340,10 @@ export default function SuperAdminPage() {
               <Settings className="w-4 h-4 mr-2" />
               Settings
             </TabsTrigger>
+            <TabsTrigger value="chips">
+              <Cpu className="w-4 h-4 mr-2" />
+              Chips
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="pending">
@@ -378,6 +384,10 @@ export default function SuperAdminPage() {
 
           <TabsContent value="notifications">
             <NotificationManager />
+          </TabsContent>
+          
+          <TabsContent value="chips">
+            <ChipManager />
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-6">

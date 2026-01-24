@@ -34,7 +34,8 @@ import {
   MessageCircle,
   Building2,
   Gift,
-  Sparkles
+  Sparkles,
+  Cpu
 } from 'lucide-react';
 import AdvertisingTile from '../components/system-menu/AdvertisingTile';
 
@@ -349,6 +350,15 @@ export default function SystemMenu() {
       description: 'Track active sessions',
       path: 'DeviceMonitor',
       color: 'from-violet-500 to-violet-600',
+      permission: 'admin_settings'
+    },
+    {
+      id: 'motherboard',
+      icon: <Cpu className="w-6 h-6" />,
+      title: 'Motherboard',
+      description: 'Manage your feature chips',
+      path: 'Motherboard',
+      color: 'from-blue-600 to-purple-600',
       permission: 'admin_settings'
     },
   ];
