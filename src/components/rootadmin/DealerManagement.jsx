@@ -35,8 +35,10 @@ import {
   Settings,
   Palette,
   Globe,
-  CreditCard
+  CreditCard,
+  Link2
 } from 'lucide-react';
+import DealerSubdomainManager from './DealerSubdomainManager';
 
 export default function DealerManagement() {
   const [dealers, setDealers] = useState([]);
@@ -337,7 +339,7 @@ export default function DealerManagement() {
           
           {editDialog.dealer && (
             <Tabs value={editDialog.tab} onValueChange={(tab) => setEditDialog({...editDialog, tab})}>
-              <TabsList className="grid w-full grid-cols-5">
+              <TabsList className="grid w-full grid-cols-6">
                 <TabsTrigger value="basic">
                   <Building2 className="w-4 h-4 mr-2" />
                   Basic
@@ -345,6 +347,10 @@ export default function DealerManagement() {
                 <TabsTrigger value="branding">
                   <Palette className="w-4 h-4 mr-2" />
                   Branding
+                </TabsTrigger>
+                <TabsTrigger value="subdomain">
+                  <Link2 className="w-4 h-4 mr-2" />
+                  Subdomain
                 </TabsTrigger>
                 <TabsTrigger value="domain">
                   <Globe className="w-4 h-4 mr-2" />
@@ -508,6 +514,22 @@ export default function DealerManagement() {
                 }}>
                   <p className="text-white font-bold text-center">Brand Preview</p>
                 </div>
+              </TabsContent>
+
+              {/* Subdomain Tab */}
+              <TabsContent value="subdomain" className="space-y-4">
+                {editDialog.dealer.id ? (
+                  <DealerSubdomainManager 
+                    dealer={editDialog.dealer} 
+                    onUpdate={loadDealers}
+                  />
+                ) : (
+                  <Alert>
+                    <AlertDescription>
+                      Save the dealer first before managing subdomain
+                    </AlertDescription>
+                  </Alert>
+                )}
               </TabsContent>
 
               {/* Domain Tab */}
