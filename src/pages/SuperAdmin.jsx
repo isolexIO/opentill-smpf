@@ -511,8 +511,8 @@ export default function SuperAdminPage() {
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-6">
-            {/* PIN Reset Tool */}
-            <Card>
+              {/* PIN Reset Tool */}
+              <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Key className="w-5 h-5" />
@@ -573,8 +573,8 @@ export default function SuperAdminPage() {
               </CardContent>
             </Card>
 
-            {/* Password Reset Tool */}
-            <Card>
+              {/* Password Reset Tool */}
+              <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Key className="w-5 h-5" />
@@ -635,9 +635,9 @@ export default function SuperAdminPage() {
               </CardContent>
             </Card>
 
-            {/* Other Settings components */}
-            <SubscriptionPlansManager />
-            <PaymentSettingsManager />
+              {/* Other Settings components */}
+              <SubscriptionPlansManager />
+              <PaymentSettingsManager />
               <LandingPageEditor />
               <DealerLandingEditor />
               <DemoMenuManager />
