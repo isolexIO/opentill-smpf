@@ -604,7 +604,7 @@ export default function UserManual() {
         },
         {
           title: 'Sync Issues',
-          content: 'Data not syncing:\n\n1. Check Internet:\n   • Verify connection\n   • Test speed\n   • Restart router\n\n2. Verify Account:\n   • Confirm logged in\n   • Check account status (not suspended)\n   • Verify subscription active\n\n3. Force Refresh:\n   • Press F5 or Ctrl+R\n   • Or pull down to refresh on mobile\n\n4. Clear Cache:\n   • Browser settings\n   • Clear cached data\n   • Reload page\n\n5. Log Out/In:\n   • Sign out completely\n   • Close browser\n   • Open and log in again\n\n6. Different Device:\n   • Try accessing from another device\n   • If works there, issue with original device\n   • If not, server-side issue\n\n7. Contact Support:\n   • If still not syncing\n   • Provide details:\n     - What's not syncing\n     - When started\n     - Error messages\n     - Screenshots'
+          content: 'Data not syncing:\n\n1. Check Internet:\n   • Verify connection\n   • Test speed\n   • Restart router\n\n2. Verify Account:\n   • Confirm logged in\n   • Check account status (not suspended)\n   • Verify subscription active\n\n3. Force Refresh:\n   • Press F5 or Ctrl+R\n   • Or pull down to refresh on mobile\n\n4. Clear Cache:\n   • Browser settings\n   • Clear cached data\n   • Reload page\n\n5. Log Out/In:\n   • Sign out completely\n   • Close browser\n   • Open and log in again\n\n6. Different Device:\n   • Try accessing from another device\n   • If works there, issue with original device\n   • If not, server-side issue\n\n7. Contact Support:\n   • If still not syncing\n   • Provide details:\n     - What is not syncing\n     - When started\n     - Error messages\n     - Screenshots'
         },
         {
           title: 'Payment Gateway Errors',
@@ -639,7 +639,7 @@ export default function UserManual() {
           content: 'Navigate to Orders → Find transaction → Click order to view details → Click "Refund" button → Select full or partial refund → Enter reason (optional) → Process refund. Refund is processed through original payment gateway. Customer receives refund in 5-10 business days for cards, instantly for crypto/cash.'
         },
         {
-          title: 'What if my card reader isn\'t connecting?',
+          title: 'What if my card reader is not connecting?',
           content: 'Check: 1) Device powered on, 2) Cables secure, 3) IP address correct in Settings → Devices, 4) Test connection. If network reader, verify on same network. Restart reader. If issues persist, contact Device Shop support for hardware troubleshooting.'
         },
         {
@@ -655,7 +655,7 @@ export default function UserManual() {
           content: 'Settings → Online Ordering → Enable Online Ordering → Configure delivery/pickup options, operating hours, minimum order → Set up payment methods → Brand your menu (logo, colors) → Get your unique menu URL → Share with customers. Orders appear in "Online Orders" section.'
         },
         {
-          title: 'What\'s the difference between Super Admin and Merchant Admin?',
+          title: 'What is the difference between Super Admin and Merchant Admin?',
           content: 'Super Admin: Platform team members (ChainLINK staff) with access to all merchants, system configuration, and platform-wide settings. Used for support and management.\n\nMerchant Admin: Business owner/manager with full access to their own merchant account only. Can manage products, employees, settings, but cannot access other merchants or platform settings.'
         },
         {
