@@ -20,7 +20,7 @@ export default function VaultManager() {
     staking_apy: 12,
     staking_lockup_days: 90,
     jupiter_referral_code: '',
-    clink_mint_address: '',
+    clink_mint_address: 'FPzmBaifnDkTDi26cuiEkRGofnvF7ReXUtWT7Eebjupx',
     auto_calculate_rewards: true
   });
 
@@ -44,7 +44,7 @@ export default function VaultManager() {
           staking_apy: settings[0].staking_apy ?? 12,
           staking_lockup_days: settings[0].staking_lockup_days ?? 90,
           jupiter_referral_code: settings[0].jupiter_referral_code || '',
-          clink_mint_address: settings[0].clink_mint_address || '',
+          clink_mint_address: settings[0].clink_mint_address || 'FPzmBaifnDkTDi26cuiEkRGofnvF7ReXUtWT7Eebjupx',
           auto_calculate_rewards: settings[0].auto_calculate_rewards ?? true
         });
       }
