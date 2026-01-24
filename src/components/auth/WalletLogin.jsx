@@ -98,37 +98,44 @@ export default function WalletLogin({ onSuccess, merchantId }) {
     }
   };
 
-  const connectBackpack = async () => {
+  const connectMobileWallet = async () => {
     setConnecting(true);
     setError('');
-    setWalletType('Backpack');
+    setWalletType('Mobile');
 
     try {
-      const provider = window?.backpack;
+      // Check if on mobile
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      
+      if (!isMobile) {
+        throw new Error('Solana Mobile Wallet Adapter is only available on mobile devices');
+      }
+
+      // Use Solana Mobile Wallet Adapter
+      const provider = window?.solana;
       
       if (!provider) {
-        window.open('https://backpack.app/', '_blank');
-        throw new Error('Backpack wallet is not installed. Please install it and refresh the page.');
+        throw new Error('No Solana wallet found on this mobile device');
       }
 
       const resp = await provider.connect();
       const publicKey = resp.publicKey.toString();
 
-      console.log('Backpack connected:', publicKey);
+      console.log('Mobile Wallet connected:', publicKey);
 
       const message = `Sign this message to login to ChainLINK POS\n\nWallet: ${publicKey}\nTimestamp: ${Date.now()}`;
       const encodedMessage = new TextEncoder().encode(message);
       const signedMessage = await provider.signMessage(encodedMessage, 'utf8');
 
-      await authenticateWallet(publicKey, 'backpack', {
+      await authenticateWallet(publicKey, 'mobile', {
         signature: Array.from(signedMessage.signature),
         message: message
       });
 
     } catch (err) {
-      console.error('Backpack connection error:', err);
+      console.error('Mobile Wallet connection error:', err);
       if (!err.message?.includes('User rejected')) {
-        setError(err.message || 'Failed to connect to Backpack wallet');
+        setError(err.message || 'Failed to connect mobile wallet');
       }
     } finally {
       setConnecting(false);
@@ -174,61 +181,7 @@ export default function WalletLogin({ onSuccess, merchantId }) {
     }
   };
 
-  const connectWalletConnect = async () => {
-    setConnecting(true);
-    setError('');
-    setWalletType('WalletConnect');
 
-    try {
-      // Check if Ethereum provider is available
-      if (typeof window === 'undefined' || typeof window.ethereum === 'undefined') {
-        window.open('https://metamask.io/download/', '_blank');
-        throw new Error('MetaMask is not installed. Please install MetaMask browser extension and refresh the page.');
-      }
-
-      // Request account access
-      const accounts = await window.ethereum.request({ 
-        method: 'eth_requestAccounts' 
-      });
-
-      if (!accounts || accounts.length === 0) {
-        throw new Error('No accounts found in wallet');
-      }
-
-      const address = accounts[0];
-      console.log('MetaMask connected:', address);
-
-      // Sign a message to verify ownership
-      const message = `Sign this message to login to ChainLINK POS\n\nWallet: ${address}\nTimestamp: ${Date.now()}`;
-      const signature = await window.ethereum.request({
-        method: 'personal_sign',
-        params: [message, address]
-      });
-
-      // Authenticate with backend
-      await authenticateWallet(address, 'ethereum', {
-        signature: signature,
-        message: message
-      });
-
-    } catch (err) {
-      console.error('MetaMask connection error:', err);
-      
-      // Don't show error if user rejected the request
-      if (err.code === 4001 || err.message?.includes('User rejected')) {
-        console.log('User rejected connection request');
-      } else if (err.code === -32002) {
-        setError('Connection request already pending. Please check MetaMask.');
-      } else if (err.message?.includes('not installed')) {
-        setError(err.message);
-      } else {
-        setError('Failed to connect to MetaMask. Please try again.');
-      }
-    } finally {
-      setConnecting(false);
-      setWalletType('');
-    }
-  };
 
   const authenticateWallet = async (walletAddress, walletType, signatureData) => {
     try {
@@ -285,7 +238,7 @@ export default function WalletLogin({ onSuccess, merchantId }) {
           Login with Crypto Wallet
         </CardTitle>
         <CardDescription>
-          Connect your Solana or Ethereum wallet to login securely
+          Connect your Solana wallet to login securely
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -331,23 +284,6 @@ export default function WalletLogin({ onSuccess, merchantId }) {
             <span>Solflare Wallet</span>
           </Button>
 
-          {/* Backpack Wallet */}
-          <Button
-            onClick={connectBackpack}
-            disabled={connecting}
-            variant="outline"
-            className="w-full justify-start h-12"
-          >
-            {connecting && walletType === 'Backpack' ? (
-              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-            ) : (
-              <div className="w-5 h-5 mr-2 bg-black rounded-lg flex items-center justify-center">
-                <Wallet className="w-3 h-3 text-white" />
-              </div>
-            )}
-            <span>Backpack Wallet</span>
-          </Button>
-
           {/* Jupiter Wallet */}
           <Button
             onClick={connectJupiter}
@@ -368,24 +304,21 @@ export default function WalletLogin({ onSuccess, merchantId }) {
             <span>Jupiter Wallet</span>
           </Button>
 
-          {/* MetaMask / WalletConnect */}
+          {/* Solana Mobile Wallet Adapter */}
           <Button
-            onClick={connectWalletConnect}
+            onClick={connectMobileWallet}
             disabled={connecting}
             variant="outline"
             className="w-full justify-start h-12"
           >
-            {connecting && walletType === 'WalletConnect' ? (
+            {connecting && walletType === 'Mobile' ? (
               <Loader2 className="w-5 h-5 mr-2 animate-spin" />
             ) : (
-              <img 
-                src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" 
-                alt="MetaMask" 
-                className="w-5 h-5 mr-2"
-                onError={(e) => e.target.style.display = 'none'}
-              />
+              <div className="w-5 h-5 mr-2 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-lg flex items-center justify-center">
+                <Wallet className="w-3 h-3 text-white" />
+              </div>
             )}
-            <span>MetaMask / WalletConnect</span>
+            <span>Mobile Wallet (Solana)</span>
           </Button>
         </div>
 
