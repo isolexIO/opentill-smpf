@@ -36,6 +36,7 @@ import {
   Plus
 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
+import SubdomainManager from './SubdomainManager';
 
 export default function MerchantManagement({ onUpdate }) {
   const [merchants, setMerchants] = useState([]);
@@ -525,6 +526,13 @@ export default function MerchantManagement({ onUpdate }) {
             </div>
           </DialogContent>
         </Dialog>
+      )}
+
+      {/* Subdomain Manager in Details Dialog */}
+      {selectedMerchant && showDetails && (
+        <div className="mt-4">
+          <SubdomainManager merchant={selectedMerchant} onUpdate={loadMerchants} />
+        </div>
       )}
 
       {/* Add Merchant Dialog */}
