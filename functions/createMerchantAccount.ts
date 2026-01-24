@@ -41,11 +41,8 @@ Deno.serve(async (req) => {
                 });
             }
             
-            // Update merchant status
-            await base44.asServiceRole.entities.Merchant.update(merchant_id, {
-                status: 'active',
-                activated_at: new Date().toISOString()
-            });
+            // Status is already updated before this function is called by Super Admin
+            // This function only creates the user account now
             
             return Response.json({
                 success: true,
@@ -73,7 +70,7 @@ Deno.serve(async (req) => {
             }, { status: 400 });
         }
 
-        // Create merchant
+        // Create merchant - always start as INACTIVE until Super Admin manually activates
         const merchant = await base44.asServiceRole.entities.Merchant.create({
             business_name: business_name.trim(),
             display_name: business_name.trim(),
@@ -82,9 +79,9 @@ Deno.serve(async (req) => {
             phone: phone || '',
             address: address || '',
             dealer_id: dealer_id || null,
-            status: 'trial',
-            trial_ends_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-            subscription_plan: 'basic',
+            status: 'inactive',
+            trial_ends_at: null,
+            subscription_plan: 'free',
             onboarding_completed: false,
             total_revenue: 0,
             total_orders: 0,
