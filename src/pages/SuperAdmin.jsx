@@ -20,10 +20,11 @@ import {
   Key,
   LogOut,
   Home,
-  UserPlus
+  UserPlus,
+  Cpu,
+  Vault
 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
-import { Cpu } from 'lucide-react';
 
 import MerchantManagement from '../components/superadmin/MerchantManagement';
 import ChipManager from '../components/superadmin/ChipManager';
@@ -41,6 +42,7 @@ import DemoMenuManager from '../components/superadmin/DemoMenuManager';
 import DealerManagement from '../components/rootadmin/DealerManagement';
 import PendingMerchants from '../components/superadmin/PendingMerchants';
 import AmazonAffiliateManager from '../components/superadmin/AmazonAffiliateManager';
+import VaultManager from '../components/superadmin/VaultManager';
 
 export default function SuperAdminPage() {
   const [user, setUser] = useState(null);
@@ -320,9 +322,17 @@ export default function SuperAdminPage() {
               <Package className="w-4 h-4 mr-2" />
               Amazon
             </TabsTrigger>
+            <TabsTrigger value="vault">
+              <Vault className="w-4 h-4 mr-2" />
+              Vault
+            </TabsTrigger>
+            <TabsTrigger value="chips">
+              <Cpu className="w-4 h-4 mr-2" />
+              Chips
+            </TabsTrigger>
             <TabsTrigger value="logs">
               <FileText className="w-4 h-4 mr-2" />
-              System Logs
+              Logs
             </TabsTrigger>
             <TabsTrigger value="reports">
               <TrendingUp className="w-4 h-4 mr-2" />
@@ -330,19 +340,15 @@ export default function SuperAdminPage() {
             </TabsTrigger>
             <TabsTrigger value="ads">
               <Building2 className="w-4 h-4 mr-2" />
-              Advertising
+              Ads
             </TabsTrigger>
             <TabsTrigger value="notifications">
               <Building2 className="w-4 h-4 mr-2" />
-              Notifications
+              Notify
             </TabsTrigger>
             <TabsTrigger value="settings">
               <Settings className="w-4 h-4 mr-2" />
               Settings
-            </TabsTrigger>
-            <TabsTrigger value="chips">
-              <Cpu className="w-4 h-4 mr-2" />
-              Chips
             </TabsTrigger>
           </TabsList>
 
@@ -370,6 +376,14 @@ export default function SuperAdminPage() {
             <AmazonAffiliateManager />
           </TabsContent>
 
+          <TabsContent value="vault">
+            <VaultManager />
+          </TabsContent>
+
+          <TabsContent value="chips">
+            <ChipManager />
+          </TabsContent>
+
           <TabsContent value="logs">
             <SystemLogs />
           </TabsContent>
@@ -384,10 +398,6 @@ export default function SuperAdminPage() {
 
           <TabsContent value="notifications">
             <NotificationManager />
-          </TabsContent>
-          
-          <TabsContent value="chips">
-            <ChipManager />
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-6">
