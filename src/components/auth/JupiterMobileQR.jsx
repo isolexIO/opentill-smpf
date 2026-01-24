@@ -27,23 +27,18 @@ export default function JupiterMobileQR({ onSuccess }) {
       setStatus('generating');
       
       // Generate unique session ID
-      const newSessionId = `sol_mobile_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const newSessionId = `jup_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       setSessionId(newSessionId);
 
       const baseUrl = window.location.origin;
       
-      // Use Solana Mobile Wallet Adapter protocol - the standard for mobile wallets
-      const params = new URLSearchParams({
-        dapp_encryption_public_key: newSessionId,
-        cluster: 'mainnet-beta',
-        app_url: baseUrl,
-        redirect_link: `${baseUrl}?session=${newSessionId}`
-      });
+      // Create a simple callback URL that mobile wallets can open
+      // This URL will contain the session ID and redirect back after auth
+      const callbackUrl = `${baseUrl}?mobile_auth=${newSessionId}`;
       
-      const deepLink = `solana-wallet://v1/associate/local?${params.toString()}`;
-      
-      // Generate QR code
-      const qrUrl = await QRCode.toDataURL(deepLink, {
+      // Generate QR code with just the callback URL
+      // Mobile app will scan this, connect wallet, sign message, and redirect back
+      const qrUrl = await QRCode.toDataURL(callbackUrl, {
         width: 300,
         margin: 2,
         errorCorrectionLevel: 'H',
@@ -131,10 +126,10 @@ export default function JupiterMobileQR({ onSuccess }) {
                 <div className="space-y-2">
                   <p className="font-semibold">How to connect:</p>
                   <ol className="text-sm space-y-1 ml-4 list-decimal">
-                    <li>Open Jupiter app on your mobile device</li>
-                    <li>Tap the scan icon</li>
-                    <li>Scan this QR code</li>
-                    <li>Approve the connection request</li>
+                    <li>Scan this QR code with your phone camera or QR scanner</li>
+                    <li>Your browser will open and prompt you to open Jupiter wallet</li>
+                    <li>Approve the connection in Jupiter app</li>
+                    <li>You'll be redirected back after signing</li>
                   </ol>
                 </div>
               </AlertDescription>
