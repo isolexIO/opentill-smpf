@@ -21,6 +21,7 @@ import {
   Shield
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import PriceTicker from '@/components/vault/PriceTicker';
 
 export default function HomePage() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -673,6 +674,9 @@ export default function HomePage() {
           </motion.div>
         </div>
       </section>
+
+      {/* Price Ticker */}
+      <PriceTicker />
 
       {/* Footer */}
       <footer className="bg-black/30 backdrop-blur-md border-t border-white/10 py-12">

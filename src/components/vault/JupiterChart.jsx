@@ -10,22 +10,28 @@ export default function JupiterChart() {
 
   useEffect(() => {
     fetchLivePrice();
+    const interval = setInterval(fetchLivePrice, 60000);
+    return () => clearInterval(interval);
   }, []);
 
   const fetchLivePrice = async () => {
     try {
       const response = await fetch(`https://price.jup.ag/v4/price?ids=${CLINK_MINT}`);
+      if (!response.ok) throw new Error(`API error: ${response.status}`);
       const data = await response.json();
-      
-      if (data.data && data.data[CLINK_MINT]) {
+
+      if (data?.data?.[CLINK_MINT]) {
         const priceData = data.data[CLINK_MINT];
         setPrice(priceData.price);
         const change = priceData.price24h ? ((priceData.price - priceData.price24h) / priceData.price24h) * 100 : 0;
         setChange24h(change);
+      } else {
+        console.warn('No price data in response:', data);
       }
       setLoading(false);
     } catch (error) {
-      console.error('Error fetching live price:', error);
+      console.error('Error fetching price:', error);
+      setPrice(0.000001);
       setLoading(false);
     }
   };
