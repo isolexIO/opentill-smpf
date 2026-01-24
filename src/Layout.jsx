@@ -39,6 +39,7 @@ export default function Layout({ children, currentPageName }) {
   const [loading, setLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [error, setError] = useState(null);
+  const [merchantStatus, setMerchantStatus] = useState(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -286,13 +287,25 @@ export default function Layout({ children, currentPageName }) {
       }
       
       setDealer(foundDealer);
-    } catch (error) {
+
+      // Load merchant status if user has merchant_id
+      if (pinUser?.merchant_id) {
+        try {
+          const merchants = await base44.entities.Merchant.filter({ id: pinUser.merchant_id });
+          if (merchants && merchants.length > 0) {
+            setMerchantStatus(merchants[0].status);
+          }
+        } catch (e) {
+          console.warn('Could not load merchant status:', e);
+        }
+      }
+      } catch (error) {
       console.error('Auth load error:', error);
       setError('Unable to load authentication. Please check your connection and try again.');
       // Don't break the app - allow public pages to still load
-    } finally {
+      } finally {
       setLoading(false);
-    }
+      }
   };
 
   const handlePinLogout = () => {
@@ -345,31 +358,24 @@ export default function Layout({ children, currentPageName }) {
   }
 
   // Block inactive merchants from accessing the platform
-  if (pinUser && pinUser.merchant_id && pinUser.role !== 'admin' && !PUBLIC_PAGES.includes(currentPageName)) {
-    try {
-      const merchants = await base44.entities.Merchant.filter({ id: pinUser.merchant_id });
-      if (merchants && merchants.length > 0 && merchants[0].status === 'inactive') {
-        return (
-          <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
-            <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 text-center">
-              <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <AlertCircle className="w-10 h-10 text-yellow-600" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Account Pending Activation</h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">
-                Your merchant account is currently being reviewed by our team. 
-                You'll receive an email once your account has been activated.
-              </p>
-              <Button onClick={() => base44.auth.logout(createPageUrl('Home'))} className="w-full">
-                Sign Out
-              </Button>
-            </div>
+  if (pinUser && pinUser.merchant_id && pinUser.role !== 'admin' && merchantStatus === 'inactive' && !PUBLIC_PAGES.includes(currentPageName)) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 text-center">
+          <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <AlertCircle className="w-10 h-10 text-yellow-600" />
           </div>
-        );
-      }
-    } catch (e) {
-      console.warn('Error checking merchant status:', e);
-    }
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Account Pending Activation</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">
+            Your merchant account is currently being reviewed by our team. 
+            You'll receive an email once your account has been activated.
+          </p>
+          <Button onClick={() => base44.auth.logout(createPageUrl('Home'))} className="w-full">
+            Sign Out
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   const primaryColor = dealer?.primary_color || '#7B2FD6';
