@@ -30,19 +30,11 @@ export default function JupiterMobileQR({ onSuccess }) {
       const newSessionId = `sol_mobile_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       setSessionId(newSessionId);
 
-      // Store session in backend for polling
-      await base44.functions.invoke('authenticateMobile', {
-        session_id: newSessionId,
-        action: 'init'
-      });
-
       const baseUrl = window.location.origin;
-      const appName = 'ChainLINK POS';
       
       // Use Solana Mobile Wallet Adapter protocol - the standard for mobile wallets
-      // Format: solana-wallet://v1/connect?...
       const params = new URLSearchParams({
-        dapp_encryption_public_key: newSessionId, // Use session as identifier
+        dapp_encryption_public_key: newSessionId,
         cluster: 'mainnet-beta',
         app_url: baseUrl,
         redirect_link: `${baseUrl}?session=${newSessionId}`
@@ -69,7 +61,7 @@ export default function JupiterMobileQR({ onSuccess }) {
 
     } catch (err) {
       console.error('QR generation error:', err);
-      setError('Failed to generate QR code');
+      setError('Failed to generate QR code: ' + err.message);
       setStatus('error');
     }
   };
