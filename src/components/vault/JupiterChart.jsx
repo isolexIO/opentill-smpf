@@ -41,7 +41,7 @@ export default function JupiterChart() {
         <div className="bg-gradient-to-br from-yellow-50 to-orange-50 p-8 rounded-lg text-center">
           <div className="space-y-4">
             <div className="text-6xl font-bold text-yellow-600">
-              {loading ? '...' : `$${price?.toFixed(6) || '0'}`}
+              {loading ? '...' : `$${price?.toFixed(8) || '0.00000000'}`}
             </div>
             <div className={`text-xl flex items-center justify-center gap-2 ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
               {isPositive ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
