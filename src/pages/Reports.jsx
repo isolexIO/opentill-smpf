@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BarChart3, Download, RefreshCw, FileText, TrendingUp, Users, Clock } from "lucide-react";
+import { BarChart3, Download, RefreshCw, FileText, TrendingUp, Users, Clock, Sparkles } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import SalesReport from "../components/reports/SalesReport";
@@ -12,6 +12,8 @@ import EmployeePerformanceReport from "../components/reports/EmployeePerformance
 import TimeTrackingReport from "../components/reports/TimeTrackingReport";
 import PresetReports from "../components/reports/PresetReports";
 import PermissionGate from '../components/PermissionGate';
+import FeatureGate from '../components/motherboard/FeatureGate.jsx';
+import PremiumAnalytics from '../components/reports/PremiumAnalytics.jsx';
 
 export default function ReportsPage() {
   const [orders, setOrders] = useState([]);
@@ -195,6 +197,10 @@ export default function ReportsPage() {
                 <TrendingUp className="w-4 h-4 mr-2" />
                 Sales
               </TabsTrigger>
+              <TabsTrigger value="premium" className="dark:data-[state=active]:bg-gray-700 dark:text-gray-200">
+                <Sparkles className="w-4 h-4 mr-2" />
+                Premium Analytics
+              </TabsTrigger>
               <TabsTrigger value="employees" className="dark:data-[state=active]:bg-gray-700 dark:text-gray-200">
                 <Users className="w-4 h-4 mr-2" />
                 Employees
@@ -219,6 +225,15 @@ export default function ReportsPage() {
                 selectedEmployee={selectedEmployee}
                 selectedDepartment={selectedDepartment}
               />
+            </TabsContent>
+
+            <TabsContent value="premium">
+              <FeatureGate chipName="Advanced Analytics">
+                <PremiumAnalytics 
+                  merchantId={currentUser?.merchant_id}
+                  dateRange={dateRange}
+                />
+              </FeatureGate>
             </TabsContent>
 
             <TabsContent value="employees">
