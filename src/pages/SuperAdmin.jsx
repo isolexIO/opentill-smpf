@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -47,6 +47,7 @@ import VaultManager from '../components/superadmin/VaultManager';
 export default function SuperAdminPage() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('pending');
   const [stats, setStats] = useState({
     totalMerchants: 0,
     activeMerchants: 0,
@@ -213,47 +214,212 @@ export default function SuperAdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <Shield className="w-8 h-8 text-red-600 mr-3" />
-              <div>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">Super Admin Dashboard</h1>
-                {user && (
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Logged in as: {user.email} ({user.role})
-                  </p>
-                )}
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => window.location.href = createPageUrl('Home')}
-              >
-                <Home className="w-4 h-4 mr-2" />
-                Home
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleLogout}
-                className="text-red-600 border-red-600 hover:bg-red-50"
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Logout
-              </Button>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
+      {/* Sidebar */}
+      <div className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex-shrink-0 fixed h-full overflow-y-auto">
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center gap-3">
+            <Shield className="w-8 h-8 text-red-600" />
+            <div>
+              <h1 className="text-lg font-bold text-gray-900 dark:text-white">Super Admin</h1>
+              {user && (
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {user.email}
+                </p>
+              )}
             </div>
           </div>
         </div>
+
+        <nav className="p-2">
+          <button
+            onClick={() => setActiveTab('pending')}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
+              activeTab === 'pending'
+                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+            }`}
+          >
+            <UserPlus className="w-4 h-4" />
+            <span className="text-sm font-medium">Pending</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('merchants')}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
+              activeTab === 'merchants'
+                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+            }`}
+          >
+            <Users className="w-4 h-4" />
+            <span className="text-sm font-medium">Merchants</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('dealers')}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
+              activeTab === 'dealers'
+                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+            }`}
+          >
+            <Building2 className="w-4 h-4" />
+            <span className="text-sm font-medium">Dealers</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('subscriptions')}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
+              activeTab === 'subscriptions'
+                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+            }`}
+          >
+            <CreditCard className="w-4 h-4" />
+            <span className="text-sm font-medium">Subscriptions</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('devices')}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
+              activeTab === 'devices'
+                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+            }`}
+          >
+            <Package className="w-4 h-4" />
+            <span className="text-sm font-medium">Device Shop</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('amazon')}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
+              activeTab === 'amazon'
+                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+            }`}
+          >
+            <Package className="w-4 h-4" />
+            <span className="text-sm font-medium">Amazon</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('vault')}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
+              activeTab === 'vault'
+                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+            }`}
+          >
+            <Vault className="w-4 h-4" />
+            <span className="text-sm font-medium">Vault</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('chips')}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
+              activeTab === 'chips'
+                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+            }`}
+          >
+            <Cpu className="w-4 h-4" />
+            <span className="text-sm font-medium">Chips</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('logs')}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
+              activeTab === 'logs'
+                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+            }`}
+          >
+            <FileText className="w-4 h-4" />
+            <span className="text-sm font-medium">Logs</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('reports')}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
+              activeTab === 'reports'
+                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+            }`}
+          >
+            <TrendingUp className="w-4 h-4" />
+            <span className="text-sm font-medium">Reports</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('ads')}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
+              activeTab === 'ads'
+                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+            }`}
+          >
+            <Building2 className="w-4 h-4" />
+            <span className="text-sm font-medium">Ads</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('notifications')}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
+              activeTab === 'notifications'
+                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+            }`}
+          >
+            <AlertCircle className="w-4 h-4" />
+            <span className="text-sm font-medium">Notifications</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('settings')}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
+              activeTab === 'settings'
+                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+            }`}
+          >
+            <Settings className="w-4 h-4" />
+            <span className="text-sm font-medium">Settings</span>
+          </button>
+
+          <div className="border-t border-gray-200 dark:border-gray-700 my-2 pt-2">
+            <button
+              onClick={() => window.location.href = createPageUrl('Home')}
+              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+            >
+              <Home className="w-4 h-4" />
+              <span className="text-sm font-medium">Home</span>
+            </button>
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+            >
+              <LogOut className="w-4 h-4" />
+              <span className="text-sm font-medium">Logout</span>
+            </button>
+          </div>
+        </nav>
       </div>
 
-      <div className="max-w-7xl mx-auto p-6">
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      {/* Main Content */}
+      <div className="flex-1 ml-64">
+        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10 shadow-sm">
+          <div className="px-6 py-4">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+              {activeTab === 'pending' && 'Pending Merchants'}
+              {activeTab === 'merchants' && 'Merchant Management'}
+              {activeTab === 'dealers' && 'Dealer Management'}
+              {activeTab === 'subscriptions' && 'Subscription Management'}
+              {activeTab === 'devices' && 'Device Shop'}
+              {activeTab === 'amazon' && 'Amazon Affiliate'}
+              {activeTab === 'vault' && '$cLINK Vault'}
+              {activeTab === 'chips' && 'Chip Manager'}
+              {activeTab === 'logs' && 'System Logs'}
+              {activeTab === 'reports' && 'Global Reports'}
+              {activeTab === 'ads' && 'Advertising'}
+              {activeTab === 'notifications' && 'Notifications'}
+              {activeTab === 'settings' && 'Settings'}
+            </h2>
+          </div>
+        </div>
+
+        <div className="p-6">
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Merchants</CardTitle>
@@ -295,64 +461,8 @@ export default function SuperAdminPage() {
           </Card>
         </div>
 
-        {/* Main Content */}
-        <Tabs defaultValue="pending" className="space-y-6">
-          <TabsList className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-12 gap-2 w-full">
-            <TabsTrigger value="pending">
-              <UserPlus className="w-4 h-4 mr-2" />
-              Pending
-            </TabsTrigger>
-            <TabsTrigger value="merchants">
-              <Users className="w-4 h-4 mr-2" />
-              Merchants
-            </TabsTrigger>
-            <TabsTrigger value="dealers">
-              <Building2 className="w-4 h-4 mr-2" />
-              Dealers
-            </TabsTrigger>
-            <TabsTrigger value="subscriptions">
-              <CreditCard className="w-4 h-4 mr-2" />
-              Subscriptions
-            </TabsTrigger>
-            <TabsTrigger value="devices">
-              <Package className="w-4 h-4 mr-2" />
-              Device Shop
-            </TabsTrigger>
-            <TabsTrigger value="amazon">
-              <Package className="w-4 h-4 mr-2" />
-              Amazon
-            </TabsTrigger>
-            <TabsTrigger value="vault">
-              <Vault className="w-4 h-4 mr-2" />
-              Vault
-            </TabsTrigger>
-            <TabsTrigger value="chips">
-              <Cpu className="w-4 h-4 mr-2" />
-              Chips
-            </TabsTrigger>
-            <TabsTrigger value="logs">
-              <FileText className="w-4 h-4 mr-2" />
-              Logs
-            </TabsTrigger>
-            <TabsTrigger value="reports">
-              <TrendingUp className="w-4 h-4 mr-2" />
-              Reports
-            </TabsTrigger>
-            <TabsTrigger value="ads">
-              <Building2 className="w-4 h-4 mr-2" />
-              Ads
-            </TabsTrigger>
-            <TabsTrigger value="notifications">
-              <Building2 className="w-4 h-4 mr-2" />
-              Notify
-            </TabsTrigger>
-            <TabsTrigger value="settings">
-              <Settings className="w-4 h-4 mr-2" />
-              Settings
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="pending">
+          {/* Tab Content */}
+          {activeTab === 'pending' && (
             <PendingMerchants />
           </TabsContent>
 
@@ -528,11 +638,12 @@ export default function SuperAdminPage() {
             {/* Other Settings components */}
             <SubscriptionPlansManager />
             <PaymentSettingsManager />
-            <LandingPageEditor />
-            <DealerLandingEditor />
-            <DemoMenuManager />
-          </TabsContent>
-        </Tabs>
+              <LandingPageEditor />
+              <DealerLandingEditor />
+              <DemoMenuManager />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
