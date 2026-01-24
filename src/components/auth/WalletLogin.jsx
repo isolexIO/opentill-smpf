@@ -2,14 +2,16 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Wallet, Loader2, AlertCircle } from 'lucide-react';
+import { Wallet, Loader2, AlertCircle, QrCode } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
+import JupiterMobileQR from './JupiterMobileQR';
 
 export default function WalletLogin({ onSuccess, merchantId }) {
   const [connecting, setConnecting] = useState(false);
   const [error, setError] = useState('');
   const [walletType, setWalletType] = useState('');
+  const [showJupiterQR, setShowJupiterQR] = useState(false);
 
   // Auto-clear error after 4 seconds
   useEffect(() => {
@@ -230,6 +232,10 @@ export default function WalletLogin({ onSuccess, merchantId }) {
     }
   };
 
+  if (showJupiterQR) {
+    return <JupiterMobileQR onSuccess={onSuccess} />;
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -284,7 +290,7 @@ export default function WalletLogin({ onSuccess, merchantId }) {
             <span>Solflare Wallet</span>
           </Button>
 
-          {/* Jupiter Wallet */}
+          {/* Jupiter Wallet (Desktop) */}
           <Button
             onClick={connectJupiter}
             disabled={connecting}
@@ -301,7 +307,18 @@ export default function WalletLogin({ onSuccess, merchantId }) {
                 onError={(e) => e.target.style.display = 'none'}
               />
             )}
-            <span>Jupiter Wallet</span>
+            <span>Jupiter Wallet (Desktop)</span>
+          </Button>
+
+          {/* Jupiter Mobile - QR Code */}
+          <Button
+            onClick={() => setShowJupiterQR(true)}
+            disabled={connecting}
+            variant="outline"
+            className="w-full justify-start h-12 border-2 border-green-500 hover:bg-green-50"
+          >
+            <QrCode className="w-5 h-5 mr-2 text-green-600" />
+            <span>Jupiter Mobile (Scan QR)</span>
           </Button>
 
           {/* Solana Mobile Wallet Adapter */}
