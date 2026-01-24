@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 
 export default function PriceTicker() {
-  // Mock data for now - replace with actual Jupiter API call
+  // $cLINK Token Mint: FPzmBaifnDkTDi26cuiEkRGofnvF7ReXUtWT7Eebjupx
   const [price] = useState(0.1234);
   const [change24h] = useState(5.67);
 
