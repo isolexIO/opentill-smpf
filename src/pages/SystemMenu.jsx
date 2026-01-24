@@ -35,7 +35,8 @@ import {
   Building2,
   Gift,
   Sparkles,
-  Cpu
+  Cpu,
+  Vault
 } from 'lucide-react';
 import AdvertisingTile from '../components/system-menu/AdvertisingTile';
 
@@ -359,6 +360,15 @@ export default function SystemMenu() {
       description: 'Manage your feature chips',
       path: 'Motherboard',
       color: 'from-blue-600 to-purple-600',
+      permission: 'admin_settings'
+    },
+    {
+      id: 'clink_vault',
+      icon: <Vault className="w-6 h-6" />,
+      title: '$cLINK Vault',
+      description: 'Rewards, staking & swaps',
+      path: 'cLINKVault',
+      color: 'from-yellow-500 to-orange-600',
       permission: 'admin_settings'
     },
   ];
