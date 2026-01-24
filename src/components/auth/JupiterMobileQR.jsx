@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, CheckCircle, AlertCircle, Smartphone } from 'lucide-react';
 import QRCode from 'qrcode';
+import { base44 } from '@/api/base44Client';
+import { createPageUrl } from '@/utils';
 
 export default function JupiterMobileQR({ onSuccess }) {
   const [qrDataUrl, setQrDataUrl] = useState('');
@@ -28,18 +30,16 @@ export default function JupiterMobileQR({ onSuccess }) {
       const newSessionId = `jupiter_mobile_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       setSessionId(newSessionId);
 
-      // Create connection URL for Jupiter mobile app
-      const connectionData = {
-        version: '1.0',
-        type: 'chainlink_pos_login',
-        sessionId: newSessionId,
-        timestamp: Date.now(),
-        appUrl: window.location.origin,
-        redirect: '/authenticate-mobile'
-      };
-
-      // Generate deep link for Jupiter mobile app
-      const deepLink = `jupiter://connect?data=${encodeURIComponent(JSON.stringify(connectionData))}`;
+      // Create connection URL that Jupiter mobile app can recognize
+      // Use solana-wallet:// protocol for Solana Mobile Wallet Adapter
+      const baseUrl = window.location.origin;
+      const callbackUrl = `${baseUrl}/api/mobile-auth-callback`;
+      
+      // Create a simple connection URL with session ID
+      const connectUrl = `${baseUrl}?mobile_session=${newSessionId}`;
+      
+      // Use solana-wallet:// scheme for mobile wallet adapter
+      const deepLink = `solana-wallet://v1/connect?app_url=${encodeURIComponent(baseUrl)}&session=${newSessionId}&callback=${encodeURIComponent(callbackUrl)}`;
       
       // Generate QR code
       const qrUrl = await QRCode.toDataURL(deepLink, {
@@ -68,9 +68,10 @@ export default function JupiterMobileQR({ onSuccess }) {
     // Poll every 2 seconds to check if mobile app has authenticated
     pollingInterval.current = setInterval(async () => {
       try {
-        // Check session status (you'll need to implement this endpoint)
-        const response = await fetch(`/api/check-mobile-session/${sessionId}`);
-        const data = await response.json();
+        // Check session status via backend function
+        const { data } = await base44.functions.invoke('checkMobileSession', {
+          session_id: sessionId
+        });
 
         if (data.authenticated) {
           clearInterval(pollingInterval.current);
