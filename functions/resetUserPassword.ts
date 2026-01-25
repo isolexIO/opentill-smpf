@@ -42,13 +42,22 @@ Deno.serve(async (req) => {
         const passwordHash = await bcrypt.hash(tempPassword, 10);
 
         // Update user with new password
-        await base44.asServiceRole.entities.User.update(user.id, {
-            password_hash: passwordHash
-        });
+        try {
+            await base44.asServiceRole.entities.User.update(user.id, {
+                password_hash: passwordHash
+            });
+        } catch (e) {
+            console.log('asServiceRole update failed, trying regular update:', e.message);
+            await base44.entities.User.update(user.id, {
+                password_hash: passwordHash
+            });
+        }
 
         // Send email with temporary password
         try {
-            const emailResult = await base44.asServiceRole.integrations.Core.SendEmail({
+            let emailResult;
+            try {
+                emailResult = await base44.asServiceRole.integrations.Core.SendEmail({
                 to: user.email,
                 from_name: 'ChainLINK POS',
                 subject: 'Password Reset - ChainLINK POS',
