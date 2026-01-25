@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
       const passwordHash = dealer.password_hash || 'temp123'; // Default for testing
       
       // Simple password check (replace with bcrypt in production)
-      if (password !== passwordHash && passwordHash !== 'temp123') {
+      if (password !== passwordHash) {
         return Response.json({ 
           success: false, 
           error: 'Invalid credentials' 
