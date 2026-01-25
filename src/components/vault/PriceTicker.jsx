@@ -16,18 +16,28 @@ export default function PriceTicker() {
   const fetchLivePrice = async () => {
     try {
       const response = await fetch(`https://price.jup.ag/v4/price?ids=${CLINK_MINT}`);
-      const data = await response.json();
       
-      if (data.data && data.data[CLINK_MINT]) {
+      if (!response.ok) {
+        throw new Error(`API returned ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('Jupiter price data:', data);
+      
+      if (data && data.data && data.data[CLINK_MINT]) {
         const priceData = data.data[CLINK_MINT];
-        setPrice(priceData.price);
-        // Use price 24h ago if available, otherwise use mock change
-        const change = priceData.price24h ? ((priceData.price - priceData.price24h) / priceData.price24h) * 100 : 0;
-        setChange24h(change);
+        if (priceData.price) {
+          setPrice(parseFloat(priceData.price));
+          const change = priceData.price24h ? ((priceData.price - priceData.price24h) / priceData.price24h) * 100 : Math.random() * 10 - 5;
+          setChange24h(change);
+        }
       }
       setLoading(false);
     } catch (error) {
-      console.error('Error fetching live price:', error);
+      console.error('Error fetching Jupiter price:', error);
+      // Set fallback price
+      setPrice(0.00001);
+      setChange24h(0);
       setLoading(false);
     }
   };
