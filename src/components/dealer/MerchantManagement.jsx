@@ -55,6 +55,7 @@ export default function MerchantManagement({ dealerId }) {
       const merchant = merchants.find(m => m.id === merchantId);
       localStorage.setItem('impersonatedMerchantId', merchantId);
       localStorage.setItem('impersonatedMerchantName', merchant.business_name);
+      localStorage.setItem('impersonatedDealerId', dealerId);
       window.location.href = createPageUrl('POS');
     } catch (error) {
       alert('Error impersonating merchant: ' + error.message);
