@@ -22,10 +22,18 @@ Deno.serve(async (req) => {
         
         // If merchant_id is provided, activate existing merchant
         if (merchant_id) {
+            console.log('Creating/updating user for merchant activation:', { merchant_id, owner_email });
+            
             // Check if user already exists
-            let users = await base44.asServiceRole.entities.User.filter({ 
-                email: owner_email.toLowerCase().trim() 
-            });
+            let users;
+            try {
+                users = await base44.asServiceRole.entities.User.filter({ 
+                    email: owner_email.toLowerCase().trim() 
+                });
+            } catch (filterError) {
+                console.error('Error filtering users:', filterError);
+                users = [];
+            }
             
             if (users && users.length > 0) {
                 // Update existing user (without pin - will be set separately)
@@ -173,10 +181,12 @@ Deno.serve(async (req) => {
 
     } catch (error) {
         console.error('createMerchantAccount ERROR:', error);
+        console.error('Error stack:', error.stack);
         
         return Response.json({
             success: false,
-            error: error.message || 'Failed to submit registration'
+            error: error.message || 'Failed to submit registration',
+            details: error.toString()
         }, { status: 500 });
     }
 });
