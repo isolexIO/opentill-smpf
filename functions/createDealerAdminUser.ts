@@ -16,10 +16,10 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Invite user as admin with dealer_id
+    // Invite user with dealer_id
     await base44.asServiceRole.users.inviteUser(
       email.toLowerCase().trim(),
-      'admin'
+      'user'
     );
 
     // Update user with dealer_id (note: this may not work if inviteUser doesn't return the user)
