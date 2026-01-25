@@ -176,6 +176,21 @@ export default function Layout({ children, currentPageName }) {
     loadAuth();
   }, []);
 
+  // Google Analytics
+  useEffect(() => {
+    // Load gtag.js
+    const script1 = document.createElement('script');
+    script1.async = true;
+    script1.src = 'https://www.googletagmanager.com/gtag/js?id=G-THS8JRL2G6';
+    document.head.appendChild(script1);
+
+    // Initialize gtag
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){window.dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-THS8JRL2G6');
+  }, []);
+
   // Apply theme on mount and listen for system theme changes
   useEffect(() => {
     const applyTheme = (theme) => {
