@@ -37,7 +37,8 @@ import {
   Palette,
   Globe,
   CreditCard,
-  Link2
+  Link2,
+  UserCheck
 } from 'lucide-react';
 import DealerSubdomainManager from './DealerSubdomainManager';
 import { createPageUrl } from '@/utils';
@@ -138,6 +139,38 @@ export default function DealerManagement() {
     } catch (error) {
       console.error('Error deleting dealer:', error);
       alert('Failed to delete dealer');
+    }
+  };
+
+  const handleImpersonateDealer = async (dealerId) => {
+    try {
+      // Find the dealer admin user for this dealer
+      const users = await base44.entities.User.filter({
+        dealer_id: dealerId,
+        role: 'dealer_admin'
+      });
+
+      if (!users || users.length === 0) {
+        alert('No dealer admin user found for this dealer');
+        return;
+      }
+
+      const dealerUser = users[0];
+
+      // Store impersonation data in localStorage
+      const impersonationData = {
+        ...dealerUser,
+        is_impersonating: true,
+        original_admin_email: (await base44.auth.me()).email
+      };
+
+      localStorage.setItem('pinLoggedInUser', JSON.stringify(impersonationData));
+
+      // Redirect to dealer dashboard
+      window.location.href = createPageUrl('DealerDashboard');
+    } catch (error) {
+      console.error('Error impersonating dealer:', error);
+      alert('Failed to impersonate dealer');
     }
   };
 
@@ -297,6 +330,14 @@ export default function DealerManagement() {
                   </Badge>
 
                   <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleImpersonateDealer(dealer.id)}
+                      title="Impersonate dealer"
+                    >
+                      <UserCheck className="w-4 h-4" />
+                    </Button>
                     <Button
                       variant="outline"
                       size="sm"
