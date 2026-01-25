@@ -53,27 +53,42 @@ Deno.serve(async (req) => {
             });
         }
 
-        // Send email with temporary password
+        // Send email with temporary password using custom SMTP
         try {
-            let emailResult;
-            try {
-                emailResult = await base44.asServiceRole.integrations.Core.SendEmail({
-                    to: user.email,
-                    from_name: 'ChainLINK POS',
-                    subject: 'Password Reset - ChainLINK POS',
-                    body: `Hello ${user.full_name},\n\nYour temporary password is: ${tempPassword}\n\nPlease use this password to login and then change it in your account settings.\n\nYour PIN: ${user.pin || 'Not set'}\n\nYou can also login using your PIN if available.\n\nThank you,\nChainLINK POS Team`
-                });
-            } catch (e) {
-                console.log('asServiceRole email failed, trying regular integration:', e.message);
-                emailResult = await base44.integrations.Core.SendEmail({
-                    to: user.email,
-                    from_name: 'ChainLINK POS',
-                    subject: 'Password Reset - ChainLINK POS',
-                    body: `Hello ${user.full_name},\n\nYour temporary password is: ${tempPassword}\n\nPlease use this password to login and then change it in your account settings.\n\nYour PIN: ${user.pin || 'Not set'}\n\nYou can also login using your PIN if available.\n\nThank you,\nChainLINK POS Team`
-                });
-            }
+            const nodemailer = await import('npm:nodemailer@6.9.7');
             
-            console.log('Password reset email sent to:', user.email, emailResult);
+            const transporter = nodemailer.default.createTransport({
+                host: Deno.env.get('SMTP_HOST') || 'mail.vps103510.mylogin.co',
+                port: parseInt(Deno.env.get('SMTP_PORT') || '465'),
+                secure: true,
+                auth: {
+                    user: Deno.env.get('SMTP_USER') || 'noreply@chainlink-pos.com',
+                    pass: Deno.env.get('SMTP_PASS')
+                }
+            });
+
+            const emailBody = `Hello ${user.full_name},
+
+Your temporary password is: ${tempPassword}
+
+Please use this password to login and then change it in your account settings.
+
+Your PIN: ${user.pin || 'Not set'}
+
+You can also login using your PIN if available.
+
+Thank you,
+ChainLINK POS Team`;
+
+            await transporter.sendMail({
+                from: `"ChainLINK POS" <${Deno.env.get('SMTP_USER') || 'noreply@chainlink-pos.com'}>`,
+                to: user.email,
+                subject: 'Password Reset - ChainLINK POS',
+                text: emailBody,
+                html: emailBody.replace(/\n/g, '<br>')
+            });
+            
+            console.log('Password reset email sent to:', user.email);
         } catch (emailError) {
             console.error('Error sending email:', emailError);
             return Response.json({
