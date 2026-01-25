@@ -32,29 +32,23 @@ export default function DealerLogin() {
     setError('');
 
     try {
-      // Try to find dealer admin user by email
-      const users = await base44.entities.User.filter({ 
-        email: email.toLowerCase().trim(),
-        role: 'dealer_admin'
-      });
+      // Authenticate using base44 auth
+      await base44.auth.login(email.toLowerCase().trim(), password);
 
-      if (!users || users.length === 0) {
-        setError('Invalid credentials. No dealer account found.');
-        setLoading(false);
-        return;
-      }
+      // Get the authenticated user
+      const user = await base44.auth.me();
 
-      const user = users[0];
-
-      // Verify password (comparing with stored password)
-      if (user.password_hash !== password) {
-        setError('Invalid credentials. Incorrect password.');
+      // Check if user is a dealer admin
+      if (user.role !== 'dealer_admin') {
+        setError('You do not have dealer access. Please use merchant login.');
+        await base44.auth.logout();
         setLoading(false);
         return;
       }
 
       if (!user.is_active) {
         setError('Your account is inactive. Please contact support.');
+        await base44.auth.logout();
         setLoading(false);
         return;
       }
@@ -67,7 +61,7 @@ export default function DealerLogin() {
 
     } catch (error) {
       console.error('Dealer login error:', error);
-      setError('Login failed. Please try again.');
+      setError('Invalid email or password. Please try again.');
     } finally {
       setLoading(false);
     }
