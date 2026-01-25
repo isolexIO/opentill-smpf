@@ -36,7 +36,8 @@ import {
   Gift,
   Sparkles,
   Cpu,
-  Vault
+  Vault,
+  Lightbulb
 } from 'lucide-react';
 import AdvertisingTile from '../components/system-menu/AdvertisingTile';
 
@@ -370,6 +371,15 @@ export default function SystemMenu() {
       path: 'cLINKVault',
       color: 'from-yellow-500 to-orange-600',
       permission: 'admin_settings'
+    },
+    {
+      id: 'ai_assistant',
+      icon: <Lightbulb className="w-6 h-6" />,
+      title: 'AI Assistant',
+      description: 'Business insights & analysis',
+      path: 'AIAssistant',
+      color: 'from-green-400 to-teal-500',
+      permission: 'view_reports'
     },
   ];
 
