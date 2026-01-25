@@ -469,68 +469,126 @@ export default function MerchantManagement({ onUpdate }) {
       </CardContent>
 
       {/* Merchant Details Dialog */}
-      {selectedMerchant && (
-        <Dialog open={showDetails} onOpenChange={setShowDetails}>
-          <DialogContent className="sm:max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>{selectedMerchant.business_name}</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h4 className="font-semibold mb-2">Business Information</h4>
-                  <div className="space-y-1 text-sm">
-                    <div><span className="text-gray-500">Owner:</span> {selectedMerchant.owner_name}</div>
-                    <div><span className="text-gray-500">Email:</span> {selectedMerchant.owner_email}</div>
-                    <div><span className="text-gray-500">Phone:</span> {selectedMerchant.phone || 'N/A'}</div>
-                    <div><span className="text-gray-500">Address:</span> {selectedMerchant.address || 'N/A'}</div>
-                  </div>
-                </div>
-                <div>
-                  <h4 className="font-semibold mb-2">Subscription</h4>
-                  <div className="space-y-1 text-sm">
-                    <div><span className="text-gray-500">Plan:</span> <Badge className="capitalize">{selectedMerchant.subscription_plan}</Badge></div>
-                    <div><span className="text-gray-500">Status:</span> {getStatusBadge(selectedMerchant.status)}</div>
-                    <div><span className="text-gray-500">Trial Ends:</span> {selectedMerchant.trial_ends_at ? new Date(selectedMerchant.trial_ends_at).toLocaleDateString() : 'N/A'}</div>
-                  </div>
-                </div>
-              </div>
+       {selectedMerchant && (
+         <Dialog open={showDetails} onOpenChange={setShowDetails}>
+           <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+             <DialogHeader>
+               <DialogTitle>{selectedMerchant.business_name}</DialogTitle>
+             </DialogHeader>
+             <div className="space-y-4">
+               <div className="grid grid-cols-2 gap-4">
+                 <div>
+                   <h4 className="font-semibold mb-2">Business Information</h4>
+                   <div className="space-y-1 text-sm">
+                     <div><span className="text-gray-500">Owner:</span> {selectedMerchant.owner_name}</div>
+                     <div><span className="text-gray-500">Email:</span> {selectedMerchant.owner_email}</div>
+                     <div><span className="text-gray-500">Phone:</span> {selectedMerchant.phone || 'N/A'}</div>
+                     <div><span className="text-gray-500">Address:</span> {selectedMerchant.address || 'N/A'}</div>
+                   </div>
+                 </div>
+                 <div>
+                   <h4 className="font-semibold mb-2">Subscription</h4>
+                   <div className="space-y-1 text-sm">
+                     <div><span className="text-gray-500">Plan:</span> <Badge className="capitalize">{selectedMerchant.subscription_plan}</Badge></div>
+                     <div><span className="text-gray-500">Status:</span> {getStatusBadge(selectedMerchant.status)}</div>
+                     <div><span className="text-gray-500">Trial Ends:</span> {selectedMerchant.trial_ends_at ? new Date(selectedMerchant.trial_ends_at).toLocaleDateString() : 'N/A'}</div>
+                   </div>
+                 </div>
+               </div>
 
-              <div className="border-t pt-4">
-                <h4 className="font-semibold mb-2">Performance</h4>
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="text-center p-3 bg-gray-50 rounded">
-                    <div className="text-2xl font-bold">{selectedMerchant.total_orders || 0}</div>
-                    <div className="text-sm text-gray-500">Total Orders</div>
-                  </div>
-                  <div className="text-center p-3 bg-gray-50 rounded">
-                    <div className="text-2xl font-bold">${(selectedMerchant.total_revenue || 0).toFixed(0)}</div>
-                    <div className="text-sm text-gray-500">Total Revenue</div>
-                  </div>
-                  <div className="text-center p-3 bg-gray-50 rounded">
-                    <div className="text-2xl font-bold">
-                      {selectedMerchant.total_orders > 0
-                        ? `$${(selectedMerchant.total_revenue / selectedMerchant.total_orders).toFixed(2)}`
-                        : '$0'}
-                    </div>
-                    <div className="text-sm text-gray-500">Avg Order Value</div>
-                  </div>
-                </div>
-              </div>
+               <div className="border-t pt-4">
+                 <h4 className="font-semibold mb-2">Performance</h4>
+                 <div className="grid grid-cols-3 gap-4">
+                   <div className="text-center p-3 bg-gray-50 rounded">
+                     <div className="text-2xl font-bold">{selectedMerchant.total_orders || 0}</div>
+                     <div className="text-sm text-gray-500">Total Orders</div>
+                   </div>
+                   <div className="text-center p-3 bg-gray-50 rounded">
+                     <div className="text-2xl font-bold">${(selectedMerchant.total_revenue || 0).toFixed(0)}</div>
+                     <div className="text-sm text-gray-500">Total Revenue</div>
+                   </div>
+                   <div className="text-center p-3 bg-gray-50 rounded">
+                     <div className="text-2xl font-bold">
+                       {selectedMerchant.total_orders > 0
+                         ? `$${(selectedMerchant.total_revenue / selectedMerchant.total_orders).toFixed(2)}`
+                         : '$0'}
+                     </div>
+                     <div className="text-sm text-gray-500">Avg Order Value</div>
+                   </div>
+                 </div>
+               </div>
 
-              <div className="flex gap-2 justify-end pt-4 border-t">
-                <Button variant="outline" onClick={() => handleImpersonate(selectedMerchant)}>
-                  <Eye className="w-4 h-4 mr-2" />
-                  Impersonate
-                </Button>
-                <Button variant="outline" onClick={() => setShowDetails(false)}>
-                  Close
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
+               {/* Status Management */}
+               <div className="border-t pt-4">
+                 <div className="flex items-center gap-2 mb-3">
+                   <Shield className="w-4 h-4" />
+                   <h4 className="font-semibold">Status Management</h4>
+                 </div>
+                 <div className="space-y-3">
+                   <Select 
+                     value={selectedMerchant.status} 
+                     onValueChange={(newStatus) => handleStatusChange(selectedMerchant, newStatus)}
+                   >
+                     <SelectTrigger className="w-full">
+                       <SelectValue />
+                     </SelectTrigger>
+                     <SelectContent>
+                       <SelectItem value="inactive">Inactive</SelectItem>
+                       <SelectItem value="trial">Trial</SelectItem>
+                       <SelectItem value="active">Active</SelectItem>
+                       <SelectItem value="suspended">Suspended</SelectItem>
+                       <SelectItem value="cancelled">Cancelled</SelectItem>
+                     </SelectContent>
+                   </Select>
+                 </div>
+               </div>
+
+               {/* Subscription Management */}
+               <div className="border-t pt-4">
+                 <div className="flex items-center gap-2 mb-3">
+                   <CreditCard className="w-4 h-4" />
+                   <h4 className="font-semibold">Subscription Management</h4>
+                 </div>
+                 <div className="space-y-3">
+                   <Select 
+                     value={selectedMerchant.subscription_plan} 
+                     onValueChange={(newPlan) => {
+                       const updatedMerchant = { ...selectedMerchant, subscription_plan: newPlan };
+                       handleSubscriptionChange(selectedMerchant, newPlan);
+                     }}
+                   >
+                     <SelectTrigger className="w-full">
+                       <SelectValue />
+                     </SelectTrigger>
+                     <SelectContent>
+                       <SelectItem value="free">Free - $0/mo</SelectItem>
+                       <SelectItem value="basic">Basic - $49/mo</SelectItem>
+                       <SelectItem value="pro">Pro - $99/mo</SelectItem>
+                       <SelectItem value="enterprise">Enterprise - $299/mo</SelectItem>
+                     </SelectContent>
+                   </Select>
+                   <Alert className="bg-blue-50 border-blue-200">
+                     <AlertCircle className="h-4 w-4 text-blue-600" />
+                     <AlertDescription className="text-blue-800 text-sm">
+                       Changing the plan generates an invoice for merchant approval.
+                     </AlertDescription>
+                   </Alert>
+                 </div>
+               </div>
+
+               <div className="flex gap-2 justify-end pt-4 border-t">
+                 <Button variant="outline" onClick={() => handleImpersonate(selectedMerchant)}>
+                   <Eye className="w-4 h-4 mr-2" />
+                   Impersonate
+                 </Button>
+                 <Button variant="outline" onClick={() => setShowDetails(false)}>
+                   Close
+                 </Button>
+               </div>
+             </div>
+           </DialogContent>
+         </Dialog>
+       )}
 
       {/* Subdomain Manager in Details Dialog */}
       {selectedMerchant && showDetails && (
