@@ -38,6 +38,7 @@ import TermsOfService from './pages/TermsOfService';
 import Users from './pages/Users';
 import WalletLoginPage from './pages/WalletLoginPage';
 import cLINKVault from './pages/cLINKVault';
+import AIAssistant from './pages/AIAssistant';
 import __Layout from './Layout.jsx';
 
 
@@ -82,6 +83,7 @@ export const PAGES = {
     "Users": Users,
     "WalletLoginPage": WalletLoginPage,
     "cLINKVault": cLINKVault,
+    "AIAssistant": AIAssistant,
 }
 
 export const pagesConfig = {
