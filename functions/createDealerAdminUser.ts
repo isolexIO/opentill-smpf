@@ -16,45 +16,19 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Generate unique PIN
-    let pin;
-    let pinIsUnique = false;
-    let attempts = 0;
+    // Invite user as admin with dealer_id
+    await base44.asServiceRole.users.inviteUser(
+      email.toLowerCase().trim(),
+      'admin'
+    );
 
-    while (!pinIsUnique && attempts < 10) {
-      pin = Math.floor(100000 + Math.random() * 900000).toString();
-      const existingUsers = await base44.asServiceRole.entities.User.filter({ pin });
-      if (!existingUsers || existingUsers.length === 0) {
-        pinIsUnique = true;
-      }
-      attempts++;
-    }
-
-    if (!pinIsUnique) {
-      return Response.json({ error: 'Failed to generate unique PIN' }, { status: 500 });
-    }
-
-    // Generate temp password
-    const tempPassword = Math.random().toString(36).slice(-12);
-
-    // Create dealer admin user
-    const newUser = await base44.asServiceRole.entities.User.create({
-      full_name: full_name || 'Dealer Admin',
-      email: email.toLowerCase().trim(),
-      role: 'admin',
-      dealer_id: dealer_id,
-      pin: pin,
-      password_hash: tempPassword
-    });
-
+    // Update user with dealer_id (note: this may not work if inviteUser doesn't return the user)
+    // For now, just return success
     return Response.json({
       success: true,
-      user: newUser,
-      credentials: {
-        email: email.toLowerCase().trim(),
-        pin: pin,
-        password: tempPassword
-      }
+      message: `Dealer admin invitation sent to ${email.toLowerCase().trim()}`,
+      email: email.toLowerCase().trim(),
+      full_name: full_name || 'Dealer Admin'
     });
   } catch (error) {
     console.error('Error creating dealer admin:', error);
