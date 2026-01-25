@@ -16,8 +16,8 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Invite user - this sends them an invite email to set their password
-    await base44.auth.inviteUser(
+    // Use service role to invite user
+    await base44.asServiceRole.auth.inviteUser(
       email.toLowerCase().trim(),
       'user'
     );
