@@ -38,6 +38,9 @@ export default function DealerLogin() {
       });
 
       if (response.data.success) {
+        // Store the token and dealer data
+        localStorage.setItem('dealerAuthToken', response.data.token);
+        localStorage.setItem('dealerData', JSON.stringify(response.data.dealer));
         window.location.href = createPageUrl('DealerDashboard');
       } else {
         setError(response.data.error || 'Invalid email or password');
