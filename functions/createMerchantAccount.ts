@@ -22,64 +22,21 @@ Deno.serve(async (req) => {
         const base44 = createClientFromRequest(req);
         
         // If merchant_id is provided, activate existing merchant
-        if (merchant_id) {
-            // Check if user already exists
-            let users = await base44.asServiceRole.entities.User.filter({ 
-                email: owner_email.toLowerCase().trim() 
-            });
-            
-            if (users && users.length > 0) {
-                // Update existing user (without pin - will be set separately)
-                const user = users[0];
-                await base44.asServiceRole.entities.User.update(user.id, {
-                    merchant_id: merchant_id,
-                    dealer_id: dealer_id || null,
-                    is_active: true,
-                    full_name: owner_name,
-                    role: 'merchant_admin',
-                    permissions: [
-                        'process_orders',
-                        'manage_inventory',
-                        'manage_customers',
-                        'view_reports',
-                        'manage_users',
-                        'manage_settings',
-                        'admin_settings',
-                        'access_marketplace',
-                        'submit_tickets'
-                    ]
-                });
-            } else {
-                // Create new user (without pin - will be set separately)
-                await base44.asServiceRole.entities.User.create({
-                    full_name: owner_name.trim(),
-                    email: owner_email.toLowerCase().trim(),
-                    role: 'merchant_admin',
-                    merchant_id: merchant_id,
-                    dealer_id: dealer_id || null,
-                    is_active: true,
-                    permissions: [
-                        'process_orders',
-                        'manage_inventory',
-                        'manage_customers',
-                        'view_reports',
-                        'manage_users',
-                        'manage_settings',
-                        'admin_settings',
-                        'access_marketplace',
-                        'submit_tickets'
-                    ]
-                });
-            }
-            
-            // Status is already updated before this function is called by Super Admin
-            // This function only creates the user account now
-            
-            return Response.json({
-                success: true,
-                merchant_id: merchant_id
-            });
-        }
+         if (merchant_id) {
+             // Update merchant status to trial and set activated_at
+             if (activate) {
+                 await base44.asServiceRole.entities.Merchant.update(merchant_id, {
+                     status: 'trial',
+                     activated_at: new Date().toISOString(),
+                     trial_ends_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+                 });
+             }
+
+             return Response.json({
+                 success: true,
+                 merchant_id: merchant_id
+             });
+         }
 
         // Otherwise, create new merchant (original flow)
         if (!business_name || !owner_name || !owner_email) {
