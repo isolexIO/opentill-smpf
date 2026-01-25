@@ -154,13 +154,13 @@ export default function SystemMenu() {
   const hasPermission = (permission) => {
     if (permission === null) return true;
     if (!user) return false;
-    if (user.role === 'super_admin' || user.role === 'admin' || user.role === 'dealer_admin') return true;
-    if (user.role === 'merchant_admin') return true;
+    // Super admin, root admin, dealer admin, and merchant admin have all permissions
+    if (user.role === 'super_admin' || user.role === 'admin' || user.role === 'root_admin' || user.role === 'dealer_admin' || user.role === 'merchant_admin') return true;
     return user.permissions?.includes(permission);
   };
 
   const isSuperAdmin = () => {
-    return user && (user.role === 'super_admin' || user.role === 'admin');
+    return user && (user.role === 'super_admin' || user.role === 'admin' || user.role === 'root_admin');
   };
 
   const isDealerAdmin = () => {

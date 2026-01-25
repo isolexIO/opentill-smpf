@@ -34,7 +34,7 @@ export default function PendingMerchants() {
   });
 
   const generateCredentials = () => {
-    const generatedPin = Math.floor(1000 + Math.random() * 9000).toString();
+    const generatedPin = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit PIN
     const generatedPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8).toUpperCase();
     setPin(generatedPin);
     setTempPassword(generatedPassword);

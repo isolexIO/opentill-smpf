@@ -22,22 +22,54 @@ Deno.serve(async (req) => {
         
         // If merchant_id is provided, activate existing merchant
         if (merchant_id) {
-            // Invite user with admin role
-            await base44.users.inviteUser(owner_email.toLowerCase().trim(), 'merchant_admin');
-            
-            // Get the created user to update PIN
-            const users = await base44.asServiceRole.entities.User.filter({ 
+            // Check if user already exists
+            let users = await base44.asServiceRole.entities.User.filter({ 
                 email: owner_email.toLowerCase().trim() 
             });
             
             if (users && users.length > 0) {
+                // Update existing user
                 const user = users[0];
                 await base44.asServiceRole.entities.User.update(user.id, {
                     merchant_id: merchant_id,
                     dealer_id: dealer_id || null,
                     pin: pin,
                     is_active: true,
-                    full_name: owner_name
+                    full_name: owner_name,
+                    role: 'merchant_admin',
+                    permissions: [
+                        'process_orders',
+                        'manage_inventory',
+                        'manage_customers',
+                        'view_reports',
+                        'manage_users',
+                        'manage_settings',
+                        'admin_settings',
+                        'access_marketplace',
+                        'submit_tickets'
+                    ]
+                });
+            } else {
+                // Create new user
+                await base44.asServiceRole.entities.User.create({
+                    full_name: owner_name.trim(),
+                    email: owner_email.toLowerCase().trim(),
+                    role: 'merchant_admin',
+                    merchant_id: merchant_id,
+                    dealer_id: dealer_id || null,
+                    pin: pin,
+                    is_active: true,
+                    permissions: [
+                        'process_orders',
+                        'manage_inventory',
+                        'manage_customers',
+                        'view_reports',
+                        'manage_users',
+                        'manage_settings',
+                        'admin_settings',
+                        'access_marketplace',
+                        'submit_tickets'
+                    ]
                 });
             }
             
