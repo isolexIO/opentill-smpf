@@ -193,54 +193,14 @@ export default function DealerManagement() {
     const email = prompt(`Enter email for new dealer admin user for "${dealer.name}":`, dealer.owner_email);
     if (!email) return;
 
-    const name = prompt('Enter full name:', dealer.owner_name || '');
-    if (!name) return;
-
     try {
-      // Generate unique PIN
-      let pin;
-      let pinIsUnique = false;
-      let attempts = 0;
+      // Invite user with dealer_admin role
+      await base44.users.inviteUser(email.toLowerCase().trim(), 'dealer_admin');
 
-      while (!pinIsUnique && attempts < 10) {
-        pin = Math.floor(100000 + Math.random() * 900000).toString();
-        const existingPinUsers = await base44.entities.User.filter({ pin });
-        if (!existingPinUsers || existingPinUsers.length === 0) {
-          pinIsUnique = true;
-        }
-        attempts++;
-      }
-
-      if (!pinIsUnique) {
-        alert('Failed to generate unique PIN');
-        return;
-      }
-
-      // Generate temp password
-      const tempPassword = Math.random().toString(36).slice(-12);
-
-      // Create dealer admin user
-      await base44.entities.User.create({
-        full_name: name.trim(),
-        email: email.toLowerCase().trim(),
-        role: 'dealer_admin',
-        dealer_id: dealer.id,
-        merchant_id: null,
-        pin: pin,
-        password_hash: tempPassword,
-        employee_id: `DEALER-${Date.now()}`,
-        is_active: true,
-        permissions: ['manage_dealers', 'manage_merchants', 'view_reports', 'manage_settings'],
-        can_view_all_merchants: true,
-        can_view_all_dealers: false,
-        wallet_address: null,
-        wallet_provider: null,
-        pos_settings: {},
-        last_login: null,
-        hourly_rate: 0
-      });
-
-      alert(`Dealer admin created!\n\nEmail: ${email}\nPIN: ${pin}\nPassword: ${tempPassword}\n\nSave these credentials!`);
+      alert(`Dealer admin invited!\n\nEmail: ${email}\n\nThey will receive an invitation email to set up their account.`);
+      
+      // Reload dealers to reflect any changes
+      loadDealers();
     } catch (error) {
       console.error('Error creating dealer admin:', error);
       alert('Failed to create dealer admin: ' + error.message);
