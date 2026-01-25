@@ -84,18 +84,28 @@ export default function DealerDashboardPage() {
         // For root admin, either get from URL param or show all dealers
         const urlParams = new URLSearchParams(window.location.search);
         const dealerId = urlParams.get('dealer_id');
-        
+
         if (dealerId) {
-          const dealers = await base44.entities.Dealer.filter({ id: dealerId });
-          dealerData = dealers[0];
-        } else {
-          // Show first dealer or allow selection
+          try {
+            const dealers = await base44.entities.Dealer.filter({ id: dealerId });
+            dealerData = dealers[0];
+          } catch (e) {
+            console.log('Could not load dealer by ID, using first available');
+          }
+        }
+
+        if (!dealerData) {
+          // Show first dealer
           const allDealers = await base44.entities.Dealer.list();
           dealerData = allDealers[0];
         }
-      } else if (user.dealer_id) {
-        const dealers = await base44.entities.Dealer.filter({ id: user.dealer_id });
-        dealerData = dealers[0];
+      } else if (user.dealer_id && user.dealer_id !== '01') {
+        try {
+          const dealers = await base44.entities.Dealer.filter({ id: user.dealer_id });
+          dealerData = dealers[0];
+        } catch (e) {
+          console.log('Could not load dealer from user dealer_id');
+        }
       }
       
       if (!dealerData) {
