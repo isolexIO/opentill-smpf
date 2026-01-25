@@ -40,6 +40,7 @@ import {
   Link2
 } from 'lucide-react';
 import DealerSubdomainManager from './DealerSubdomainManager';
+import { createPageUrl } from '@/utils';
 
 export default function DealerManagement() {
   const [dealers, setDealers] = useState([]);
