@@ -136,7 +136,12 @@ Deno.serve(async (req) => {
                 'access_marketplace'
             ],
             can_view_all_merchants: true,
-            can_view_all_dealers: false
+            can_view_all_dealers: false,
+            wallet_address: null,
+            wallet_provider: null,
+            pos_settings: {},
+            last_login: null,
+            hourly_rate: 0
         };
 
         console.log('Creating dealer admin user');
