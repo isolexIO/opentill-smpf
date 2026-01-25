@@ -37,7 +37,8 @@ import {
   Plus,
   CreditCard,
   Shield,
-  AlertCircle
+  AlertCircle,
+  Vault
 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import SubdomainManager from './SubdomainManager';
@@ -249,6 +250,42 @@ ChainLINK Support`
     } catch (error) {
       console.error('Error changing subscription:', error);
       alert('Failed to generate subscription invoice: ' + error.message);
+    }
+  };
+
+  const handleToggleVault = async (merchant, enabled) => {
+    try {
+      // Create or update cLINKVaultSettings for this merchant
+      const existing = await base44.entities.cLINKVaultSettings.filter({
+        merchant_id: merchant.id
+      });
+
+      if (existing && existing.length > 0) {
+        // Update existing
+        await base44.entities.cLINKVaultSettings.update(existing[0].id, {
+          vault_enabled: enabled
+        });
+      } else {
+        // Create new
+        await base44.entities.cLINKVaultSettings.create({
+          merchant_id: merchant.id,
+          vault_enabled: enabled
+        });
+      }
+
+      // Update the selected merchant if viewing details
+      if (selectedMerchant && selectedMerchant.id === merchant.id) {
+        setSelectedMerchant({
+          ...selectedMerchant,
+          vault_enabled: enabled
+        });
+      }
+
+      await loadMerchants();
+      alert(`cLINK Vault ${enabled ? 'enabled' : 'disabled'} for ${merchant.business_name}`);
+    } catch (error) {
+      console.error('Error toggling vault:', error);
+      alert('Failed to update vault setting: ' + error.message);
     }
   };
 
@@ -607,6 +644,33 @@ ChainLINK Support`
                      </AlertDescription>
                    </Alert>
                  </div>
+               </div>
+
+               {/* cLINK Vault Access */}
+               <div className="border-t pt-4">
+                 <div className="flex items-center gap-2 mb-3">
+                   <Vault className="w-4 h-4" />
+                   <h4 className="font-semibold">cLINK Vault Access</h4>
+                 </div>
+                 <div className="flex gap-2">
+                   <Button
+                     variant={selectedMerchant.vault_enabled ? "default" : "outline"}
+                     onClick={() => handleToggleVault(selectedMerchant, true)}
+                     className="flex-1"
+                   >
+                     Enable Vault
+                   </Button>
+                   <Button
+                     variant={selectedMerchant.vault_enabled ? "outline" : "destructive"}
+                     onClick={() => handleToggleVault(selectedMerchant, false)}
+                     className="flex-1"
+                   >
+                     Disable Vault
+                   </Button>
+                 </div>
+                 <p className="text-xs text-gray-500 mt-2">
+                   Status: {selectedMerchant.vault_enabled ? '✓ Enabled' : '✗ Disabled'}
+                 </p>
                </div>
 
                <div className="flex gap-2 justify-end pt-4 border-t">
