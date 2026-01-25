@@ -48,7 +48,7 @@ Deno.serve(async (req) => {
     
     // LOGIN
     if (action === 'login') {
-      const { email, password } = await req.json();
+      const { email, password } = body;
 
       if (!email || !password) {
         return Response.json({ 
