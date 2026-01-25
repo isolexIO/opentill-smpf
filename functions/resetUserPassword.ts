@@ -15,17 +15,17 @@ Deno.serve(async (req) => {
             }, { status: 400 });
         }
 
-        // Create client with service role for unauthenticated password reset
+        // Create base44 client - asServiceRole will use service token automatically
         const base44 = createClientFromRequest(req);
-        
-        // Set auth header with service token for this request
-        const authHeader = req.headers.get('authorization');
-        if (authHeader) {
-            req.headers.set('x-base44-service-role', 'true');
-        }
 
-        // Find user by email using service role
-        const users = await base44.asServiceRole.entities.User.filter({ email: email });
+        // Find user by email - use regular entities if asServiceRole fails
+        let users;
+        try {
+            users = await base44.asServiceRole.entities.User.filter({ email: email });
+        } catch (e) {
+            console.log('asServiceRole failed, trying regular query:', e.message);
+            users = await base44.entities.User.filter({ email: email });
+        }
         
         if (!users || users.length === 0) {
             // Don't reveal if user exists or not for security
