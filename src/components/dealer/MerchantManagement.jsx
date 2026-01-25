@@ -233,7 +233,7 @@ ChainLINK POS Team`
                     variant="outline"
                     onClick={() => setImpersonatingId(merchant.id)}
                     className="gap-2"
-                    disabled={merchant.status !== 'active'}
+                    disabled={merchant.status === 'suspended' || merchant.status === 'inactive'}
                   >
                     <LogIn className="w-4 h-4" />
                     Impersonate
