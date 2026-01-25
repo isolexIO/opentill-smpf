@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { base44 } from '@/api/base44Client';
 import { Mail, Phone, MapPin, CreditCard, Package } from 'lucide-react';
+import SubscriptionManagementSection from './SubscriptionManagementSection';
+import StatusManagementSection from './StatusManagementSection';
 
 export default function MerchantDetailsModal({ merchant, open, onOpenChange, onUpdate }) {
   const [isEditing, setIsEditing] = useState(false);
