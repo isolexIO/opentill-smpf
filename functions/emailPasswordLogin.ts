@@ -33,7 +33,7 @@ Deno.serve(async (req) => {
         if (!user.password_hash) {
             return Response.json({
                 success: false,
-                error: 'Password login not set up. Please use PIN login or reset your password.'
+                error: 'Password not set up for this account. Please use the "Forgot Password" link below to set up your password, or use PIN login.'
             }, { status: 401 });
         }
 

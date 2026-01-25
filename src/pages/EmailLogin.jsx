@@ -202,6 +202,31 @@ export default function EmailLoginPage() {
               Use PIN Login
             </Button>
           </div>
+
+          <div className="mt-4 text-center">
+            <button
+              onClick={async () => {
+                if (!email) {
+                  setError('Please enter your email address first');
+                  return;
+                }
+                setLoading(true);
+                try {
+                  await base44.functions.invoke('resetUserPassword', { email: email.toLowerCase().trim() });
+                  alert('Password reset email sent! Check your inbox for a temporary password.');
+                  setError('');
+                } catch (err) {
+                  alert('Password reset email sent if account exists.');
+                } finally {
+                  setLoading(false);
+                }
+              }}
+              className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline"
+              disabled={loading}
+            >
+              Forgot password? Click here to reset
+            </button>
+          </div>
         </CardContent>
       </Card>
     </div>
