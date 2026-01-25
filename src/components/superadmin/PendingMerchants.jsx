@@ -34,6 +34,18 @@ export default function PendingMerchants() {
     },
   });
 
+  // Subscribe to real-time merchant creation notifications
+  React.useEffect(() => {
+    const unsubscribe = base44.entities.Merchant.subscribe((event) => {
+      if (event.type === 'create' && event.data?.status === 'inactive') {
+        // Auto-refresh pending merchants list
+        queryClient.invalidateQueries({ queryKey: ['pending-merchants'] });
+      }
+    });
+    
+    return unsubscribe;
+  }, [queryClient]);
+
   const generateCredentials = () => {
     const generatedPin = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit PIN
     const generatedPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8).toUpperCase();
