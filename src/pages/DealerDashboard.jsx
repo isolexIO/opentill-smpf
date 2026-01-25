@@ -20,6 +20,8 @@ import MerchantManagement from '../components/dealer/MerchantManagement.jsx';
 import StaffManagement from '../components/dealer/StaffManagement.jsx';
 import MerchantAnalytics from '../components/dealer/MerchantAnalytics.jsx';
 import DealerBrandingSettings from '../components/dealer/DealerBrandingSettings.jsx';
+import DealerWalletSettings from '../components/dealer/DealerWalletSettings.jsx';
+import { LogOut } from 'lucide-react';
 
 export default function DealerDashboardPage() {
   const [dealer, setDealer] = useState(null);
@@ -36,6 +38,12 @@ export default function DealerDashboardPage() {
   useEffect(() => {
     loadDealerData();
   }, []);
+
+  const handleLogout = () => {
+    if (confirm('Are you sure you want to log out?')) {
+      base44.auth.logout(createPageUrl('Home'));
+    }
+  };
 
   const loadDealerData = async () => {
     try {
@@ -288,6 +296,7 @@ export default function DealerDashboardPage() {
                   <TabsTrigger value="branding">Branding</TabsTrigger>
                   <TabsTrigger value="payments">Payments</TabsTrigger>
                   <TabsTrigger value="domains">Domains</TabsTrigger>
+                <TabsTrigger value="wallet">Wallet</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="branding">
@@ -300,6 +309,10 @@ export default function DealerDashboardPage() {
 
                 <TabsContent value="domains">
                   <CustomDomainSSL dealer={dealer} onUpdate={loadDealerData} />
+                </TabsContent>
+
+                <TabsContent value="wallet">
+                  <DealerWalletSettings dealer={dealer} onUpdate={loadDealerData} />
                 </TabsContent>
               </Tabs>
             </div>
