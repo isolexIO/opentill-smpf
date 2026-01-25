@@ -12,12 +12,13 @@ import {
   Sparkles,
   Users
 } from 'lucide-react';
-import StripeConnectSetup from '../components/dealer/StripeConnectSetup';
-import CustomDomainSSL from '../components/dealer/CustomDomainSSL';
-import PayoutDashboard from '../components/dealer/PayoutDashboard';
-import AIMarketingTools from '../components/dealer/AIMarketingTools';
-import MerchantManagement from '../components/dealer/MerchantManagement';
-import StaffManagement from '../components/dealer/StaffManagement';
+import StripeConnectSetup from '../components/dealer/StripeConnectSetup.jsx';
+import CustomDomainSSL from '../components/dealer/CustomDomainSSL.jsx';
+import PayoutDashboard from '../components/dealer/PayoutDashboard.jsx';
+import AIMarketingTools from '../components/dealer/AIMarketingTools.jsx';
+import MerchantManagement from '../components/dealer/MerchantManagement.jsx';
+import StaffManagement from '../components/dealer/StaffManagement.jsx';
+import MerchantAnalytics from '../components/dealer/MerchantAnalytics.jsx';
 
 export default function DealerDashboardPage() {
   const [dealer, setDealer] = useState(null);
@@ -235,7 +236,11 @@ export default function DealerDashboardPage() {
           <TabsList>
             <TabsTrigger value="merchants">
               <Store className="w-4 h-4 mr-2" />
-              Merchant Management
+              Merchants
+            </TabsTrigger>
+            <TabsTrigger value="analytics">
+              <TrendingUp className="w-4 h-4 mr-2" />
+              Analytics
             </TabsTrigger>
             <TabsTrigger value="staff">
               <Users className="w-4 h-4 mr-2" />
@@ -257,6 +262,10 @@ export default function DealerDashboardPage() {
 
           <TabsContent value="merchants">
             <MerchantManagement dealerId={dealer.id} />
+          </TabsContent>
+
+          <TabsContent value="analytics">
+            <MerchantAnalytics dealerId={dealer.id} />
           </TabsContent>
 
           <TabsContent value="staff">
