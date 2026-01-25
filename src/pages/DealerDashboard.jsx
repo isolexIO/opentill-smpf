@@ -235,7 +235,11 @@ export default function DealerDashboardPage() {
           <TabsList>
             <TabsTrigger value="merchants">
               <Store className="w-4 h-4 mr-2" />
-              Merchants
+              Merchant Management
+            </TabsTrigger>
+            <TabsTrigger value="staff">
+              <Users className="w-4 h-4 mr-2" />
+              Staff
             </TabsTrigger>
             <TabsTrigger value="marketing">
               <Sparkles className="w-4 h-4 mr-2" />
@@ -252,40 +256,11 @@ export default function DealerDashboardPage() {
           </TabsList>
 
           <TabsContent value="merchants">
-            <Card>
-              <CardHeader>
-                <CardTitle>Your Merchants</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {merchants.length === 0 ? (
-                    <p className="text-gray-500 text-center py-8">
-                      No merchants yet. Invite merchants to get started.
-                    </p>
-                  ) : (
-                    merchants.map((merchant) => (
-                      <div
-                        key={merchant.id}
-                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                      >
-                        <div>
-                          <h3 className="font-semibold">{merchant.business_name}</h3>
-                          <p className="text-sm text-gray-500">
-                            {merchant.owner_email} • {merchant.status}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <div className="font-semibold">
-                            ${(merchant.total_revenue || 0).toLocaleString()}
-                          </div>
-                          <p className="text-sm text-gray-500">Total Revenue</p>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            <MerchantManagement dealerId={dealer.id} />
+          </TabsContent>
+
+          <TabsContent value="staff">
+            <StaffManagement dealerId={dealer.id} />
           </TabsContent>
 
           <TabsContent value="marketing">
