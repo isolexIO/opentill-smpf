@@ -76,20 +76,17 @@ export default function SuperAdminPage() {
 
   const loadUser = async () => {
     try {
-      const pinUserJSON = localStorage.getItem('pinLoggedInUser');
       let currentUser = null;
 
-      if (pinUserJSON) {
-        try {
-          currentUser = JSON.parse(pinUserJSON);
-        } catch (e) {
-          console.error('Error parsing pinLoggedInUser from localStorage:', e);
-          localStorage.removeItem('pinLoggedInUser');
-        }
-      }
-
-      if (!currentUser) {
+      // For SuperAdmin, ALWAYS require proper base44 auth (not just PIN)
+      // PIN login alone is insufficient for admin access
+      try {
         currentUser = await base44.auth.me();
+      } catch (authError) {
+        console.log('Not authenticated via base44:', authError);
+        alert('You must be properly authenticated to access SuperAdmin. Please log in with your credentials.');
+        window.location.href = createPageUrl('PinLogin');
+        return;
       }
 
       console.log('SuperAdmin user:', currentUser);
