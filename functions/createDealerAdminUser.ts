@@ -16,16 +16,16 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Use service role to invite user
-    await base44.asServiceRole.auth.inviteUser(
-      email.toLowerCase().trim(),
-      'user'
-    );
+    // Send email to user with setup link
+    await base44.integrations.Core.SendEmail({
+      to: email.toLowerCase().trim(),
+      subject: `Welcome to ${user.full_name || 'ChainLINK'}`,
+      body: `You've been added as a dealer administrator. Please visit the login page to set up your account.`
+    });
 
-    // The user will need to accept the invite to set dealer_id manually or via a separate process
     return Response.json({
       success: true,
-      message: `Invitation sent to ${email.toLowerCase().trim()}. They will need to accept to complete setup.`,
+      message: `Setup email sent to ${email.toLowerCase().trim()}`,
       email: email.toLowerCase().trim()
     });
   } catch (error) {
