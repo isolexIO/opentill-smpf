@@ -179,6 +179,24 @@ export default function MerchantDetailsModal({ merchant, open, onOpenChange, onU
             </CardContent>
           </Card>
 
+          {/* Admin-only: Subscription Management */}
+          {user?.role === 'admin' && (
+            <SubscriptionManagementSection 
+              merchant={merchant} 
+              isAdmin={true}
+              onUpdate={onUpdate}
+            />
+          )}
+
+          {/* Admin-only: Status Management */}
+          {user?.role === 'admin' && (
+            <StatusManagementSection 
+              merchant={merchant} 
+              isAdmin={true}
+              onUpdate={onUpdate}
+            />
+          )}
+
           {/* Actions */}
           <div className="flex gap-3 justify-end">
             {isEditing ? (
