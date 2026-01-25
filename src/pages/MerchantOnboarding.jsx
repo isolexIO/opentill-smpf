@@ -43,10 +43,10 @@ export default function MerchantOnboarding() {
       });
       console.log('Response received:', response);
 
-      if (response.success) {
+      if (response.data?.success) {
         setSuccess(true);
       } else {
-        setError(response.error || 'Failed to submit registration');
+        setError(response.data?.error || 'Failed to submit registration');
       }
     } catch (err) {
       console.error('Merchant signup error:', err);
