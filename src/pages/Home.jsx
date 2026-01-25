@@ -738,8 +738,16 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="border-t border-white/10 mt-8 pt-8 text-center">
-            <p className="text-gray-400 text-sm">
+          <div className="border-t border-white/10 mt-8 pt-8">
+            <div className="flex justify-center mb-4">
+              <a 
+                href={createPageUrl('DealerLogin')} 
+                className="text-gray-400 hover:text-white text-sm transition-colors"
+              >
+                Dealer Login
+              </a>
+            </div>
+            <p className="text-gray-400 text-sm text-center">
               {settings?.company_info?.copyright_text || '© 2026 Isolex Corporation. All rights reserved.'}
             </p>
           </div>
