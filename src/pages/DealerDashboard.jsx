@@ -9,12 +9,15 @@ import {
   TrendingUp,
   Settings,
   CreditCard,
-  Sparkles
+  Sparkles,
+  Users
 } from 'lucide-react';
 import StripeConnectSetup from '../components/dealer/StripeConnectSetup';
 import CustomDomainSSL from '../components/dealer/CustomDomainSSL';
 import PayoutDashboard from '../components/dealer/PayoutDashboard';
 import AIMarketingTools from '../components/dealer/AIMarketingTools';
+import MerchantManagement from '../components/dealer/MerchantManagement';
+import StaffManagement from '../components/dealer/StaffManagement';
 
 export default function DealerDashboardPage() {
   const [dealer, setDealer] = useState(null);
