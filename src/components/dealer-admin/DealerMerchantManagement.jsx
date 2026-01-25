@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { createPageUrl } from '@/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -74,7 +75,7 @@ export default function DealerMerchantManagement({ dealerId }) {
       const merchant = merchants.find(m => m.id === merchantId);
       localStorage.setItem('impersonatedMerchantId', merchantId);
       localStorage.setItem('impersonatedMerchantName', merchant.business_name);
-      window.location.href = '/pos';
+      window.location.href = createPageUrl('POS');
     } catch (error) {
       alert('Error: ' + error.message);
     }
