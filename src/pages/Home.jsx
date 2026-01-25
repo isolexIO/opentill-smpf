@@ -18,7 +18,10 @@ import {
   MessageCircle,
   Package,
   Cpu,
-  Shield
+  Shield,
+  Store,
+  Users,
+  Activity
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import PriceTicker from '@/components/vault/PriceTicker';
@@ -162,14 +165,17 @@ export default function HomePage() {
 
   const displayStats = [
     {
+      icon: Store,
       value: stats.loading ? '...' : stats.activeMerchants.toLocaleString(),
       label: 'Active Merchants'
     },
     {
+      icon: Users,
       value: stats.loading ? '...' : stats.activeDealers.toLocaleString(),
       label: 'Active Dealers'
     },
     {
+      icon: Activity,
       value: statsData[1]?.value || '99.9%',
       label: statsData[1]?.label || 'Uptime'
     }
@@ -319,16 +325,24 @@ export default function HomePage() {
             viewport={{ once: true }}
             className="grid grid-cols-1 md:grid-cols-3 gap-8"
           >
-            {displayStats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-2">
-                  {stat.value}
+            {displayStats.map((stat, index) => {
+              const Icon = stat.icon;
+              return (
+                <div key={index} className="text-center">
+                  <div className="flex justify-center mb-3">
+                    <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
+                      <Icon className="w-8 h-8 text-white" />
+                    </div>
+                  </div>
+                  <div className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-2">
+                    {stat.value}
+                  </div>
+                  <div className="text-gray-600 dark:text-gray-300 font-medium">
+                    {stat.label}
+                  </div>
                 </div>
-                <div className="text-gray-600 dark:text-gray-300 font-medium">
-                  {stat.label}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </motion.div>
         </div>
       </section>
