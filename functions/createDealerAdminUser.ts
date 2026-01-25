@@ -16,20 +16,17 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Create user with dealer_id
-    const newUser = await base44.asServiceRole.entities.User.create({
-      email: email.toLowerCase().trim(),
-      full_name: full_name || 'Dealer Admin',
-      role: 'user',
-      dealer_id: dealer_id
-    });
+    // Invite user - this sends them an invite email to set their password
+    await base44.asServiceRole.users.inviteUser(
+      email.toLowerCase().trim(),
+      'user'
+    );
 
+    // The user will need to accept the invite to set dealer_id manually or via a separate process
     return Response.json({
       success: true,
-      message: `Dealer user created successfully`,
-      email: newUser.email,
-      full_name: newUser.full_name,
-      user_id: newUser.id
+      message: `Invitation sent to ${email.toLowerCase().trim()}. They will need to accept to complete setup.`,
+      email: email.toLowerCase().trim()
     });
   } catch (error) {
     console.error('Error creating dealer admin:', error);
