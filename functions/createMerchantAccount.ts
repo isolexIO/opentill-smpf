@@ -22,69 +22,14 @@ Deno.serve(async (req) => {
         
         // If merchant_id is provided, activate existing merchant
         if (merchant_id) {
-            console.log('Creating/updating user for merchant activation:', { merchant_id, owner_email });
-            
-            // Check if user already exists
-            let users;
-            try {
-                users = await base44.asServiceRole.entities.User.filter({ 
-                    email: owner_email.toLowerCase().trim() 
-                });
-            } catch (filterError) {
-                console.error('Error filtering users:', filterError);
-                users = [];
-            }
-            
-            if (users && users.length > 0) {
-                // Update existing user (without pin - will be set separately)
-                const user = users[0];
-                await base44.asServiceRole.entities.User.update(user.id, {
-                    merchant_id: merchant_id,
-                    dealer_id: dealer_id || null,
-                    is_active: true,
-                    full_name: owner_name,
-                    role: 'merchant_admin',
-                    permissions: [
-                        'process_orders',
-                        'manage_inventory',
-                        'manage_customers',
-                        'view_reports',
-                        'manage_users',
-                        'manage_settings',
-                        'admin_settings',
-                        'access_marketplace',
-                        'submit_tickets'
-                    ]
-                });
-            } else {
-                // Create new user (without pin - will be set separately)
-                await base44.asServiceRole.entities.User.create({
-                    full_name: owner_name.trim(),
-                    email: owner_email.toLowerCase().trim(),
-                    role: 'merchant_admin',
-                    merchant_id: merchant_id,
-                    dealer_id: dealer_id || null,
-                    is_active: true,
-                    permissions: [
-                        'process_orders',
-                        'manage_inventory',
-                        'manage_customers',
-                        'view_reports',
-                        'manage_users',
-                        'manage_settings',
-                        'admin_settings',
-                        'access_marketplace',
-                        'submit_tickets'
-                    ]
-                });
-            }
-            
-            // Status is already updated before this function is called by Super Admin
-            // This function only creates the user account now
+            console.log('Merchant activation flow - user account creation is handled separately');
+            // Note: User creation for merchant admins should be done through base44.users.inviteUser()
+            // from the frontend, not in this function
             
             return Response.json({
                 success: true,
-                merchant_id: merchant_id
+                merchant_id: merchant_id,
+                message: 'Merchant activation initiated. Admin user should be created via invitation.'
             });
         }
 
