@@ -38,7 +38,8 @@ import {
   Globe,
   CreditCard,
   Link2,
-  UserCheck
+  UserCheck,
+  UserPlus
 } from 'lucide-react';
 import DealerSubdomainManager from './DealerSubdomainManager';
 import { createPageUrl } from '@/utils';
@@ -185,6 +186,64 @@ export default function DealerManagement() {
     } catch (error) {
       console.error('Error impersonating dealer:', error);
       alert('Failed to impersonate dealer');
+    }
+  };
+
+  const handleCreateDealerAdmin = async (dealer) => {
+    const email = prompt(`Enter email for new dealer admin user for "${dealer.name}":`, dealer.owner_email);
+    if (!email) return;
+
+    const name = prompt('Enter full name:', dealer.owner_name || '');
+    if (!name) return;
+
+    try {
+      // Generate unique PIN
+      let pin;
+      let pinIsUnique = false;
+      let attempts = 0;
+
+      while (!pinIsUnique && attempts < 10) {
+        pin = Math.floor(100000 + Math.random() * 900000).toString();
+        const existingPinUsers = await base44.entities.User.filter({ pin });
+        if (!existingPinUsers || existingPinUsers.length === 0) {
+          pinIsUnique = true;
+        }
+        attempts++;
+      }
+
+      if (!pinIsUnique) {
+        alert('Failed to generate unique PIN');
+        return;
+      }
+
+      // Generate temp password
+      const tempPassword = Math.random().toString(36).slice(-12);
+
+      // Create dealer admin user
+      await base44.entities.User.create({
+        full_name: name.trim(),
+        email: email.toLowerCase().trim(),
+        role: 'dealer_admin',
+        dealer_id: dealer.id,
+        merchant_id: null,
+        pin: pin,
+        password_hash: tempPassword,
+        employee_id: `DEALER-${Date.now()}`,
+        is_active: true,
+        permissions: ['manage_dealers', 'manage_merchants', 'view_reports', 'manage_settings'],
+        can_view_all_merchants: true,
+        can_view_all_dealers: false,
+        wallet_address: null,
+        wallet_provider: null,
+        pos_settings: {},
+        last_login: null,
+        hourly_rate: 0
+      });
+
+      alert(`Dealer admin created!\n\nEmail: ${email}\nPIN: ${pin}\nPassword: ${tempPassword}\n\nSave these credentials!`);
+    } catch (error) {
+      console.error('Error creating dealer admin:', error);
+      alert('Failed to create dealer admin: ' + error.message);
     }
   };
 
@@ -344,6 +403,14 @@ export default function DealerManagement() {
                   </Badge>
 
                   <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleCreateDealerAdmin(dealer)}
+                      title="Add dealer admin"
+                    >
+                      <UserPlus className="w-4 h-4" />
+                    </Button>
                     <Button
                       variant="outline"
                       size="sm"
