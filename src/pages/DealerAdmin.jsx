@@ -11,11 +11,11 @@ import {
   Bell,
   TrendingUp
 } from 'lucide-react';
-import DealerMerchantManagement from '../components/dealer-admin/DealerMerchantManagement';
-import DealerAnalytics from '../components/dealer-admin/DealerAnalytics';
-import DealerNotifications from '../components/dealer-admin/DealerNotifications';
-import DealerPaymentSettings from '../components/dealer-admin/DealerPaymentSettings';
-import DealerStaffManagement from '../components/dealer-admin/DealerStaffManagement';
+import DealerMerchantManagement from '../components/dealer-admin/DealerMerchantManagement.jsx';
+import DealerAnalytics from '../components/dealer-admin/DealerAnalytics.jsx';
+import DealerNotifications from '../components/dealer-admin/DealerNotifications.jsx';
+import DealerPaymentSettings from '../components/dealer-admin/DealerPaymentSettings.jsx';
+import DealerStaffManagement from '../components/dealer-admin/DealerStaffManagement.jsx';
 
 export default function DealerAdminPage() {
   const [dealer, setDealer] = useState(null);
