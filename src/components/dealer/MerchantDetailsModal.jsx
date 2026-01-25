@@ -14,6 +14,20 @@ export default function MerchantDetailsModal({ merchant, open, onOpenChange, onU
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editData, setEditData] = useState(merchant || {});
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    loadUser();
+  }, []);
+
+  const loadUser = async () => {
+    try {
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+    } catch (error) {
+      console.error('Error loading user:', error);
+    }
+  };
 
   if (!merchant) return null;
 
