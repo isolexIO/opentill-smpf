@@ -32,10 +32,11 @@ export default function PermissionGate({ children, permission, fallback = null }
 
   const hasPermission = () => {
     if (!currentUser) return false;
-    if (!Array.isArray(currentUser.permissions)) return false;
     
-    // Super admin and merchant admin have all permissions
-    if (currentUser.role === 'admin' || currentUser.role === 'merchant_admin') return true;
+    // Super admin, root admin, and merchant admin have all permissions
+    if (currentUser.role === 'admin' || currentUser.role === 'root_admin' || currentUser.role === 'merchant_admin') return true;
+    
+    if (!Array.isArray(currentUser.permissions)) return false;
     
     return currentUser.permissions.includes(permission);
   };

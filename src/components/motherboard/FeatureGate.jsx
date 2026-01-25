@@ -26,6 +26,13 @@ export default function FeatureGate({ chipName, children, fallback }) {
     try {
       const user = await base44.auth.me();
       
+      // Super admin/root admin has access to everything
+      if (user?.role === 'admin' || user?.role === 'root_admin') {
+        setIsUnlocked(true);
+        setLoading(false);
+        return;
+      }
+      
       if (!user?.wallet_address) {
         setIsUnlocked(false);
         setLoading(false);
