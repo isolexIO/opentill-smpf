@@ -28,12 +28,11 @@ Deno.serve(async (req) => {
             });
             
             if (users && users.length > 0) {
-                // Update existing user
+                // Update existing user (without pin - will be set separately)
                 const user = users[0];
                 await base44.asServiceRole.entities.User.update(user.id, {
                     merchant_id: merchant_id,
                     dealer_id: dealer_id || null,
-                    pin: pin,
                     is_active: true,
                     full_name: owner_name,
                     role: 'merchant_admin',
@@ -50,14 +49,13 @@ Deno.serve(async (req) => {
                     ]
                 });
             } else {
-                // Create new user
+                // Create new user (without pin - will be set separately)
                 await base44.asServiceRole.entities.User.create({
                     full_name: owner_name.trim(),
                     email: owner_email.toLowerCase().trim(),
                     role: 'merchant_admin',
                     merchant_id: merchant_id,
                     dealer_id: dealer_id || null,
-                    pin: pin,
                     is_active: true,
                     permissions: [
                         'process_orders',
