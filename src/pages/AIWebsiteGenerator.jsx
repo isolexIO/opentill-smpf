@@ -12,10 +12,11 @@ import { base44 } from '@/api/base44Client';
 import PermissionGate from '../components/PermissionGate';
 import AnalyticsDashboard from '../components/website-generator/AnalyticsDashboard';
 import WebsiteEditor from '../components/website-generator/WebsiteEditor';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function AIWebsiteGenerator() {
+  const { toast } = useToast();
   const [businessInfo, setBusinessInfo] = useState({
     businessName: '',
     industry: '',
@@ -112,7 +113,7 @@ export default function AIWebsiteGenerator() {
 
   const handleGenerateLogo = async () => {
     if (!businessInfo.businessName || !businessInfo.industry) {
-      alert('Please fill in Business Name and Industry first');
+      toast({ title: "Missing Information", description: "Please fill in Business Name and Industry first", variant: "destructive" });
       return;
     }
 
@@ -125,10 +126,10 @@ export default function AIWebsiteGenerator() {
       });
 
       setGeneratedLogo(logoUrl.url);
-      alert('Logo generated successfully!');
+      toast({ title: "Success", description: "Logo generated successfully!" });
     } catch (error) {
       console.error('Error generating logo:', error);
-      alert('Failed to generate logo. Please try again.');
+      toast({ title: "Error", description: "Failed to generate logo. Please try again.", variant: "destructive" });
     } finally {
       setLogoLoading(false);
     }
@@ -136,7 +137,7 @@ export default function AIWebsiteGenerator() {
 
   const handleGenerateImages = async () => {
     if (!businessInfo.industry || !businessInfo.description) {
-      alert('Please fill in Industry and Description first');
+      toast({ title: "Missing Information", description: "Please fill in Industry and Description first", variant: "destructive" });
       return;
     }
 
@@ -154,10 +155,10 @@ export default function AIWebsiteGenerator() {
 
       const results = await Promise.all(imagePromises);
       setGeneratedImages(results.map(r => r.url));
-      alert('Images generated successfully!');
+      toast({ title: "Success", description: "Images generated successfully!" });
     } catch (error) {
       console.error('Error generating images:', error);
-      alert('Failed to generate images. Please try again.');
+      toast({ title: "Error", description: "Failed to generate images. Please try again.", variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -165,7 +166,7 @@ export default function AIWebsiteGenerator() {
 
   const handleGenerate = async () => {
     if (!businessInfo.businessName || !businessInfo.industry || !businessInfo.description) {
-      alert('Please fill in at least Business Name, Industry, and Description');
+      toast({ title: "Missing Information", description: "Please fill in at least Business Name, Industry, and Description", variant: "destructive" });
       return;
     }
 
@@ -377,7 +378,7 @@ Generate ONLY the HTML files with complete inline CSS, nothing else. No explanat
       }
     } catch (error) {
       console.error('Error generating website:', error);
-      alert('Failed to generate website. Please try again.');
+      toast({ title: "Error", description: "Failed to generate website. Please try again.", variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -413,7 +414,7 @@ Generate ONLY the HTML files with complete inline CSS, nothing else. No explanat
           URL.revokeObjectURL(url);
         }, index * 500);
       });
-      alert(`Downloading ${files.length} HTML files...`);
+      toast({ title: "Downloading", description: `Downloading ${files.length} HTML files...` });
     } else {
       // Single file
       const blob = new Blob([generatedWebsite], { type: 'text/html' });
@@ -460,10 +461,10 @@ Generate ONLY the HTML files with complete inline CSS, nothing else. No explanat
       setGeneratedImages([]);
       setShowDeleteConfirm(false);
       
-      alert('Website deleted successfully! You can now generate a new one.');
+      toast({ title: "Success", description: "Website deleted successfully! You can now generate a new one." });
     } catch (error) {
       console.error('Error deleting website:', error);
-      alert('Failed to delete website. Please try again.');
+      toast({ title: "Error", description: "Failed to delete website. Please try again.", variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -486,7 +487,7 @@ Generate ONLY the HTML files with complete inline CSS, nothing else. No explanat
   const handleCopyCode = () => {
     if (!generatedWebsite) return;
     navigator.clipboard.writeText(generatedWebsite);
-    alert('HTML code copied to clipboard!');
+    toast({ title: "Copied", description: "HTML code copied to clipboard!" });
   };
 
   return (
