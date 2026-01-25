@@ -41,10 +41,11 @@ async function verifyToken(token) {
 
 Deno.serve(async (req) => {
   const base44 = createClientFromRequest(req);
-  const url = new URL(req.url);
-  const action = url.searchParams.get('action') || 'login';
-
+  
   try {
+    const body = await req.json();
+    const action = body.action || 'login';
+    
     // LOGIN
     if (action === 'login') {
       const { email, password } = await req.json();
