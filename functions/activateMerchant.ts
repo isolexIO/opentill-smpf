@@ -25,7 +25,7 @@ Deno.serve(async (req) => {
         activated_at: now,
         trial_ends_at: trialEndDate
       });
-      return Response.json({ success: true, data: updated });
+      return Response.json({ success: true, merchant_id, data: updated });
     } else if (action === 'reject') {
       // Reject/cancel merchant registration
       const updated = await base44.asServiceRole.entities.Merchant.update(merchant_id, {
@@ -33,9 +33,9 @@ Deno.serve(async (req) => {
         suspended_at: now,
         suspension_reason: 'Registration rejected by admin'
       });
-      return Response.json({ success: true, data: updated });
+      return Response.json({ success: true, merchant_id, data: updated });
     } else {
-      return Response.json({ error: 'Invalid action' }, { status: 400 });
+      return Response.json({ error: 'Invalid action', merchant_id }, { status: 400 });
     }
   } catch (error) {
     console.error('Error in activateMerchant:', error);
