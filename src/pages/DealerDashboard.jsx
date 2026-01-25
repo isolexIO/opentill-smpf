@@ -8,11 +8,13 @@ import {
   DollarSign, 
   TrendingUp,
   Settings,
-  CreditCard
+  CreditCard,
+  Sparkles
 } from 'lucide-react';
 import StripeConnectSetup from '../components/dealer/StripeConnectSetup';
 import CustomDomainSSL from '../components/dealer/CustomDomainSSL';
 import PayoutDashboard from '../components/dealer/PayoutDashboard';
+import AIMarketingTools from '../components/dealer/AIMarketingTools';
 
 export default function DealerDashboardPage() {
   const [dealer, setDealer] = useState(null);
@@ -232,6 +234,10 @@ export default function DealerDashboardPage() {
               <Store className="w-4 h-4 mr-2" />
               Merchants
             </TabsTrigger>
+            <TabsTrigger value="marketing">
+              <Sparkles className="w-4 h-4 mr-2" />
+              AI Marketing
+            </TabsTrigger>
             <TabsTrigger value="payouts">
               <DollarSign className="w-4 h-4 mr-2" />
               Payouts
@@ -277,6 +283,10 @@ export default function DealerDashboardPage() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="marketing">
+            <AIMarketingTools dealerId={dealer.id} />
           </TabsContent>
 
           <TabsContent value="payouts">
