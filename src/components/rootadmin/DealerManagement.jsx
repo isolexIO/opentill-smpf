@@ -115,9 +115,23 @@ export default function DealerManagement() {
       }
 
       if (dealer.id) {
+        // Update existing dealer
         await base44.entities.Dealer.update(dealer.id, dealer);
       } else {
-        await base44.entities.Dealer.create(dealer);
+        // Create new dealer through backend function (creates dealer + dealer admin user)
+        const response = await base44.functions.invoke('createDealerAccount', {
+          dealer_name: dealer.name,
+          owner_name: dealer.owner_name,
+          owner_email: dealer.owner_email,
+          contact_phone: dealer.contact_phone,
+          slug: dealer.slug
+        });
+
+        if (!response.success) {
+          throw new Error(response.error || 'Failed to create dealer');
+        }
+
+        alert(`Dealer created successfully!\n\nDealer Admin Credentials:\nPIN: ${response.credentials.pin}\nPassword: ${response.credentials.temp_password}\n\nCredentials have been emailed to ${dealer.owner_email}`);
       }
       
       await loadDealers();
