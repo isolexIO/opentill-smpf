@@ -69,11 +69,10 @@ export default function HomePage() {
 
   const loadStats = async () => {
     try {
-      const merchants = await base44.entities.Merchant.list();
-      const activeMerchants = merchants.filter(m => m.status === 'active').length;
-
-      const dealers = await base44.entities.Dealer.list();
-      const activeDealers = dealers.filter(d => d.status === 'active' || d.status === 'trial').length;
+      const activeMerchants = (await base44.entities.Merchant.filter({ status: 'active' })).length;
+      const activeDealers = (await base44.entities.Dealer.filter({ 
+        $or: [{ status: 'active' }, { status: 'trial' }] 
+      })).length;
 
       setStats({
         activeMerchants,
