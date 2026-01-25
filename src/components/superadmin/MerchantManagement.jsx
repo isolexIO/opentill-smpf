@@ -25,7 +25,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Label } from '@/components/ui/label'; // Added Label import
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Search,
   Ban,
@@ -33,7 +34,10 @@ import {
   Trash2,
   Eye,
   RefreshCw,
-  Plus
+  Plus,
+  CreditCard,
+  Shield,
+  AlertCircle
 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import SubdomainManager from './SubdomainManager';
