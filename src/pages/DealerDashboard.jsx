@@ -20,8 +20,6 @@ import MerchantManagement from '../components/dealer/MerchantManagement.jsx';
 import StaffManagement from '../components/dealer/StaffManagement.jsx';
 import MerchantAnalytics from '../components/dealer/MerchantAnalytics.jsx';
 import DealerBrandingSettings from '../components/dealer/DealerBrandingSettings.jsx';
-import DealerWalletSettings from '../components/dealer/DealerWalletSettings.jsx';
-import { LogOut } from 'lucide-react';
 
 export default function DealerDashboardPage() {
   const [dealer, setDealer] = useState(null);
@@ -38,12 +36,6 @@ export default function DealerDashboardPage() {
   useEffect(() => {
     loadDealerData();
   }, []);
-
-  const handleLogout = () => {
-    if (confirm('Are you sure you want to log out?')) {
-      base44.auth.logout(createPageUrl('Home'));
-    }
-  };
 
   const loadDealerData = async () => {
     try {
@@ -84,28 +76,18 @@ export default function DealerDashboardPage() {
         // For root admin, either get from URL param or show all dealers
         const urlParams = new URLSearchParams(window.location.search);
         const dealerId = urlParams.get('dealer_id');
-
+        
         if (dealerId) {
-          try {
-            const dealers = await base44.entities.Dealer.filter({ id: dealerId });
-            dealerData = dealers[0];
-          } catch (e) {
-            console.log('Could not load dealer by ID, using first available');
-          }
-        }
-
-        if (!dealerData) {
-          // Show first dealer
+          const dealers = await base44.entities.Dealer.filter({ id: dealerId });
+          dealerData = dealers[0];
+        } else {
+          // Show first dealer or allow selection
           const allDealers = await base44.entities.Dealer.list();
           dealerData = allDealers[0];
         }
-      } else if (user.dealer_id && user.dealer_id !== '01') {
-        try {
-          const dealers = await base44.entities.Dealer.filter({ id: user.dealer_id });
-          dealerData = dealers[0];
-        } catch (e) {
-          console.log('Could not load dealer from user dealer_id');
-        }
+      } else if (user.dealer_id) {
+        const dealers = await base44.entities.Dealer.filter({ id: user.dealer_id });
+        dealerData = dealers[0];
       }
       
       if (!dealerData) {
@@ -166,8 +148,8 @@ export default function DealerDashboardPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8 flex justify-between items-start">
-          <div className="flex items-center gap-4">
+        <div className="mb-8">
+          <div className="flex items-center gap-4 mb-2">
             {dealer.logo_url && (
               <img src={dealer.logo_url} alt={dealer.name} className="w-16 h-16 object-contain" />
             )}
@@ -185,14 +167,6 @@ export default function DealerDashboardPage() {
               </p>
             </div>
           </div>
-          <Button
-            variant="outline"
-            onClick={handleLogout}
-            className="gap-2 text-red-600 border-red-200"
-          >
-            <LogOut className="w-4 h-4" />
-            Logout
-          </Button>
         </div>
 
         {/* Stats Grid */}
@@ -314,7 +288,6 @@ export default function DealerDashboardPage() {
                   <TabsTrigger value="branding">Branding</TabsTrigger>
                   <TabsTrigger value="payments">Payments</TabsTrigger>
                   <TabsTrigger value="domains">Domains</TabsTrigger>
-                <TabsTrigger value="wallet">Wallet</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="branding">
@@ -327,10 +300,6 @@ export default function DealerDashboardPage() {
 
                 <TabsContent value="domains">
                   <CustomDomainSSL dealer={dealer} onUpdate={loadDealerData} />
-                </TabsContent>
-
-                <TabsContent value="wallet">
-                  <DealerWalletSettings dealer={dealer} onUpdate={loadDealerData} />
                 </TabsContent>
               </Tabs>
             </div>
