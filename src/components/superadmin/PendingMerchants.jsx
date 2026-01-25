@@ -70,7 +70,7 @@ export default function PendingMerchants() {
       });
 
       // Step 2: Create admin user via backend function
-      const { data } = await base44.functions.invoke('createMerchantAccount', {
+      const response = await base44.functions.invoke('createMerchantAccount', {
         merchant_id: selectedMerchant.id,
         owner_email: selectedMerchant.owner_email,
         owner_name: selectedMerchant.owner_name,
@@ -80,8 +80,8 @@ export default function PendingMerchants() {
         activate: true
       });
 
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to create merchant account');
+      if (!response.data?.success) {
+        throw new Error(response.data?.error || 'Failed to create merchant account');
       }
 
       // Step 3: Set up demo data if requested
