@@ -58,11 +58,20 @@ Deno.serve(async (req) => {
             let emailResult;
             try {
                 emailResult = await base44.asServiceRole.integrations.Core.SendEmail({
-                to: user.email,
-                from_name: 'ChainLINK POS',
-                subject: 'Password Reset - ChainLINK POS',
-                body: `Hello ${user.full_name},\n\nYour temporary password is: ${tempPassword}\n\nPlease use this password to login and then change it in your account settings.\n\nYour PIN: ${user.pin || 'Not set'}\n\nYou can also login using your PIN if available.\n\nThank you,\nChainLINK POS Team`
-            });
+                    to: user.email,
+                    from_name: 'ChainLINK POS',
+                    subject: 'Password Reset - ChainLINK POS',
+                    body: `Hello ${user.full_name},\n\nYour temporary password is: ${tempPassword}\n\nPlease use this password to login and then change it in your account settings.\n\nYour PIN: ${user.pin || 'Not set'}\n\nYou can also login using your PIN if available.\n\nThank you,\nChainLINK POS Team`
+                });
+            } catch (e) {
+                console.log('asServiceRole email failed, trying regular integration:', e.message);
+                emailResult = await base44.integrations.Core.SendEmail({
+                    to: user.email,
+                    from_name: 'ChainLINK POS',
+                    subject: 'Password Reset - ChainLINK POS',
+                    body: `Hello ${user.full_name},\n\nYour temporary password is: ${tempPassword}\n\nPlease use this password to login and then change it in your account settings.\n\nYour PIN: ${user.pin || 'Not set'}\n\nYou can also login using your PIN if available.\n\nThank you,\nChainLINK POS Team`
+                });
+            }
             
             console.log('Password reset email sent to:', user.email, emailResult);
         } catch (emailError) {
