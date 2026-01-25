@@ -104,34 +104,20 @@ export default function MerchantManagement({ onUpdate }) {
 
   const handleStatusChange = async (merchant, newStatus) => {
     try {
-      const updates = { status: newStatus };
-      
-      if (newStatus === 'suspended') {
-        updates.suspended_at = new Date().toISOString();
-        updates.suspension_reason = 'Manually suspended by admin';
-      } else if (newStatus === 'active') {
-        updates.suspended_at = null;
-        updates.suspension_reason = null;
-      }
-
-      await base44.asServiceRole.entities.Merchant.update(merchant.id, updates);
-      
-      // Log the action
-      await base44.entities.SystemLog.create({
-        log_type: 'super_admin_action',
-        action: `Merchant status changed to ${newStatus}`,
-        description: `Merchant ${merchant.business_name} status changed from ${merchant.status} to ${newStatus}`,
-        user_email: (await base44.auth.me()).email,
-        user_role: 'super_admin',
-        merchant_id: merchant.id,
-        severity: 'info'
+      const response = await base44.functions.invoke('updateMerchantStatus', {
+        merchantId: merchant.id,
+        newStatus: newStatus
       });
 
-      await loadMerchants();
-      if (onUpdate) onUpdate();
+      if (response.data.success) {
+        await loadMerchants();
+        if (onUpdate) onUpdate();
+      } else {
+        alert('Failed to update merchant status: ' + (response.data.error || 'Unknown error'));
+      }
     } catch (error) {
       console.error('Error updating merchant status:', error);
-      alert('Failed to update merchant status');
+      alert('Failed to update merchant status: ' + error.message);
     }
   };
 
