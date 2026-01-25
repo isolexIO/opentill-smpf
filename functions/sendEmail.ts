@@ -23,18 +23,18 @@ Deno.serve(async (req) => {
 
         // Create transporter with SMTP credentials from environment
         const transporter = nodemailer.createTransport({
-            host: Deno.env.get('SMTP_HOST'),
-            port: parseInt(Deno.env.get('SMTP_PORT') || '587'),
-            secure: Deno.env.get('SMTP_PORT') === '465',
+            host: Deno.env.get('SMTP_HOST') || 'mail.vps103510.mylogin.co',
+            port: parseInt(Deno.env.get('SMTP_PORT') || '465'),
+            secure: true,
             auth: {
-                user: Deno.env.get('SMTP_USER'),
-                pass: Deno.env.get('SMTP_PASSWORD')
+                user: Deno.env.get('SMTP_USER') || 'noreply@chainlink-pos.com',
+                pass: Deno.env.get('SMTP_PASS')
             }
         });
 
         // Send email
         const info = await transporter.sendMail({
-            from: `"${Deno.env.get('SMTP_FROM_NAME')}" <${Deno.env.get('SMTP_FROM_EMAIL')}>`,
+            from: `"ChainLINK POS" <${Deno.env.get('SMTP_USER') || 'noreply@chainlink-pos.com'}>`,
             to: to,
             subject: subject,
             text: text,
