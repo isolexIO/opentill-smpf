@@ -56,12 +56,19 @@ export default function PendingMerchants() {
         action: 'activate'
       });
 
-      // Step 2: Create admin user by inviting them
-      try {
-        await base44.users.inviteUser(selectedMerchant.owner_email, 'merchant_admin');
-      } catch (inviteError) {
-        console.warn('User invitation may have already been sent:', inviteError);
-        // Continue - user might already be invited
+      // Step 2: Create admin user via backend function
+      const { data } = await base44.functions.invoke('createMerchantAccount', {
+        merchant_id: selectedMerchant.id,
+        owner_email: selectedMerchant.owner_email,
+        owner_name: selectedMerchant.owner_name,
+        dealer_id: selectedMerchant.dealer_id || null,
+        pin: pin,
+        temp_password: tempPassword,
+        activate: true
+      });
+
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to create merchant account');
       }
 
       // Step 3: Set up demo data if requested
@@ -261,7 +268,6 @@ ChainLINK POS Team
         <DialogContent className="dark:bg-gray-800">
           <DialogHeader>
             <DialogTitle className="dark:text-white">Activate Merchant Account</DialogTitle>
-            <DialogDescription>Enter credentials and confirm activation</DialogDescription>
           </DialogHeader>
           
           {selectedMerchant && (
