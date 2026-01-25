@@ -17,7 +17,7 @@ Deno.serve(async (req) => {
     }
 
     // Invite user - this sends them an invite email to set their password
-    await base44.asServiceRole.users.inviteUser(
+    await base44.auth.inviteUser(
       email.toLowerCase().trim(),
       'user'
     );
