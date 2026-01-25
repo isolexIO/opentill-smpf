@@ -15,7 +15,8 @@ Deno.serve(async (req) => {
             dealer_id,
             setup_demo_data,
             pin,
-            temp_password
+            temp_password,
+            activate
         } = body;
 
         const base44 = createClientFromRequest(req);
