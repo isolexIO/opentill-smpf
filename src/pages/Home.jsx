@@ -296,7 +296,7 @@ export default function HomePage() {
               <Button
                 size="lg"
                 className="text-lg px-8 py-6 bg-white text-purple-600 hover:bg-gray-100 font-semibold shadow-2xl"
-                onClick={() => window.location.href = 'https://console.isolex.net/CL-signup.php'}
+                onClick={() => window.location.href = createPageUrl('MerchantOnboarding')}
               >
                 {heroSettings.cta_primary_text || 'Start Free Trial'}
                 <ArrowRight className="ml-2 w-5 h-5" />
@@ -614,7 +614,7 @@ export default function HomePage() {
                       <Button
                         className={`w-full mb-6 ${plan.is_featured ? 'bg-gradient-to-r from-purple-600 to-green-500 hover:from-purple-700 hover:to-green-600 text-white' : 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100'}`}
                         size="lg"
-                        onClick={() => window.location.href = 'https://console.isolex.net/CL-signup.php'}
+                        onClick={() => window.location.href = createPageUrl('MerchantOnboarding')}
                       >
                         Get Started
                       </Button>
@@ -660,7 +660,7 @@ export default function HomePage() {
               <Button
                 size="lg"
                 className="bg-white text-blue-600 hover:bg-gray-100"
-                onClick={() => window.location.href = 'https://console.isolex.net/CL-signup.php'}
+                onClick={() => window.location.href = createPageUrl('MerchantOnboarding')}
               >
                 {settings?.cta_section?.cta_text || 'Get Started Today'}
                 <ArrowRight className="ml-2 w-5 h-5" />

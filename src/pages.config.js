@@ -4,6 +4,7 @@ import Contact from './pages/Contact';
 import CustomerDisplay from './pages/CustomerDisplay';
 import Customers from './pages/Customers';
 import DealerAdmin from './pages/DealerAdmin';
+import DealerDashboard from './pages/DealerDashboard';
 import DealerHome from './pages/DealerHome';
 import DealerLanding from './pages/DealerLanding';
 import DealerLogin from './pages/DealerLogin';
@@ -37,7 +38,6 @@ import TermsOfService from './pages/TermsOfService';
 import Users from './pages/Users';
 import WalletLoginPage from './pages/WalletLoginPage';
 import cLINKVault from './pages/cLINKVault';
-import DealerDashboard from './pages/DealerDashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -48,6 +48,7 @@ export const PAGES = {
     "CustomerDisplay": CustomerDisplay,
     "Customers": Customers,
     "DealerAdmin": DealerAdmin,
+    "DealerDashboard": DealerDashboard,
     "DealerHome": DealerHome,
     "DealerLanding": DealerLanding,
     "DealerLogin": DealerLogin,
@@ -81,7 +82,6 @@ export const PAGES = {
     "Users": Users,
     "WalletLoginPage": WalletLoginPage,
     "cLINKVault": cLINKVault,
-    "DealerDashboard": DealerDashboard,
 }
 
 export const pagesConfig = {
