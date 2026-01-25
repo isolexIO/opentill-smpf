@@ -12,6 +12,7 @@ import { base44 } from '@/api/base44Client';
 import PermissionGate from '../components/PermissionGate';
 import AnalyticsDashboard from '../components/website-generator/AnalyticsDashboard';
 import WebsiteEditor from '../components/website-generator/WebsiteEditor';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 export default function AIWebsiteGenerator() {
