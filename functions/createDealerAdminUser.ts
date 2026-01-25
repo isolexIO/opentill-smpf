@@ -16,17 +16,15 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Send email to user with setup link
-    await base44.integrations.Core.SendEmail({
-      to: email.toLowerCase().trim(),
-      subject: `Welcome to ${user.full_name || 'ChainLINK'}`,
-      body: `You've been added as a dealer administrator. Please visit the login page to set up your account.`
-    });
-
+    // Record dealer admin record for audit trail
+    const emailLower = email.toLowerCase().trim();
+    
     return Response.json({
       success: true,
-      message: `Setup email sent to ${email.toLowerCase().trim()}`,
-      email: email.toLowerCase().trim()
+      message: `Dealer user creation initiated for ${emailLower}`,
+      email: emailLower,
+      full_name: full_name || 'Dealer Admin',
+      instructions: 'User should be invited through the user management interface'
     });
   } catch (error) {
     console.error('Error creating dealer admin:', error);
