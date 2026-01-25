@@ -27,7 +27,6 @@ import PinLogin from './pages/PinLogin';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import Products from './pages/Products';
 import Reports from './pages/Reports';
-import RootAdmin from './pages/RootAdmin';
 import Settings from './pages/Settings';
 import Subscriptions from './pages/Subscriptions';
 import SuperAdmin from './pages/SuperAdmin';
@@ -71,7 +70,6 @@ export const PAGES = {
     "PrivacyPolicy": PrivacyPolicy,
     "Products": Products,
     "Reports": Reports,
-    "RootAdmin": RootAdmin,
     "Settings": Settings,
     "Subscriptions": Subscriptions,
     "SuperAdmin": SuperAdmin,
