@@ -156,8 +156,8 @@ export default function DealerDashboardPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-4 mb-2">
+        <div className="mb-8 flex justify-between items-start">
+          <div className="flex items-center gap-4">
             {dealer.logo_url && (
               <img src={dealer.logo_url} alt={dealer.name} className="w-16 h-16 object-contain" />
             )}
@@ -175,6 +175,14 @@ export default function DealerDashboardPage() {
               </p>
             </div>
           </div>
+          <Button
+            variant="outline"
+            onClick={handleLogout}
+            className="gap-2 text-red-600 border-red-200"
+          >
+            <LogOut className="w-4 h-4" />
+            Logout
+          </Button>
         </div>
 
         {/* Stats Grid */}
