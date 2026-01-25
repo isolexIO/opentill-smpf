@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Plus, Search, LogIn, AlertCircle, Info, Eye } from 'lucide-react';
+import { Plus, Search, LogIn, AlertCircle, Info, Eye, Mail, Copy, Check } from 'lucide-react';
 import MerchantOnboarding from './MerchantOnboarding';
 import MerchantDetailsModal from './MerchantDetailsModal';
 
@@ -17,6 +19,9 @@ export default function MerchantManagement({ dealerId }) {
   const [suspendingId, setSuspendingId] = useState(null);
   const [selectedMerchant, setSelectedMerchant] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showInviteDialog, setShowInviteDialog] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [copiedLink, setCopiedLink] = useState(false);
 
   useEffect(() => {
     loadMerchants();
@@ -50,10 +55,50 @@ export default function MerchantManagement({ dealerId }) {
       const merchant = merchants.find(m => m.id === merchantId);
       localStorage.setItem('impersonatedMerchantId', merchantId);
       localStorage.setItem('impersonatedMerchantName', merchant.business_name);
-      window.location.href = '/';
+      window.location.href = createPageUrl('POS');
     } catch (error) {
       alert('Error impersonating merchant: ' + error.message);
     }
+  };
+
+  const handleSendInvite = async () => {
+    if (!inviteEmail) {
+      alert('Please enter an email address');
+      return;
+    }
+
+    try {
+      const inviteLink = `${window.location.origin}${createPageUrl('MerchantOnboarding')}?dealer_id=${dealerId}`;
+      
+      await base44.functions.invoke('sendEmail', {
+        to: inviteEmail,
+        subject: 'Join Our Network - ChainLINK POS',
+        body: `Hi,
+
+You're invited to sign up for ChainLINK POS and join our merchant network.
+
+Click the link below to get started:
+${inviteLink}
+
+This link will automatically associate your account with our network.
+
+Best regards,
+ChainLINK POS Team`
+      });
+
+      alert('Invitation sent successfully!');
+      setInviteEmail('');
+      setShowInviteDialog(false);
+    } catch (error) {
+      alert('Failed to send invitation: ' + error.message);
+    }
+  };
+
+  const handleCopyLink = () => {
+    const inviteLink = `${window.location.origin}${createPageUrl('MerchantOnboarding')}?dealer_id=${dealerId}`;
+    navigator.clipboard.writeText(inviteLink);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2000);
   };
 
   const filteredMerchants = merchants.filter(m => 
@@ -65,7 +110,7 @@ export default function MerchantManagement({ dealerId }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center gap-4">
         <div className="flex-1 max-w-md relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
           <Input
@@ -75,7 +120,56 @@ export default function MerchantManagement({ dealerId }) {
             className="pl-10"
           />
         </div>
-        <MerchantOnboarding dealerId={dealerId} onMerchantCreated={loadMerchants} />
+        <div className="flex gap-2">
+          <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="gap-2"><Mail className="w-4 h-4" />Send Invite</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Invite a Merchant</DialogTitle>
+                <DialogDescription>
+                  Send an invitation link to a merchant so they can sign up under your account
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium">Merchant Email</label>
+                  <Input
+                    type="email"
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                    placeholder="merchant@example.com"
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Or share this link directly:</label>
+                  <div className="flex gap-2">
+                    <Input
+                      readOnly
+                      value={`${window.location.origin}${createPageUrl('MerchantOnboarding')}?dealer_id=${dealerId}`}
+                      className="text-xs"
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleCopyLink}
+                      className="gap-2"
+                    >
+                      {copiedLink ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={() => setShowInviteDialog(false)}>Cancel</Button>
+                  <Button onClick={handleSendInvite}>Send Invite</Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+          <MerchantOnboarding dealerId={dealerId} onMerchantCreated={loadMerchants} />
+        </div>
       </div>
 
       <div className="grid gap-4">
