@@ -19,6 +19,7 @@ import AIMarketingTools from '../components/dealer/AIMarketingTools.jsx';
 import MerchantManagement from '../components/dealer/MerchantManagement.jsx';
 import StaffManagement from '../components/dealer/StaffManagement.jsx';
 import MerchantAnalytics from '../components/dealer/MerchantAnalytics.jsx';
+import DealerBrandingSettings from '../components/dealer/DealerBrandingSettings.jsx';
 
 export default function DealerDashboardPage() {
   const [dealer, setDealer] = useState(null);
@@ -282,8 +283,25 @@ export default function DealerDashboardPage() {
 
           <TabsContent value="settings">
             <div className="space-y-6">
-              <StripeConnectSetup dealer={dealer} onUpdate={loadDealerData} />
-              <CustomDomainSSL dealer={dealer} onUpdate={loadDealerData} />
+              <Tabs defaultValue="branding" className="space-y-6">
+                <TabsList>
+                  <TabsTrigger value="branding">Branding</TabsTrigger>
+                  <TabsTrigger value="payments">Payments</TabsTrigger>
+                  <TabsTrigger value="domains">Domains</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="branding">
+                  <DealerBrandingSettings dealer={dealer} onUpdate={loadDealerData} />
+                </TabsContent>
+
+                <TabsContent value="payments">
+                  <StripeConnectSetup dealer={dealer} onUpdate={loadDealerData} />
+                </TabsContent>
+
+                <TabsContent value="domains">
+                  <CustomDomainSSL dealer={dealer} onUpdate={loadDealerData} />
+                </TabsContent>
+              </Tabs>
             </div>
           </TabsContent>
         </Tabs>
