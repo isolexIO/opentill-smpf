@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { Loader2, CreditCard, AlertCircle, LogIn, Mail, Chrome } from 'lucide-react';
+import { Loader2, CreditCard, AlertCircle, LogIn, Mail } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 // WalletLogin component is removed from the outline, so removing its import
 // import WalletLogin from '../components/auth/WalletLogin';
@@ -14,7 +14,6 @@ const brandName = 'ChainLINK';
 export default function PinLoginPage() {
   const [pin, setPin] = useState('');
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -22,18 +21,6 @@ export default function PinLoginPage() {
     const timer = setTimeout(() => setError(''), 4000);
     return () => clearTimeout(timer);
   }, [error]);
-
-  const handleGoogleLogin = async () => {
-    try {
-      setGoogleLoading(true);
-      setError('');
-      await base44.auth.redirectToLogin(createPageUrl('PinLogin'));
-    } catch (err) {
-      console.error('Google login error:', err);
-      setError('Failed to initiate Google login');
-      setGoogleLoading(false);
-    }
-  };
   // showWalletLogin and checkingAuth states are removed as per the outline's structure changes
   // const [showWalletLogin, setShowWalletLogin] = useState(false);
   // const [checkingAuth, setCheckingAuth] = useState(true);
@@ -219,25 +206,6 @@ export default function PinLoginPage() {
 
           {/* Additional Login/Signup Options */}
           <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700 space-y-3">
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={handleGoogleLogin}
-              disabled={googleLoading}
-            >
-              {googleLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Signing in...
-                </>
-              ) : (
-                <>
-                  <Chrome className="w-4 h-4 mr-2" />
-                  Sign in with Google
-                </>
-              )}
-            </Button>
-
             <Button
               variant="outline"
               className="w-full"

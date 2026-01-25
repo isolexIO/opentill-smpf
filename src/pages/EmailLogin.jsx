@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { LogIn, Mail, Lock, Loader2, AlertCircle, KeyRound, Wallet } from 'lucide-react';
+import { LogIn, Mail, Lock, Loader2, AlertCircle, KeyRound, Wallet, Chrome } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import WalletLogin from '@/components/auth/WalletLogin.jsx';
 
@@ -12,6 +12,7 @@ export default function EmailLoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
   const [dealer, setDealer] = useState(null);
 
@@ -73,6 +74,18 @@ export default function EmailLoginPage() {
       setError('Invalid email or password');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      setGoogleLoading(true);
+      setError('');
+      await base44.auth.redirectToLogin(createPageUrl('EmailLogin'));
+    } catch (err) {
+      console.error('Google login error:', err);
+      setError('Failed to initiate Google login');
+      setGoogleLoading(false);
     }
   };
 
@@ -183,6 +196,25 @@ export default function EmailLoginPage() {
                 <span className="px-2 bg-white text-gray-500">Or continue with</span>
               </div>
             </div>
+
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={handleGoogleLogin}
+              disabled={googleLoading}
+            >
+              {googleLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                <>
+                  <Chrome className="w-4 h-4 mr-2" />
+                  Sign in with Google
+                </>
+              )}
+            </Button>
 
             <Button
               variant="outline"
