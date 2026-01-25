@@ -31,7 +31,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     activeMerchants: 0,
-    totalProcessed: 0,
+    activeDealers: 0,
     loading: true
   });
 
@@ -67,28 +67,21 @@ export default function HomePage() {
   const loadStats = async () => {
     try {
       const merchants = await base44.entities.Merchant.list();
-      const realActiveMerchants = merchants.filter(m => m.status === 'active').length;
+      const activeMerchants = merchants.filter(m => m.status === 'active').length;
 
-      const orders = await base44.entities.Order.filter({
-        status: 'completed'
-      });
-
-      const realTotalProcessed = orders.reduce((sum, order) => sum + (Number(order.total) || 0), 0);
-
-      // Show inflated stats until we reach 100 real merchants
-      const displayActiveMerchants = realActiveMerchants >= 100 ? realActiveMerchants : 247;
-      const displayTotalProcessed = realActiveMerchants >= 100 ? realTotalProcessed : 8500000;
+      const dealers = await base44.entities.Dealer.list();
+      const activeDealers = dealers.filter(d => d.status === 'active' || d.status === 'trial').length;
 
       setStats({
-        activeMerchants: displayActiveMerchants,
-        totalProcessed: displayTotalProcessed,
+        activeMerchants,
+        activeDealers,
         loading: false
       });
     } catch (error) {
       console.error('Error loading stats:', error);
       setStats({
-        activeMerchants: 247,
-        totalProcessed: 8500000,
+        activeMerchants: 0,
+        activeDealers: 0,
         loading: false
       });
     }
@@ -169,20 +162,16 @@ export default function HomePage() {
 
   const displayStats = [
     {
-      value: stats.loading ? '...' : stats.activeMerchants.toLocaleString() + '+',
+      value: stats.loading ? '...' : stats.activeMerchants.toLocaleString(),
       label: 'Active Merchants'
+    },
+    {
+      value: stats.loading ? '...' : stats.activeDealers.toLocaleString(),
+      label: 'Active Dealers'
     },
     {
       value: statsData[1]?.value || '99.9%',
       label: statsData[1]?.label || 'Uptime'
-    },
-    {
-      value: stats.loading ? '...' : formatCurrency(stats.totalProcessed) + '+',
-      label: 'Processed Annually'
-    },
-    {
-      value: statsData[3]?.value || '24/7',
-      label: statsData[3]?.label || 'Support'
     }
   ];
 
@@ -328,7 +317,7 @@ export default function HomePage() {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-8"
+            className="grid grid-cols-1 md:grid-cols-3 gap-8"
           >
             {displayStats.map((stat, index) => (
               <div key={index} className="text-center">
