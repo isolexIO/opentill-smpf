@@ -41,19 +41,19 @@ Deno.serve(async (req) => {
 
         // Send email with temporary password
         try {
-            await base44.integrations.Core.SendEmail({
+            const emailResult = await base44.asServiceRole.integrations.Core.SendEmail({
                 to: user.email,
                 from_name: 'ChainLINK POS',
                 subject: 'Password Reset - ChainLINK POS',
-                body: `Hello ${user.full_name},\n\nYour temporary password is: ${tempPassword}\n\nPlease use this password to login and then change it in your account settings.\n\nYour PIN remains: ${user.pin}\n\nYou can also login using your PIN.\n\nThank you,\nChainLINK POS Team`
+                body: `Hello ${user.full_name},\n\nYour temporary password is: ${tempPassword}\n\nPlease use this password to login and then change it in your account settings.\n\nYour PIN: ${user.pin || 'Not set'}\n\nYou can also login using your PIN if available.\n\nThank you,\nChainLINK POS Team`
             });
             
-            console.log('Password reset email sent to:', user.email);
+            console.log('Password reset email sent to:', user.email, emailResult);
         } catch (emailError) {
             console.error('Error sending email:', emailError);
             return Response.json({
                 success: false,
-                error: 'Failed to send reset email'
+                error: 'Failed to send reset email. Please contact support.'
             }, { status: 500 });
         }
 

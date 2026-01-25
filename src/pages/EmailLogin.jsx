@@ -211,12 +211,17 @@ export default function EmailLoginPage() {
                   return;
                 }
                 setLoading(true);
+                setError('');
                 try {
-                  await base44.functions.invoke('resetUserPassword', { email: email.toLowerCase().trim() });
-                  alert('Password reset email sent! Check your inbox for a temporary password.');
-                  setError('');
+                  const result = await base44.functions.invoke('resetUserPassword', { email: email.toLowerCase().trim() });
+                  if (result.data.success) {
+                    alert(`✅ Temporary password sent to ${email}!\n\nCheck your inbox (and spam/junk folder) for your temporary password.\n\nYour temporary password will be in the email.`);
+                  } else {
+                    setError(result.data.error || 'Failed to send reset email');
+                  }
                 } catch (err) {
-                  alert('Password reset email sent if account exists.');
+                  console.error('Password reset error:', err);
+                  setError('Failed to send reset email. Please contact support.');
                 } finally {
                   setLoading(false);
                 }
