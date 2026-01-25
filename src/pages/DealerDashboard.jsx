@@ -25,7 +25,6 @@ export default function DealerDashboardPage() {
   });
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
-  const [user, setUser] = useState(null);
 
   useEffect(() => {
     loadDealerData();
