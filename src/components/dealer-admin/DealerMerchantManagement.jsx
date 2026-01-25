@@ -5,10 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, Eye, MoreVertical, AlertCircle } from 'lucide-react';
+import { Plus, Search, Eye, MoreVertical, AlertCircle, Mail, Copy, Check } from 'lucide-react';
 
 export default function DealerMerchantManagement({ dealerId }) {
   const [merchants, setMerchants] = useState([]);
@@ -18,6 +18,9 @@ export default function DealerMerchantManagement({ dealerId }) {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [impersonatingId, setImpersonatingId] = useState(null);
   const [suspendingId, setSuspendingId] = useState(null);
+  const [showInviteDialog, setShowInviteDialog] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [copiedLink, setCopiedLink] = useState(false);
   const [formData, setFormData] = useState({
     business_name: '',
     owner_email: '',
@@ -81,6 +84,46 @@ export default function DealerMerchantManagement({ dealerId }) {
     }
   };
 
+  const handleSendInvite = async () => {
+    if (!inviteEmail) {
+      alert('Please enter an email address');
+      return;
+    }
+
+    try {
+      const inviteLink = `${window.location.origin}${createPageUrl('MerchantOnboarding')}?dealer_id=${dealerId}`;
+      
+      await base44.functions.invoke('sendEmail', {
+        to: inviteEmail,
+        subject: 'Join Our Network - ChainLINK POS',
+        body: `Hi,
+
+You're invited to sign up for ChainLINK POS and join our merchant network.
+
+Click the link below to get started:
+${inviteLink}
+
+This link will automatically associate your account with our network.
+
+Best regards,
+ChainLINK POS Team`
+      });
+
+      alert('Invitation sent successfully!');
+      setInviteEmail('');
+      setShowInviteDialog(false);
+    } catch (error) {
+      alert('Failed to send invitation: ' + error.message);
+    }
+  };
+
+  const handleCopyLink = () => {
+    const inviteLink = `${window.location.origin}${createPageUrl('MerchantOnboarding')}?dealer_id=${dealerId}`;
+    navigator.clipboard.writeText(inviteLink);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2000);
+  };
+
   const filteredMerchants = merchants.filter(m => {
     const matchesSearch = m.business_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       m.owner_email.toLowerCase().includes(searchTerm.toLowerCase());
@@ -99,10 +142,59 @@ export default function DealerMerchantManagement({ dealerId }) {
               <CardTitle>Merchant Management</CardTitle>
               <CardDescription>Manage all merchants under your dealership</CardDescription>
             </div>
-            <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-              <DialogTrigger asChild>
-                <Button className="gap-2"><Plus className="w-4 h-4" />New Merchant</Button>
-              </DialogTrigger>
+            <div className="flex gap-2">
+              <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="gap-2"><Mail className="w-4 h-4" />Send Invite</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Invite a Merchant</DialogTitle>
+                    <DialogDescription>
+                      Send an invitation link to a merchant so they can sign up under your account
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium">Merchant Email</label>
+                      <Input
+                        type="email"
+                        value={inviteEmail}
+                        onChange={(e) => setInviteEmail(e.target.value)}
+                        placeholder="merchant@example.com"
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Or share this link directly:</label>
+                      <div className="flex gap-2">
+                        <Input
+                          readOnly
+                          value={`${window.location.origin}${createPageUrl('MerchantOnboarding')}?dealer_id=${dealerId}`}
+                          className="text-xs"
+                        />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleCopyLink}
+                          className="gap-2"
+                        >
+                          {copiedLink ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" onClick={() => setShowInviteDialog(false)}>Cancel</Button>
+                      <Button onClick={handleSendInvite}>Send Invite</Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+
+              <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+                <DialogTrigger asChild>
+                  <Button className="gap-2"><Plus className="w-4 h-4" />New Merchant</Button>
+                </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Create Merchant</DialogTitle>
@@ -149,10 +241,11 @@ export default function DealerMerchantManagement({ dealerId }) {
                   </div>
                   <Button onClick={handleCreateMerchant} className="w-full">Create</Button>
                 </div>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </CardHeader>
+                </DialogContent>
+                </Dialog>
+                </div>
+                </div>
+                </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <div className="flex gap-4 flex-col sm:flex-row">
