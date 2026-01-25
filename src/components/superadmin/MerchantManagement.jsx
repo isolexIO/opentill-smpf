@@ -219,6 +219,52 @@ export default function MerchantManagement({ onUpdate }) {
     }
   };
 
+  const handleSubscriptionChange = async (merchant, newPlan) => {
+    if (newPlan === merchant.subscription_plan) {
+      return;
+    }
+
+    try {
+      // Generate invoice
+      const response = await base44.functions.invoke('generateSubscriptionInvoice', {
+        merchantId: merchant.id,
+        newPlan: newPlan,
+        currentPlan: merchant.subscription_plan
+      });
+
+      if (response.data.success) {
+        const invoice = response.data.invoice;
+        
+        // Send invoice email to merchant
+        await base44.functions.invoke('sendEmail', {
+          to: merchant.owner_email,
+          subject: `Subscription Plan Change Proposal - Invoice ${invoice.invoice_number}`,
+          body: `Hello ${merchant.owner_name},
+
+Your subscription plan has been proposed for change:
+
+Current Plan: ${invoice.from_plan}
+New Plan: ${invoice.to_plan}
+Monthly Cost: $${invoice.monthly_amount}
+Invoice #: ${invoice.invoice_number}
+
+This proposal is valid until ${new Date(invoice.valid_until).toLocaleDateString()}.
+
+Please log in to your account to review and approve this change.
+
+Best regards,
+ChainLINK Support`
+        });
+
+        alert(`Invoice ${invoice.invoice_number} generated and sent to ${merchant.owner_email} for approval.`);
+        await loadMerchants();
+      }
+    } catch (error) {
+      console.error('Error changing subscription:', error);
+      alert('Failed to generate subscription invoice: ' + error.message);
+    }
+  };
+
   const handleAddMerchant = async () => {
     if (!newMerchant.business_name || !newMerchant.owner_email || !newMerchant.owner_name) {
       alert('Please fill in all required fields (Business Name, Owner Name, Owner Email)');
