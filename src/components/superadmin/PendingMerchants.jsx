@@ -11,6 +11,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -268,6 +269,9 @@ ChainLINK POS Team
         <DialogContent className="dark:bg-gray-800">
           <DialogHeader>
             <DialogTitle className="dark:text-white">Activate Merchant Account</DialogTitle>
+            <DialogDescription>
+              Generate credentials and activate the merchant account. An email will be sent with login details.
+            </DialogDescription>
           </DialogHeader>
           
           {selectedMerchant && (
