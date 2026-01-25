@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,7 @@ import { Store, CheckCircle, Loader2, AlertCircle, Sparkles, TrendingUp, Users, 
 import { createPageUrl } from '@/utils';
 
 export default function MerchantOnboarding() {
+  const [dealerId, setDealerId] = useState(null);
   const [formData, setFormData] = useState({
     business_name: '',
     owner_name: '',
@@ -17,6 +18,14 @@ export default function MerchantOnboarding() {
     address: '',
     setup_demo_data: false
   });
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const dealer_id = urlParams.get('dealer_id');
+    if (dealer_id) {
+      setDealerId(dealer_id);
+    }
+  }, []);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -28,7 +37,10 @@ export default function MerchantOnboarding() {
 
     try {
       console.log('Submitting merchant signup...', formData);
-      const response = await base44.functions.invoke('createMerchantAccount', formData);
+      const response = await base44.functions.invoke('createMerchantAccount', {
+        ...formData,
+        ...(dealerId && { dealer_id: dealerId })
+      });
       console.log('Response received:', response);
 
       if (response.success) {
@@ -135,10 +147,12 @@ export default function MerchantOnboarding() {
             <Store className="w-11 h-11 text-white" />
           </div>
           <CardTitle className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Start Your POS Journey
+            {dealerId ? 'Add Your Business' : 'Start Your POS Journey'}
           </CardTitle>
           <p className="text-gray-600 mt-3 text-lg">
-            Join thousands of merchants. Start your <strong>30-day free trial</strong> today!
+            {dealerId 
+              ? 'Complete your registration to get started' 
+              : 'Join thousands of merchants. Start your 30-day free trial today!'}
           </p>
         </CardHeader>
         <CardContent className="p-8">
