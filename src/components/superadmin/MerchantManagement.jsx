@@ -51,6 +51,7 @@ export default function MerchantManagement({ onUpdate }) {
   const [selectedMerchant, setSelectedMerchant] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
   const [showAddMerchant, setShowAddMerchant] = useState(false); // New state for add merchant dialog
+  const [vaultSettings, setVaultSettings] = useState(null);
   const [loading, setLoading] = useState(true);
 
   // New state for new merchant form data
@@ -253,6 +254,17 @@ ChainLINK Support`
     }
   };
 
+  const loadVaultSettings = async (merchantId) => {
+    try {
+      const settings = await base44.entities.cLINKVaultSettings.filter({
+        merchant_id: merchantId
+      });
+      setVaultSettings(settings[0] || null);
+    } catch (error) {
+      console.error('Error loading vault settings:', error);
+    }
+  };
+
   const handleToggleVault = async (merchant, enabled) => {
     try {
       // Create or update cLINKVaultSettings for this merchant
@@ -273,14 +285,8 @@ ChainLINK Support`
         });
       }
 
-      // Update the selected merchant if viewing details
-      if (selectedMerchant && selectedMerchant.id === merchant.id) {
-        setSelectedMerchant({
-          ...selectedMerchant,
-          vault_enabled: enabled
-        });
-      }
-
+      // Reload vault settings
+      await loadVaultSettings(merchant.id);
       await loadMerchants();
       alert(`cLINK Vault ${enabled ? 'enabled' : 'disabled'} for ${merchant.business_name}`);
     } catch (error) {
@@ -540,8 +546,16 @@ ChainLINK Support`
 
       {/* Merchant Details Dialog */}
        {selectedMerchant && (
-         <Dialog open={showDetails} onOpenChange={setShowDetails}>
-           <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+          <Dialog 
+            open={showDetails} 
+            onOpenChange={(open) => {
+              setShowDetails(open);
+              if (open) {
+                loadVaultSettings(selectedMerchant.id);
+              }
+            }}
+          >
+            <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
              <DialogHeader>
                <DialogTitle>{selectedMerchant.business_name}</DialogTitle>
              </DialogHeader>
@@ -654,14 +668,14 @@ ChainLINK Support`
                  </div>
                  <div className="flex gap-2">
                    <Button
-                     variant={selectedMerchant.vault_enabled ? "default" : "outline"}
+                     variant={vaultSettings?.vault_enabled ? "default" : "outline"}
                      onClick={() => handleToggleVault(selectedMerchant, true)}
                      className="flex-1"
                    >
                      Enable Vault
                    </Button>
                    <Button
-                     variant={selectedMerchant.vault_enabled ? "outline" : "destructive"}
+                     variant={vaultSettings?.vault_enabled ? "outline" : "destructive"}
                      onClick={() => handleToggleVault(selectedMerchant, false)}
                      className="flex-1"
                    >
@@ -669,7 +683,7 @@ ChainLINK Support`
                    </Button>
                  </div>
                  <p className="text-xs text-gray-500 mt-2">
-                   Status: {selectedMerchant.vault_enabled ? '✓ Enabled' : '✗ Disabled'}
+                   Status: {vaultSettings?.vault_enabled ? '✓ Enabled' : '✗ Disabled'}
                  </p>
                </div>
 
