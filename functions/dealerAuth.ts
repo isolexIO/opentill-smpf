@@ -111,7 +111,7 @@ Deno.serve(async (req) => {
 
     // REGISTER
     if (action === 'register') {
-      const { name, company, email, password, referral_code } = await req.json();
+      const { name, company, email, password, referral_code } = body;
 
       // Validation
       if (!name || !company || !email || !password) {
