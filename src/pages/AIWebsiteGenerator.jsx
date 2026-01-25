@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, Sparkles, Eye, Download, Globe, Image as ImageIcon, Palette, FileCode, Zap, ShoppingCart, BarChart3, Trash2 } from 'lucide-react';
+import { Loader2, Sparkles, Eye, Download, Globe, Image as ImageIcon, Palette, FileCode, Zap, ShoppingCart, BarChart3, Trash2, Plus } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import PermissionGate from '../components/PermissionGate';
 import AnalyticsDashboard from '../components/website-generator/AnalyticsDashboard';
