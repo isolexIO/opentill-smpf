@@ -268,6 +268,7 @@ ChainLINK POS Team
         <DialogContent className="dark:bg-gray-800">
           <DialogHeader>
             <DialogTitle className="dark:text-white">Activate Merchant Account</DialogTitle>
+            <DialogDescription>Enter credentials and confirm activation</DialogDescription>
           </DialogHeader>
           
           {selectedMerchant && (
