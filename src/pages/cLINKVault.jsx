@@ -48,7 +48,26 @@ export default function cLINKVaultPage() {
   const loadVaultData = async () => {
     setLoading(true);
     try {
-      const currentUser = await base44.auth.me();
+      // Check for impersonated user first (from PIN login)
+      const impersonatedUserJSON = localStorage.getItem('pinLoggedInUser');
+      let currentUser = null;
+      let merchantId = null;
+
+      if (impersonatedUserJSON) {
+        try {
+          currentUser = JSON.parse(impersonatedUserJSON);
+          merchantId = currentUser.merchant_id;
+        } catch (e) {
+          console.error('Error parsing impersonated user:', e);
+        }
+      }
+
+      // If no impersonated user, get from auth
+      if (!currentUser) {
+        currentUser = await base44.auth.me();
+      }
+
+      merchantId = merchantId || currentUser.merchant_id;
       setUser(currentUser);
 
       // Check wallet connection
@@ -56,7 +75,7 @@ export default function cLINKVaultPage() {
 
       // Check if vault is enabled
       const settings = await base44.entities.cLINKVaultSettings.filter({
-        merchant_id: currentUser.merchant_id
+        merchant_id: merchantId
       });
       
       const globalSettings = await base44.entities.cLINKVaultSettings.filter({
@@ -72,7 +91,7 @@ export default function cLINKVaultPage() {
 
       // Load rewards
       const rewards = await base44.entities.cLINKReward.filter({
-        merchant_id: currentUser.merchant_id
+        merchant_id: merchantId
       });
 
       const total = rewards.reduce((sum, r) => sum + r.amount, 0);
@@ -86,7 +105,7 @@ export default function cLINKVaultPage() {
 
       // Load stakes
       const activeStakes = await base44.entities.cLINKStake.filter({
-        merchant_id: currentUser.merchant_id,
+        merchant_id: merchantId,
         status: 'active'
       });
 
@@ -109,8 +128,11 @@ export default function cLINKVaultPage() {
 
     setClaiming(true);
     try {
+      const impersonatedUserJSON = localStorage.getItem('pinLoggedInUser');
+      const merchantId = impersonatedUserJSON ? JSON.parse(impersonatedUserJSON).merchant_id : user.merchant_id;
+
       const { data } = await base44.functions.invoke('claimCLINKRewards', {
-        merchant_id: user.merchant_id,
+        merchant_id: merchantId,
         amount: parseFloat(claimAmount) || available
       });
 
@@ -142,8 +164,11 @@ export default function cLINKVaultPage() {
 
     setStaking(true);
     try {
+      const impersonatedUserJSON = localStorage.getItem('pinLoggedInUser');
+      const merchantId = impersonatedUserJSON ? JSON.parse(impersonatedUserJSON).merchant_id : user.merchant_id;
+
       const { data } = await base44.functions.invoke('stakeCLINK', {
-        merchant_id: user.merchant_id,
+        merchant_id: merchantId,
         amount: parseFloat(stakeAmount)
       });
 
@@ -175,8 +200,11 @@ export default function cLINKVaultPage() {
 
     setSwapping(true);
     try {
+      const impersonatedUserJSON = localStorage.getItem('pinLoggedInUser');
+      const merchantId = impersonatedUserJSON ? JSON.parse(impersonatedUserJSON).merchant_id : user.merchant_id;
+
       const { data } = await base44.functions.invoke('swapCLINKViaJupiter', {
-        merchant_id: user.merchant_id,
+        merchant_id: merchantId,
         from_amount: parseFloat(swapAmount),
         to_token: swapTo
       });
