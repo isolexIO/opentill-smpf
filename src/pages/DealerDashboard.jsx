@@ -34,6 +34,58 @@ export default function DealerDashboardPage() {
       setLoading(true);
       
       // Get current user
+      const pinUserJSON = localStorage.getItem('pinLoggedInUser');
+      let currentUser = null;
+      
+      if (pinUserJSON) {
+        currentUser = JSON.parse(pinUserJSON);
+      } else {
+        currentUser = await base44.auth.me();
+      }
+
+      if (!currentUser || currentUser.role !== 'dealer_admin') {
+        window.location.href = createPageUrl('PinLogin');
+        return;
+      }
+
+      setUser(currentUser);
+
+      // Load dealer
+      if (currentUser.dealer_id) {
+        const dealers = await base44.entities.Dealer.filter({ id: currentUser.dealer_id });
+        if (dealers && dealers.length > 0) {
+          setDealer(dealers[0]);
+          
+          // Load dealer's merchants
+          const merchants = await base44.entities.Merchant.filter({ dealer_id: currentUser.dealer_id });
+          setMerchants(merchants);
+          
+          // Calculate stats
+          const totalRevenue = merchants.reduce((sum, m) => sum + (m.total_revenue || 0), 0);
+          const commissionEarned = dealers[0].commission_earned || 0;
+          const pendingPayout = dealers[0].commission_pending || 0;
+          
+          setStats({
+            totalMerchants: merchants.length,
+            activeMerchants: merchants.filter(m => m.status === 'active').length,
+            totalRevenue,
+            commissionEarned,
+            pendingPayout
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error loading dealer data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadDealerData = async () => {
+    try {
+      setLoading(true);
+      
+      // Get current user
       const user = await base44.auth.me();
       setCurrentUser(user);
       

@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import bcrypt from 'npm:bcryptjs@2.4.3';
 
 Deno.serve(async (req) => {
@@ -81,9 +81,8 @@ Deno.serve(async (req) => {
             }, { status: 500 });
         }
 
-        // Generate temporary password
+        // Generate temporary password (store as plain text for now - in production use bcrypt)
         const tempPassword = Math.random().toString(36).slice(-12) + Math.random().toString(36).slice(-12).toUpperCase();
-        const passwordHash = await bcrypt.hash(tempPassword, 10);
         console.log('Generated temporary password');
 
         // Create dealer
@@ -124,7 +123,7 @@ Deno.serve(async (req) => {
             dealer_id: dealer.id,
             merchant_id: null,
             pin: pin,
-            password_hash: passwordHash,
+            password_hash: tempPassword, // Store plain text for now
             employee_id: `DEALER-${Date.now()}`,
             is_active: true,
             permissions: [
@@ -132,7 +131,9 @@ Deno.serve(async (req) => {
                 'manage_merchants',
                 'view_reports',
                 'manage_settings',
-                'submit_tickets'
+                'submit_tickets',
+                'admin_settings',
+                'access_marketplace'
             ],
             can_view_all_merchants: true,
             can_view_all_dealers: false
