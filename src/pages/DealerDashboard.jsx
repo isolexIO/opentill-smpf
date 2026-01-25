@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { createPageUrl } from '@/utils';
 import { 
   Store, 
   DollarSign, 
@@ -24,6 +25,7 @@ export default function DealerDashboardPage() {
   });
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
     loadDealerData();
@@ -33,65 +35,38 @@ export default function DealerDashboardPage() {
     try {
       setLoading(true);
       
-      // Get current user
+      // Get current user from localStorage or auth
       const pinUserJSON = localStorage.getItem('pinLoggedInUser');
-      let currentUser = null;
+      let user = null;
       
       if (pinUserJSON) {
-        currentUser = JSON.parse(pinUserJSON);
-      } else {
-        currentUser = await base44.auth.me();
+        try {
+          user = JSON.parse(pinUserJSON);
+        } catch (e) {
+          console.error('Error parsing pinLoggedInUser:', e);
+        }
+      }
+      
+      if (!user) {
+        try {
+          user = await base44.auth.me();
+        } catch (e) {
+          console.error('Error getting user:', e);
+          window.location.href = createPageUrl('PinLogin');
+          return;
+        }
       }
 
-      if (!currentUser || currentUser.role !== 'dealer_admin') {
+      if (!user || (user.role !== 'dealer_admin' && user.role !== 'root_admin' && user.role !== 'admin')) {
         window.location.href = createPageUrl('PinLogin');
         return;
       }
 
-      setUser(currentUser);
-
-      // Load dealer
-      if (currentUser.dealer_id) {
-        const dealers = await base44.entities.Dealer.filter({ id: currentUser.dealer_id });
-        if (dealers && dealers.length > 0) {
-          setDealer(dealers[0]);
-          
-          // Load dealer's merchants
-          const merchants = await base44.entities.Merchant.filter({ dealer_id: currentUser.dealer_id });
-          setMerchants(merchants);
-          
-          // Calculate stats
-          const totalRevenue = merchants.reduce((sum, m) => sum + (m.total_revenue || 0), 0);
-          const commissionEarned = dealers[0].commission_earned || 0;
-          const pendingPayout = dealers[0].commission_pending || 0;
-          
-          setStats({
-            totalMerchants: merchants.length,
-            activeMerchants: merchants.filter(m => m.status === 'active').length,
-            totalRevenue,
-            commissionEarned,
-            pendingPayout
-          });
-        }
-      }
-    } catch (error) {
-      console.error('Error loading dealer data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadDealerData = async () => {
-    try {
-      setLoading(true);
-      
-      // Get current user
-      const user = await base44.auth.me();
       setCurrentUser(user);
       
       // Root admin can view all dealers, dealer_admin sees their dealer
       let dealerData;
-      if (user.role === 'root_admin') {
+      if (user.role === 'root_admin' || user.role === 'admin') {
         // For root admin, either get from URL param or show all dealers
         const urlParams = new URLSearchParams(window.location.search);
         const dealerId = urlParams.get('dealer_id');
@@ -134,7 +109,7 @@ export default function DealerDashboardPage() {
       
     } catch (error) {
       console.error('Error loading dealer data:', error);
-      alert('Error loading dealer dashboard. Please ensure you have dealer access.');
+      alert('Error loading dealer dashboard. Please contact support.');
     } finally {
       setLoading(false);
     }

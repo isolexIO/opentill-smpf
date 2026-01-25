@@ -32,22 +32,42 @@ export default function DealerLogin() {
     setError('');
 
     try {
-      const response = await base44.functions.invoke('dealerAuth', {
-        email: email.trim(),
-        password: password
+      // Try to find dealer admin user by email
+      const users = await base44.entities.User.filter({ 
+        email: email.toLowerCase().trim(),
+        role: 'dealer_admin'
       });
 
-      if (response.data.success) {
-        // Store the token and dealer data
-        localStorage.setItem('dealerAuthToken', response.data.token);
-        localStorage.setItem('dealerData', JSON.stringify(response.data.dealer));
-        window.location.href = createPageUrl('DealerDashboard');
-      } else {
-        setError(response.data.error || 'Invalid email or password');
+      if (!users || users.length === 0) {
+        setError('Invalid credentials. No dealer account found.');
+        setLoading(false);
+        return;
       }
-    } catch (err) {
+
+      const user = users[0];
+
+      // Verify password (comparing with stored password)
+      if (user.password_hash !== password) {
+        setError('Invalid credentials. Incorrect password.');
+        setLoading(false);
+        return;
+      }
+
+      if (!user.is_active) {
+        setError('Your account is inactive. Please contact support.');
+        setLoading(false);
+        return;
+      }
+
+      // Store user in localStorage (same as PIN login)
+      localStorage.setItem('pinLoggedInUser', JSON.stringify(user));
+
+      // Redirect to dealer dashboard
+      window.location.href = createPageUrl('DealerDashboard');
+
+    } catch (error) {
+      console.error('Dealer login error:', error);
       setError('Login failed. Please try again.');
-      console.error('Dealer login error:', err);
     } finally {
       setLoading(false);
     }
