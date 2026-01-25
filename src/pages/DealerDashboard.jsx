@@ -70,10 +70,8 @@ export default function DealerDashboardPage() {
 
       setCurrentUser(user);
       
-      // Root admin can view all dealers, dealer_admin sees their dealer
       let dealerData;
       if (user.role === 'root_admin' || user.role === 'admin') {
-        // For root admin, either get from URL param or show all dealers
         const urlParams = new URLSearchParams(window.location.search);
         const dealerId = urlParams.get('dealer_id');
         
@@ -81,13 +79,18 @@ export default function DealerDashboardPage() {
           const dealers = await base44.entities.Dealer.filter({ id: dealerId });
           dealerData = dealers[0];
         } else {
-          // Show first dealer or allow selection
           const allDealers = await base44.entities.Dealer.list();
           dealerData = allDealers[0];
         }
-      } else if (user.dealer_id) {
+      } else if (user.role === 'dealer_admin' && user.dealer_id) {
+        // Verify dealer_admin only sees their own dealer
         const dealers = await base44.entities.Dealer.filter({ id: user.dealer_id });
+        if (dealers.length === 0 || dealers[0].id !== user.dealer_id) {
+          throw new Error('Access denied: Unauthorized dealer access');
+        }
         dealerData = dealers[0];
+      } else {
+        throw new Error('No dealer assigned to this account');
       }
       
       if (!dealerData) {

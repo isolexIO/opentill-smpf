@@ -75,9 +75,8 @@ export default function PinLoginPage() {
 
   // Renamed handlePinSubmit to handleSubmit as per the outline's form onSubmit usage.
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent default form submission
+    e.preventDefault();
 
-    // Updated PIN length validation based on maxLength="6" and button's disabled condition (min 4 digits)
     if (pin.length < 4 || pin.length > 6) {
       setError('PIN must be 4 to 6 digits long.');
       return;
@@ -87,79 +86,30 @@ export default function PinLoginPage() {
     setError('');
 
     try {
-      console.log('Attempting PIN login with PIN:', pin);
+      const { data } = await base44.functions.invoke('authenticatePinUser', { pin });
 
-      const allUsers = await base44.entities.User.list();
-      console.log('Total users in system:', allUsers.length);
-
-      const matchingUsers = allUsers.filter(u => u.pin === pin);
-      console.log('Users with matching PIN:', matchingUsers.length);
-
-      if (matchingUsers.length === 0) {
-        console.log('No users found with PIN:', pin);
-        setError('Invalid PIN. Please try again or use email login.'); // Updated error message
+      if (!data.success) {
+        setError(data.error || 'Invalid PIN. Please try again.');
         setPin('');
         setLoading(false);
         return;
       }
 
-      const user = matchingUsers[0];
-      console.log('User found:', {
-        id: user.id,
-        email: user.email,
-        full_name: user.full_name,
-        role: user.role,
-        merchant_id: user.merchant_id,
-        is_active: user.is_active
-      });
-
-      if (!user.is_active) {
-        setError('Your account is inactive. Please contact support.');
-        setPin('');
-        setLoading(false);
-        return;
-      }
-
-      try {
-        await base44.entities.User.update(user.id, {
-          last_login: new Date().toISOString()
-        });
-      } catch (updateError) {
-        console.warn('Could not update last login:', updateError);
-      }
-
+      const user = data.user;
       localStorage.setItem('pinLoggedInUser', JSON.stringify(user));
 
-      try {
-        await base44.entities.SystemLog.create({
-          merchant_id: user.merchant_id || null,
-          log_type: 'merchant_action',
-          action: 'User PIN Login',
-          description: `User ${user.full_name} logged in via PIN`,
-          user_id: user.id,
-          user_email: user.email,
-          user_role: user.role,
-          severity: 'info'
-        });
-      } catch (logError) {
-        console.warn('Could not create log:', logError);
-      }
-
       let redirectUrl = createPageUrl('SystemMenu');
-
       if (user.role === 'super_admin' || user.role === 'admin' || user.role === 'root_admin') {
         redirectUrl = createPageUrl('SuperAdmin');
       } else if (user.role === 'dealer_admin') {
         redirectUrl = createPageUrl('DealerDashboard');
-      } else if (user.merchant_id) {
-        redirectUrl = createPageUrl('SystemMenu');
       }
 
       window.location.href = redirectUrl;
 
     } catch (error) {
       console.error('PIN login error:', error);
-      setError('Login failed. Please try again or use email login.'); // Updated error message
+      setError(error.message || 'Login failed. Please try again.');
       setPin('');
     } finally {
       setLoading(false);
