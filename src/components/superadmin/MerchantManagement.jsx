@@ -135,10 +135,11 @@ export default function MerchantManagement({ onUpdate }) {
         timestamp: new Date().toISOString()
       }));
 
-      // Create a temporary impersonation user object
+      // Create a temporary impersonation user object (remove dealer_id to avoid layout lookup errors)
       const impersonationUser = {
         ...currentUser,
         merchant_id: merchant.id,
+        dealer_id: undefined,
         role: 'merchant_admin',
         permissions: [
           'process_orders',
