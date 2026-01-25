@@ -193,14 +193,21 @@ export default function DealerManagement() {
     const email = prompt(`Enter email for new dealer admin user for "${dealer.name}":`, dealer.owner_email);
     if (!email) return;
 
-    try {
-      // Invite user with dealer_admin role
-      await base44.users.inviteUser(email.toLowerCase().trim(), 'dealer_admin');
+    const name = prompt('Enter full name:', dealer.owner_name || 'Dealer Admin');
+    if (!name) return;
 
-      alert(`Dealer admin invited!\n\nEmail: ${email}\n\nThey will receive an invitation email to set up their account.`);
-      
-      // Reload dealers to reflect any changes
-      loadDealers();
+    try {
+      const response = await base44.functions.invoke('createDealerAdminUser', {
+        dealer_id: dealer.id,
+        email: email.toLowerCase().trim(),
+        full_name: name.trim()
+      });
+
+      if (response.data.success) {
+        const creds = response.data.credentials;
+        alert(`Dealer admin created!\n\nEmail: ${creds.email}\nPIN: ${creds.pin}\nPassword: ${creds.password}\n\nSave these credentials!`);
+        loadDealers();
+      }
     } catch (error) {
       console.error('Error creating dealer admin:', error);
       alert('Failed to create dealer admin: ' + error.message);
