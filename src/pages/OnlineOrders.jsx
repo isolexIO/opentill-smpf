@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { OnlineOrder } from "@/entities/OnlineOrder";
+import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -76,8 +76,34 @@ export default function OnlineOrdersPage() {
   const loadOrders = async () => {
     try {
       setLoading(true);
-      const orderList = await OnlineOrder.list("-created_date");
-      setOrders(orderList);
+      
+      // Get current user's merchant_id
+      const pinUserJSON = localStorage.getItem('pinLoggedInUser');
+      let currentUser = null;
+
+      if (pinUserJSON) {
+        try {
+          currentUser = JSON.parse(pinUserJSON);
+        } catch (e) {
+          console.error('Error parsing user:', e);
+        }
+      }
+
+      if (!currentUser) {
+        currentUser = await base44.auth.me();
+      }
+
+      // Filter orders by merchant_id
+      if (currentUser?.merchant_id) {
+        const orderList = await OnlineOrder.filter({ 
+          merchant_id: currentUser.merchant_id 
+        }, "-created_date");
+        setOrders(orderList);
+      } else {
+        // Admin/super_admin can see all orders
+        const orderList = await OnlineOrder.list("-created_date");
+        setOrders(orderList);
+      }
     } catch (error) {
       console.error("Error loading online orders:", error);
     } finally {
@@ -87,7 +113,7 @@ export default function OnlineOrdersPage() {
 
   const updateOrderStatus = async (orderId, newStatus) => {
     try {
-      await OnlineOrder.update(orderId, { status: newStatus });
+      await base44.entities.OnlineOrder.update(orderId, { status: newStatus });
       await loadOrders();
     } catch (error) {
       console.error("Error updating order status:", error);

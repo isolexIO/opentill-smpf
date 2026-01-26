@@ -129,8 +129,52 @@ export default function OnlineMenuPage() {
     try {
       setLoading(true);
       
-      const productList = await base44.entities.Product.list();
-      setProducts(productList.filter(p => p.is_active));
+      // Determine which merchant to load data for
+      let targetMerchantId = null;
+      
+      try {
+        const userData = await base44.auth.me();
+        targetMerchantId = userData.merchant_id;
+      } catch (authError) {
+        console.log('No authenticated user');
+      }
+      
+      // If no authenticated user, try to get merchant from subdomain
+      if (!targetMerchantId) {
+        try {
+          const hostname = window.location.hostname;
+          const subdomain = hostname.split('.')[0];
+          
+          if (subdomain && !['localhost', 'chainlinkpos', 'www', ''].includes(subdomain.toLowerCase())) {
+            const dealerList = await base44.entities.Dealer.filter({ slug: subdomain });
+            if (dealerList && dealerList.length > 0) {
+              // For dealer subdomain, get first active merchant under that dealer
+              const merchantList = await base44.entities.Merchant.filter({ 
+                dealer_id: dealerList[0].id,
+                status: 'active'
+              });
+              if (merchantList && merchantList.length > 0) {
+                targetMerchantId = merchantList[0].id;
+              }
+            }
+          }
+        } catch (subdomainError) {
+          console.log('Could not determine merchant from subdomain');
+        }
+      }
+      
+      // Load products filtered by merchant
+      if (targetMerchantId) {
+        const productList = await base44.entities.Product.filter({ 
+          merchant_id: targetMerchantId,
+          is_active: true 
+        });
+        setProducts(productList);
+      } else {
+        // Fallback: show products from first active merchant
+        const productList = await base44.entities.Product.list();
+        setProducts(productList.filter(p => p.is_active));
+      }
 
       try {
         const userData = await base44.auth.me();
@@ -142,21 +186,23 @@ export default function OnlineMenuPage() {
         }));
         loadUserData(userData);
         
-        if (userData.merchant_id) {
-          const merchants = await base44.entities.Merchant.filter({ id: userData.merchant_id });
+        if (targetMerchantId) {
+          const merchants = await base44.entities.Merchant.filter({ id: targetMerchantId });
           if (merchants && merchants.length > 0) {
             setMerchant(merchants[0]);
           }
         }
       } catch (authError) {
         console.log('No authenticated user - public browsing mode');
-        try {
-          const merchants = await base44.entities.Merchant.filter({ status: 'active' });
-          if (merchants && merchants.length > 0) {
-            setMerchant(merchants[0]);
+        if (targetMerchantId) {
+          try {
+            const merchants = await base44.entities.Merchant.filter({ id: targetMerchantId });
+            if (merchants && merchants.length > 0) {
+              setMerchant(merchants[0]);
+            }
+          } catch (merchantError) {
+            console.error('Could not load merchant:', merchantError);
           }
-        } catch (merchantError) {
-          console.error('Could not load merchant:', merchantError);
         }
       }
 
