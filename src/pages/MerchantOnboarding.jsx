@@ -10,6 +10,7 @@ import { createPageUrl } from '@/utils';
 
 export default function MerchantOnboarding() {
   const [dealerId, setDealerId] = useState(null);
+  const [walletAuth, setWalletAuth] = useState(null);
   const [formData, setFormData] = useState({
     business_name: '',
     owner_name: '',
@@ -25,6 +26,18 @@ export default function MerchantOnboarding() {
     if (dealer_id) {
       setDealerId(dealer_id);
     }
+
+    // Check for pending wallet authentication
+    const pendingWallet = sessionStorage.getItem('pendingWalletAuth');
+    if (pendingWallet) {
+      try {
+        const walletData = JSON.parse(pendingWallet);
+        setWalletAuth(walletData);
+        sessionStorage.removeItem('pendingWalletAuth');
+      } catch (e) {
+        console.error('Error parsing wallet auth:', e);
+      }
+    }
   }, []);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -37,16 +50,39 @@ export default function MerchantOnboarding() {
 
     try {
       console.log('Submitting merchant signup...', formData);
-      const response = await base44.functions.invoke('createMerchantAccount', {
-        ...formData,
-        ...(dealerId && { dealer_id: dealerId })
-      });
-      console.log('Response received:', response);
+      
+      // If this is wallet onboarding, use different endpoint
+      if (walletAuth) {
+        const response = await base44.functions.invoke('completeWalletOnboarding', {
+          wallet_address: walletAuth.wallet_address,
+          wallet_type: walletAuth.wallet_type,
+          business_name: formData.business_name,
+          owner_name: formData.owner_name,
+          email: formData.owner_email,
+          phone: formData.phone
+        });
 
-      if (response.data?.success) {
-        setSuccess(true);
+        if (response.data?.success && response.data?.user) {
+          // Store user and redirect to system menu
+          localStorage.setItem('pinLoggedInUser', JSON.stringify(response.data.user));
+          window.location.href = createPageUrl('SystemMenu');
+          return;
+        } else {
+          setError(response.data?.error || 'Failed to complete wallet onboarding');
+        }
       } else {
-        setError(response.data?.error || 'Failed to submit registration');
+        // Regular email-based onboarding
+        const response = await base44.functions.invoke('createMerchantAccount', {
+          ...formData,
+          ...(dealerId && { dealer_id: dealerId })
+        });
+        console.log('Response received:', response);
+
+        if (response.data?.success) {
+          setSuccess(true);
+        } else {
+          setError(response.data?.error || 'Failed to submit registration');
+        }
       }
     } catch (err) {
       console.error('Merchant signup error:', err);
@@ -147,10 +183,12 @@ export default function MerchantOnboarding() {
             <Store className="w-11 h-11 text-white" />
           </div>
           <CardTitle className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            {dealerId ? 'Add Your Business' : 'Start Your POS Journey'}
+            {walletAuth ? 'Complete Your Profile' : dealerId ? 'Add Your Business' : 'Start Your POS Journey'}
           </CardTitle>
           <p className="text-gray-600 mt-3 text-lg">
-            {dealerId 
+            {walletAuth 
+              ? 'Just a few more details to get you started'
+              : dealerId 
               ? 'Complete your registration to get started' 
               : 'Join thousands of merchants. Start your 30-day free trial today!'}
           </p>
@@ -193,16 +231,23 @@ export default function MerchantOnboarding() {
             </div>
 
             <div>
-              <Label htmlFor="owner_email" className="text-gray-700 font-medium">Email Address *</Label>
+              <Label htmlFor="owner_email" className="text-gray-700 font-medium">
+                Email Address {walletAuth ? '(Optional)' : '*'}
+              </Label>
               <Input
                 id="owner_email"
                 type="email"
                 value={formData.owner_email}
                 onChange={(e) => setFormData({ ...formData, owner_email: e.target.value })}
                 placeholder="you@business.com"
-                required
+                required={!walletAuth}
                 className="mt-1.5 h-12 border-2 focus:border-blue-500"
               />
+              {walletAuth && (
+                <p className="text-xs text-gray-500 mt-1">
+                  Leave blank to use wallet address as identifier
+                </p>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
