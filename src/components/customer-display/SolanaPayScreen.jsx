@@ -103,12 +103,20 @@ export default function SolanaPayScreen({ order, settings, onPaymentComplete }) 
         size: 400
       });
 
+      console.log('SolanaPay: QR generation response:', qrResult);
+
       if (!qrResult.data?.success) {
+        console.error('SolanaPay: QR generation failed:', qrResult.data);
         throw new Error(qrResult.data?.error || 'Failed to generate QR code');
       }
 
       console.log('SolanaPay: QR code generated successfully');
-      setQrCode(qrResult.data.qrCodeDataUrl);
+      // Try both possible property names
+      const qrDataUrl = qrResult.data.qrCodeDataUrl || qrResult.data.qrCode;
+      if (!qrDataUrl) {
+        throw new Error('QR code data not found in response');
+      }
+      setQrCode(qrDataUrl);
       setStatus('waiting');
 
     } catch (err) {
