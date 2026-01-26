@@ -26,26 +26,42 @@ export default function WalletLogin({ onSuccess, merchantId }) {
     setWalletType('Phantom');
 
     try {
-      // Check if Phantom is installed
-      const isPhantomInstalled = window?.solana?.isPhantom;
+      // Check for Phantom
+      const getProvider = () => {
+        if ('phantom' in window) {
+          const provider = window.phantom?.solana;
+          if (provider?.isPhantom) return provider;
+        }
+        return window.solana?.isPhantom ? window.solana : null;
+      };
+
+      const provider = getProvider();
       
-      if (!isPhantomInstalled) {
-        window.open('https://phantom.app/', '_blank');
-        throw new Error('Phantom wallet is not installed. Please install it and refresh the page.');
+      if (!provider) {
+        const isMobile = /Android|webOS|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        if (isMobile) {
+          // Deep link to Phantom mobile app
+          const url = window.location.href;
+          const dappUrl = encodeURIComponent(url);
+          window.location.href = `https://phantom.app/ul/browse/${dappUrl}?ref=${dappUrl}`;
+          return;
+        } else {
+          window.open('https://phantom.app/', '_blank');
+          throw new Error('Phantom wallet not found. Please install the extension or open in Phantom mobile browser.');
+        }
       }
 
-      // Connect to Phantom
-      const resp = await window.solana.connect();
+      // Connect
+      const resp = await provider.connect();
       const publicKey = resp.publicKey.toString();
 
       console.log('Phantom connected:', publicKey);
 
-      // Sign a message to verify ownership
+      // Sign message
       const message = `Sign this message to login to ChainLINK POS\n\nWallet: ${publicKey}\nTimestamp: ${Date.now()}`;
       const encodedMessage = new TextEncoder().encode(message);
-      const signedMessage = await window.solana.signMessage(encodedMessage, 'utf8');
+      const signedMessage = await provider.signMessage(encodedMessage, 'utf8');
 
-      // Authenticate with backend
       await authenticateWallet(publicKey, 'phantom', {
         signature: Array.from(signedMessage.signature),
         message: message
@@ -71,8 +87,16 @@ export default function WalletLogin({ onSuccess, merchantId }) {
       const provider = window?.solflare;
       
       if (!provider) {
-        window.open('https://solflare.com/', '_blank');
-        throw new Error('Solflare wallet is not installed. Please install it and refresh the page.');
+        const isMobile = /Android|webOS|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        if (isMobile) {
+          // Deep link for Solflare mobile
+          const url = window.location.href;
+          window.location.href = `https://solflare.com/ul/v1/browse/${encodeURIComponent(url)}`;
+          return;
+        } else {
+          window.open('https://solflare.com/', '_blank');
+          throw new Error('Solflare wallet not found. Please install the extension or open in Solflare mobile browser.');
+        }
       }
 
       await provider.connect();
@@ -106,18 +130,17 @@ export default function WalletLogin({ onSuccess, merchantId }) {
     setWalletType('Mobile');
 
     try {
-      // Check if on mobile
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      const isMobile = /Android|webOS|iPhone|iPad|iPod/i.test(navigator.userAgent);
       
       if (!isMobile) {
-        throw new Error('Solana Mobile Wallet Adapter is only available on mobile devices');
+        throw new Error('Mobile Wallet Connect is only available on mobile devices');
       }
 
-      // Use Solana Mobile Wallet Adapter
-      const provider = window?.solana;
+      // Try to detect any available Solana provider
+      const provider = window?.solana || window?.phantom?.solana || window?.solflare;
       
       if (!provider) {
-        throw new Error('No Solana wallet found on this mobile device');
+        throw new Error('No wallet found. Please open this page in Phantom or Solflare mobile app.');
       }
 
       const resp = await provider.connect();
@@ -151,15 +174,24 @@ export default function WalletLogin({ onSuccess, merchantId }) {
     setWalletType('Jupiter');
 
     try {
-      // Jupiter wallet injects as window.jupiter
+      const isMobile = /Android|webOS|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      
+      if (isMobile) {
+        // Show QR code for mobile
+        setShowJupiterQR(true);
+        setConnecting(false);
+        setWalletType('');
+        return;
+      }
+
+      // Desktop: Check for Jupiter extension
       const provider = window?.jupiter;
       
       if (!provider) {
         window.open('https://chromewebstore.google.com/detail/jupiter-wallet/pcleombdedjjbncaalcjflmjffembhjo', '_blank');
-        throw new Error('Jupiter wallet extension is not installed. Please install it and refresh the page.');
+        throw new Error('Jupiter wallet extension not found. Please install it and refresh.');
       }
 
-      // Connect and get public key
       await provider.connect();
       
       if (!provider.publicKey) {
@@ -169,7 +201,6 @@ export default function WalletLogin({ onSuccess, merchantId }) {
       const publicKey = provider.publicKey.toString();
       console.log('Jupiter connected:', publicKey);
 
-      // Sign message for authentication
       const message = `Sign this message to login to ChainLINK POS\n\nWallet: ${publicKey}\nTimestamp: ${Date.now()}`;
       const encodedMessage = new TextEncoder().encode(message);
       const signedMessage = await provider.signMessage(encodedMessage, 'utf8');
@@ -263,69 +294,70 @@ export default function WalletLogin({ onSuccess, merchantId }) {
         )}
 
         <div className="grid gap-3">
-          {/* Phantom Wallet */}
+          {/* Phantom */}
           <Button
             onClick={connectPhantom}
             disabled={connecting}
             variant="outline"
-            className="w-full justify-start h-12"
+            className="w-full justify-start h-14 hover:border-purple-300 transition-all"
           >
             {connecting && walletType === 'Phantom' ? (
-              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+              <Loader2 className="w-6 h-6 mr-3 animate-spin text-purple-600" />
             ) : (
-              <div className="w-5 h-5 mr-2 bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
-                <Wallet className="w-3 h-3 text-white" />
-              </div>
+              <img 
+                src="https://phantom.app/img/phantom-icon-purple.png" 
+                alt="Phantom"
+                className="w-6 h-6 mr-3"
+                onError={(e) => {
+                  e.target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" rx="24" fill="%23AB9FF2"/><path d="M96 48c0 13.2-10.8 24-24 24s-24-10.8-24-24S58.8 24 72 24s24 10.8 24 24z" fill="%23fff"/><circle cx="64" cy="52" r="4" fill="%23AB9FF2"/><circle cx="80" cy="52" r="4" fill="%23AB9FF2"/></svg>';
+                }}
+              />
             )}
-            <span>Phantom Wallet</span>
+            <span className="font-medium">Phantom</span>
           </Button>
 
-          {/* Solflare Wallet */}
+          {/* Solflare */}
           <Button
             onClick={connectSolflare}
             disabled={connecting}
             variant="outline"
-            className="w-full justify-start h-12"
+            className="w-full justify-start h-14 hover:border-orange-300 transition-all"
           >
             {connecting && walletType === 'Solflare' ? (
-              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+              <Loader2 className="w-6 h-6 mr-3 animate-spin text-orange-600" />
             ) : (
-              <div className="w-5 h-5 mr-2 bg-gradient-to-br from-orange-500 to-yellow-500 rounded-lg flex items-center justify-center">
-                <Wallet className="w-3 h-3 text-white" />
-              </div>
+              <img 
+                src="https://solflare.com/assets/logo.svg" 
+                alt="Solflare"
+                className="w-6 h-6 mr-3"
+                onError={(e) => {
+                  e.target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" rx="24" fill="%23FC9332"/><circle cx="64" cy="64" r="32" fill="%23fff"/></svg>';
+                }}
+              />
             )}
-            <span>Solflare Wallet</span>
+            <span className="font-medium">Solflare</span>
           </Button>
 
-          {/* Jupiter Wallet (Desktop) */}
+          {/* Jupiter */}
           <Button
             onClick={connectJupiter}
             disabled={connecting}
             variant="outline"
-            className="w-full justify-start h-12"
+            className="w-full justify-start h-14 hover:border-green-300 transition-all"
           >
             {connecting && walletType === 'Jupiter' ? (
-              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+              <Loader2 className="w-6 h-6 mr-3 animate-spin text-green-600" />
             ) : (
               <img 
                 src="https://jup.ag/svg/jupiter-logo.svg" 
-                alt="Jupiter" 
-                className="w-5 h-5 mr-2 rounded-full"
-                onError={(e) => e.target.style.display = 'none'}
+                alt="Jupiter"
+                className="w-6 h-6 mr-3"
+                onError={(e) => {
+                  e.target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" rx="24" fill="%2319FB9B"/><circle cx="64" cy="64" r="28" fill="%23000"/><circle cx="64" cy="64" r="16" fill="%2319FB9B"/></svg>';
+                }}
               />
             )}
-            <span>Jupiter Wallet (Desktop)</span>
-          </Button>
-
-          {/* Jupiter Mobile - QR Code */}
-          <Button
-            onClick={() => setShowJupiterQR(true)}
-            disabled={connecting}
-            variant="outline"
-            className="w-full justify-start h-12 border-2 border-green-500 hover:bg-green-50"
-          >
-            <QrCode className="w-5 h-5 mr-2 text-green-600" />
-            <span>Jupiter Mobile (Scan QR)</span>
+            <span className="font-medium">Jupiter</span>
           </Button>
 
           {/* Solana Mobile Wallet Adapter */}
@@ -333,16 +365,21 @@ export default function WalletLogin({ onSuccess, merchantId }) {
             onClick={connectMobileWallet}
             disabled={connecting}
             variant="outline"
-            className="w-full justify-start h-12"
+            className="w-full justify-start h-14 hover:border-blue-300 transition-all"
           >
             {connecting && walletType === 'Mobile' ? (
-              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+              <Loader2 className="w-6 h-6 mr-3 animate-spin text-blue-600" />
             ) : (
-              <div className="w-5 h-5 mr-2 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-lg flex items-center justify-center">
-                <Wallet className="w-3 h-3 text-white" />
-              </div>
+              <img 
+                src="https://solana.com/src/img/branding/solanaLogoMark.svg" 
+                alt="Solana"
+                className="w-6 h-6 mr-3"
+                onError={(e) => {
+                  e.target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" rx="24" fill="%2314F195"/><path d="M32 48h64l-8 8H32z" fill="%23000"/><path d="M32 64h64l-8 8H32z" fill="%23000"/><path d="M32 80h64l-8 8H32z" fill="%23000"/></svg>';
+                }}
+              />
             )}
-            <span>Mobile Wallet (Solana)</span>
+            <span className="font-medium">Mobile Wallet</span>
           </Button>
         </div>
 
