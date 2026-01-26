@@ -84,34 +84,57 @@ export default function WalletLogin({ onSuccess, merchantId }) {
     setWalletType('Solflare');
 
     try {
-      const provider = window?.solflare;
+      const isMobile = /Android|webOS|iPhone|iPad|iPod/i.test(navigator.userAgent);
       
-      if (!provider) {
-        const isMobile = /Android|webOS|iPhone|iPad|iPod/i.test(navigator.userAgent);
-        if (isMobile) {
-          // Deep link for Solflare mobile
+      // On mobile, try to detect any Solana wallet or redirect to Solflare
+      if (isMobile) {
+        // Try window.solana first (may be injected by Solflare mobile)
+        const provider = window?.solana || window?.solflare;
+        
+        if (provider) {
+          // Found a wallet provider
+          const resp = await provider.connect();
+          const publicKey = resp.publicKey.toString();
+
+          console.log('Mobile Solflare connected:', publicKey);
+
+          const message = `Sign this message to login to ChainLINK POS\n\nWallet: ${publicKey}\nTimestamp: ${Date.now()}`;
+          const encodedMessage = new TextEncoder().encode(message);
+          const signedMessage = await provider.signMessage(encodedMessage, 'utf8');
+
+          await authenticateWallet(publicKey, 'solflare', {
+            signature: Array.from(signedMessage.signature),
+            message: message
+          });
+        } else {
+          // No wallet detected, redirect to Solflare mobile
           const url = window.location.href;
           window.location.href = `https://solflare.com/ul/v1/browse/${encodeURIComponent(url)}`;
           return;
-        } else {
-          window.open('https://solflare.com/', '_blank');
-          throw new Error('Solflare wallet not found. Please install the extension or open in Solflare mobile browser.');
         }
+      } else {
+        // Desktop - check for Solflare extension
+        const provider = window?.solflare;
+        
+        if (!provider) {
+          window.open('https://solflare.com/', '_blank');
+          throw new Error('Solflare wallet not found. Please install the extension.');
+        }
+
+        await provider.connect();
+        const publicKey = provider.publicKey.toString();
+
+        console.log('Solflare connected:', publicKey);
+
+        const message = `Sign this message to login to ChainLINK POS\n\nWallet: ${publicKey}\nTimestamp: ${Date.now()}`;
+        const encodedMessage = new TextEncoder().encode(message);
+        const signedMessage = await provider.signMessage(encodedMessage, 'utf8');
+
+        await authenticateWallet(publicKey, 'solflare', {
+          signature: Array.from(signedMessage.signature),
+          message: message
+        });
       }
-
-      await provider.connect();
-      const publicKey = provider.publicKey.toString();
-
-      console.log('Solflare connected:', publicKey);
-
-      const message = `Sign this message to login to ChainLINK POS\n\nWallet: ${publicKey}\nTimestamp: ${Date.now()}`;
-      const encodedMessage = new TextEncoder().encode(message);
-      const signedMessage = await provider.signMessage(encodedMessage, 'utf8');
-
-      await authenticateWallet(publicKey, 'solflare', {
-        signature: Array.from(signedMessage.signature),
-        message: message
-      });
 
     } catch (err) {
       console.error('Solflare connection error:', err);
@@ -130,17 +153,18 @@ export default function WalletLogin({ onSuccess, merchantId }) {
     setWalletType('Mobile');
 
     try {
-      const isMobile = /Android|webOS|iPhone|iPad|iPod/i.test(navigator.userAgent);
-      
-      if (!isMobile) {
-        throw new Error('Mobile Wallet Connect is only available on mobile devices');
-      }
-
-      // Try to detect any available Solana provider
-      const provider = window?.solana || window?.phantom?.solana || window?.solflare;
+      // Try to detect any available Solana wallet provider (works on both mobile and desktop)
+      const provider = window?.solana || window?.phantom?.solana || window?.solflare || window?.backpack;
       
       if (!provider) {
-        throw new Error('No wallet found. Please open this page in Phantom or Solflare mobile app.');
+        const isMobile = /Android|webOS|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        
+        if (isMobile) {
+          // Redirect to a popular wallet
+          throw new Error('No wallet app detected. Please install Phantom, Solflare, or Backpack and open this page in the wallet browser.');
+        } else {
+          throw new Error('No wallet detected. Please install a Solana wallet extension (Phantom, Solflare, Backpack).');
+        }
       }
 
       const resp = await provider.connect();
@@ -160,7 +184,7 @@ export default function WalletLogin({ onSuccess, merchantId }) {
     } catch (err) {
       console.error('Mobile Wallet connection error:', err);
       if (!err.message?.includes('User rejected')) {
-        setError(err.message || 'Failed to connect mobile wallet');
+        setError(err.message || 'Failed to connect wallet');
       }
     } finally {
       setConnecting(false);
@@ -177,38 +201,37 @@ export default function WalletLogin({ onSuccess, merchantId }) {
       const isMobile = /Android|webOS|iPhone|iPad|iPod/i.test(navigator.userAgent);
       
       if (isMobile) {
-        // Show QR code for mobile
+        // Mobile: Try to connect directly or use deep link
+        const provider = window?.solana || window?.jupiter;
+        
+        if (provider) {
+          // Wallet detected, connect directly
+          const resp = await provider.connect();
+          const publicKey = resp.publicKey.toString();
+
+          console.log('Mobile Jupiter connected:', publicKey);
+
+          const message = `Sign this message to login to ChainLINK POS\n\nWallet: ${publicKey}\nTimestamp: ${Date.now()}`;
+          const encodedMessage = new TextEncoder().encode(message);
+          const signedMessage = await provider.signMessage(encodedMessage, 'utf8');
+
+          await authenticateWallet(publicKey, 'jupiter', {
+            signature: Array.from(signedMessage.signature),
+            message: message
+          });
+        } else {
+          // No wallet detected - deep link to Jupiter mobile
+          const url = window.location.href;
+          window.location.href = `jupiter://browser?url=${encodeURIComponent(url)}`;
+          return;
+        }
+      } else {
+        // Desktop: Show QR code
         setShowJupiterQR(true);
         setConnecting(false);
         setWalletType('');
         return;
       }
-
-      // Desktop: Check for Jupiter extension
-      const provider = window?.jupiter;
-      
-      if (!provider) {
-        window.open('https://chromewebstore.google.com/detail/jupiter-wallet/pcleombdedjjbncaalcjflmjffembhjo', '_blank');
-        throw new Error('Jupiter wallet extension not found. Please install it and refresh.');
-      }
-
-      await provider.connect();
-      
-      if (!provider.publicKey) {
-        throw new Error('Failed to get public key from Jupiter wallet');
-      }
-      
-      const publicKey = provider.publicKey.toString();
-      console.log('Jupiter connected:', publicKey);
-
-      const message = `Sign this message to login to ChainLINK POS\n\nWallet: ${publicKey}\nTimestamp: ${Date.now()}`;
-      const encodedMessage = new TextEncoder().encode(message);
-      const signedMessage = await provider.signMessage(encodedMessage, 'utf8');
-
-      await authenticateWallet(publicKey, 'jupiter', {
-        signature: Array.from(signedMessage.signature),
-        message: message
-      });
 
     } catch (err) {
       console.error('Jupiter connection error:', err);
