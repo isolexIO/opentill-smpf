@@ -69,16 +69,21 @@ export default function HomePage() {
 
   const loadStats = async () => {
     try {
-      const activeMerchants = (await base44.entities.Merchant.filter({ status: 'active' })).length;
-      const activeDealers = (await base44.entities.Dealer.filter({ 
-        $or: [{ status: 'active' }, { status: 'trial' }] 
-      })).length;
-
-      setStats({
-        activeMerchants,
-        activeDealers,
-        loading: false
-      });
+      const response = await base44.functions.invoke('getPublicStats');
+      
+      if (response.data.success && response.data.stats) {
+        setStats({
+          activeMerchants: response.data.stats.activeMerchants,
+          activeDealers: response.data.stats.activeDealers,
+          loading: false
+        });
+      } else {
+        setStats({
+          activeMerchants: 0,
+          activeDealers: 0,
+          loading: false
+        });
+      }
     } catch (error) {
       console.error('Error loading stats:', error);
       setStats({
