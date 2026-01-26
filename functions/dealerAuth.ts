@@ -2,7 +2,11 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
 import * as bcrypt from 'https://deno.land/x/bcrypt@v0.4.1/mod.ts';
 import { create, verify } from 'https://deno.land/x/djwt@v2.8/mod.ts';
 
-const JWT_SECRET = Deno.env.get('JWT_SECRET') || 'chainlink-dealer-secret-key-change-in-production';
+const JWT_SECRET = Deno.env.get('JWT_SECRET');
+
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is required');
+}
 
 async function generateToken(dealerId, email) {
   const key = await crypto.subtle.importKey(
@@ -79,12 +83,17 @@ Deno.serve(async (req) => {
         }, { status: 403 });
       }
 
-      // For now, we'll use a simple password check
-      // In production, you'd store hashed passwords
-      const passwordHash = dealer.password_hash || 'temp123'; // Default for testing
+      // Verify password using bcrypt
+      if (!dealer.password_hash) {
+        return Response.json({ 
+          success: false, 
+          error: 'Invalid credentials' 
+        }, { status: 401 });
+      }
+
+      const isValidPassword = await bcrypt.compare(password, dealer.password_hash);
       
-      // Simple password check (replace with bcrypt in production)
-      if (password !== passwordHash) {
+      if (!isValidPassword) {
         return Response.json({ 
           success: false, 
           error: 'Invalid credentials' 
@@ -149,6 +158,9 @@ Deno.serve(async (req) => {
       const existingSlugs = await base44.asServiceRole.entities.Dealer.filter({ slug });
       const finalSlug = existingSlugs.length > 0 ? `${slug}-${Date.now()}` : slug;
 
+      // Hash password with bcrypt
+      const passwordHash = await bcrypt.hash(password, 10);
+
       // Create dealer
       const dealer = await base44.asServiceRole.entities.Dealer.create({
         name: company,
@@ -156,7 +168,7 @@ Deno.serve(async (req) => {
         owner_name: name,
         owner_email: email.toLowerCase(),
         contact_email: email.toLowerCase(),
-        password_hash: password, // In production, hash this with bcrypt
+        password_hash: passwordHash
         status: 'trial',
         trial_ends_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
         primary_color: '#7B2FD6',

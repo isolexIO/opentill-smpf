@@ -3,9 +3,27 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    
+    // CRITICAL: Verify the requesting user is a super admin
+    const requestingUser = await base44.auth.me();
+    
+    if (!requestingUser) {
+      return Response.json({
+        success: false,
+        error: 'Authentication required'
+      }, { status: 401 });
+    }
+
+    if (requestingUser.role !== 'admin') {
+      return Response.json({
+        success: false,
+        error: 'Forbidden: Super admin privileges required'
+      }, { status: 403 });
+    }
+
     const { email, new_pin } = await req.json();
 
-    console.log('resetAdminPin called for:', email);
+    console.log('resetAdminPin called for:', email, 'by:', requestingUser.email);
 
     if (!email) {
       return Response.json({
@@ -52,10 +70,14 @@ Deno.serve(async (req) => {
         merchant_id: user.merchant_id || null,
         log_type: 'security',
         action: 'PIN Reset',
-        description: `PIN reset for user ${user.email} by super admin`,
-        user_id: user.id,
-        user_email: user.email,
-        severity: 'warning'
+        description: `PIN reset for user ${user.email} by super admin ${requestingUser.email}`,
+        user_id: requestingUser.id,
+        user_email: requestingUser.email,
+        severity: 'warning',
+        metadata: {
+          target_user: user.email,
+          target_user_id: user.id
+        }
       });
     } catch (logError) {
       console.warn('Could not create log:', logError);
