@@ -27,6 +27,8 @@ export default function SecurityTab({ settings, onSave }) {
 
   const [auditLogs, setAuditLogs] = useState([]);
   const [loadingLogs, setLoadingLogs] = useState(false);
+  const [securityCheck, setSecurityCheck] = useState(null);
+  const [checkingCompliance, setCheckingCompliance] = useState(false);
 
   useEffect(() => {
     loadRecentAuditLogs();
@@ -62,8 +64,227 @@ export default function SecurityTab({ settings, onSave }) {
     return colors[severity] || colors.info;
   };
 
+  const runSecurityCheck = async () => {
+    setCheckingCompliance(true);
+    try {
+      const user = await base44.auth.me();
+      const checks = {
+        passed: [],
+        warnings: [],
+        critical: []
+      };
+
+      // Check 1: Two-Factor Authentication
+      if (!securitySettings.two_factor_enabled) {
+        checks.critical.push({
+          issue: 'Two-Factor Authentication Disabled',
+          description: 'Enable 2FA for all users to prevent unauthorized access',
+          fix: 'Enable Two-Factor Authentication in General Security settings'
+        });
+      } else {
+        checks.passed.push('Two-Factor Authentication Enabled');
+      }
+
+      // Check 2: Session Timeout
+      if (securitySettings.session_timeout_minutes > 30) {
+        checks.warnings.push({
+          issue: 'Session Timeout Too Long',
+          description: 'Sessions lasting over 30 minutes increase security risk',
+          fix: 'Set session timeout to 30 minutes or less'
+        });
+      } else {
+        checks.passed.push('Secure Session Timeout Configured');
+      }
+
+      // Check 3: PIN Lockout
+      if (securitySettings.pin_lockout_attempts > 5) {
+        checks.warnings.push({
+          issue: 'PIN Lockout Attempts Too High',
+          description: 'Allowing more than 5 failed attempts increases brute force risk',
+          fix: 'Set PIN lockout attempts to 5 or fewer'
+        });
+      } else {
+        checks.passed.push('Strong PIN Lockout Policy');
+      }
+
+      // Check 4: Audit Logging
+      if (!securitySettings.audit_logging_enabled) {
+        checks.critical.push({
+          issue: 'Audit Logging Disabled',
+          description: 'Without audit logs, security incidents cannot be tracked',
+          fix: 'Enable Enhanced Audit Logging in PCI-DSS Compliance settings'
+        });
+      } else {
+        checks.passed.push('Audit Logging Enabled');
+      }
+
+      // Check 5: PCI-DSS Mode
+      if (!securitySettings.pci_dss_mode) {
+        checks.warnings.push({
+          issue: 'PCI-DSS Mode Not Enabled',
+          description: 'Payment Card Industry compliance mode provides additional security',
+          fix: 'Enable PCI-DSS Mode in PCI-DSS Compliance settings if processing cards'
+        });
+      } else {
+        checks.passed.push('PCI-DSS Compliance Mode Active');
+      }
+
+      // Check 6: Failed Login Notifications
+      if (!securitySettings.failed_login_notification) {
+        checks.warnings.push({
+          issue: 'Failed Login Notifications Disabled',
+          description: 'You won\'t be alerted to potential unauthorized access attempts',
+          fix: 'Enable Failed Login Notifications'
+        });
+      } else {
+        checks.passed.push('Failed Login Notifications Enabled');
+      }
+
+      // Check 7: PIN Change Policy
+      if (!securitySettings.require_pin_change) {
+        checks.warnings.push({
+          issue: 'No Periodic PIN Changes Required',
+          description: 'Requiring regular PIN changes improves security',
+          fix: 'Enable Require Periodic PIN Changes (recommended: every 90 days)'
+        });
+      } else {
+        checks.passed.push('Periodic PIN Changes Required');
+      }
+
+      // Check 8: HTTPS/TLS
+      if (window.location.protocol !== 'https:') {
+        checks.critical.push({
+          issue: 'Not Using HTTPS',
+          description: 'Data is transmitted without encryption, exposing sensitive information',
+          fix: 'Configure SSL/TLS certificate for your domain'
+        });
+      } else {
+        checks.passed.push('HTTPS Encryption Active');
+      }
+
+      setSecurityCheck(checks);
+    } catch (error) {
+      console.error('Error running security check:', error);
+    } finally {
+      setCheckingCompliance(false);
+    }
+  };
+
+  const fixAllIssues = () => {
+    const updatedSettings = { ...securitySettings };
+    
+    // Auto-fix all issues
+    updatedSettings.two_factor_enabled = true;
+    updatedSettings.session_timeout_minutes = 30;
+    updatedSettings.pin_lockout_attempts = 5;
+    updatedSettings.audit_logging_enabled = true;
+    updatedSettings.failed_login_notification = true;
+    updatedSettings.require_pin_change = true;
+    updatedSettings.pin_change_interval_days = 90;
+    updatedSettings.pci_dss_mode = true;
+    
+    setSecuritySettings(updatedSettings);
+    
+    // Show success and re-run check
+    setTimeout(() => {
+      runSecurityCheck();
+    }, 500);
+  };
+
   return (
     <div className="space-y-6">
+      {/* Security Check Banner */}
+      <Card className="border-blue-200 bg-blue-50">
+        <CardContent className="pt-6">
+          <div className="flex items-start justify-between">
+            <div className="flex items-start gap-3">
+              <Shield className="w-6 h-6 text-blue-600 mt-1" />
+              <div>
+                <h3 className="font-semibold text-blue-900 mb-1">Security Compliance Check</h3>
+                <p className="text-sm text-blue-700 mb-3">
+                  Run a comprehensive security audit to identify potential vulnerabilities
+                </p>
+                {securityCheck && (
+                  <div className="flex gap-4 text-sm">
+                    <span className="text-green-700">✓ {securityCheck.passed.length} Passed</span>
+                    {securityCheck.warnings.length > 0 && (
+                      <span className="text-yellow-700">⚠ {securityCheck.warnings.length} Warnings</span>
+                    )}
+                    {securityCheck.critical.length > 0 && (
+                      <span className="text-red-700">✕ {securityCheck.critical.length} Critical</span>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                onClick={runSecurityCheck} 
+                disabled={checkingCompliance}
+                variant="outline"
+                className="bg-white"
+              >
+                {checkingCompliance ? 'Checking...' : 'Run Security Check'}
+              </Button>
+              {securityCheck && (securityCheck.warnings.length > 0 || securityCheck.critical.length > 0) && (
+                <Button 
+                  onClick={fixAllIssues}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  Fix All Issues
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {securityCheck && (
+            <div className="mt-4 space-y-3">
+              {/* Critical Issues */}
+              {securityCheck.critical.map((item, idx) => (
+                <div key={`critical-${idx}`} className="p-3 bg-red-50 border border-red-200 rounded-md">
+                  <div className="flex items-start gap-2">
+                    <span className="text-red-600 font-bold">✕</span>
+                    <div className="flex-1">
+                      <h4 className="font-medium text-red-900">{item.issue}</h4>
+                      <p className="text-sm text-red-700 mt-1">{item.description}</p>
+                      <p className="text-xs text-red-600 mt-2 font-medium">Fix: {item.fix}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {/* Warnings */}
+              {securityCheck.warnings.map((item, idx) => (
+                <div key={`warning-${idx}`} className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                  <div className="flex items-start gap-2">
+                    <span className="text-yellow-600 font-bold">⚠</span>
+                    <div className="flex-1">
+                      <h4 className="font-medium text-yellow-900">{item.issue}</h4>
+                      <p className="text-sm text-yellow-700 mt-1">{item.description}</p>
+                      <p className="text-xs text-yellow-600 mt-2 font-medium">Fix: {item.fix}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {/* Passed Checks (collapsed by default) */}
+              {securityCheck.passed.length > 0 && (
+                <details className="p-3 bg-green-50 border border-green-200 rounded-md">
+                  <summary className="cursor-pointer font-medium text-green-900">
+                    ✓ {securityCheck.passed.length} Security Checks Passed
+                  </summary>
+                  <ul className="mt-2 space-y-1 text-sm text-green-700">
+                    {securityCheck.passed.map((item, idx) => (
+                      <li key={idx}>• {item}</li>
+                    ))}
+                  </ul>
+                </details>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       <Tabs defaultValue="general" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="general">General Security</TabsTrigger>
