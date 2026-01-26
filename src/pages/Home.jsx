@@ -69,17 +69,16 @@ export default function HomePage() {
 
   const loadStats = async () => {
     try {
-      const { data } = await base44.functions.invoke('getPublicStats');
-      
-      if (data.success) {
-        setStats({
-          activeMerchants: data.stats.activeMerchants,
-          activeDealers: data.stats.activeDealers,
-          loading: false
-        });
-      } else {
-        throw new Error('Failed to load stats');
-      }
+      const activeMerchants = (await base44.entities.Merchant.filter({ status: 'active' })).length;
+      const activeDealers = (await base44.entities.Dealer.filter({ 
+        $or: [{ status: 'active' }, { status: 'trial' }] 
+      })).length;
+
+      setStats({
+        activeMerchants,
+        activeDealers,
+        loading: false
+      });
     } catch (error) {
       console.error('Error loading stats:', error);
       setStats({
