@@ -1,4 +1,3 @@
-
 import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
 import { PublicKey } from 'npm:@solana/web3.js@1.87.6';
 import nacl from 'npm:tweetnacl@1.0.3';
@@ -102,39 +101,15 @@ Deno.serve(async (req) => {
         });
 
       } else {
-        // No existing user found by linked wallet or email, create new user
-        console.log('Creating new wallet user...');
+        // No existing user found - new user, needs onboarding
+        console.log('New wallet user - needs onboarding');
 
-        // Generate a random 4-digit PIN
-        const randomPin = Math.floor(1000 + Math.random() * 9000).toString();
-
-        const newUserData = {
-          email: wallet_address.toLowerCase(),
-          full_name: `${wallet_type.charAt(0).toUpperCase() + wallet_type.slice(1)} User`,
-          pin: randomPin,
-          role: merchant_id ? 'merchant_admin' : 'cashier',
-          merchant_id: merchant_id || null,
-          permissions: merchant_id 
-            ? ['process_orders', 'manage_inventory', 'manage_users', 'view_reports', 'admin_settings', 'configure_payments', 'submit_tickets']
-            : ['process_orders', 'submit_tickets'],
-          is_active: true,
-          last_login: new Date().toISOString(),
-          pos_settings: {
-            [walletField]: wallet_address // Store wallet address dynamically
-          }
-        };
-
-        user = await base44.asServiceRole.entities.User.create(newUserData);
-        console.log('New wallet user created:', user.id);
-
-        // Log the account creation
-        await base44.asServiceRole.entities.SystemLog.create({
-          merchant_id: merchant_id || null,
-          log_type: 'merchant_action',
-          action: 'Wallet Account Created',
-          description: `New user created via ${wallet_type} wallet authentication`,
-          user_email: wallet_address,
-          severity: 'info'
+        return Response.json({
+          success: true,
+          is_new_user: true,
+          wallet_address: wallet_address,
+          wallet_type: wallet_type,
+          message: 'New user - onboarding required'
         });
       }
     }
@@ -142,6 +117,7 @@ Deno.serve(async (req) => {
     return Response.json({
       success: true,
       user: user,
+      is_new_user: false,
       message: 'Wallet authenticated successfully'
     });
 

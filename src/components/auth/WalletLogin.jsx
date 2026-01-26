@@ -237,7 +237,21 @@ export default function WalletLogin({ onSuccess, merchantId }) {
         throw new Error(data.error || 'Wallet authentication failed');
       }
 
-      // Store user session
+      // Check if this is a new user needing onboarding
+      if (data.is_new_user) {
+        // Store wallet info for onboarding
+        sessionStorage.setItem('pendingWalletAuth', JSON.stringify({
+          wallet_address: walletAddress,
+          wallet_type: walletType,
+          signature_data: signatureData
+        }));
+
+        // Redirect to onboarding
+        window.location.href = createPageUrl('MerchantOnboarding');
+        return;
+      }
+
+      // Existing user - log them in
       if (data.user) {
         localStorage.setItem('pinLoggedInUser', JSON.stringify(data.user));
         
