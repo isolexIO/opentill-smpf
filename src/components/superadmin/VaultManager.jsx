@@ -31,21 +31,21 @@ export default function VaultManager() {
   const loadSettings = async () => {
     setLoading(true);
     try {
-      const settings = await base44.asServiceRole.entities.cLINKVaultSettings.filter({
-        merchant_id: null
+      const { data } = await base44.functions.invoke('updateVaultSettings', {
+        action: 'get'
       });
 
-      if (settings.length > 0) {
-        setGlobalSettings(settings[0]);
+      if (data.success && data.settings) {
+        setGlobalSettings(data.settings);
         setFormData({
-          vault_enabled: settings[0].vault_enabled ?? true,
-          reward_percentage: settings[0].reward_percentage ?? 0.5,
-          minimum_claim_threshold: settings[0].minimum_claim_threshold ?? 10,
-          staking_apy: settings[0].staking_apy ?? 12,
-          staking_lockup_days: settings[0].staking_lockup_days ?? 90,
-          jupiter_referral_code: settings[0].jupiter_referral_code || '',
-          clink_mint_address: settings[0].clink_mint_address || 'FPzmBaifnDkTDi26cuiEkRGofnvF7ReXUtWT7Eebjupx',
-          auto_calculate_rewards: settings[0].auto_calculate_rewards ?? true
+          vault_enabled: data.settings.vault_enabled ?? true,
+          reward_percentage: data.settings.reward_percentage ?? 0.5,
+          minimum_claim_threshold: data.settings.minimum_claim_threshold ?? 10,
+          staking_apy: data.settings.staking_apy ?? 12,
+          staking_lockup_days: data.settings.staking_lockup_days ?? 90,
+          jupiter_referral_code: data.settings.jupiter_referral_code || '',
+          clink_mint_address: data.settings.clink_mint_address || 'FPzmBaifnDkTDi26cuiEkRGofnvF7ReXUtWT7Eebjupx',
+          auto_calculate_rewards: data.settings.auto_calculate_rewards ?? true
         });
       }
     } catch (error) {
@@ -58,17 +58,18 @@ export default function VaultManager() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      if (globalSettings) {
-        await base44.asServiceRole.entities.cLINKVaultSettings.update(globalSettings.id, formData);
-      } else {
-        await base44.asServiceRole.entities.cLINKVaultSettings.create({
-          ...formData,
-          merchant_id: null
-        });
-      }
+      const { data } = await base44.functions.invoke('updateVaultSettings', {
+        action: globalSettings ? 'update' : 'create',
+        settings_id: globalSettings?.id,
+        settings_data: formData
+      });
 
-      alert('Vault settings saved successfully!');
-      loadSettings();
+      if (data.success) {
+        alert('Vault settings saved successfully!');
+        loadSettings();
+      } else {
+        throw new Error(data.error || 'Failed to save settings');
+      }
     } catch (error) {
       console.error('Error saving settings:', error);
       alert('Failed to save settings: ' + error.message);
