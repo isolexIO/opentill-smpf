@@ -239,16 +239,15 @@ export default function Layout({ children, currentPageName }) {
           const parsedUser = JSON.parse(pinUserJSON);
           setPinUser(parsedUser);
           
-          // Load dealer branding if user has dealer_id
-          if (parsedUser.dealer_id) {
+          // Load dealer branding if user has dealer_id (skip if invalid format)
+          if (parsedUser.dealer_id && parsedUser.dealer_id.length > 10) {
             try {
               const dealers = await base44.entities.Dealer.filter({ id: parsedUser.dealer_id });
               if (dealers && dealers.length > 0) {
                 foundDealer = dealers[0];
               }
             } catch (dealerError) {
-              console.warn('Could not load dealer from user dealer_id:', dealerError);
-              // Continue without dealer branding
+              // Silently continue without dealer branding
             }
           }
         } catch (e) {
@@ -261,16 +260,15 @@ export default function Layout({ children, currentPageName }) {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
         
-        // Load dealer branding from authenticated user if not already loaded
-        if (!foundDealer && currentUser.dealer_id) {
+        // Load dealer branding from authenticated user if not already loaded (skip if invalid format)
+        if (!foundDealer && currentUser.dealer_id && currentUser.dealer_id.length > 10) {
           try {
             const dealers = await base44.entities.Dealer.filter({ id: currentUser.dealer_id });
             if (dealers && dealers.length > 0) {
               foundDealer = dealers[0];
             }
           } catch (dealerError) {
-            console.warn('Could not load dealer from authenticated user:', dealerError);
-            // Continue without dealer branding
+            // Silently continue without dealer branding
           }
         }
       } catch (e) {

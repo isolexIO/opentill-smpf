@@ -422,8 +422,8 @@ export default function SuperAdminPage() {
               <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Merchants</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{stats.totalMerchants}</div>
-              <p className="text-xs text-muted-foreground">{stats.activeMerchants} active</p>
+              <div className="text-3xl font-bold text-gray-900 dark:text-white">{stats.totalMerchants}</div>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{stats.activeMerchants} active</p>
             </CardContent>
           </Card>
 
@@ -432,8 +432,8 @@ export default function SuperAdminPage() {
               <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Active Subscriptions</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-green-600">{stats.activeSubscriptions}</div>
-              <p className="text-xs text-muted-foreground">Currently active</p>
+              <div className="text-3xl font-bold text-green-600 dark:text-green-500">{stats.activeSubscriptions}</div>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Currently active</p>
             </CardContent>
           </Card>
 
@@ -442,8 +442,8 @@ export default function SuperAdminPage() {
               <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Revenue (Active Subs)</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">${stats.totalRevenue.toFixed(2)}</div>
-              <p className="text-xs text-muted-foreground">From active subscriptions</p>
+              <div className="text-3xl font-bold text-gray-900 dark:text-white">${stats.totalRevenue.toFixed(2)}</div>
+              <p className="text-xs text-gray-500 dark:text-gray-400">From active subscriptions</p>
             </CardContent>
           </Card>
 
@@ -452,8 +452,8 @@ export default function SuperAdminPage() {
               <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">System Status</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-green-600">Online</div>
-              <p className="text-xs text-muted-foreground">All services operational</p>
+              <div className="text-3xl font-bold text-green-600 dark:text-green-500">Online</div>
+              <p className="text-xs text-gray-500 dark:text-gray-400">All services operational</p>
             </CardContent>
           </Card>
         </div>
