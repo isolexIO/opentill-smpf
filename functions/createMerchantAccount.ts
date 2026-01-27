@@ -16,7 +16,8 @@ Deno.serve(async (req) => {
             setup_demo_data,
             pin,
             temp_password,
-            activate
+            activate,
+            referral_code
         } = body;
 
         const base44 = createClientFromRequest(req);
@@ -58,6 +59,17 @@ Deno.serve(async (req) => {
             }, { status: 400 });
         }
 
+        // Handle referral code if provided
+        let referrerMerchant = null;
+        if (referral_code) {
+            const referrers = await base44.asServiceRole.entities.Merchant.filter({
+                referral_code: referral_code.toUpperCase().trim()
+            });
+            if (referrers && referrers.length > 0) {
+                referrerMerchant = referrers[0];
+            }
+        }
+
         // Create merchant - always start as INACTIVE until Super Admin manually activates
         const merchant = await base44.asServiceRole.entities.Merchant.create({
             business_name: business_name.trim(),
@@ -73,6 +85,7 @@ Deno.serve(async (req) => {
             onboarding_completed: false,
             total_revenue: 0,
             total_orders: 0,
+            referred_by_code: referral_code ? referral_code.toUpperCase().trim() : null,
             settings: {
                 timezone: 'America/New_York',
                 currency: 'USD',
@@ -80,6 +93,18 @@ Deno.serve(async (req) => {
                 demo_data_requested: setup_demo_data || false
             }
         });
+
+        // Create referral record if valid referral code was used
+        if (referrerMerchant) {
+            await base44.asServiceRole.entities.MerchantReferral.create({
+                referrer_merchant_id: referrerMerchant.id,
+                referrer_name: referrerMerchant.business_name,
+                referred_merchant_id: merchant.id,
+                referred_name: merchant.business_name,
+                referral_code: referral_code.toUpperCase().trim(),
+                status: 'pending'
+            });
+        }
 
         // Send confirmation email if SMTP is configured
         const smtpHost = Deno.env.get('SMTP_HOST');
