@@ -167,17 +167,41 @@ export default function cLINKVaultPage() {
       const impersonatedUserJSON = localStorage.getItem('pinLoggedInUser');
       const merchantId = impersonatedUserJSON ? JSON.parse(impersonatedUserJSON).merchant_id : user.merchant_id;
 
-      const { data } = await base44.functions.invoke('stakeCLINK', {
+      // Step 1: Prepare transaction
+      const { data: prepData } = await base44.functions.invoke('stakeCLINK', {
         merchant_id: merchantId,
-        amount: parseFloat(stakeAmount)
+        amount: parseFloat(stakeAmount),
+        action: 'prepare'
       });
 
-      if (data.success) {
-        alert(`Successfully staked ${data.amount} $cLINK!\n\nAPY: ${data.apy}%\nUnlocks: ${new Date(data.unlocks_at).toLocaleDateString()}`);
+      if (!prepData.success) {
+        throw new Error(prepData.error);
+      }
+
+      // Step 2: Get user to sign transaction
+      const provider = window.solana || window.phantom?.solana;
+      if (!provider) {
+        throw new Error('Wallet not detected. Please ensure your wallet extension is active.');
+      }
+
+      const txBuffer = Buffer.from(prepData.transaction, 'base64');
+      const signedTx = await provider.signTransaction(txBuffer);
+      const signedTxBase64 = Buffer.from(signedTx.serialize()).toString('base64');
+
+      // Step 3: Verify and record on-chain
+      const { data: verifyData } = await base44.functions.invoke('stakeCLINK', {
+        merchant_id: merchantId,
+        amount: parseFloat(stakeAmount),
+        action: 'verify',
+        signed_transaction: signedTxBase64
+      });
+
+      if (verifyData.success) {
+        alert(`Successfully staked ${verifyData.amount} $cLINK!\n\nAPY: ${verifyData.apy}%\nUnlocks: ${new Date(verifyData.unlocks_at).toLocaleDateString()}\nSignature: ${verifyData.signature}`);
         loadVaultData();
         setStakeAmount('');
       } else {
-        throw new Error(data.error);
+        throw new Error(verifyData.error);
       }
     } catch (error) {
       console.error('Stake error:', error);
@@ -203,18 +227,73 @@ export default function cLINKVaultPage() {
       const impersonatedUserJSON = localStorage.getItem('pinLoggedInUser');
       const merchantId = impersonatedUserJSON ? JSON.parse(impersonatedUserJSON).merchant_id : user.merchant_id;
 
-      const { data } = await base44.functions.invoke('swapCLINKViaJupiter', {
+      // Step 1: Get quote
+      const { data: quoteData } = await base44.functions.invoke('swapCLINKViaJupiter', {
         merchant_id: merchantId,
         from_amount: parseFloat(swapAmount),
-        to_token: swapTo
+        to_token: swapTo,
+        action: 'quote'
       });
 
-      if (data.success) {
-        alert(`Successfully swapped ${swapAmount} $cLINK → ${data.output_amount} ${swapTo}!\n\nTransaction: ${data.signature}`);
+      if (!quoteData.success) {
+        throw new Error(quoteData.error);
+      }
+
+      // Show quote to user
+      const confirmSwap = confirm(
+        `Swap Quote:\n\n` +
+        `Input: ${swapAmount} $cLINK\n` +
+        `Output: ~${quoteData.quote.output_amount.toFixed(4)} ${swapTo}\n` +
+        `Price Impact: ${quoteData.quote.price_impact_pct.toFixed(2)}%\n` +
+        `Slippage: 0.5%\n\n` +
+        `Proceed with swap?`
+      );
+
+      if (!confirmSwap) {
+        setSwapping(false);
+        return;
+      }
+
+      // Step 2: Prepare transaction
+      const { data: prepData } = await base44.functions.invoke('swapCLINKViaJupiter', {
+        merchant_id: merchantId,
+        from_amount: parseFloat(swapAmount),
+        to_token: swapTo,
+        action: 'prepare'
+      });
+
+      if (!prepData.success) {
+        throw new Error(prepData.error);
+      }
+
+      // Step 3: Get user to sign
+      const provider = window.solana || window.phantom?.solana;
+      if (!provider) {
+        throw new Error('Wallet not detected. Please ensure your wallet extension is active.');
+      }
+
+      const txBuffer = Buffer.from(prepData.transaction, 'base64');
+      
+      // Jupiter returns serialized VersionedTransaction
+      const { VersionedTransaction } = await import('@solana/web3.js');
+      const versionedTx = VersionedTransaction.deserialize(txBuffer);
+      
+      const signedTx = await provider.signTransaction(versionedTx);
+      const signedTxBase64 = Buffer.from(signedTx.serialize()).toString('base64');
+
+      // Step 4: Verify transaction
+      const { data: verifyData } = await base44.functions.invoke('swapCLINKViaJupiter', {
+        merchant_id: merchantId,
+        action: 'verify',
+        signed_transaction: signedTxBase64
+      });
+
+      if (verifyData.success) {
+        alert(`Successfully swapped ${swapAmount} $cLINK → ${swapTo}!\n\nSignature: ${verifyData.signature}`);
         loadVaultData();
         setSwapAmount('');
       } else {
-        throw new Error(data.error);
+        throw new Error(verifyData.error);
       }
     } catch (error) {
       console.error('Swap error:', error);
