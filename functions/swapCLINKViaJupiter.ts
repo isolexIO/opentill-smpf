@@ -48,16 +48,24 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    // TODO: Implement actual Jupiter swap
-    // This would call Jupiter API with:
-    // - inputMint: clinkMint
-    // - outputMint: outputMint
-    // - amount: from_amount (with proper decimals)
-    // - slippageBps: 50 (0.5%)
-    // - referralAccount: referralCode
+    // SECURITY NOTICE: Jupiter swap integration requires:
+    // 1. User wallet approval for token transfer
+    // 2. Proper slippage protection (max 1-5%)
+    // 3. MEV protection and transaction priority fees
+    // 4. Token account validation before swap
+    // 5. Real-time price feeds to prevent manipulation
+    // 
+    // Current implementation is simulated for MVP.
+    // Do NOT use in production without proper Jupiter API integration.
+    // 
+    // Production implementation should:
+    // - Call Jupiter Quote API: https://quote-api.jup.ag/v6/quote
+    // - Get user signature approval via wallet
+    // - Submit transaction to Solana network
+    // - Verify transaction confirmation
     
-    const mockOutputAmount = from_amount * 0.98; // Mock 2% slippage
-    const mockSignature = `swap_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const mockOutputAmount = from_amount * 0.98; // Mock 2% slippage - NOT REAL
+    const mockSignature = `swap_mock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     // Log the swap
     await base44.asServiceRole.entities.SystemLog.create({

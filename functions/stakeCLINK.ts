@@ -36,13 +36,21 @@ Deno.serve(async (req) => {
     const apy = settings[0]?.staking_apy || globalSettings[0]?.staking_apy || 12;
     const lockupDays = settings[0]?.staking_lockup_days || globalSettings[0]?.staking_lockup_days || 90;
 
-    // TODO: Implement actual on-chain staking
-    const mockSignature = `stake_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    // SECURITY NOTICE: On-chain staking requires:
+    // 1. Smart contract deployment for staking pool
+    // 2. User wallet signature approval for token transfer
+    // 3. Proper token account validation
+    // 4. Time-lock enforcement on-chain (not just in database)
+    // 
+    // Current implementation is database-only for MVP.
+    // Do NOT use in production without proper on-chain staking contract.
+    
+    const mockSignature = `stake_mock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
     const stakedAt = new Date();
     const unlocksAt = new Date(stakedAt.getTime() + lockupDays * 24 * 60 * 60 * 1000);
 
-    // Create stake record
+    // Create stake record (MVP - database tracking only)
     await base44.asServiceRole.entities.cLINKStake.create({
       merchant_id: merchant_id,
       amount: amount,
@@ -50,9 +58,10 @@ Deno.serve(async (req) => {
       lockup_period_days: lockupDays,
       staked_at: stakedAt.toISOString(),
       unlocks_at: unlocksAt.toISOString(),
-      status: 'active',
-      transaction_signature: mockSignature,
-      wallet_address: user.wallet_address
+      status: 'pending_blockchain', // Indicates no on-chain transaction yet
+      transaction_signature: mockSignature, // Mock signature - not real blockchain tx
+      wallet_address: user.wallet_address,
+      requires_on_chain_implementation: true
     });
 
     // Log the stake

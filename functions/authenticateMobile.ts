@@ -13,7 +13,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Verify signature
+    // Verify signature is present and has required fields
     if (!signature_data || !signature_data.signature || !signature_data.message) {
       return Response.json(
         { error: 'Invalid signature data' },
@@ -21,9 +21,36 @@ Deno.serve(async (req) => {
       );
     }
 
-    // TODO: Implement proper Solana signature verification
-    // For now, we require signature data to be present
-    console.log('Signature verification required - please implement proper verification');
+    // Verify Solana signature using nacl
+    try {
+      const { PublicKey } = await import('npm:@solana/web3.js@1.87.6');
+      const nacl = await import('npm:tweetnacl@1.0.3');
+      
+      const publicKey = new PublicKey(wallet_address);
+      const messageBytes = new TextEncoder().encode(signature_data.message);
+      const signatureBytes = new Uint8Array(signature_data.signature);
+
+      const isValid = nacl.default.sign.detached.verify(
+        messageBytes,
+        signatureBytes,
+        publicKey.toBytes()
+      );
+
+      if (!isValid) {
+        return Response.json(
+          { error: 'Invalid signature' },
+          { status: 401 }
+        );
+      }
+      
+      console.log('Signature verified successfully');
+    } catch (error) {
+      console.error('Signature verification error:', error);
+      return Response.json(
+        { error: 'Signature verification failed' },
+        { status: 401 }
+      );
+    }
 
     // Find or create user with this wallet address
     let users = await base44.asServiceRole.entities.User.filter({

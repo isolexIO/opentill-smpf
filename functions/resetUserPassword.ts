@@ -78,13 +78,21 @@ Deno.serve(async (req) => {
 
             const emailBody = `Hello ${user.full_name},
 
-Your temporary password is: ${tempPassword}
+Your password has been reset successfully.
 
-Please use this password to login and then change it in your account settings.
+⚠️ SECURITY NOTICE:
+This email contains sensitive credentials. Please:
+- Delete this email after saving your credentials securely
+- Change your password immediately after login
+- Do not share these credentials with anyone
 
-Your PIN: ${user.pin || 'Not set'}
+TEMPORARY PASSWORD: ${tempPassword}
 
-You can also login using your PIN if available.
+${user.pin ? `Your PIN: ${user.pin} (Use for quick login)` : 'PIN: Not set'}
+
+Please login and change your password immediately in Account Settings.
+
+If you did not request this password reset, please contact support immediately.
 
 Thank you,
 ChainLINK POS Team`;

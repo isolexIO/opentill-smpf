@@ -1,4 +1,3 @@
-
 import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
 import { Connection, PublicKey, Transaction } from 'npm:@solana/web3.js@1.87.6';
 
@@ -139,21 +138,44 @@ async function verifyTransaction(base44, { signature, reference, expectedAmount,
 
 async function processRefund(base44, { orderId, merchantId, amount, recipientAddress }) {
   try {
-    // This is a placeholder for Solana refund processing
-    // In production, you would:
-    // 1. Get merchant's keypair from secure storage
-    // 2. Create and sign a transfer transaction
-    // 3. Send the transaction to the network
-    // 4. Update order status
+    // SECURITY NOTICE: Solana refunds require merchant's private key to sign transactions.
+    // Private keys should NEVER be stored in the database or environment variables.
+    // 
+    // Recommended implementation:
+    // 1. Use a secure key management service (AWS KMS, Google Cloud KMS, HashiCorp Vault)
+    // 2. Or require merchant to approve refund via their wallet (safer option)
+    // 3. Store only encrypted keys with proper access controls
+    // 4. Implement multi-signature requirements for refunds
     
-    // Simulate async operation
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // For now, create a refund record that requires manual processing
+    await base44.asServiceRole.entities.Order.update(orderId, {
+      status: 'refund_pending',
+      payment_details: {
+        refund_requested: true,
+        refund_amount: amount,
+        refund_recipient: recipientAddress,
+        refund_requested_at: new Date().toISOString()
+      }
+    });
     
-    // For now, return a simulated response
+    // Log refund request for admin review
+    await base44.asServiceRole.entities.SystemLog.create({
+      merchant_id: merchantId,
+      log_type: 'payment_event',
+      severity: 'warning',
+      action: 'Solana Refund Requested',
+      description: `Refund of ${amount} SOL requested for order ${orderId}. Manual processing required.`,
+      metadata: {
+        order_id: orderId,
+        amount: amount,
+        recipient: recipientAddress
+      }
+    });
+    
     return Response.json({
       success: true,
-      message: 'Refund initiated',
-      note: 'This is a placeholder. Actual Solana refund requires merchant keypair signing.',
+      message: 'Refund request submitted. An administrator will process this manually for security.',
+      requires_manual_processing: true,
       refundAmount: amount,
       recipient: recipientAddress,
       orderId

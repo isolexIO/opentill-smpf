@@ -42,11 +42,26 @@ Deno.serve(async (req) => {
         console.error('Solana signature verification error:', error);
         signatureValid = false;
       }
-    } else if (wallet_type === 'ethereum') {
-      // For Ethereum, we'll trust the signature from MetaMask for now
-      // In production, you'd verify the signature server-side using ethers.js
+    } else if (wallet_type === 'ethereum' || wallet_type === 'metamask') {
+      // Verify Ethereum signature using ethers
+      try {
+        const ethers = await import('npm:ethers@6.13.0');
+        
+        const recoveredAddress = ethers.verifyMessage(
+          signature_data.message,
+          signature_data.signature
+        );
+        
+        signatureValid = recoveredAddress.toLowerCase() === wallet_address.toLowerCase();
+        console.log('Ethereum signature verification:', signatureValid);
+      } catch (error) {
+        console.error('Ethereum signature verification error:', error);
+        signatureValid = false;
+      }
+    } else {
+      // For other wallet types, verify they at least provided signature data
       signatureValid = signature_data && signature_data.signature && signature_data.signature.length > 0;
-      console.log('Ethereum signature present:', signatureValid);
+      console.log('Generic wallet signature present:', signatureValid);
     }
 
     if (!signatureValid) {
