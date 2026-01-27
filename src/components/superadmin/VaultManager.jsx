@@ -25,7 +25,9 @@ export default function VaultManager() {
     cc_reward_rate: 0.001,
     min_reward_amount: 0.01,
     staking_vault_address: '',
-    network: 'mainnet-beta'
+    network: 'mainnet-beta',
+    referral_reward_rate: 0.1,
+    min_referral_reward: 0.001
   });
 
   useEffect(() => {
@@ -53,7 +55,9 @@ export default function VaultManager() {
           cc_reward_rate: data.settings.cc_reward_rate ?? 0.001,
           min_reward_amount: data.settings.min_reward_amount ?? 0.01,
           staking_vault_address: data.settings.staking_vault_address || '',
-          network: data.settings.network || 'mainnet-beta'
+          network: data.settings.network || 'mainnet-beta',
+          referral_reward_rate: data.settings.referral_reward_rate ?? 0.1,
+          min_referral_reward: data.settings.min_referral_reward ?? 0.001
         });
       }
     } catch (error) {
@@ -110,6 +114,7 @@ export default function VaultManager() {
         <TabsList>
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="rewards">Rewards</TabsTrigger>
+          <TabsTrigger value="referrals">Referrals</TabsTrigger>
           <TabsTrigger value="staking">Staking</TabsTrigger>
           <TabsTrigger value="jupiter">Jupiter</TabsTrigger>
         </TabsList>
@@ -218,6 +223,54 @@ export default function VaultManager() {
                   Used for monthly batch reward calculations (if enabled)
                 </p>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="referrals">
+          <Card>
+            <CardHeader>
+              <CardTitle>Referral Program Settings</CardTitle>
+              <CardDescription>Configure merchant referral rewards</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label>Referral Reward Rate</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={formData.referral_reward_rate}
+                    onChange={(e) => setFormData({...formData, referral_reward_rate: parseFloat(e.target.value)})}
+                  />
+                  <span className="text-gray-500">decimal (0.1 = 10%)</span>
+                </div>
+                <p className="text-sm text-gray-500 mt-1">
+                  Referring merchants earn this percentage of their referrals' rewards (e.g., 0.1 = 10% of referred merchant's rewards)
+                </p>
+              </div>
+
+              <div>
+                <Label>Minimum Referral Reward</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    step="0.001"
+                    value={formData.min_referral_reward}
+                    onChange={(e) => setFormData({...formData, min_referral_reward: parseFloat(e.target.value)})}
+                  />
+                  <span className="text-gray-500">$cLINK</span>
+                </div>
+                <p className="text-sm text-gray-500 mt-1">
+                  Minimum referral reward amount per transaction
+                </p>
+              </div>
+
+              <Alert>
+                <AlertDescription>
+                  When a referred merchant earns $cLINK from CC processing, the referring merchant automatically earns a percentage of those rewards. All referral rewards are claimable in the vault.
+                </AlertDescription>
+              </Alert>
             </CardContent>
           </Card>
         </TabsContent>
