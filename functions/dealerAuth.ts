@@ -5,7 +5,8 @@ import { create, verify } from 'https://deno.land/x/djwt@v2.8/mod.ts';
 const JWT_SECRET = Deno.env.get('JWT_SECRET');
 
 if (!JWT_SECRET) {
-  throw new Error('JWT_SECRET environment variable is required');
+  console.error('FATAL: JWT_SECRET environment variable is not configured');
+  throw new Error('Server configuration error. Contact administrator to set JWT_SECRET.');
 }
 
 async function generateToken(dealerId, email) {

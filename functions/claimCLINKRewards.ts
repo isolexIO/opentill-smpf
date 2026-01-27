@@ -51,9 +51,16 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    // TODO: Implement actual on-chain transfer
-    // This would use Solana web3.js to transfer tokens
-    const mockSignature = `claim_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    // SECURITY NOTICE: On-chain reward claiming requires:
+    // 1. Smart contract with reward distribution logic
+    // 2. Treasury wallet with sufficient $cLINK balance
+    // 3. Secure private key management for treasury
+    // 4. User wallet signature approval (if user pays gas)
+    // 5. Gas fee handling and transaction retry logic
+    // 
+    // Current implementation is database-only for MVP.
+    // Do NOT use in production without proper on-chain token transfer.
+    const mockSignature = `claim_mock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     // Update rewards to claimed
     let remaining = claimAmount;
@@ -62,11 +69,12 @@ Deno.serve(async (req) => {
       
       const toUpdate = Math.min(reward.amount, remaining);
       await base44.asServiceRole.entities.cLINKReward.update(reward.id, {
-        status: 'claimed',
+        status: 'pending_blockchain', // Indicates no on-chain transaction yet
         claimed_at: new Date().toISOString(),
         claimed_by: user.id,
-        transaction_signature: mockSignature,
-        wallet_address: user.wallet_address
+        transaction_signature: mockSignature, // Mock signature - not real blockchain tx
+        wallet_address: user.wallet_address,
+        requires_on_chain_implementation: true
       });
       
       remaining -= toUpdate;

@@ -11,6 +11,13 @@ Deno.serve(async (req) => {
 
     const { dealer_id, domain } = await req.json();
 
+    // Validate that the requesting user has access to this dealer
+    if (user.role !== 'admin' && user.dealer_id !== dealer_id) {
+      return Response.json({ 
+        error: 'Unauthorized: You do not have access to this dealer' 
+      }, { status: 403 });
+    }
+
     // Get custom domain record
     const domains = await base44.entities.CustomDomain.filter({ dealer_id, domain });
     

@@ -220,10 +220,6 @@ body: `
                 full_name: user.full_name,
                 role: user.role
             },
-            credentials: {
-                pin: pin,
-                temp_password: tempPassword
-            },
             message: 'Dealer account created successfully! Check your email for login credentials.'
         });
 
