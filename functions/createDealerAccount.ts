@@ -155,7 +155,7 @@ Deno.serve(async (req) => {
             await base44.integrations.Core.SendEmail({
                 to: owner_email.toLowerCase().trim(),
                 subject: `Welcome to ChainLINK POS Dealer Program!`,
-                body: `
+body: `
                     <h2>Welcome to ChainLINK POS, ${owner_name}!</h2>
                     <p>Your dealer account has been created successfully.</p>
                     
@@ -163,12 +163,20 @@ Deno.serve(async (req) => {
                     <p><strong>Dealer Name:</strong> ${dealer_name}</p>
                     <p><strong>Dealer Slug:</strong> ${slug}</p>
                     <p><strong>Email:</strong> ${owner_email.toLowerCase().trim()}</p>
-                    <p><strong>PIN:</strong> ${pin}</p>
-                    <p><strong>Temporary Password:</strong> ${tempPassword}</p>
                     
-                    <h3>How to Login:</h3>
-                    <p>1. <strong>PIN Login:</strong> Enter your 6-digit PIN: ${pin}</p>
-                    <p>2. <strong>Email Login:</strong> Use your email and temporary password</p>
+                    <h3>Login Credentials:</h3>
+                    <div style="background-color: #f3f4f6; padding: 15px; border-left: 4px solid #6366f1; margin: 15px 0;">
+                        <p style="margin: 0;"><strong>⚠️ IMPORTANT - SECURE CREDENTIALS</strong></p>
+                        <p style="margin: 10px 0 0 0; color: #4b5563;">Your login credentials have been generated. For security reasons:</p>
+                        <ul style="margin: 5px 0 0 20px; color: #4b5563;">
+                            <li>Delete this email after saving your credentials securely</li>
+                            <li>Change your password immediately after first login</li>
+                            <li>Do not share these credentials with anyone</li>
+                        </ul>
+                    </div>
+                    
+                    <p><strong>PIN:</strong> ${pin} <em>(Use for quick login)</em></p>
+                    <p><strong>Temporary Password:</strong> ${tempPassword} <em>(Change immediately after login)</em></p>
                     
                     <h3>Your Dealer Dashboard:</h3>
                     <p>Access your dealer dashboard to:</p>
@@ -183,7 +191,12 @@ Deno.serve(async (req) => {
                     
                     <p>Your trial period ends on: ${new Date(dealerData.trial_ends_at).toLocaleDateString()}</p>
                     
-                    <p>Get started by visiting your dealer portal.</p>
+                    <p><strong>Next Steps:</strong></p>
+                    <ol>
+                        <li>Login using your PIN or temporary password</li>
+                        <li>Change your password in Account Settings</li>
+                        <li>Complete your dealer profile</li>
+                    </ol>
                 `
             });
             console.log('Welcome email sent');
