@@ -183,8 +183,46 @@ export default function WalletLogin({ onSuccess, merchantId }) {
 
     } catch (err) {
       console.error('Mobile Wallet connection error:', err);
-      if (!err.message?.includes('User rejected')) {
+      if (!err.message?.includes('User rejected') && !err.message?.includes('User cancelled')) {
         setError(err.message || 'Failed to connect wallet');
+      }
+    } finally {
+      setConnecting(false);
+      setWalletType('');
+    }
+  };
+
+  const connectSolanaSeeker = async () => {
+    setConnecting(true);
+    setError('');
+    setWalletType('Solana Mobile');
+
+    try {
+      // Check if running on Solana Mobile (Saga/Seeker)
+      const provider = window?.solana;
+      
+      if (!provider) {
+        throw new Error('Solana Mobile wallet not detected. Please open this page in the Solana Mobile wallet browser.');
+      }
+
+      const resp = await provider.connect();
+      const publicKey = resp.publicKey.toString();
+
+      console.log('Solana Mobile connected:', publicKey);
+
+      const message = `Sign this message to login to ChainLINK POS\n\nWallet: ${publicKey}\nTimestamp: ${Date.now()}`;
+      const encodedMessage = new TextEncoder().encode(message);
+      const signedMessage = await provider.signMessage(encodedMessage, 'utf8');
+
+      await authenticateWallet(publicKey, 'solana_mobile', {
+        signature: Array.from(signedMessage.signature),
+        message: message
+      });
+
+    } catch (err) {
+      console.error('Solana Mobile connection error:', err);
+      if (!err.message?.includes('User rejected') && !err.message?.includes('User cancelled')) {
+        setError(err.message || 'Failed to connect to Solana Mobile wallet');
       }
     } finally {
       setConnecting(false);
