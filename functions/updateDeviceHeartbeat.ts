@@ -20,6 +20,15 @@ Deno.serve(async (req) => {
         // Create base44 client
         const base44 = createClientFromRequest(req);
 
+        // Verify authentication for non-display devices
+        let user;
+        try {
+            user = await base44.auth.me();
+        } catch (e) {
+            // Continue without auth for display devices only
+            console.log('updateDeviceHeartbeat: No auth');
+        }
+
         // Find the session using service role
         let sessions;
         try {
@@ -45,6 +54,16 @@ Deno.serve(async (req) => {
         }
 
         const session = sessions[0];
+        
+        // Verify user has access to this session (except for display devices and admins)
+        if (user && user.role !== 'admin' && session.device_type !== 'customer_display' && session.device_type !== 'kitchen_display') {
+            if (user.merchant_id !== session.merchant_id) {
+                return Response.json({
+                    success: false,
+                    error: 'Forbidden: Access denied to this session'
+                }, { status: 403 });
+            }
+        }
 
         // Check if session was force-disconnected
         if (session.forced_disconnect) {

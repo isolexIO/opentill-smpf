@@ -27,8 +27,22 @@ Deno.serve(async (req) => {
         try {
             user = await base44.auth.me();
         } catch (e) {
-            // Allow unauthenticated for customer displays
-            console.log('registerDeviceSession: No auth, continuing for customer display');
+            // Only allow customer_display and kitchen_display without auth
+            if (device_type !== 'customer_display' && device_type !== 'kitchen_display') {
+                return Response.json({
+                    success: false,
+                    error: 'Unauthorized: Authentication required for this device type'
+                }, { status: 401 });
+            }
+            console.log('registerDeviceSession: No auth, allowing for display device');
+        }
+        
+        // Verify merchant_id matches authenticated user (except for admins and display devices)
+        if (user && user.role !== 'admin' && user.merchant_id !== merchant_id) {
+            return Response.json({
+                success: false,
+                error: 'Forbidden: Cannot register session for different merchant'
+            }, { status: 403 });
         }
 
         // Generate unique session ID

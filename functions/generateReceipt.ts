@@ -3,6 +3,13 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    
+    // Verify user is authenticated
+    const user = await base44.auth.me();
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    
     const { order_id } = await req.json();
 
     if (!order_id) {
@@ -13,6 +20,11 @@ Deno.serve(async (req) => {
     const order = await base44.asServiceRole.entities.Order.get(order_id);
     if (!order) {
       return Response.json({ error: 'Order not found' }, { status: 404 });
+    }
+    
+    // Verify user has access to this order
+    if (user.role !== 'admin' && user.merchant_id !== order.merchant_id) {
+      return Response.json({ error: 'Forbidden: Access denied to this order' }, { status: 403 });
     }
 
     // Fetch merchant details

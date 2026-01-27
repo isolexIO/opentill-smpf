@@ -3,13 +3,24 @@ import Stripe from "npm:stripe@14.14.0";
 
 Deno.serve(async (req) => {
   try {
+    const base44 = createClientFromRequest(req);
+    
+    // Verify user is authenticated
+    const user = await base44.auth.me();
+    if (!user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { "Content-Type": "application/json" } });
+    }
+    
     const { orderId, amount, currency, paymentMethodId, merchantId } = await req.json();
 
     if (!orderId || !amount || !currency || !paymentMethodId || !merchantId) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), { status: 400, headers: { "Content-Type": "application/json" } });
     }
-
-    const base44 = createClientFromRequest(req);
+    
+    // Verify user has access to this merchant
+    if (user.role !== 'admin' && user.merchant_id !== merchantId) {
+      return new Response(JSON.stringify({ error: "Forbidden: Access denied" }), { status: 403, headers: { "Content-Type": "application/json" } });
+    }
     const merchant = await base44.asServiceRole.entities.Merchant.get(merchantId);
 
     if (!merchant) {

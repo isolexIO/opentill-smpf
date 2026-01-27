@@ -81,9 +81,10 @@ Deno.serve(async (req) => {
             }, { status: 500 });
         }
 
-        // Generate temporary password (store as plain text for now - in production use bcrypt)
+        // Generate temporary password and hash it
         const tempPassword = Math.random().toString(36).slice(-12) + Math.random().toString(36).slice(-12).toUpperCase();
-        console.log('Generated temporary password');
+        const hashedPassword = await bcrypt.hash(tempPassword, 10);
+        console.log('Generated and hashed temporary password');
 
         // Create dealer
         const dealerData = {
@@ -123,7 +124,7 @@ Deno.serve(async (req) => {
             dealer_id: dealer.id,
             merchant_id: null,
             pin: pin,
-            password_hash: tempPassword, // Store plain text for now
+            password_hash: hashedPassword,
             employee_id: `DEALER-${Date.now()}`,
             is_active: true,
             permissions: [

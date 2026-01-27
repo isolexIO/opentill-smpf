@@ -21,20 +21,32 @@ Deno.serve(async (req) => {
             }, { status: 400 });
         }
 
+        // Verify SMTP credentials are configured
+        const smtpHost = Deno.env.get('SMTP_HOST');
+        const smtpUser = Deno.env.get('SMTP_USER');
+        const smtpPass = Deno.env.get('SMTP_PASS');
+
+        if (!smtpHost || !smtpUser || !smtpPass) {
+            return Response.json({
+                success: false,
+                error: 'Email service not configured. Please contact administrator.'
+            }, { status: 503 });
+        }
+
         // Create transporter with SMTP credentials from environment
         const transporter = nodemailer.createTransport({
-            host: Deno.env.get('SMTP_HOST') || 'mail.vps103510.mylogin.co',
+            host: smtpHost,
             port: parseInt(Deno.env.get('SMTP_PORT') || '465'),
             secure: true,
             auth: {
-                user: Deno.env.get('SMTP_USER') || 'noreply@chainlink-pos.com',
-                pass: Deno.env.get('SMTP_PASS')
+                user: smtpUser,
+                pass: smtpPass
             }
         });
 
         // Send email
         const info = await transporter.sendMail({
-            from: `"ChainLINK POS" <${Deno.env.get('SMTP_USER') || 'noreply@chainlink-pos.com'}>`,
+            from: `"ChainLINK POS" <${smtpUser}>`,
             to: to,
             subject: subject,
             text: text,

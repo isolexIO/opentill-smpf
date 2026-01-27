@@ -14,7 +14,16 @@ Deno.serve(async (req) => {
     }
 
     // Verify signature
-    // (In production, verify the signature properly)
+    if (!signature_data || !signature_data.signature || !signature_data.message) {
+      return Response.json(
+        { error: 'Invalid signature data' },
+        { status: 400 }
+      );
+    }
+
+    // TODO: Implement proper Solana signature verification
+    // For now, we require signature data to be present
+    console.log('Signature verification required - please implement proper verification');
 
     // Find or create user with this wallet address
     let users = await base44.asServiceRole.entities.User.filter({
