@@ -69,7 +69,7 @@ export default function WalletLogin({ onSuccess, merchantId }) {
 
     } catch (err) {
       console.error('Phantom connection error:', err);
-      if (!err.message?.includes('User rejected')) {
+      if (!err.message?.includes('User rejected') && !err.message?.includes('User cancelled')) {
         setError(err.message || 'Failed to connect to Phantom wallet');
       }
     } finally {
@@ -138,7 +138,7 @@ export default function WalletLogin({ onSuccess, merchantId }) {
 
     } catch (err) {
       console.error('Solflare connection error:', err);
-      if (!err.message?.includes('User rejected')) {
+      if (!err.message?.includes('User rejected') && !err.message?.includes('User cancelled')) {
         setError(err.message || 'Failed to connect to Solflare wallet');
       }
     } finally {
@@ -273,7 +273,7 @@ export default function WalletLogin({ onSuccess, merchantId }) {
 
     } catch (err) {
       console.error('Jupiter connection error:', err);
-      if (!err.message?.includes('User rejected')) {
+      if (!err.message?.includes('User rejected') && !err.message?.includes('User cancelled')) {
         setError(err.message || 'Failed to connect to Jupiter wallet');
       }
     } finally {
@@ -435,7 +435,29 @@ export default function WalletLogin({ onSuccess, merchantId }) {
             <span className="font-medium">Jupiter</span>
           </Button>
 
-          {/* Solana Mobile Wallet Adapter */}
+          {/* Solana Mobile (Saga/Seeker) */}
+          <Button
+            onClick={connectSolanaSeeker}
+            disabled={connecting}
+            variant="outline"
+            className="w-full justify-start h-14 hover:border-red-300 transition-all"
+          >
+            {connecting && walletType === 'Solana Mobile' ? (
+              <Loader2 className="w-6 h-6 mr-3 animate-spin text-red-600" />
+            ) : (
+              <img 
+                src="https://solanamobile.com/android-chrome-512x512.png" 
+                alt="Solana Mobile"
+                className="w-6 h-6 mr-3"
+                onError={(e) => {
+                  e.target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" rx="24" fill="%23DC1FFF"/><path d="M32 48h64l-8 8H32z" fill="%23fff"/><path d="M32 64h64l-8 8H32z" fill="%23fff"/><path d="M32 80h64l-8 8H32z" fill="%23fff"/></svg>';
+                }}
+              />
+            )}
+            <span className="font-medium">Solana Mobile (Saga/Seeker)</span>
+          </Button>
+
+          {/* Generic Mobile Wallet */}
           <Button
             onClick={connectMobileWallet}
             disabled={connecting}
@@ -454,7 +476,7 @@ export default function WalletLogin({ onSuccess, merchantId }) {
                 }}
               />
             )}
-            <span className="font-medium">Mobile Wallet</span>
+            <span className="font-medium">Other Mobile Wallet</span>
           </Button>
         </div>
 
