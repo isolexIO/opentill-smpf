@@ -80,7 +80,8 @@
     "@solana/wallet-adapter-wallets": "^0.19.32",
     "@solana/wallet-adapter-base": "^0.9.23",
     "@solana/web3.js": "^1.95.8",
-    "qrcode": "^1.5.3"
+    "qrcode": "^1.5.3",
+    "ethers": "^6.13.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",
