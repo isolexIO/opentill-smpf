@@ -81,7 +81,8 @@
     "@solana/wallet-adapter-base": "^0.9.23",
     "@solana/web3.js": "^1.95.8",
     "qrcode": "^1.5.3",
-    "ethers": "^6.13.0"
+    "ethers": "^6.13.0",
+    "tweetnacl": "^1.0.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",
