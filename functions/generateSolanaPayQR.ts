@@ -1,8 +1,18 @@
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import QRCode from 'npm:qrcode@1.5.3';
 
 Deno.serve(async (req) => {
     try {
         console.log('generateSolanaPayQR: Starting...');
+        
+        const base44 = createClientFromRequest(req);
+        
+        // Allow unauthenticated calls for customer display
+        try {
+            await base44.auth.me();
+        } catch (e) {
+            console.log('generateSolanaPayQR: No auth (customer display)');
+        }
         
         const body = await req.json();
         const { paymentUrl, size } = body;
