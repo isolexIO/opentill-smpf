@@ -21,7 +21,11 @@ export default function VaultManager() {
     staking_lockup_days: 90,
     jupiter_referral_code: '',
     clink_mint_address: 'FPzmBaifnDkTDi26cuiEkRGofnvF7ReXUtWT7Eebjupx',
-    auto_calculate_rewards: true
+    auto_calculate_rewards: true,
+    cc_reward_rate: 0.001,
+    min_reward_amount: 0.01,
+    staking_vault_address: '',
+    network: 'mainnet-beta'
   });
 
   useEffect(() => {
@@ -45,7 +49,11 @@ export default function VaultManager() {
           staking_lockup_days: data.settings.staking_lockup_days ?? 90,
           jupiter_referral_code: data.settings.jupiter_referral_code || '',
           clink_mint_address: data.settings.clink_mint_address || 'FPzmBaifnDkTDi26cuiEkRGofnvF7ReXUtWT7Eebjupx',
-          auto_calculate_rewards: data.settings.auto_calculate_rewards ?? true
+          auto_calculate_rewards: data.settings.auto_calculate_rewards ?? true,
+          cc_reward_rate: data.settings.cc_reward_rate ?? 0.001,
+          min_reward_amount: data.settings.min_reward_amount ?? 0.01,
+          staking_vault_address: data.settings.staking_vault_address || '',
+          network: data.settings.network || 'mainnet-beta'
         });
       }
     } catch (error) {
@@ -149,18 +157,34 @@ export default function VaultManager() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label>Default Reward Percentage</Label>
+                <Label>CC Processing Reward Rate</Label>
                 <div className="flex items-center gap-2">
                   <Input
                     type="number"
-                    step="0.1"
-                    value={formData.reward_percentage}
-                    onChange={(e) => setFormData({...formData, reward_percentage: parseFloat(e.target.value)})}
+                    step="0.0001"
+                    value={formData.cc_reward_rate}
+                    onChange={(e) => setFormData({...formData, cc_reward_rate: parseFloat(e.target.value)})}
                   />
-                  <span className="text-gray-500">%</span>
+                  <span className="text-gray-500">decimal (0.001 = 0.1%)</span>
                 </div>
                 <p className="text-sm text-gray-500 mt-1">
-                  Merchants earn this percentage of CC processing volume in $cLINK
+                  Merchants earn this rate of CC processing volume in $cLINK (e.g., 0.001 = 0.1%, 0.01 = 1%)
+                </p>
+              </div>
+
+              <div>
+                <Label>Minimum Reward Amount</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={formData.min_reward_amount}
+                    onChange={(e) => setFormData({...formData, min_reward_amount: parseFloat(e.target.value)})}
+                  />
+                  <span className="text-gray-500">$cLINK</span>
+                </div>
+                <p className="text-sm text-gray-500 mt-1">
+                  Minimum reward amount per transaction (prevents spam rewards)
                 </p>
               </div>
 
@@ -175,7 +199,23 @@ export default function VaultManager() {
                   <span className="text-gray-500">$cLINK</span>
                 </div>
                 <p className="text-sm text-gray-500 mt-1">
-                  Minimum amount required to claim rewards
+                  Minimum total amount required to claim rewards
+                </p>
+              </div>
+
+              <div>
+                <Label>Monthly Reward Percentage (Legacy)</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    step="0.1"
+                    value={formData.reward_percentage}
+                    onChange={(e) => setFormData({...formData, reward_percentage: parseFloat(e.target.value)})}
+                  />
+                  <span className="text-gray-500">%</span>
+                </div>
+                <p className="text-sm text-gray-500 mt-1">
+                  Used for monthly batch reward calculations (if enabled)
                 </p>
               </div>
             </CardContent>
@@ -212,6 +252,30 @@ export default function VaultManager() {
                   />
                   <span className="text-gray-500">days</span>
                 </div>
+              </div>
+
+              <div>
+                <Label>Staking Vault Address</Label>
+                <Input
+                  value={formData.staking_vault_address}
+                  onChange={(e) => setFormData({...formData, staking_vault_address: e.target.value})}
+                  placeholder="Solana wallet address for staking vault"
+                />
+                <p className="text-sm text-gray-500 mt-1">
+                  Wallet where staked tokens are held on-chain
+                </p>
+              </div>
+
+              <div>
+                <Label>Network</Label>
+                <select
+                  className="w-full border rounded-md p-2"
+                  value={formData.network}
+                  onChange={(e) => setFormData({...formData, network: e.target.value})}
+                >
+                  <option value="mainnet-beta">Mainnet</option>
+                  <option value="devnet">Devnet</option>
+                </select>
               </div>
             </CardContent>
           </Card>
