@@ -38,7 +38,8 @@ import {
   CreditCard,
   Shield,
   AlertCircle,
-  Vault
+  Vault,
+  Sparkles
 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import SubdomainManager from './SubdomainManager';
@@ -470,7 +471,17 @@ ChainLINK Support`
               ) : (
                 filteredMerchants.map((merchant) => (
                   <TableRow key={merchant.id}>
-                    <TableCell className="font-medium">{merchant.business_name}</TableCell>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        {merchant.business_name}
+                        {merchant.is_demo && (
+                          <Badge className="bg-purple-100 text-purple-800 flex items-center gap-1">
+                            <Sparkles className="w-3 h-3" />
+                            DEMO
+                          </Badge>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell>
                       <div className="text-sm">
                         <div>{merchant.owner_name}</div>
@@ -685,6 +696,32 @@ ChainLINK Support`
                  <p className="text-xs text-gray-500 mt-2">
                    Status: {vaultSettings?.vault_enabled ? '✓ Enabled' : '✗ Disabled'}
                  </p>
+               </div>
+
+               {/* DEMO Account Toggle */}
+               <div className="border-t pt-4">
+                 <div className="flex items-center gap-2 mb-3">
+                   <Sparkles className="w-4 h-4" />
+                   <h4 className="font-semibold">DEMO Account</h4>
+                 </div>
+                 <div className="flex gap-2">
+                   <Button
+                     variant={selectedMerchant.is_demo ? "default" : "outline"}
+                     onClick={() => handleToggleDemo(selectedMerchant)}
+                     className={`flex-1 ${selectedMerchant.is_demo ? 'bg-purple-600 hover:bg-purple-700' : ''}`}
+                   >
+                     {selectedMerchant.is_demo ? 'DEMO Enabled' : 'Mark as DEMO'}
+                   </Button>
+                 </div>
+                 <p className="text-xs text-gray-500 mt-2">
+                   Status: {selectedMerchant.is_demo ? '✓ DEMO - Full access, no fees' : '✗ Regular merchant'}
+                 </p>
+                 <Alert className="bg-purple-50 border-purple-200 mt-3">
+                   <Sparkles className="h-4 w-4 text-purple-600" />
+                   <AlertDescription className="text-purple-800 text-sm">
+                     DEMO accounts have unrestricted access to all features with no subscription fees or transaction costs.
+                   </AlertDescription>
+                 </Alert>
                </div>
 
                <div className="flex gap-2 justify-end pt-4 border-t">
