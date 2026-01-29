@@ -40,6 +40,7 @@ export default function Layout({ children, currentPageName }) {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [error, setError] = useState(null);
   const [merchantStatus, setMerchantStatus] = useState(null);
+  const [merchant, setMerchant] = useState(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -307,6 +308,7 @@ export default function Layout({ children, currentPageName }) {
           const merchants = await base44.entities.Merchant.filter({ id: pinUser.merchant_id });
           if (merchants && merchants.length > 0) {
             setMerchantStatus(merchants[0].status);
+            setMerchant(merchants[0]);
           }
         } catch (e) {
           console.warn('Could not load merchant status:', e);
@@ -538,6 +540,21 @@ export default function Layout({ children, currentPageName }) {
 
         {/* Notification Banner - Below Nav */}
         {!PUBLIC_PAGES.includes(currentPageName) && <NotificationBanner />}
+
+        {/* Merchant Indicator */}
+        {!PUBLIC_PAGES.includes(currentPageName) && pinUser?.merchant_id && (
+          <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 text-center text-sm font-medium shadow-md">
+            <div className="max-w-7xl mx-auto flex items-center justify-center gap-2">
+              <span>Connected as:</span>
+              <span className="font-bold">{dealer?.name || 'Merchant'}</span>
+              {merchant && (
+                <span className="ml-2 px-2 py-1 bg-white/20 rounded-full text-xs">
+                  {merchant.business_name}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
 
         <main className="flex-1">
           {children}
