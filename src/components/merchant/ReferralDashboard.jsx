@@ -193,12 +193,12 @@ export default function ReferralDashboard() {
                 </div>
               </div>
 
-              <Alert>
-                <TrendingUp className="w-4 h-4" />
-                <AlertDescription>
+              <div className="flex gap-2 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                <TrendingUp className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                <p className="text-sm text-blue-800 dark:text-blue-300">
                   Earn rewards every time your referred merchants earn $cLINK! The more they process, the more you earn.
-                </AlertDescription>
-              </Alert>
+                </p>
+              </div>
             </>
           ) : (
             <div className="text-center py-8">
