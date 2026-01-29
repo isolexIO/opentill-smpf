@@ -266,11 +266,11 @@ export default function VaultManager() {
                 </p>
               </div>
 
-              <Alert>
-                <AlertDescription>
+              <div className="flex gap-2 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                <p className="text-sm text-blue-800 dark:text-blue-300">
                   When a referred merchant earns $cLINK from CC processing, the referring merchant automatically earns a percentage of those rewards. All referral rewards are claimable in the vault.
-                </AlertDescription>
-              </Alert>
+                </p>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
