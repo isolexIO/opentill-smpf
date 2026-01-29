@@ -189,22 +189,21 @@ export default function MerchantManagement({ onUpdate }) {
     }
 
     try {
-      await base44.asServiceRole.entities.Merchant.delete(merchant.id);
-      
-      await base44.entities.SystemLog.create({
-        log_type: 'super_admin_action',
-        action: 'Merchant deleted',
-        description: `Merchant ${merchant.business_name} was permanently deleted`,
-        user_email: (await base44.auth.me()).email,
-        user_role: 'super_admin',
-        severity: 'critical'
+      const { data } = await base44.functions.invoke('deleteMerchant', {
+        merchantId: merchant.id,
+        merchantName: merchant.business_name
       });
 
-      await loadMerchants();
-      if (onUpdate) onUpdate();
+      if (data.success) {
+        alert('Merchant deleted successfully');
+        await loadMerchants();
+        if (onUpdate) onUpdate();
+      } else {
+        alert('Failed to delete merchant: ' + (data.error || 'Unknown error'));
+      }
     } catch (error) {
       console.error('Error deleting merchant:', error);
-      alert('Failed to delete merchant');
+      alert('Failed to delete merchant: ' + error.message);
     }
   };
 
@@ -305,8 +304,8 @@ ChainLINK Support`
       // Calculate trial end date (14 days from now)
       const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
 
-      // Create merchant (Super Admin only via service role)
-      const merchant = await base44.asServiceRole.entities.Merchant.create({
+      // Create merchant via backend function
+      const { data } = await base44.functions.invoke('createMerchantAccount', {
         business_name: newMerchant.business_name,
         display_name: newMerchant.display_name || newMerchant.business_name,
         owner_name: newMerchant.owner_name,
@@ -314,17 +313,14 @@ ChainLINK Support`
         phone: newMerchant.phone,
         address: newMerchant.address,
         tax_id: newMerchant.tax_id,
-        status: newMerchant.status,
-        activated_at: newMerchant.status === 'active' ? new Date().toISOString() : null,
-        trial_ends_at: newMerchant.status === 'trial' ? trialEndsAt : null, // Set trial end date only if status is trial
-        settings: {
-          timezone: 'America/New_York',
-          currency: 'USD',
-          tax_rate: 0.08
-        },
-        onboarding_completed: false,
-        features_enabled: ['pos', 'inventory', 'reports']
+        status: newMerchant.status
       });
+
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to create merchant');
+      }
+
+      const merchant = data.merchant;
 
       // Determine subscription status and end dates based on merchant status
       let subStatus = 'trial';
@@ -337,19 +333,6 @@ ChainLINK Support`
         subNextBillingDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
       }
 
-
-      // Core system is free - no subscription needed anymore
-
-      // Log the action
-      await base44.entities.SystemLog.create({
-        log_type: 'super_admin_action',
-        action: 'Merchant created',
-        description: `New merchant created: ${newMerchant.business_name}`,
-        user_email: (await base44.auth.me()).email,
-        user_role: 'super_admin',
-        merchant_id: merchant.id,
-        severity: 'info'
-      });
 
       alert(`Merchant "${newMerchant.business_name}" created successfully! They can now register at the app.`);
       
@@ -388,29 +371,24 @@ ChainLINK Support`
   const handleToggleDemo = async (merchant) => {
     const newDemoStatus = !merchant.is_demo;
     try {
-      await base44.asServiceRole.entities.Merchant.update(merchant.id, {
+      const { data } = await base44.functions.invoke('toggleMerchantDemo', {
+        merchantId: merchant.id,
         is_demo: newDemoStatus
       });
 
-      await base44.entities.SystemLog.create({
-        log_type: 'super_admin_action',
-        action: `Merchant DEMO status ${newDemoStatus ? 'enabled' : 'disabled'}`,
-        description: `${merchant.business_name} marked as ${newDemoStatus ? 'DEMO' : 'regular'} account`,
-        user_email: (await base44.auth.me()).email,
-        user_role: 'super_admin',
-        merchant_id: merchant.id,
-        severity: 'info'
-      });
-
-      alert(`${merchant.business_name} ${newDemoStatus ? 'marked as DEMO - full access, no fees' : 'removed from DEMO status'}`);
-      await loadMerchants();
-      if (selectedMerchant && selectedMerchant.id === merchant.id) {
-        setSelectedMerchant({ ...merchant, is_demo: newDemoStatus });
+      if (data.success) {
+        alert(`${merchant.business_name} ${newDemoStatus ? 'marked as DEMO - full access, no fees' : 'removed from DEMO status'}`);
+        await loadMerchants();
+        if (selectedMerchant && selectedMerchant.id === merchant.id) {
+          setSelectedMerchant({ ...merchant, is_demo: newDemoStatus });
+        }
+        if (onUpdate) onUpdate();
+      } else {
+        alert('Failed to update demo status: ' + (data.error || 'Unknown error'));
       }
-      if (onUpdate) onUpdate();
     } catch (error) {
       console.error('Error toggling demo status:', error);
-      alert('Failed to update demo status');
+      alert('Failed to update demo status: ' + error.message);
     }
   };
 
