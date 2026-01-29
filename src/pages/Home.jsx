@@ -236,7 +236,7 @@ export default function HomePage() {
                 Device Shop
               </a>
               <Button
-                onClick={() => window.location.href = createPageUrl('WalletLoginPage')}
+                onClick={() => window.location.href = createPageUrl('EmailLogin')}
                 className="bg-green-500 hover:bg-green-600 text-white"
               >
                 Sign In
@@ -244,7 +244,7 @@ export default function HomePage() {
             </div>
             <div className="md:hidden">
               <Button
-                onClick={() => window.location.href = createPageUrl('WalletLoginPage')}
+                onClick={() => window.location.href = createPageUrl('EmailLogin')}
                 size="sm"
                 className="bg-green-500 hover:bg-green-600 text-white"
               >
@@ -310,7 +310,7 @@ export default function HomePage() {
                 size="lg"
                 variant="outline"
                 className="text-lg px-8 py-6 bg-white/20 backdrop-blur-sm border-2 border-white text-white hover:bg-white hover:text-purple-600 font-semibold transition-all"
-                onClick={() => window.location.href = createPageUrl('WalletLoginPage')}
+                onClick={() => window.location.href = createPageUrl('EmailLogin')}
               >
                 {heroSettings.cta_secondary_text || 'Merchant Login'}
               </Button>
@@ -533,10 +533,10 @@ export default function HomePage() {
                 <Shield className="w-6 h-6 text-white" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                Multi-Wallet Login
+                Two-Factor Authentication
               </h3>
               <p className="text-gray-600 dark:text-gray-300">
-                Sign in with Phantom, Solflare, Jupiter, Backpack, or MetaMask. Secure Web3 authentication.
+                Enhanced security with 2FA. Secure email and Google authentication for your account.
               </p>
             </motion.div>
 
@@ -658,7 +658,7 @@ export default function HomePage() {
               {settings?.cta_section?.headline || 'Ready to Transform Your Business?'}
             </h2>
             <p className="text-xl mb-8 text-blue-100">
-              {settings?.cta_section?.subheadline || 'Join thousands of merchants already using ChainLINK POS'}
+              {settings?.cta_section?.subheadline || 'Start accepting payments with ChainLINK POS'}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button

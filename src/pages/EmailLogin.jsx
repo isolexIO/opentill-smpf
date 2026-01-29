@@ -4,9 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { LogIn, Mail, Lock, Loader2, AlertCircle, KeyRound, Wallet, Chrome } from 'lucide-react';
+import { LogIn, Mail, Lock, Loader2, AlertCircle, KeyRound, Chrome, Shield } from 'lucide-react';
 import { createPageUrl } from '@/utils';
-import WalletLogin from '@/components/auth/WalletLogin.jsx';
 
 export default function EmailLoginPage() {
   const [email, setEmail] = useState('');
@@ -15,6 +14,9 @@ export default function EmailLoginPage() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
   const [dealer, setDealer] = useState(null);
+  const [twoFactorRequired, setTwoFactorRequired] = useState(false);
+  const [twoFactorCode, setTwoFactorCode] = useState('');
+  const [tempUserId, setTempUserId] = useState(null);
 
   useEffect(() => {
     loadDealer();
@@ -57,8 +59,17 @@ export default function EmailLoginPage() {
     try {
       const result = await base44.functions.invoke('emailPasswordLogin', {
         email: email.toLowerCase().trim(),
-        password: password
+        password: password,
+        two_factor_code: twoFactorCode || null
       });
+
+      if (result.data.success && result.data.requires_2fa) {
+        setTwoFactorRequired(true);
+        setTempUserId(result.data.user_id);
+        setError('');
+        setLoading(false);
+        return;
+      }
 
       if (result.data.success && result.data.user) {
         // Store user in localStorage for PIN login compatibility
@@ -126,6 +137,15 @@ export default function EmailLoginPage() {
             </Alert>
           )}
 
+          {twoFactorRequired && (
+            <Alert className="mb-4 bg-blue-50 border-blue-200">
+              <Shield className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="text-blue-800">
+                Two-factor authentication is enabled. Please enter your 6-digit code.
+              </AlertDescription>
+            </Alert>
+          )}
+
           <form onSubmit={handleEmailLogin} className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -163,6 +183,28 @@ export default function EmailLoginPage() {
                 />
               </div>
             </div>
+
+            {twoFactorRequired && (
+              <div>
+                <label htmlFor="2fa" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Two-Factor Code
+                </label>
+                <div className="relative">
+                  <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Input
+                    id="2fa"
+                    type="text"
+                    value={twoFactorCode}
+                    onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    placeholder="000000"
+                    className="pl-10 text-center text-2xl tracking-widest font-mono"
+                    disabled={loading}
+                    maxLength={6}
+                    autoFocus={twoFactorRequired}
+                  />
+                </div>
+              </div>
+            )}
 
             <Button
               type="submit"
@@ -216,15 +258,6 @@ export default function EmailLoginPage() {
               )}
             </Button>
 
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => window.location.href = createPageUrl('WalletLoginPage')}
-            >
-              <Wallet className="w-4 h-4 mr-2" />
-              Login with Wallet
-            </Button>
-            
             <Button
               variant="ghost"
               className="w-full text-sm"
