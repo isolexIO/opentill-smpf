@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+
 import { Users, Copy, CheckCircle, Gift, TrendingUp, Wallet } from 'lucide-react';
 
 export default function ReferralDashboard() {
