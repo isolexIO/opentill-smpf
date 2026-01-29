@@ -20,6 +20,7 @@ import WalletConnectionTab from '../components/settings/WalletConnectionTab';
 import SecurityTab from '../components/settings/SecurityTab';
 import SolanaPayTab from '../components/settings/SolanaPayTab';
 import Web3IdentityTab from '../components/settings/Web3IdentityTab';
+import TwoFactorTab from '../components/settings/TwoFactorTab';
 
 export default function SettingsPage() {
   const [user, setUser] = useState(null);
@@ -290,6 +291,7 @@ export default function SettingsPage() {
 
   const tabs = [
     { id: 'general', label: 'General', icon: SettingsIcon },
+    { id: '2fa', label: 'Two-Factor Auth', icon: Shield },
     { id: 'payments', label: 'Payment Gateways', icon: CreditCard },
     { id: 'pricing', label: 'Pricing & Surcharge', icon: DollarSign },
     { id: 'devices', label: 'Hardware Devices', icon: Printer },
@@ -298,8 +300,6 @@ export default function SettingsPage() {
     { id: 'solana-pay', label: 'Solana Pay', icon: null, customIcon: 'https://solana.com/src/img/branding/solanaLogoMark.svg' },
     { id: 'display', label: 'Customer Display', icon: Monitor },
     { id: 'domain', label: 'Custom Domain', icon: Globe },
-    { id: 'identity', label: 'Web3 Identity', icon: Globe },
-    { id: 'wallet', label: 'Wallet Connection', icon: Wallet },
     { id: 'security', label: 'Security', icon: Shield }
   ];
 
@@ -368,6 +368,9 @@ export default function SettingsPage() {
                 {activeTab === 'general' && (
                   <GeneralTab merchant={merchant} onSave={handleSave} saving={saving} />
                 )}
+                {activeTab === '2fa' && (
+                  <TwoFactorTab />
+                )}
                 {activeTab === 'payments' && (
                   <PaymentGatewaysTab 
                     gateways={merchant.settings?.payment_gateways || {}} 
@@ -406,12 +409,6 @@ export default function SettingsPage() {
                 )}
                 {activeTab === 'domain' && (
                   <CustomDomainTab merchant={merchant} />
-                )}
-                {activeTab === 'identity' && (
-                  <Web3IdentityTab merchant={merchant} />
-                )}
-                {activeTab === 'wallet' && (
-                  <WalletConnectionTab user={user} onSave={handleUserUpdate} />
                 )}
                 {activeTab === 'security' && (
                   <SecurityTab 
