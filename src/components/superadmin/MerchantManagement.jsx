@@ -398,6 +398,35 @@ ChainLINK Support`
     return <Badge className={config.color}>{config.label}</Badge>;
   };
 
+  const handleToggleDemo = async (merchant) => {
+    const newDemoStatus = !merchant.is_demo;
+    try {
+      await base44.asServiceRole.entities.Merchant.update(merchant.id, {
+        is_demo: newDemoStatus
+      });
+
+      await base44.entities.SystemLog.create({
+        log_type: 'super_admin_action',
+        action: `Merchant DEMO status ${newDemoStatus ? 'enabled' : 'disabled'}`,
+        description: `${merchant.business_name} marked as ${newDemoStatus ? 'DEMO' : 'regular'} account`,
+        user_email: (await base44.auth.me()).email,
+        user_role: 'super_admin',
+        merchant_id: merchant.id,
+        severity: 'info'
+      });
+
+      alert(`${merchant.business_name} ${newDemoStatus ? 'marked as DEMO - full access, no fees' : 'removed from DEMO status'}`);
+      await loadMerchants();
+      if (selectedMerchant && selectedMerchant.id === merchant.id) {
+        setSelectedMerchant({ ...merchant, is_demo: newDemoStatus });
+      }
+      if (onUpdate) onUpdate();
+    } catch (error) {
+      console.error('Error toggling demo status:', error);
+      alert('Failed to update demo status');
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
