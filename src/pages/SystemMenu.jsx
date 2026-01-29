@@ -373,6 +373,15 @@ export default function SystemMenu() {
       permission: 'admin_settings'
     },
     {
+      id: 'referral_program',
+      icon: <Gift className="w-6 h-6" />,
+      title: 'Referral Program',
+      description: 'Refer merchants and earn rewards',
+      path: 'ReferralDashboard',
+      color: 'from-purple-500 to-pink-500',
+      permission: null
+    },
+    {
       id: 'ai_assistant',
       icon: <Lightbulb className="w-6 h-6" />,
       title: 'AI Assistant',
