@@ -68,7 +68,6 @@ import Home from './pages/Home';
 import Inventory from './pages/Inventory';
 import KitchenDisplay from './pages/KitchenDisplay';
 import LoyaltyProgram from './pages/LoyaltyProgram';
-import Marketplace from './pages/Marketplace';
 import MerchantOnboarding from './pages/MerchantOnboarding';
 import Motherboard from './pages/Motherboard';
 import OnlineMenu from './pages/OnlineMenu';
@@ -114,7 +113,6 @@ export const PAGES = {
     "Inventory": Inventory,
     "KitchenDisplay": KitchenDisplay,
     "LoyaltyProgram": LoyaltyProgram,
-    "Marketplace": Marketplace,
     "MerchantOnboarding": MerchantOnboarding,
     "Motherboard": Motherboard,
     "OnlineMenu": OnlineMenu,

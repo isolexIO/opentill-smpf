@@ -13,7 +13,6 @@ import PaymentGatewaysTab from '../components/settings/PaymentGatewaysTab';
 import PricingTab from '../components/settings/PricingTab';
 import DevicesTab from '../components/settings/DevicesTab';
 import DepartmentsTab from '../components/settings/DepartmentsTab';
-import MarketplaceTab from '../components/settings/MarketplaceTab';
 import CustomerDisplayTab from '../components/settings/CustomerDisplayTab';
 import CustomDomainTab from '../components/settings/CustomDomainTab';
 import WalletConnectionTab from '../components/settings/WalletConnectionTab';
@@ -296,7 +295,6 @@ export default function SettingsPage() {
     { id: 'pricing', label: 'Pricing & Surcharge', icon: DollarSign },
     { id: 'devices', label: 'Hardware Devices', icon: Printer },
     { id: 'departments', label: 'Departments', icon: Layers },
-    { id: 'marketplace', label: 'Marketplace', icon: ShoppingBag },
     { id: 'solana-pay', label: 'Solana Pay', icon: null, customIcon: 'https://solana.com/src/img/branding/solanaLogoMark.svg' },
     { id: 'display', label: 'Customer Display', icon: Monitor },
     { id: 'domain', label: 'Custom Domain', icon: Globe },
@@ -388,12 +386,6 @@ export default function SettingsPage() {
                 )}
                 {activeTab === 'departments' && (
                   <DepartmentsTab merchant={merchant} />
-                )}
-                {activeTab === 'marketplace' && (
-                  <MarketplaceTab 
-                    integrations={merchant.settings?.marketplace_integrations || {}} 
-                    onUpdateIntegrations={(integrations) => handleSave({ settings: { marketplace_integrations: integrations } })}
-                  />
                 )}
                 {activeTab === 'solana-pay' && (
                   <SolanaPayTab 

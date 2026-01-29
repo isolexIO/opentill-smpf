@@ -64,7 +64,6 @@ export default function MerchantManagement({ onUpdate }) {
     phone: '',
     address: '',
     tax_id: '',
-    subscription_plan: 'free',
     status: 'trial'
   });
 
@@ -315,7 +314,6 @@ ChainLINK Support`
         phone: newMerchant.phone,
         address: newMerchant.address,
         tax_id: newMerchant.tax_id,
-        subscription_plan: newMerchant.subscription_plan,
         status: newMerchant.status,
         activated_at: newMerchant.status === 'active' ? new Date().toISOString() : null,
         trial_ends_at: newMerchant.status === 'trial' ? trialEndsAt : null, // Set trial end date only if status is trial
@@ -340,17 +338,7 @@ ChainLINK Support`
       }
 
 
-      // Create default subscription for the merchant
-      await base44.asServiceRole.entities.Subscription.create({
-        merchant_id: merchant.id,
-        plan_name: newMerchant.subscription_plan,
-        price: newMerchant.subscription_plan === 'free' ? 0 : (newMerchant.subscription_plan === 'basic' ? 49 : (newMerchant.subscription_plan === 'pro' ? 99 : 299)), // Example pricing
-        billing_cycle: 'monthly',
-        status: subStatus,
-        current_period_start: new Date().toISOString(),
-        current_period_end: subCurrentPeriodEnd,
-        next_billing_date: subNextBillingDate
-      });
+      // Core system is free - no subscription needed anymore
 
       // Log the action
       await base44.entities.SystemLog.create({
@@ -374,7 +362,6 @@ ChainLINK Support`
         phone: '',
         address: '',
         tax_id: '',
-        subscription_plan: 'free',
         status: 'inactive'
       });
       
@@ -476,7 +463,6 @@ ChainLINK Support`
               <TableRow>
                 <TableHead>Business Name</TableHead>
                 <TableHead>Owner</TableHead>
-                <TableHead>Plan</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Revenue</TableHead>
                 <TableHead className="text-right">Orders</TableHead>
@@ -486,14 +472,14 @@ ChainLINK Support`
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8">
+                  <TableCell colSpan={6} className="text-center py-8">
                     <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2" />
                     Loading merchants...
                   </TableCell>
                 </TableRow>
               ) : filteredMerchants.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                  <TableCell colSpan={6} className="text-center py-8 text-gray-500">
                     No merchants found
                   </TableCell>
                 </TableRow>
@@ -516,11 +502,6 @@ ChainLINK Support`
                         <div>{merchant.owner_name}</div>
                         <div className="text-gray-500">{merchant.owner_email}</div>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="capitalize">
-                        {merchant.subscription_plan}
-                      </Badge>
                     </TableCell>
                     <TableCell>{getStatusBadge(merchant.status)}</TableCell>
                     <TableCell className="text-right">
@@ -611,11 +592,11 @@ ChainLINK Support`
                    </div>
                  </div>
                  <div>
-                   <h4 className="font-semibold mb-2">Subscription</h4>
+                   <h4 className="font-semibold mb-2">Account Status</h4>
                    <div className="space-y-1 text-sm">
-                     <div><span className="text-gray-500">Plan:</span> <Badge className="capitalize">{selectedMerchant.subscription_plan}</Badge></div>
                      <div><span className="text-gray-500">Status:</span> {getStatusBadge(selectedMerchant.status)}</div>
                      <div><span className="text-gray-500">Trial Ends:</span> {selectedMerchant.trial_ends_at ? new Date(selectedMerchant.trial_ends_at).toLocaleDateString() : 'N/A'}</div>
+                     <div><span className="text-gray-500">Account Type:</span> <Badge className="bg-green-100 text-green-800">FREE</Badge></div>
                    </div>
                  </div>
                </div>
@@ -664,39 +645,6 @@ ChainLINK Support`
                        <SelectItem value="cancelled">Cancelled</SelectItem>
                      </SelectContent>
                    </Select>
-                 </div>
-               </div>
-
-               {/* Subscription Management */}
-               <div className="border-t pt-4">
-                 <div className="flex items-center gap-2 mb-3">
-                   <CreditCard className="w-4 h-4" />
-                   <h4 className="font-semibold">Subscription Management</h4>
-                 </div>
-                 <div className="space-y-3">
-                   <Select 
-                     value={selectedMerchant.subscription_plan} 
-                     onValueChange={(newPlan) => {
-                       const updatedMerchant = { ...selectedMerchant, subscription_plan: newPlan };
-                       handleSubscriptionChange(selectedMerchant, newPlan);
-                     }}
-                   >
-                     <SelectTrigger className="w-full">
-                       <SelectValue />
-                     </SelectTrigger>
-                     <SelectContent>
-                       <SelectItem value="free">Free - $0/mo</SelectItem>
-                       <SelectItem value="basic">Basic - $49/mo</SelectItem>
-                       <SelectItem value="pro">Pro - $99/mo</SelectItem>
-                       <SelectItem value="enterprise">Enterprise - $299/mo</SelectItem>
-                     </SelectContent>
-                   </Select>
-                   <Alert className="bg-blue-50 border-blue-200">
-                     <AlertCircle className="h-4 w-4 text-blue-600" />
-                     <AlertDescription className="text-blue-800 text-sm">
-                       Changing the plan generates an invoice for merchant approval.
-                     </AlertDescription>
-                   </Alert>
                  </div>
                </div>
 
@@ -858,25 +806,7 @@ ChainLINK Support`
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="subscription_plan">Initial Subscription Plan</Label>
-                <Select
-                  value={newMerchant.subscription_plan}
-                  onValueChange={(value) => setNewMerchant({ ...newMerchant, subscription_plan: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a plan" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="free">Free - $0/mo</SelectItem>
-                    <SelectItem value="basic">Basic - $49/mo</SelectItem>
-                    <SelectItem value="pro">Pro - $99/mo</SelectItem>
-                    <SelectItem value="enterprise">Enterprise - $299/mo</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
+            <div className="grid grid-cols-1 gap-4">
               <div>
                 <Label htmlFor="status">Initial Status</Label>
                 <Select
@@ -897,9 +827,7 @@ ChainLINK Support`
 
             <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200">
               <p className="text-sm text-blue-900 dark:text-blue-100">
-                <strong>Note:</strong> After creating the merchant, they will need to register an account 
-                using the owner email address to access the system. They will start with a 14-day trial period
-                (unless status is set to Active).
+                <strong>Note:</strong> The core POS system is free for all merchants. Premium features can be unlocked via the Motherboard with chip-based pricing.
               </p>
             </div>
           </div>

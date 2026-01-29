@@ -567,81 +567,137 @@ export default function HomePage() {
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-              Simple, Transparent Pricing
+              Free to Start, Pay for What You Need
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300">
-              Choose the plan that fits your business needs
+              Core POS system is completely free. Add premium features as needed.
             </p>
           </div>
 
-          {isLoadingPlans ? (
-            <div className="flex justify-center items-center py-20">
-              <Loader2 className="w-12 h-12 animate-spin text-purple-600" />
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {subscriptionPlans.map((plan, index) => (
-                <motion.div
-                  key={plan.plan_id}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                >
-                  <Card className={`h-full ${plan.is_featured ? 'border-4 border-purple-500 shadow-2xl scale-105' : 'border-2 border-gray-200 dark:border-gray-700'} relative bg-white dark:bg-gray-900`}>
-                    {plan.is_featured && (
-                      <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                        <Badge className="bg-gradient-to-r from-purple-600 to-green-500 text-white px-4 py-1 text-sm font-semibold">
-                          <Star className="w-3 h-3 mr-1" />
-                          MOST POPULAR
-                        </Badge>
-                      </div>
-                    )}
-                    <CardContent className="p-8">
-                      <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                        {plan.name}
-                      </h3>
-                      <div className="mb-6">
-                        {plan.price_monthly === 0 ? (
-                          <div className="text-4xl font-bold text-gray-900 dark:text-white">
-                            Contact Us
-                          </div>
-                        ) : (
-                          <>
-                            <span className="text-5xl font-bold text-gray-900 dark:text-white">
-                              ${plan.price_monthly}
-                            </span>
-                            <span className="text-gray-600 dark:text-gray-400">/month</span>
-                          </>
-                        )}
-                      </div>
-                      <Button
-                        className={`w-full mb-6 ${plan.is_featured ? 'bg-gradient-to-r from-purple-600 to-green-500 hover:from-purple-700 hover:to-green-600 text-white' : 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100'}`}
-                        size="lg"
-                        onClick={() => window.location.href = createPageUrl('MerchantOnboarding')}
-                      >
-                        Get Started
-                      </Button>
-                      <ul className="space-y-3">
-                        {plan.features?.map((feature, fIndex) => (
-                          <li key={fIndex} className="flex items-start gap-2">
-                            {feature.included ? (
-                              <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                            ) : (
-                              <Lock className="w-5 h-5 text-gray-400 dark:text-gray-600 flex-shrink-0 mt-0.5" />
-                            )}
-                            <span className={feature.included ? 'text-gray-700 dark:text-gray-300' : 'text-gray-400 dark:text-gray-600'}>
-                              {feature.text}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-          )}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {/* Free Core System */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              viewport={{ once: true }}
+            >
+              <Card className="h-full border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+                <CardContent className="p-8">
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                    Core System
+                  </h3>
+                  <div className="mb-6">
+                    <span className="text-5xl font-bold text-green-600">
+                      FREE
+                    </span>
+                    <span className="text-gray-600 dark:text-gray-400"> forever</span>
+                  </div>
+                  <Button
+                    className="w-full mb-6 bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100"
+                    size="lg"
+                    onClick={() => window.location.href = createPageUrl('MerchantOnboarding')}
+                  >
+                    Get Started Free
+                  </Button>
+                  <ul className="space-y-3">
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Full POS System</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Inventory Management</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Customer Management</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Basic Reports</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Multi-Payment Support</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Email Support</span>
+                    </li>
+                  </ul>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Premium Features via Chips */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              viewport={{ once: true }}
+            >
+              <Card className="h-full border-4 border-purple-500 shadow-2xl bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20">
+                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                  <Badge className="bg-gradient-to-r from-purple-600 to-green-500 text-white px-4 py-1 text-sm font-semibold">
+                    <Cpu className="w-3 h-3 mr-1" />
+                    MODULAR
+                  </Badge>
+                </div>
+                <CardContent className="p-8">
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                    Premium Features
+                  </h3>
+                  <div className="mb-6">
+                    <span className="text-3xl font-bold text-purple-600">
+                      Chip-Based
+                    </span>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                      Pay only for features you need
+                    </p>
+                  </div>
+                  <Button
+                    className="w-full mb-6 bg-gradient-to-r from-purple-600 to-green-500 hover:from-purple-700 hover:to-green-600 text-white"
+                    size="lg"
+                    onClick={() => window.location.href = createPageUrl('MerchantOnboarding')}
+                  >
+                    Explore Features
+                  </Button>
+                  <ul className="space-y-3">
+                    <li className="flex items-start gap-2">
+                      <Cpu className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Advanced Analytics</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Cpu className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">AI Assistant</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Cpu className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Website Generator</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Cpu className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Custom Integrations</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Cpu className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">NFT-Gated Features</span>
+                    </li>
+                    <li className="text-sm text-purple-600 dark:text-purple-400 mt-4">
+                      One-time or recurring fees per chip
+                    </li>
+                  </ul>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </div>
+
+          <div className="mt-12 text-center">
+            <p className="text-gray-600 dark:text-gray-400">
+              All merchants start with the free core system. Unlock advanced features through the Motherboard.
+            </p>
+          </div>
         </div>
       </section>
 

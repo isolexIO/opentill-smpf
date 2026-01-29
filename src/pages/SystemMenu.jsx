@@ -291,15 +291,7 @@ export default function SystemMenu() {
       color: 'from-teal-500 to-teal-600',
       permission: 'process_orders'
     },
-    {
-      id: 'marketplace',
-      icon: <Store className="w-6 h-6" />,
-      title: 'Marketplace',
-      description: 'Integrations',
-      path: 'Marketplace',
-      color: 'from-yellow-500 to-yellow-600',
-      permission: 'access_marketplace'
-    },
+
     {
       id: 'settings',
       icon: <Settings className="w-6 h-6" />,
