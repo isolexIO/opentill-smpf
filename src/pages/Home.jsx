@@ -226,17 +226,17 @@ export default function HomePage() {
               <a href="#pricing" className="text-white hover:text-green-300 transition-colors">
                 Pricing
               </a>
-              <a href={createPageUrl('About')} className="text-white hover:text-green-300 transition-colors">
-                About
-              </a>
-              <a href={createPageUrl('Contact')} className="text-white hover:text-green-300 transition-colors">
-                Contact
-              </a>
               <a href={createPageUrl('DeviceShop')} className="text-white hover:text-green-300 transition-colors">
                 Device Shop
               </a>
               <a href="https://isolex.io/ChainLINK-POS-whitepaper.html" className="text-white hover:text-green-300 transition-colors">
               Lite Paper
+              </a>
+              <a href={createPageUrl('About')} className="text-white hover:text-green-300 transition-colors">
+                About
+              </a>
+              <a href={createPageUrl('Contact')} className="text-white hover:text-green-300 transition-colors">
+                Contact
               </a>
               <Button
                 onClick={() => window.location.href = createPageUrl('EmailLogin')}
