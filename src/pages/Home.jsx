@@ -229,7 +229,7 @@ export default function HomePage() {
               <a href={createPageUrl('DeviceShop')} className="text-white hover:text-green-300 transition-colors">
                 Device Shop
               </a>
-              <a href="https://isolex.io/ChainLINK-POS-whitepaper.html" className="text-white hover:text-green-300 transition-colors">
+              <a href="https://ChainLINK-POS.com" className="text-white hover:text-green-300 transition-colors">
               Lite Paper
               </a>
               <a href={createPageUrl('About')} className="text-white hover:text-green-300 transition-colors">
