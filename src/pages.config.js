@@ -64,7 +64,6 @@ import DeviceMonitor from './pages/DeviceMonitor';
 import DeviceShop from './pages/DeviceShop';
 import Devices from './pages/Devices';
 import EmailLogin from './pages/EmailLogin';
-import Home from './pages/Home';
 import Inventory from './pages/Inventory';
 import KitchenDisplay from './pages/KitchenDisplay';
 import LoyaltyProgram from './pages/LoyaltyProgram';
@@ -88,6 +87,7 @@ import TermsOfService from './pages/TermsOfService';
 import Users from './pages/Users';
 import WalletLoginPage from './pages/WalletLoginPage';
 import cLINKVault from './pages/cLINKVault';
+import Home from './pages/Home';
 import __Layout from './Layout.jsx';
 
 
@@ -109,7 +109,6 @@ export const PAGES = {
     "DeviceShop": DeviceShop,
     "Devices": Devices,
     "EmailLogin": EmailLogin,
-    "Home": Home,
     "Inventory": Inventory,
     "KitchenDisplay": KitchenDisplay,
     "LoyaltyProgram": LoyaltyProgram,
@@ -133,6 +132,7 @@ export const PAGES = {
     "Users": Users,
     "WalletLoginPage": WalletLoginPage,
     "cLINKVault": cLINKVault,
+    "Home": Home,
 }
 
 export const pagesConfig = {

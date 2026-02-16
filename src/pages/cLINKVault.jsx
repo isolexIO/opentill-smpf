@@ -14,7 +14,7 @@ import PermissionCheck from '@/components/auth/PermissionCheck';
 import PriceTicker from '@/components/vault/PriceTicker';
 import JupiterChart from '@/components/vault/JupiterChart';
 
-export default function cLINKVaultPage() {
+export default function DUCVaultPage() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [walletConnected, setWalletConnected] = useState(false);

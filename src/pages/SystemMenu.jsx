@@ -356,11 +356,11 @@ export default function SystemMenu() {
       permission: 'admin_settings'
     },
     {
-      id: 'clink_vault',
+      id: 'duc_vault',
       icon: <Vault className="w-6 h-6" />,
-      title: '$cLINK Vault',
+      title: '$DUC Vault',
       description: 'Rewards, staking & swaps',
-      path: 'cLINKVault',
+      path: 'DUCVault',
       color: 'from-yellow-500 to-orange-600',
       permission: 'admin_settings'
     },
@@ -429,15 +429,15 @@ export default function SystemMenu() {
         >
           <div className="flex justify-center mb-6">
             <div className="w-24 h-24 rounded-2xl flex items-center justify-center shadow-2xl"
-                 style={{background: 'linear-gradient(135deg, #7B2FD6 0%, #0FD17A 100%)'}}>
+                 style={{background: 'linear-gradient(135deg, #42A5F5 0%, #C6EF50 100%)'}}>
               <Link2 className="w-14 h-14 text-white" />
             </div>
           </div>
           <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-2">
-            ChainLINK POS
+            openTILL
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-400">
-            Blockchain-Powered Point of Sale System
+            Next-Generation Point of Sale System
           </p>
         </motion.div>
 

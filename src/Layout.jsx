@@ -393,9 +393,9 @@ export default function Layout({ children, currentPageName }) {
     );
   }
 
-  const primaryColor = dealer?.primary_color || '#7B2FD6';
-  const secondaryColor = dealer?.secondary_color || '#0FD17A';
-  const brandName = dealer?.name || 'ChainLINK';
+  const primaryColor = dealer?.primary_color || '#42A5F5';
+  const secondaryColor = dealer?.secondary_color || '#C6EF50';
+  const brandName = dealer?.name || 'openTILL';
   const logoUrl = dealer?.logo_url;
 
   return (
