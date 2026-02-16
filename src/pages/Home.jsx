@@ -124,7 +124,7 @@ export default function HomePage() {
             { text: '500 Orders/month', included: true },
             { text: 'Basic Reporting', included: true },
             { text: 'Email Support', included: true },
-            { text: 'ChainLINK Dual Pricing', included: true }
+            { text: 'Dual Pricing', included: true }
           ],
           is_featured: false
         },
@@ -137,7 +137,7 @@ export default function HomePage() {
             { text: 'Unlimited Orders', included: true },
             { text: 'Advanced Analytics', included: true },
             { text: 'Priority Support', included: true },
-            { text: 'ChainLINK + Solana Pay', included: true },
+            { text: 'Solana Pay', included: true },
             { text: 'Custom Branding', included: true },
             { text: 'API Access', included: true }
           ],
@@ -200,21 +200,21 @@ export default function HomePage() {
 
   if (loading && settings === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-blue-900 to-green-900">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-600 via-blue-800 to-cyan-900">
         <Loader2 className="w-16 h-16 animate-spin text-white" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-green-900">
+    <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-800 to-cyan-900">
       {/* Navbar */}
       <nav className="bg-black/30 backdrop-blur-md border-b border-white/10 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.location.href = createPageUrl('Home')}>
               <Link2 className="w-8 h-8 text-white" />
-              <span className="text-2xl font-bold text-white">ChainLINK</span>
+              <span className="text-2xl font-bold text-white">openTILL</span>
             </div>
             <div className="hidden md:flex items-center gap-6">
               <a href={createPageUrl('Home')} className="text-green-300 font-semibold">
@@ -259,7 +259,7 @@ export default function HomePage() {
       <section
         className="relative py-20 px-4 overflow-hidden"
         style={{
-          background: `linear-gradient(135deg, ${settings?.hero?.background_gradient_start || '#7B2FD6'} 0%, ${settings?.hero?.background_gradient_end || '#0FD17A'} 100%)`
+          background: `linear-gradient(135deg, ${settings?.hero?.background_gradient_start || '#42A5F5'} 0%, ${settings?.hero?.background_gradient_end || '#C6EF50'} 100%)`
         }}
       >
         <div className="absolute inset-0 bg-black/10"></div>
@@ -293,7 +293,7 @@ export default function HomePage() {
             </h1>
 
             <p className="text-xl md:text-2xl text-white/90 mb-8 max-w-3xl mx-auto">
-              {heroSettings.subheadline || 'Accept cash, card, crypto, and EBT with ChainLINK\'s dual-pricing compliant POS system'}
+              {heroSettings.subheadline || 'Accept cash, card, crypto, and EBT with openTILL\'s dual-pricing compliant POS system'}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -714,7 +714,7 @@ export default function HomePage() {
               {settings?.cta_section?.headline || 'Ready to Transform Your Business?'}
             </h2>
             <p className="text-xl mb-8 text-blue-100">
-              {settings?.cta_section?.subheadline || 'Start accepting payments with ChainLINK POS'}
+              {settings?.cta_section?.subheadline || 'Start accepting payments with openTILL'}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
@@ -749,7 +749,7 @@ export default function HomePage() {
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <Link2 className="w-6 h-6 text-white" />
-                <span className="text-xl font-bold text-white">ChainLINK</span>
+                <span className="text-xl font-bold text-white">openTILL</span>
               </div>
               <p className="text-gray-300 text-sm mb-4">
                 {settings?.company_info?.tagline || 'The next-generation point of sale system for modern businesses.'}
