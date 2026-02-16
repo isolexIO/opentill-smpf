@@ -137,7 +137,7 @@ export default function DUCVaultPage() {
       });
 
       if (data.success) {
-        alert(`Successfully claimed ${data.amount} $cLINK!\n\nTransaction: ${data.signature}`);
+        alert(`Successfully claimed ${data.amount} $DUC!\n\nTransaction: ${data.signature}`);
         loadVaultData();
         setClaimAmount('');
       } else {
@@ -197,7 +197,7 @@ export default function DUCVaultPage() {
       });
 
       if (verifyData.success) {
-        alert(`Successfully staked ${verifyData.amount} $cLINK!\n\nAPY: ${verifyData.apy}%\nUnlocks: ${new Date(verifyData.unlocks_at).toLocaleDateString()}\nSignature: ${verifyData.signature}`);
+        alert(`Successfully staked ${verifyData.amount} $DUC!\n\nAPY: ${verifyData.apy}%\nUnlocks: ${new Date(verifyData.unlocks_at).toLocaleDateString()}\nSignature: ${verifyData.signature}`);
         loadVaultData();
         setStakeAmount('');
       } else {
@@ -242,7 +242,7 @@ export default function DUCVaultPage() {
       // Show quote to user
       const confirmSwap = confirm(
         `Swap Quote:\n\n` +
-        `Input: ${swapAmount} $cLINK\n` +
+        `Input: ${swapAmount} $DUC\n` +
         `Output: ~${quoteData.quote.output_amount.toFixed(4)} ${swapTo}\n` +
         `Price Impact: ${quoteData.quote.price_impact_pct.toFixed(2)}%\n` +
         `Slippage: 0.5%\n\n` +
@@ -289,7 +289,7 @@ export default function DUCVaultPage() {
       });
 
       if (verifyData.success) {
-        alert(`Successfully swapped ${swapAmount} $cLINK → ${swapTo}!\n\nSignature: ${verifyData.signature}`);
+        alert(`Successfully swapped ${swapAmount} $DUC → ${swapTo}!\n\nSignature: ${verifyData.signature}`);
         loadVaultData();
         setSwapAmount('');
       } else {
@@ -323,7 +323,7 @@ export default function DUCVaultPage() {
                 <Vault className="w-7 h-7 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">$cLINK Vault</h1>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">$DUC Vault</h1>
                 <p className="text-gray-500 dark:text-gray-400">Manage your rewards and earnings</p>
               </div>
             </div>
@@ -355,7 +355,7 @@ export default function DUCVaultPage() {
             <Alert className="bg-red-50 border-red-200">
               <AlertCircle className="h-4 w-4 text-red-600" />
               <AlertDescription className="text-red-800">
-                The $cLINK Vault is currently disabled for your account. Contact support for more information.
+                The $DUC Vault is currently disabled for your account. Contact support for more information.
               </AlertDescription>
             </Alert>
           )}
@@ -368,7 +368,7 @@ export default function DUCVaultPage() {
                 <CardTitle className="text-3xl">{totalEarned.toFixed(2)}</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-gray-500">$cLINK</p>
+                <p className="text-sm text-gray-500">$DUC</p>
               </CardContent>
             </Card>
 
@@ -378,7 +378,7 @@ export default function DUCVaultPage() {
                 <CardTitle className="text-3xl text-green-600">{available.toFixed(2)}</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-gray-500">$cLINK</p>
+                <p className="text-sm text-gray-500">$DUC</p>
               </CardContent>
             </Card>
 
@@ -388,7 +388,7 @@ export default function DUCVaultPage() {
                 <CardTitle className="text-3xl text-blue-600">{staked.toFixed(2)}</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-gray-500">$cLINK</p>
+                <p className="text-sm text-gray-500">$DUC</p>
               </CardContent>
             </Card>
 
@@ -398,7 +398,7 @@ export default function DUCVaultPage() {
                 <CardTitle className="text-3xl text-orange-600">{pending.toFixed(2)}</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-gray-500">$cLINK</p>
+                <p className="text-sm text-gray-500">$DUC</p>
               </CardContent>
             </Card>
           </div>
@@ -419,7 +419,7 @@ export default function DUCVaultPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>Claim Your Rewards</CardTitle>
-                  <CardDescription>Transfer available $cLINK to your connected wallet</CardDescription>
+                  <CardDescription>Transfer available $DUC to your connected wallet</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
@@ -438,7 +438,7 @@ export default function DUCVaultPage() {
                     className="w-full"
                   >
                     {claiming ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <CheckCircle className="w-4 h-4 mr-2" />}
-                    Claim {claimAmount || available.toFixed(2)} $cLINK
+                    Claim {claimAmount || available.toFixed(2)} $DUC
                   </Button>
                 </CardContent>
               </Card>
@@ -448,7 +448,7 @@ export default function DUCVaultPage() {
             <TabsContent value="stake">
               <Card>
                 <CardHeader>
-                  <CardTitle>Stake $cLINK</CardTitle>
+                  <CardTitle>Stake $DUC</CardTitle>
                   <CardDescription>Earn passive yield by staking your tokens</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -473,7 +473,7 @@ export default function DUCVaultPage() {
                     className="w-full"
                   >
                     {staking ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Lock className="w-4 h-4 mr-2" />}
-                    Stake {stakeAmount || '0'} $cLINK
+                    Stake {stakeAmount || '0'} $DUC
                   </Button>
 
                   {stakes.length > 0 && (
@@ -482,7 +482,7 @@ export default function DUCVaultPage() {
                       {stakes.map(stake => (
                         <div key={stake.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                           <div>
-                            <p className="font-medium">{stake.amount} $cLINK</p>
+                            <p className="font-medium">{stake.amount} $DUC</p>
                             <p className="text-sm text-gray-500">APY: {stake.apy}%</p>
                           </div>
                           <div className="text-right">
@@ -502,7 +502,7 @@ export default function DUCVaultPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>Swap via Jupiter</CardTitle>
-                  <CardDescription>Exchange $cLINK for other tokens</CardDescription>
+                  <CardDescription>Exchange $DUC for other tokens</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
@@ -549,7 +549,7 @@ export default function DUCVaultPage() {
           <Card>
             <CardHeader>
               <CardTitle>Reward History</CardTitle>
-              <CardDescription>Your $cLINK earnings over time</CardDescription>
+              <CardDescription>Your $DUC earnings over time</CardDescription>
             </CardHeader>
             <CardContent>
               {rewardHistory.length === 0 ? (
@@ -559,7 +559,7 @@ export default function DUCVaultPage() {
                   {rewardHistory.slice(0, 10).map(reward => (
                     <div key={reward.id} className="flex justify-between items-center p-3 border-b">
                       <div>
-                        <p className="font-medium">{reward.amount} $cLINK</p>
+                        <p className="font-medium">{reward.amount} $DUC</p>
                         <p className="text-sm text-gray-500">{reward.reward_type}</p>
                       </div>
                       <div className="text-right">
