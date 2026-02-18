@@ -46,7 +46,7 @@ export default function PriceTicker() {
     return (
       <div className="bg-gray-900 text-white py-2 overflow-hidden">
         <div className="animate-pulse flex items-center justify-center">
-          <span className="text-sm">Loading $cLINK price...</span>
+          <span className="text-sm">Loading $DUC price...</span>
         </div>
       </div>
     );
@@ -69,7 +69,7 @@ export default function PriceTicker() {
       </style>
       <div className="animate-marquee whitespace-nowrap inline-block">
         <span className="mx-8 inline-flex items-center space-x-2">
-          <span className="font-bold text-yellow-400">$cLINK</span>
+          <span className="font-bold text-yellow-400">$DUC</span>
           <span className="text-lg font-semibold">${price?.toFixed(8)}</span>
           <span className={`inline-flex items-center text-sm ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
             {isPositive ? <TrendingUp className="w-3 h-3 mr-1" /> : <TrendingDown className="w-3 h-3 mr-1" />}
@@ -77,7 +77,7 @@ export default function PriceTicker() {
           </span>
         </span>
         <span className="mx-8 inline-flex items-center space-x-2">
-          <span className="font-bold text-yellow-400">$cLINK</span>
+          <span className="font-bold text-yellow-400">$DUC</span>
           <span className="text-lg font-semibold">${price?.toFixed(8)}</span>
           <span className={`inline-flex items-center text-sm ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
             {isPositive ? <TrendingUp className="w-3 h-3 mr-1" /> : <TrendingDown className="w-3 h-3 mr-1" />}
@@ -85,7 +85,7 @@ export default function PriceTicker() {
           </span>
         </span>
         <span className="mx-8 inline-flex items-center space-x-2">
-          <span className="font-bold text-yellow-400">$cLINK</span>
+          <span className="font-bold text-yellow-400">$DUC</span>
           <span className="text-lg font-semibold">${price?.toFixed(8)}</span>
           <span className={`inline-flex items-center text-sm ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
             {isPositive ? <TrendingUp className="w-3 h-3 mr-1" /> : <TrendingDown className="w-3 h-3 mr-1" />}
@@ -93,7 +93,7 @@ export default function PriceTicker() {
           </span>
         </span>
         <span className="mx-8 inline-flex items-center space-x-2">
-          <span className="font-bold text-yellow-400">$cLINK</span>
+          <span className="font-bold text-yellow-400">$DUC</span>
           <span className="text-lg font-semibold">${price?.toFixed(8)}</span>
           <span className={`inline-flex items-center text-sm ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
             {isPositive ? <TrendingUp className="w-3 h-3 mr-1" /> : <TrendingDown className="w-3 h-3 mr-1" />}

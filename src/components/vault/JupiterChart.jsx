@@ -41,7 +41,7 @@ export default function JupiterChart() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>$cLINK Price Chart</CardTitle>
+        <CardTitle>$DUC Price Chart</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="bg-gradient-to-br from-yellow-50 to-orange-50 p-8 rounded-lg text-center">
@@ -75,7 +75,7 @@ export default function JupiterChart() {
             <a href="https://jup.ag" target="_blank" rel="noopener noreferrer" className="underline">
               jup.ag
             </a>{' '}
-            to swap $cLINK
+            to swap $DUC
           </p>
         </div>
       </CardContent>

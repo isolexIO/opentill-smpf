@@ -107,7 +107,7 @@ export default function ReferralDashboard() {
           <Users className="w-6 h-6" />
           Referral Program
         </h2>
-        <p className="text-gray-500">Refer other merchants and earn $cLINK rewards</p>
+        <p className="text-gray-500">Refer other merchants and earn $DUC rewards</p>
       </div>
 
       {/* Stats Grid */}
@@ -145,7 +145,7 @@ export default function ReferralDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-purple-600">
-              {stats.total_rewards.toFixed(2)} $cLINK
+              {stats.total_rewards.toFixed(2)} $DUC
             </div>
           </CardContent>
         </Card>
@@ -196,7 +196,7 @@ export default function ReferralDashboard() {
               <div className="flex gap-2 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                 <TrendingUp className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
                 <p className="text-sm text-blue-800 dark:text-blue-300">
-                  Earn rewards every time your referred merchants earn $cLINK! The more they process, the more you earn.
+                  Earn rewards every time your referred merchants earn $DUC! The more they process, the more you earn.
                 </p>
               </div>
             </>
@@ -238,7 +238,7 @@ export default function ReferralDashboard() {
                   </div>
                   <div className="text-right">
                     <div className="font-medium text-purple-600">
-                      {(referral.total_rewards_earned || 0).toFixed(2)} $cLINK
+                      {(referral.total_rewards_earned || 0).toFixed(2)} $DUC
                     </div>
                     <div className="text-sm text-gray-500">
                       ${(referral.referred_merchant_lifetime_volume || 0).toFixed(2)} volume
@@ -261,7 +261,7 @@ export default function ReferralDashboard() {
             <li>Share your referral code or link with other businesses</li>
             <li>When they sign up using your code, they become your referral</li>
             <li>Once they're activated and start processing payments, you earn rewards</li>
-            <li>You get a percentage of the $cLINK rewards they earn from CC processing</li>
+            <li>You get a percentage of the $DUC rewards they earn from CC processing</li>
             <li>All rewards are automatically added to your vault and are claimable</li>
           </ol>
         </CardContent>

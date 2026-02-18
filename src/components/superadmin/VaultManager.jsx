@@ -100,7 +100,7 @@ export default function VaultManager() {
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2">
             <Vault className="w-6 h-6" />
-            $cLINK Vault Management
+            $DUC Vault Management
           </h2>
           <p className="text-gray-500">Configure global vault settings and rewards</p>
         </div>
@@ -127,7 +127,7 @@ export default function VaultManager() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
-                <Label>Enable $cLINK Vault Globally</Label>
+                <Label>Enable $DUC Vault Globally</Label>
                 <Switch
                   checked={formData.vault_enabled}
                   onCheckedChange={(checked) => setFormData({...formData, vault_enabled: checked})}
@@ -135,7 +135,7 @@ export default function VaultManager() {
               </div>
               
               <div>
-                <Label>$cLINK Token Mint Address</Label>
+                <Label>$DUC Token Mint Address</Label>
                 <Input
                   value={formData.clink_mint_address}
                   onChange={(e) => setFormData({...formData, clink_mint_address: e.target.value})}
@@ -158,7 +158,7 @@ export default function VaultManager() {
           <Card>
             <CardHeader>
               <CardTitle>Reward Settings</CardTitle>
-              <CardDescription>Configure how merchants earn $cLINK from processing volume</CardDescription>
+              <CardDescription>Configure how merchants earn $DUC from processing volume</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -173,7 +173,7 @@ export default function VaultManager() {
                   <span className="text-gray-500">decimal (0.001 = 0.1%)</span>
                 </div>
                 <p className="text-sm text-gray-500 mt-1">
-                  Merchants earn this rate of CC processing volume in $cLINK (e.g., 0.001 = 0.1%, 0.01 = 1%)
+                  Merchants earn this rate of CC processing volume in $DUC (e.g., 0.001 = 0.1%, 0.01 = 1%)
                 </p>
               </div>
 
@@ -186,7 +186,7 @@ export default function VaultManager() {
                     value={formData.min_reward_amount}
                     onChange={(e) => setFormData({...formData, min_reward_amount: parseFloat(e.target.value)})}
                   />
-                  <span className="text-gray-500">$cLINK</span>
+                  <span className="text-gray-500">$DUC</span>
                 </div>
                 <p className="text-sm text-gray-500 mt-1">
                   Minimum reward amount per transaction (prevents spam rewards)
@@ -201,7 +201,7 @@ export default function VaultManager() {
                     value={formData.minimum_claim_threshold}
                     onChange={(e) => setFormData({...formData, minimum_claim_threshold: parseFloat(e.target.value)})}
                   />
-                  <span className="text-gray-500">$cLINK</span>
+                  <span className="text-gray-500">$DUC</span>
                 </div>
                 <p className="text-sm text-gray-500 mt-1">
                   Minimum total amount required to claim rewards
@@ -259,7 +259,7 @@ export default function VaultManager() {
                     value={formData.min_referral_reward}
                     onChange={(e) => setFormData({...formData, min_referral_reward: parseFloat(e.target.value)})}
                   />
-                  <span className="text-gray-500">$cLINK</span>
+                  <span className="text-gray-500">$DUC</span>
                 </div>
                 <p className="text-sm text-gray-500 mt-1">
                   Minimum referral reward amount per transaction
@@ -268,7 +268,7 @@ export default function VaultManager() {
 
               <div className="flex gap-2 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                 <p className="text-sm text-blue-800 dark:text-blue-300">
-                  When a referred merchant earns $cLINK from CC processing, the referring merchant automatically earns a percentage of those rewards. All referral rewards are claimable in the vault.
+                  When a referred merchant earns $DUC from CC processing, the referring merchant automatically earns a percentage of those rewards. All referral rewards are claimable in the vault.
                 </p>
               </div>
             </CardContent>
