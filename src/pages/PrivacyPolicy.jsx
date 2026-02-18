@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Shield, Lock, Eye, UserCheck, Database, Globe, Link2 } from 'lucide-react';
@@ -6,14 +5,14 @@ import { createPageUrl } from '@/utils';
 
 export default function PrivacyPolicyPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-green-900">
+    <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-800 to-cyan-900">
       {/* Navbar */}
       <nav className="bg-black/30 backdrop-blur-md border-b border-white/10 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.location.href = createPageUrl('Home')}>
               <Link2 className="w-8 h-8 text-white" />
-              <span className="text-2xl font-bold text-white">ChainLINK</span>
+              <span className="text-2xl font-bold text-white">openTILL</span>
             </div>
             <div className="hidden md:flex items-center gap-6">
               <a href={createPageUrl('Home')} className="text-white hover:text-green-300 transition-colors">
@@ -66,7 +65,7 @@ export default function PrivacyPolicyPage() {
                 Introduction
               </h2>
               <p className="text-gray-700 leading-relaxed">
-                Isolex Corporation ("we," "us," or "our") operates ChainLINK Point of Sale ("ChainLINK POS," "Service"). 
+                Isolex Corporation ("we," "us," or "our") operates openTILL Point of Sale ("openTILL," "Service"). 
                 This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our Service.
               </p>
               <p className="text-gray-700 leading-relaxed mt-4">
@@ -83,7 +82,7 @@ export default function PrivacyPolicyPage() {
               
               <h3 className="text-xl font-semibold text-gray-900 mb-3 mt-6">Personal Information</h3>
               <p className="text-gray-700 leading-relaxed mb-3">
-                When you register for ChainLINK POS, we collect:
+                When you register for openTILL, we collect:
               </p>
               <ul className="list-disc pl-6 space-y-2 text-gray-700">
                 <li>Business name and contact information</li>
@@ -245,7 +244,7 @@ export default function PrivacyPolicyPage() {
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Children's Privacy</h2>
               <p className="text-gray-700 leading-relaxed">
-                ChainLINK POS is not intended for individuals under 18 years of age. We do not knowingly 
+                openTILL is not intended for individuals under 18 years of age. We do not knowingly 
                 collect personal information from children. If we become aware of such collection, we will 
                 delete the information immediately.
               </p>
@@ -264,7 +263,7 @@ export default function PrivacyPolicyPage() {
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Changes to This Policy</h2>
               <p className="text-gray-700 leading-relaxed">
                 We may update this Privacy Policy from time to time. We will notify you of significant changes 
-                via email or through our Service. Your continued use of ChainLINK POS after changes constitutes 
+                via email or through our Service. Your continued use of openTILL after changes constitutes 
                 acceptance of the updated policy.
               </p>
             </section>

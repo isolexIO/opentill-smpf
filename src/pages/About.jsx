@@ -5,14 +5,14 @@ import { createPageUrl } from '@/utils';
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-green-900">
+    <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-800 to-cyan-900">
       {/* Navbar */}
       <nav className="bg-black/30 backdrop-blur-md border-b border-white/10 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.location.href = createPageUrl('Home')}>
               <Link2 className="w-8 h-8 text-white" />
-              <span className="text-2xl font-bold text-white">ChainLINK</span>
+              <span className="text-2xl font-bold text-white">openTILL</span>
             </div>
             <div className="hidden md:flex items-center gap-6">
               <a href={createPageUrl('Home')} className="text-white hover:text-green-300 transition-colors">
@@ -50,7 +50,7 @@ export default function AboutPage() {
       <div className="container mx-auto max-w-5xl px-6 py-12">
         {/* Title */}
         <div className="text-center mb-16">
-          <h1 className="text-5xl font-bold text-white mb-4">About ChainLINK POS</h1>
+          <h1 className="text-5xl font-bold text-white mb-4">About openTILL</h1>
           <p className="text-xl text-gray-300">Revolutionizing point of sale for the modern era</p>
         </div>
 
@@ -63,7 +63,7 @@ export default function AboutPage() {
                 <h2 className="text-2xl font-bold mb-4">Our Mission</h2>
                 <p className="leading-relaxed text-lg text-gray-200">
                   At Isolex Corporation, we're on a mission to empower businesses with cutting-edge payment 
-                  technology that's accessible, transparent, and future-proof. ChainLINK POS combines traditional 
+                  technology that's accessible, transparent, and future-proof. openTILL combines traditional 
                   payment methods with innovative blockchain technology, giving merchants the flexibility to accept 
                   payments however their customers prefer.
                 </p>
@@ -84,9 +84,9 @@ Over time, one problem became clear: businesses were being forced to choose betw
 We knew there had to be a better way.
             </p>
             <p className="leading-relaxed">
-              Our team of payment industry veterans and blockchain engineers came together to create ChainLINK POS—a 
+              Our team of payment industry veterans and blockchain engineers came together to create openTILL—a 
               comprehensive point of sale system that doesn't discriminate against any payment method. Whether your 
-              customers want to pay with cash, cards, EBT benefits, or Solana-based crypto, ChainLINK has them covered.
+              customers want to pay with cash, cards, EBT benefits, or Solana-based crypto, openTILL has them covered.
             </p>
             <p className="leading-relaxed">
               But we didn't stop at payment acceptance. We built a full-featured POS ecosystem with inventory management, 
@@ -145,7 +145,7 @@ We knew there had to be a better way.
                   <TrendingUp className="w-5 h-5 text-purple-400" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold mb-2">ChainLINK Dual Pricing</h3>
+                  <h3 className="text-xl font-semibold mb-2">Dual Pricing</h3>
                   <p className="text-gray-200">
                     Our signature feature lets you display cash and card prices side-by-side, fully compliant with 
                     surcharging regulations. Save thousands on processing fees.
@@ -173,7 +173,7 @@ We knew there had to be a better way.
                 <div>
                   <h3 className="text-xl font-semibold mb-2">Built for Real Businesses</h3>
                   <p className="text-gray-200">
-                    From food trucks to multi-location restaurants, from retail stores to service businesses—ChainLINK 
+                    From food trucks to multi-location restaurants, from retail stores to service businesses—openTILL 
                     adapts to your needs.
                   </p>
                 </div>
@@ -189,7 +189,7 @@ We knew there had to be a better way.
             Get in Touch
           </h2>
           <p className="text-gray-200 leading-relaxed mb-4">
-            Have questions? Want to learn more about ChainLINK POS? We'd love to hear from you.
+            Have questions? Want to learn more about openTILL? We'd love to hear from you.
           </p>
           <div className="bg-white/10 p-6 rounded-lg border border-white/20 text-white">
             <div className="grid md:grid-cols-2 gap-6">
@@ -215,7 +215,7 @@ We knew there had to be a better way.
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-white mb-4">Our Team</h2>
           <p className="text-lg text-gray-300 max-w-3xl mx-auto">
-            ChainLINK POS is built by a diverse team of payment industry experts, software engineers, blockchain developers, 
+            openTILL is built by a diverse team of payment industry experts, software engineers, blockchain developers, 
             and customer success professionals who are passionate about helping businesses thrive in the digital economy.
           </p>
         </div>

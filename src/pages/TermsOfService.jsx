@@ -1,18 +1,17 @@
-
 import { Button } from '@/components/ui/button';
 import { FileText, AlertTriangle, Scale, Shield, Mail, Link2 } from 'lucide-react'; // Added Link2
 import { createPageUrl } from '@/utils';
 
 export default function TermsOfServicePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-green-900">
+    <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-800 to-cyan-900">
       {/* Navbar */}
       <nav className="bg-black/30 backdrop-blur-md border-b border-white/10 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.location.href = createPageUrl('Home')}>
               <Link2 className="w-8 h-8 text-white" />
-              <span className="text-2xl font-bold text-white">ChainLINK</span>
+              <span className="text-2xl font-bold text-white">openTILL</span>
             </div>
             <div className="hidden md:flex items-center gap-6">
               <a href={createPageUrl('Home')} className="text-white hover:text-green-300 transition-colors">
@@ -65,7 +64,7 @@ export default function TermsOfServicePage() {
               1. Acceptance of Terms
             </h2>
             <p className="text-gray-700 dark:text-gray-300">
-              By accessing or using ChainLINK POS services, you acknowledge that you have read, 
+              By accessing or using openTILL services, you acknowledge that you have read, 
               understood, and agree to be bound by these Terms of Service and our Privacy Policy. 
               If you do not agree to these terms, please do not use our services.
             </p>
@@ -75,7 +74,7 @@ export default function TermsOfServicePage() {
           <section className="mb-8">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">2. Eligibility</h2>
             <p className="text-gray-700 leading-relaxed mb-3 dark:text-gray-300">
-              To use ChainLINK POS, you must:
+              To use openTILL, you must:
             </p>
             <ul className="list-disc pl-6 space-y-2 text-gray-700 dark:text-gray-300">
               <li>Be at least 18 years of age</li>
@@ -90,7 +89,7 @@ export default function TermsOfServicePage() {
           <section className="mb-8">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">3. Account Registration</h2>
             <p className="text-gray-700 leading-relaxed mb-3 dark:text-gray-300">
-              When you register for ChainLINK POS:
+              When you register for openTILL:
             </p>
             <ul className="list-disc pl-6 space-y-2 text-gray-700 dark:text-gray-300">
               <li>You must provide accurate, current, and complete information</li>
@@ -107,7 +106,7 @@ export default function TermsOfServicePage() {
             
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 mt-6">Subscription Plans</h3>
             <p className="text-gray-700 leading-relaxed dark:text-gray-300">
-              ChainLINK POS offers various subscription plans with different features and pricing. 
+              openTILL offers various subscription plans with different features and pricing. 
               You may select a plan during registration and can upgrade or downgrade at any time.
             </p>
 
@@ -140,7 +139,7 @@ export default function TermsOfServicePage() {
             
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 mt-6">Permitted Use</h3>
             <p className="text-gray-700 leading-relaxed mb-3 dark:text-gray-300">
-              You may use ChainLINK POS to:
+              You may use openTILL to:
             </p>
             <ul className="list-disc pl-6 space-y-2 text-gray-700 dark:text-gray-300">
               <li>Process legitimate business transactions</li>
@@ -152,7 +151,7 @@ export default function TermsOfServicePage() {
 
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 mt-6">Prohibited Use</h3>
             <p className="text-gray-700 leading-relaxed mb-3 dark:text-gray-300">
-              You may NOT use ChainLINK POS to:
+              You may NOT use openTILL to:
             </p>
             <ul className="list-disc pl-6 space-y-2 text-gray-700 dark:text-gray-300">
               <li>Process fraudulent or illegal transactions</li>
@@ -173,7 +172,7 @@ export default function TermsOfServicePage() {
               6. Payment Processing
             </h2>
             
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 mt-6">ChainLINK Dual Pricing</h3>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 mt-6">Dual Pricing</h3>
             <p className="text-gray-700 leading-relaxed dark:text-gray-300">
               Our signature dual pricing feature allows you to display different prices for cash and card payments. 
               You are responsible for ensuring compliance with applicable surcharging laws in your jurisdiction.
@@ -224,13 +223,13 @@ export default function TermsOfServicePage() {
             
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 mt-6">Our Rights</h3>
             <p className="text-gray-700 leading-relaxed dark:text-gray-300">
-              All rights, title, and interest in ChainLINK POS, including software, trademarks, logos, and content, 
+              All rights, title, and interest in openTILL, including software, trademarks, logos, and content, 
               are owned by Isolex Corporation. These Terms do not grant you any ownership rights.
             </p>
 
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 mt-6">Your License</h3>
             <p className="text-gray-700 leading-relaxed dark:text-gray-300">
-              We grant you a limited, non-exclusive, non-transferable license to use ChainLINK POS for your 
+              We grant you a limited, non-exclusive, non-transferable license to use openTILL for your 
               business operations, subject to these Terms.
             </p>
 
@@ -250,7 +249,7 @@ export default function TermsOfServicePage() {
             
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 mt-6">Service "As Is"</h3>
             <p className="text-gray-700 leading-relaxed dark:text-gray-300">
-              ChainLINK POS is provided "AS IS" and "AS AVAILABLE" without warranties of any kind, either express 
+              openTILL is provided "AS IS" and "AS AVAILABLE" without warranties of any kind, either express 
               or implied, including but not limited to merchantability, fitness for a particular purpose, or 
               non-infringement.
             </p>
@@ -318,7 +317,7 @@ export default function TermsOfServicePage() {
 
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 mt-6">Effect of Termination</h3>
             <p className="text-gray-700 leading-relaxed dark:text-gray-300">
-              Upon termination, your access to ChainLINK POS ends immediately. You may export your data within 
+              Upon termination, your access to openTILL ends immediately. You may export your data within 
               90 days of termination, after which we may delete it.
             </p>
           </section>

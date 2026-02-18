@@ -34,14 +34,14 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-green-900">
+    <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-800 to-cyan-900">
       {/* Navbar */}
       <nav className="bg-black/30 backdrop-blur-md border-b border-white/10 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.location.href = createPageUrl('Home')}>
               <Link2 className="w-8 h-8 text-white" />
-              <span className="text-2xl font-bold text-white">ChainLINK</span>
+              <span className="text-2xl font-bold text-white">openTILL</span>
             </div>
             <div className="hidden md:flex items-center gap-6">
               <a href={createPageUrl('Home')} className="text-white hover:text-green-300 transition-colors">
@@ -95,7 +95,7 @@ export default function ContactPage() {
             </h2>
             <form 
               id="__vtigerWebForm" 
-              name="ChainLINK" 
+              name="openTILL" 
               action="https://console.isolex.net/modules/Webforms/capture.php" 
               method="post" 
               acceptCharset="utf-8" 
@@ -106,7 +106,7 @@ export default function ContactPage() {
               <input type="hidden" name="__vtrftk" value="sid:2cfd67a6ac654f2454ba88725c0d3f1b70795081,1766928478" />
               <input type="hidden" name="publicid" value="0f2ae2da8ebc23794ce1a94fc5c28791" />
               <input type="hidden" name="urlencodeenable" value="1" />
-              <input type="hidden" name="name" value="ChainLINK" />
+              <input type="hidden" name="name" value="openTILL" />
               
               <div>
                 <Label htmlFor="company" className="text-white">Company *</Label>
