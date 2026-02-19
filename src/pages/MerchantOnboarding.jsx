@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CheckCircle, Sparkles, Users, ArrowRight, Building2, Mail, Phone, MapPin, Terminal } from 'lucide-react';
+import { 
+  CheckCircle, Sparkles, Users, ArrowRight, Building2, 
+  Mail, Phone, MapPin, Terminal, Twitter, Github, Globe 
+} from 'lucide-react';
 
 export default function MerchantOnboarding() {
   const [formData, setFormData] = useState({
@@ -30,7 +33,7 @@ export default function MerchantOnboarding() {
       await new Promise(resolve => setTimeout(resolve, 1500));
       setSuccess(true);
     } catch (err) {
-      setError(err.message || 'Registration failed. Please try again.');
+      setError(err.message || 'Registration failed.');
     } finally {
       setLoading(false);
     }
@@ -40,23 +43,21 @@ export default function MerchantOnboarding() {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
         <Card className="w-full max-w-2xl border-t-4 border-cyan-500 shadow-2xl bg-white">
-          <CardContent className="pt-10 pb-10 text-center space-y-8">
-            <div className="flex justify-center">
-              <div className="bg-cyan-100 p-4 rounded-full animate-bounce">
-                <CheckCircle className="h-16 w-16 text-cyan-600" />
-              </div>
+          <CardContent className="pt-10 pb-6 text-center space-y-6">
+            <div className="flex justify-center mb-2">
+              <img src={ducLogo} alt="$DUC" className="h-16 w-16 animate-pulse" />
             </div>
             
             <div className="space-y-2">
-              <h2 className="text-3xl font-bold text-slate-900">Welcome to openTILL!</h2>
-              <p className="text-slate-600 text-lg">
-                Your merchant account for <strong>{formData.business_name}</strong> has been created.
+              <h2 className="text-3xl font-black text-slate-900 tracking-tight">Welcome to openTILL!</h2>
+              <p className="text-slate-600">
+                Your merchant account for <span className="font-bold text-cyan-600">{formData.business_name}</span> has been created.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 max-w-md mx-auto pt-4">
+            <div className="grid grid-cols-1 gap-3 max-w-sm mx-auto pt-4">
               <Button 
-                className="w-full bg-cyan-600 hover:bg-cyan-700 text-white py-6 text-lg shadow-lg"
+                className="w-full bg-cyan-600 hover:bg-cyan-700 text-white h-14 text-lg font-bold shadow-lg"
                 onClick={() => window.location.href = '/dashboard'}
               >
                 Go to Dashboard
@@ -65,16 +66,31 @@ export default function MerchantOnboarding() {
 
               <Button 
                 variant="outline" 
-                className="w-full border-cyan-200 hover:bg-cyan-50 text-cyan-700 py-6"
+                className="w-full border-cyan-200 hover:bg-cyan-50 text-cyan-700 h-12"
                 onClick={() => window.open('https://cmd.opentill.io', '_blank')}
               >
-                <Terminal className="mr-2 h-5 w-5" />
+                <Terminal className="mr-2 h-4 w-4" />
                 Launch Whitepaper Terminal
               </Button>
             </div>
 
-            <p className="text-sm text-slate-400">
-              Check your email ({formData.owner_email}) for login credentials and setup instructions.
+            <div className="pt-6 border-t border-slate-100">
+              <p className="text-sm text-slate-400 mb-4 font-medium uppercase tracking-widest">Connect with ISOLEX</p>
+              <div className="flex justify-center gap-6">
+                <a href="https://x.com/opentill" target="_blank" rel="noreferrer" className="text-slate-400 hover:text-cyan-500 transition-colors">
+                  <Twitter className="h-6 w-6" />
+                </a>
+                <a href="https://github.com/opentill" target="_blank" rel="noreferrer" className="text-slate-400 hover:text-cyan-500 transition-colors">
+                  <Github className="h-6 w-6" />
+                </a>
+                <a href="https://isolex.io" target="_blank" rel="noreferrer" className="text-slate-400 hover:text-cyan-500 transition-colors">
+                  <Globe className="h-6 w-6" />
+                </a>
+              </div>
+            </div>
+
+            <p className="text-[10px] text-slate-400 font-mono">
+              SYSTEM_AUTH_CONFIRMED // REF: {Math.random().toString(36).toUpperCase().substring(2, 10)}
             </p>
           </CardContent>
         </Card>
@@ -90,56 +106,38 @@ export default function MerchantOnboarding() {
             <img src={ducLogo} alt="$DUC" className="h-12 w-12" />
             <h1 className="text-4xl font-black tracking-tight text-slate-900">openTILL</h1>
           </div>
-          <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+          <p className="text-xl text-slate-600 max-w-2xl mx-auto font-medium">
             The next generation of point-of-sale, powered by Digital Utility Credits ($DUC).
           </p>
         </div>
 
         <Card className="border-none shadow-xl overflow-hidden">
           <div className="grid grid-cols-1 md:grid-cols-5">
-            <div className="md:col-span-2 bg-cyan-600 p-8 text-white space-y-8">
-              <h3 className="text-2xl font-bold">Why openTILL?</h3>
-              
-              <div className="space-y-6">
-                <div className="flex gap-4">
-                  <div className="bg-cyan-500/30 p-2 rounded-lg shrink-0">
-                    <Sparkles className="h-6 w-6" />
+            <div className="md:col-span-2 bg-cyan-600 p-8 text-white flex flex-col justify-between">
+              <div className="space-y-8">
+                <h3 className="text-2xl font-bold">Why openTILL?</h3>
+                <div className="space-y-6">
+                  <div className="flex gap-4">
+                    <div className="bg-cyan-500/30 p-2 rounded-lg shrink-0"><Sparkles className="h-6 w-6" /></div>
+                    <div><p className="font-semibold text-white">Zero Processing Fees</p><p className="text-cyan-100 text-sm font-light">Keep 100% of your $DUC earnings.</p></div>
                   </div>
-                  <div>
-                    <p className="font-semibold text-white">Zero Processing Fees</p>
-                    <p className="text-cyan-100 text-sm font-light">Keep 100% of what you earn using our $DUC ecosystem.</p>
-                  </div>
-                </div>
-
-                <div className="flex gap-4">
-                  <div className="bg-cyan-500/30 p-2 rounded-lg shrink-0">
-                    <Users className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-white">Referral Rewards</p>
-                    <p className="text-cyan-100 text-sm font-light">Earn $DUC for every merchant you bring to the platform.</p>
-                  </div>
-                </div>
-
-                <div className="flex gap-4">
-                  <div className="bg-cyan-500/30 p-2 rounded-lg shrink-0">
-                    <Building2 className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-white">Enterprise Tools</p>
-                    <p className="text-cyan-100 text-sm font-light">Full inventory management and AI-powered insights.</p>
+                  <div className="flex gap-4">
+                    <div className="bg-cyan-500/30 p-2 rounded-lg shrink-0"><Users className="h-6 w-6" /></div>
+                    <div><p className="font-semibold text-white">Referral Rewards</p><p className="text-cyan-100 text-sm font-light">Earn $DUC for every onboarding.</p></div>
                   </div>
                 </div>
               </div>
 
-              <div className="pt-8 mt-auto border-t border-cyan-500/50">
-                <p className="text-cyan-100 text-xs uppercase tracking-widest font-bold mb-2">Technical Specs</p>
-                <button 
-                  onClick={() => window.open('https://cmd.opentill.io', '_blank')}
-                  className="text-white hover:text-cyan-200 flex items-center gap-2 text-sm underline underline-offset-4 bg-transparent border-none cursor-pointer p-0"
-                >
-                  <Terminal size={14} /> Read the Whitepaper
-                </button>
+              <div className="pt-8 border-t border-cyan-500/50">
+                <p className="text-cyan-100 text-xs uppercase tracking-widest font-bold mb-4">Core Systems</p>
+                <div className="space-y-3">
+                  <button type="button" onClick={() => window.open('https://cmd.opentill.io', '_blank')} className="text-white hover:text-cyan-200 flex items-center gap-2 text-sm underline underline-offset-4 bg-transparent border-none p-0 cursor-pointer">
+                    <Terminal size={14} /> Whitepaper Terminal
+                  </button>
+                  <a href="https://app.isolex.io" target="_blank" rel="noreferrer" className="text-white hover:text-cyan-200 flex items-center gap-2 text-sm underline underline-offset-4">
+                    <Globe size={14} /> ISOLEX Network
+                  </a>
+                </div>
               </div>
             </div>
 
@@ -147,118 +145,38 @@ export default function MerchantOnboarding() {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="business_name" className="text-slate-700">Business Name</Label>
+                    <Label htmlFor="business_name">Business Name</Label>
                     <div className="relative">
                       <Building2 className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                      <Input 
-                        id="business_name"
-                        required
-                        className="pl-10"
-                        placeholder="Main Street Cafe"
-                        value={formData.business_name}
-                        onChange={(e) => setFormData({...formData, business_name: e.target.value})}
-                      />
+                      <Input id="business_name" required className="pl-10" placeholder="Main Street Cafe" value={formData.business_name} onChange={(e) => setFormData({...formData, business_name: e.target.value})} />
                     </div>
                   </div>
-
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="first_name" className="text-slate-700">Owner First Name</Label>
-                      <Input 
-                        id="first_name"
-                        required
-                        placeholder="John"
-                        value={formData.owner_first_name}
-                        onChange={(e) => setFormData({...formData, owner_first_name: e.target.value})}
-                      />
+                      <Label htmlFor="first_name">First Name</Label>
+                      <Input id="first_name" required placeholder="John" value={formData.owner_first_name} onChange={(e) => setFormData({...formData, owner_first_name: e.target.value})} />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="last_name" className="text-slate-700">Owner Last Name</Label>
-                      <Input 
-                        id="last_name"
-                        required
-                        placeholder="Doe"
-                        value={formData.owner_last_name}
-                        onChange={(e) => setFormData({...formData, owner_last_name: e.target.value})}
-                      />
+                      <Label htmlFor="last_name">Last Name</Label>
+                      <Input id="last_name" required placeholder="Doe" value={formData.owner_last_name} onChange={(e) => setFormData({...formData, owner_last_name: e.target.value})} />
                     </div>
                   </div>
-
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-slate-700">Email Address</Label>
+                    <Label htmlFor="email">Email</Label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                      <Input 
-                        id="email"
-                        required
-                        type="email"
-                        className="pl-10"
-                        placeholder="john@example.com"
-                        value={formData.owner_email}
-                        onChange={(e) => setFormData({...formData, owner_email: e.target.value})}
-                      />
+                      <Input id="email" required type="email" className="pl-10" placeholder="john@isolex.net" value={formData.owner_email} onChange={(e) => setFormData({...formData, owner_email: e.target.value})} />
                     </div>
                   </div>
-
                   <div className="space-y-2">
-                    <Label htmlFor="phone" className="text-slate-700">Phone Number</Label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                      <Input 
-                        id="phone"
-                        required
-                        className="pl-10"
-                        placeholder="(555) 000-0000"
-                        value={formData.phone}
-                        onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="address" className="text-slate-700">Business Address</Label>
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                      <Input 
-                        id="address"
-                        required
-                        className="pl-10"
-                        placeholder="123 Market St, City, State"
-                        value={formData.address}
-                        onChange={(e) => setFormData({...formData, address: e.target.value})}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="referral" className="text-slate-700 font-bold text-cyan-700">Referral Code (Optional)</Label>
-                    <Input 
-                      id="referral"
-                      placeholder="ENTER-CODE"
-                      className="border-cyan-200 focus:ring-cyan-500"
-                      value={formData.referral_code}
-                      onChange={(e) => setFormData({...formData, referral_code: e.target.value.toUpperCase()})}
-                    />
+                    <Label htmlFor="referral" className="font-bold text-cyan-700">Referral Code</Label>
+                    <Input id="referral" placeholder="ENTER-CODE" className="border-cyan-200" value={formData.referral_code} onChange={(e) => setFormData({...formData, referral_code: e.target.value.toUpperCase()})} />
                   </div>
                 </div>
 
-                {error && (
-                  <div className="p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm">
-                    {error}
-                  </div>
-                )}
-
-                <Button 
-                  type="submit" 
-                  disabled={loading}
-                  className="w-full bg-cyan-600 hover:bg-cyan-700 text-white h-12 text-lg font-bold"
-                >
-                  {loading ? 'Creating Account...' : 'Register Business'}
+                <Button type="submit" disabled={loading} className="w-full bg-cyan-600 hover:bg-cyan-700 text-white h-12 text-lg font-bold">
+                  {loading ? 'Processing...' : 'Register Business'}
                 </Button>
-                
-                <p className="text-center text-xs text-slate-500">
-                  By registering, you agree to our Terms of Service and Privacy Policy.
-                </p>
               </form>
             </div>
           </div>
