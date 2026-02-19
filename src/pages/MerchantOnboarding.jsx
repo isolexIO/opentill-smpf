@@ -109,7 +109,7 @@ export default function MerchantOnboarding() {
                style={{ width: '175px', height: '175px' }}
              />
           </div>
-          <h1 className="text-5xl font-black text-slate-900 tracking-tighter uppercase">openTILL</h1>
+          <h1 className="text-5xl font-black text-slate-900 tracking-tighter">openTILL</h1>
           <p className="text-cyan-600 font-bold tracking-widest uppercase text-sm">SMPF</p>
         </div>
 
