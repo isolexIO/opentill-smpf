@@ -116,7 +116,7 @@ export default function MerchantOnboarding() {
         <Card className="shadow-xl border-0 ring-1 ring-slate-200 bg-white">
           <CardHeader className="space-y-1 text-center border-b border-slate-50 pb-6">
             <CardTitle className="text-2xl">Merchant Registration</CardTitle>
-            <CardDescription>Request early access to the $DUC ecosystem</CardDescription>
+            <CardDescription>Request early access to the openTILL SMPF ecosystem</CardDescription>
           </CardHeader>
           <CardContent className="pt-6">
             <form onSubmit={handleSubmit} className="space-y-6">
