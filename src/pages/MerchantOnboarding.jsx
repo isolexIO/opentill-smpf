@@ -57,28 +57,31 @@ export default function MerchantOnboarding() {
 
             <div className="grid grid-cols-1 gap-3 max-w-sm mx-auto pt-4">
               <Button 
-                className="w-full bg-cyan-600 hover:bg-cyan-700 text-white h-14 text-lg font-bold shadow-lg"
+                className="w-full bg-cyan-600 hover:bg-cyan-700 text-white h-14 text-lg font-bold shadow-lg group"
                 onClick={() => window.location.href = '/dashboard'}
               >
                 Go to Dashboard
-                <ArrowRight className="ml-2 h-5 w-5" />
+                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
 
               <Button 
                 variant="outline" 
-                className="w-full border-cyan-200 hover:bg-cyan-50 text-cyan-700 h-12"
+                className="w-full border-cyan-200 hover:bg-cyan-50 text-cyan-700 h-12 font-mono text-sm"
                 onClick={() => window.open('https://cmd.opentill.io', '_blank')}
               >
                 <Terminal className="mr-2 h-4 w-4" />
-                Launch Whitepaper Terminal
+                {"> Launch Whitepaper Terminal"}
               </Button>
             </div>
 
             <div className="pt-6 border-t border-slate-100">
-              <p className="text-sm text-slate-400 mb-4 font-medium uppercase tracking-widest">Connect with ISOLEX</p>
-              <div className="flex justify-center gap-6">
+              <p className="text-[10px] text-slate-400 mb-4 font-bold uppercase tracking-[0.2em]">CONNECT WITH ISOLEX</p>
+              <div className="flex justify-center gap-8">
                 <a href="https://x.com/opentill" target="_blank" rel="noreferrer" className="text-slate-400 hover:text-cyan-500 transition-colors">
                   <Twitter className="h-6 w-6" />
+                </a>
+                <a href="https://dscvr.one/p/isolex" target="_blank" rel="noreferrer" className="text-slate-400 hover:text-cyan-500 transition-colors">
+                  <img src="https://dscvr.one/favicon.ico" className="h-6 w-6 grayscale hover:grayscale-0 transition-all opacity-50 hover:opacity-100" alt="DSCVR" />
                 </a>
                 <a href="https://github.com/opentill" target="_blank" rel="noreferrer" className="text-slate-400 hover:text-cyan-500 transition-colors">
                   <Github className="h-6 w-6" />
@@ -89,9 +92,11 @@ export default function MerchantOnboarding() {
               </div>
             </div>
 
-            <p className="text-[10px] text-slate-400 font-mono">
-              SYSTEM_AUTH_CONFIRMED // REF: {Math.random().toString(36).toUpperCase().substring(2, 10)}
-            </p>
+            <div className="pt-4">
+              <p className="text-[10px] text-slate-400 font-mono tracking-tighter opacity-70">
+                SYSTEM_AUTH_CONFIRMED // REF: {Math.random().toString(36).toUpperCase().substring(2, 10)} // SESSION_READY
+              </p>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -107,7 +112,7 @@ export default function MerchantOnboarding() {
             <h1 className="text-4xl font-black tracking-tight text-slate-900">openTILL</h1>
           </div>
           <p className="text-xl text-slate-600 max-w-2xl mx-auto font-medium">
-            The next generation of point-of-sale, powered by Digital Utility Credits ($DUC).
+            Next-gen POS, powered by Digital Utility Credits ($DUC).
           </p>
         </div>
 
@@ -115,27 +120,27 @@ export default function MerchantOnboarding() {
           <div className="grid grid-cols-1 md:grid-cols-5">
             <div className="md:col-span-2 bg-cyan-600 p-8 text-white flex flex-col justify-between">
               <div className="space-y-8">
-                <h3 className="text-2xl font-bold">Why openTILL?</h3>
+                <h3 className="text-2xl font-bold">The $DUC Advantage</h3>
                 <div className="space-y-6">
                   <div className="flex gap-4">
                     <div className="bg-cyan-500/30 p-2 rounded-lg shrink-0"><Sparkles className="h-6 w-6" /></div>
-                    <div><p className="font-semibold text-white">Zero Processing Fees</p><p className="text-cyan-100 text-sm font-light">Keep 100% of your $DUC earnings.</p></div>
+                    <div><p className="font-semibold">Zero Processing Fees</p><p className="text-cyan-100 text-sm font-light">Keep 100% of your $DUC earnings.</p></div>
                   </div>
                   <div className="flex gap-4">
                     <div className="bg-cyan-500/30 p-2 rounded-lg shrink-0"><Users className="h-6 w-6" /></div>
-                    <div><p className="font-semibold text-white">Referral Rewards</p><p className="text-cyan-100 text-sm font-light">Earn $DUC for every onboarding.</p></div>
+                    <div><p className="font-semibold">Referral Rewards</p><p className="text-cyan-100 text-sm font-light">Earn $DUC for every onboarding.</p></div>
                   </div>
                 </div>
               </div>
 
               <div className="pt-8 border-t border-cyan-500/50">
-                <p className="text-cyan-100 text-xs uppercase tracking-widest font-bold mb-4">Core Systems</p>
+                <p className="text-cyan-100 text-[10px] uppercase tracking-widest font-bold mb-4">CORE_SYSTEM_ACCESS</p>
                 <div className="space-y-3">
-                  <button type="button" onClick={() => window.open('https://cmd.opentill.io', '_blank')} className="text-white hover:text-cyan-200 flex items-center gap-2 text-sm underline underline-offset-4 bg-transparent border-none p-0 cursor-pointer">
-                    <Terminal size={14} /> Whitepaper Terminal
+                  <button type="button" onClick={() => window.open('https://cmd.opentill.io', '_blank')} className="text-white hover:text-cyan-200 flex items-center gap-2 text-sm underline underline-offset-4 bg-transparent border-none p-0 cursor-pointer font-mono">
+                    <Terminal size={14} /> {"> Whitepaper Terminal"}
                   </button>
-                  <a href="https://app.isolex.io" target="_blank" rel="noreferrer" className="text-white hover:text-cyan-200 flex items-center gap-2 text-sm underline underline-offset-4">
-                    <Globe size={14} /> ISOLEX Network
+                  <a href="https://app.isolex.io" target="_blank" rel="noreferrer" className="text-white hover:text-cyan-200 flex items-center gap-2 text-sm underline underline-offset-4 font-mono">
+                    <Globe size={14} /> {"> ISOLEX Network"}
                   </a>
                 </div>
               </div>
@@ -148,34 +153,67 @@ export default function MerchantOnboarding() {
                     <Label htmlFor="business_name">Business Name</Label>
                     <div className="relative">
                       <Building2 className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                      <Input id="business_name" required className="pl-10" placeholder="Main Street Cafe" value={formData.business_name} onChange={(e) => setFormData({...formData, business_name: e.target.value})} />
+                      <Input 
+                        id="business_name" 
+                        required 
+                        className="pl-10" 
+                        placeholder="Isolex Corporation" 
+                        value={formData.business_name} 
+                        onChange={(e) => setFormData({...formData, business_name: e.target.value})} 
+                      />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="first_name">First Name</Label>
-                      <Input id="first_name" required placeholder="John" value={formData.owner_first_name} onChange={(e) => setFormData({...formData, owner_first_name: e.target.value})} />
+                      <Input 
+                        id="first_name" 
+                        required 
+                        placeholder="John" 
+                        value={formData.owner_first_name} 
+                        onChange={(e) => setFormData({...formData, owner_first_name: e.target.value})} 
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="last_name">Last Name</Label>
-                      <Input id="last_name" required placeholder="Doe" value={formData.owner_last_name} onChange={(e) => setFormData({...formData, owner_last_name: e.target.value})} />
+                      <Input 
+                        id="last_name" 
+                        required 
+                        placeholder="Doe" 
+                        value={formData.owner_last_name} 
+                        onChange={(e) => setFormData({...formData, owner_last_name: e.target.value})} 
+                      />
                     </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                      <Input id="email" required type="email" className="pl-10" placeholder="john@isolex.net" value={formData.owner_email} onChange={(e) => setFormData({...formData, owner_email: e.target.value})} />
+                      <Input 
+                        id="email" 
+                        required 
+                        type="email" 
+                        className="pl-10" 
+                        placeholder="admin@isolex.io" 
+                        value={formData.owner_email} 
+                        onChange={(e) => setFormData({...formData, owner_email: e.target.value})} 
+                      />
                     </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="referral" className="font-bold text-cyan-700">Referral Code</Label>
-                    <Input id="referral" placeholder="ENTER-CODE" className="border-cyan-200" value={formData.referral_code} onChange={(e) => setFormData({...formData, referral_code: e.target.value.toUpperCase()})} />
+                    <Input 
+                      id="referral" 
+                      placeholder="ENTER-CODE" 
+                      className="border-cyan-200 focus:ring-cyan-500" 
+                      value={formData.referral_code} 
+                      onChange={(e) => setFormData({...formData, referral_code: e.target.value.toUpperCase()})} 
+                    />
                   </div>
                 </div>
 
-                <Button type="submit" disabled={loading} className="w-full bg-cyan-600 hover:bg-cyan-700 text-white h-12 text-lg font-bold">
-                  {loading ? 'Processing...' : 'Register Business'}
+                <Button type="submit" disabled={loading} className="w-full bg-cyan-600 hover:bg-cyan-700 text-white h-12 text-lg font-bold shadow-lg">
+                  {loading ? 'INITIALIZING...' : 'Register Business'}
                 </Button>
               </form>
             </div>
