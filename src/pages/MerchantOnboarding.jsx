@@ -70,7 +70,7 @@ export default function MerchantOnboarding() {
                 <Users className="h-5 w-5 text-cyan-600" /> Join the Community
               </p>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <Button variant="outline" className="border-2 hover:bg-cyan-50" onClick={() => window.open('https://x.com/openTILL_SMPF')}>Twitter</Button>
+                <Button variant="outline" className="border-2 hover:bg-cyan-50" onClick={() => window.open('https://x.com/openTILL_SMPF')}>X</Button>
                 <Button variant="outline" className="border-2 hover:bg-cyan-50" onClick={() => window.open('https://t.me/+TkWQAgyhHVk0YWEx')}>Telegram</Button>
                 <Button variant="outline" className="border-2 hover:bg-cyan-50" onClick={() => window.open('https://discord.gg/WXuYRmzf7d')}>Discord</Button>
                 <Button variant="outline" className="border-2 hover:bg-cyan-50" onClick={() => window.open('https://social.dscvr.one/p/opentill-smpf')}>DSCVR</Button>
