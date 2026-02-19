@@ -29,7 +29,6 @@ export default function MerchantOnboarding() {
     setLoading(true);
     setError(null);
     try {
-      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1500));
       setSuccess(true);
     } catch (err) {
@@ -41,62 +40,70 @@ export default function MerchantOnboarding() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-2xl border-t-4 border-cyan-500 shadow-2xl bg-white">
-          <CardContent className="pt-10 pb-6 text-center space-y-6">
-            <div className="flex justify-center mb-2">
-              <img src={ducLogo} alt="$DUC" className="h-16 w-16 animate-pulse" />
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-sans">
+        <Card className="w-full max-w-xl shadow-2xl bg-white border-none rounded-3xl overflow-hidden">
+          <CardContent className="pt-12 pb-10 text-center space-y-8 px-8">
+            {/* Header Success Icon */}
+            <div className="flex justify-center">
+              <div className="rounded-full bg-cyan-50 p-4 border-4 border-white shadow-inner">
+                <CheckCircle className="h-12 w-12 text-cyan-500" />
+              </div>
             </div>
             
             <div className="space-y-2">
-              <h2 className="text-3xl font-black text-slate-900 tracking-tight">Welcome to openTILL!</h2>
-              <p className="text-slate-600">
-                Your merchant account for <span className="font-bold text-cyan-600">{formData.business_name}</span> has been created.
+              <h2 className="text-3xl font-black text-slate-900 tracking-tight">Registration Successful!</h2>
+              <p className="text-slate-500 text-lg">
+                Welcome to the <span className="font-bold text-slate-800">openTILL</span> ecosystem.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 gap-3 max-w-sm mx-auto pt-4">
-              <Button 
-                className="w-full bg-cyan-600 hover:bg-cyan-700 text-white h-14 text-lg font-bold shadow-lg group"
-                onClick={() => window.location.href = '/EmailLogin'}
-              >
-                Go to Merchant Login
-                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-              </Button>
-
-              <Button 
-                variant="outline" 
-                className="w-full border-cyan-200 hover:bg-cyan-50 text-cyan-700 h-12 font-mono text-sm"
-                onClick={() => window.open('https://cmd.opentill.io', '_blank')}
-              >
-                <Terminal className="mr-2 h-4 w-4" />
-                {"> Launch Whitepaper Terminal"}
-              </Button>
-            </div>
-
-            <div className="pt-6 border-t border-slate-100">
-              <p className="text-[10px] text-slate-400 mb-4 font-bold uppercase tracking-[0.2em]">CONNECT WITH ISOLEX</p>
-              <div className="flex justify-center gap-8">
-                <a href="https://x.com/opentill" target="_blank" rel="noreferrer" className="text-slate-400 hover:text-cyan-500 transition-colors">
-                  <Twitter className="h-6 w-6" />
-                </a>
-                <a href="https://dscvr.one/p/isolex" target="_blank" rel="noreferrer" className="text-slate-400 hover:text-cyan-500 transition-colors">
-                   <div className="h-6 w-6 bg-slate-400 hover:bg-cyan-500 rounded-sm flex items-center justify-center text-[8px] text-white font-bold">DSCVR</div>
-                </a>
-                <a href="https://github.com/opentill" target="_blank" rel="noreferrer" className="text-slate-400 hover:text-cyan-500 transition-colors">
-                  <Github className="h-6 w-6" />
-                </a>
-                <a href="https://isolex.io" target="_blank" rel="noreferrer" className="text-slate-400 hover:text-cyan-500 transition-colors">
-                  <Globe className="h-6 w-6" />
-                </a>
+            {/* $DUC Priority Access Card */}
+            <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100 flex items-center gap-4 text-left relative overflow-hidden group">
+              <div className="absolute right-[-20px] top-[-20px] opacity-5 group-hover:rotate-12 transition-transform duration-700">
+                <img src={ducLogo} alt="" className="h-32 w-32" />
+              </div>
+              <img src={ducLogo} alt="$DUC" className="h-14 w-14 shadow-lg rounded-full" />
+              <div className="space-y-1 relative z-10">
+                <div className="flex items-center gap-2">
+                  <span className="font-black text-slate-800 text-lg">$DUC</span>
+                  <span className="bg-cyan-500 text-[10px] text-white px-2 py-0.5 rounded-full font-bold tracking-tighter uppercase">Priority Access</span>
+                </div>
+                <p className="text-[11px] text-slate-500 leading-relaxed max-w-[280px]">
+                  Official product launch and Digital Utility Credit ($DUC) token presale dates are <span className="font-bold">TBD</span>. You are now first in line.
+                </p>
               </div>
             </div>
 
-            <div className="pt-4">
-              <p className="text-[10px] text-slate-400 font-mono tracking-tighter opacity-70">
-                SYSTEM_AUTH_CONFIRMED // REF: {Math.random().toString(36).toUpperCase().substring(2, 10)} // SESSION_READY
-              </p>
+            {/* Action Buttons */}
+            <div className="space-y-3 pt-2">
+               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-4">Join Our Community</p>
+               
+               <div className="grid grid-cols-4 gap-3 mb-6">
+                 <a href="https://x.com/opentill" target="_blank" rel="noreferrer" className="flex items-center justify-center p-3 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-sm">
+                   <Twitter className="h-5 w-5 text-slate-700" />
+                 </a>
+                 <a href="https://github.com/opentill" target="_blank" rel="noreferrer" className="flex items-center justify-center p-3 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-sm">
+                   <Github className="h-5 w-5 text-slate-700" />
+                 </a>
+                 <a href="https://dscvr.one/p/isolex" target="_blank" rel="noreferrer" className="flex items-center justify-center p-3 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-sm group">
+                   <span className="text-[10px] font-black text-slate-400 group-hover:text-cyan-600 transition-colors">DSCVR</span>
+                 </a>
+                 <button onClick={() => window.open('https://cmd.opentill.io', '_blank')} className="flex items-center justify-center p-3 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-sm group">
+                   <Terminal className="h-5 w-5 text-slate-700 group-hover:text-cyan-600" />
+                 </button>
+               </div>
+
+               <Button 
+                className="w-full bg-cyan-600 hover:bg-cyan-700 text-white h-14 rounded-xl text-lg font-bold shadow-lg transition-all active:scale-[0.98]"
+                onClick={() => window.location.href = '/EmailLogin'}
+              >
+                Go to Merchant Login
+              </Button>
             </div>
+
+            <p className="text-[10px] text-slate-400 font-mono opacity-60">
+              SYSTEM_AUTH_CONFIRMED // ISOLEX_ID: {Math.random().toString(36).toUpperCase().substring(2, 10)}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -116,11 +123,11 @@ export default function MerchantOnboarding() {
           </p>
         </div>
 
-        <Card className="border-none shadow-xl overflow-hidden">
+        <Card className="border-none shadow-xl overflow-hidden rounded-3xl">
           <div className="grid grid-cols-1 md:grid-cols-5">
             <div className="md:col-span-2 bg-cyan-600 p-8 text-white flex flex-col justify-between">
               <div className="space-y-8">
-                <h3 className="text-2xl font-bold">The $DUC Advantage</h3>
+                <h3 className="text-2xl font-bold italic tracking-tighter">THE $DUC ADVANTAGE</h3>
                 <div className="space-y-6">
                   <div className="flex gap-4">
                     <div className="bg-cyan-500/30 p-2 rounded-lg shrink-0"><Sparkles className="h-6 w-6" /></div>
@@ -134,14 +141,11 @@ export default function MerchantOnboarding() {
               </div>
 
               <div className="pt-8 border-t border-cyan-500/50">
-                <p className="text-cyan-100 text-[10px] uppercase tracking-widest font-bold mb-4">CORE_SYSTEM_ACCESS</p>
+                <p className="text-cyan-100 text-[10px] uppercase tracking-widest font-bold mb-4">Access Terminals</p>
                 <div className="space-y-3">
                   <button type="button" onClick={() => window.open('https://cmd.opentill.io', '_blank')} className="text-white hover:text-cyan-200 flex items-center gap-2 text-sm underline underline-offset-4 bg-transparent border-none p-0 cursor-pointer font-mono">
-                    <Terminal size={14} /> {"> Whitepaper Terminal"}
+                    <Terminal size={14} /> {"> Whitepaper"}
                   </button>
-                  <a href="https://app.isolex.io" target="_blank" rel="noreferrer" className="text-white hover:text-cyan-200 flex items-center gap-2 text-sm underline underline-offset-4 font-mono">
-                    <Globe size={14} /> {"> ISOLEX Network"}
-                  </a>
                 </div>
               </div>
             </div>
@@ -153,66 +157,33 @@ export default function MerchantOnboarding() {
                     <Label htmlFor="business_name">Business Name</Label>
                     <div className="relative">
                       <Building2 className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                      <Input 
-                        id="business_name" 
-                        required 
-                        className="pl-10" 
-                        placeholder="Isolex Corporation" 
-                        value={formData.business_name} 
-                        onChange={(e) => setFormData({...formData, business_name: e.target.value})} 
-                      />
+                      <Input id="business_name" required className="pl-10" placeholder="Isolex Corporation" value={formData.business_name} onChange={(e) => setFormData({...formData, business_name: e.target.value})} />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="first_name">First Name</Label>
-                      <Input 
-                        id="first_name" 
-                        required 
-                        placeholder="John" 
-                        value={formData.owner_first_name} 
-                        onChange={(e) => setFormData({...formData, owner_first_name: e.target.value})} 
-                      />
+                      <Input id="first_name" required placeholder="John" value={formData.owner_first_name} onChange={(e) => setFormData({...formData, owner_first_name: e.target.value})} />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="last_name">Last Name</Label>
-                      <Input 
-                        id="last_name" 
-                        required 
-                        placeholder="Doe" 
-                        value={formData.owner_last_name} 
-                        onChange={(e) => setFormData({...formData, owner_last_name: e.target.value})} 
-                      />
+                      <Input id="last_name" required placeholder="Doe" value={formData.owner_last_name} onChange={(e) => setFormData({...formData, owner_last_name: e.target.value})} />
                     </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                      <Input 
-                        id="email" 
-                        required 
-                        type="email" 
-                        className="pl-10" 
-                        placeholder="admin@isolex.io" 
-                        value={formData.owner_email} 
-                        onChange={(e) => setFormData({...formData, owner_email: e.target.value})} 
-                      />
+                      <Input id="email" required type="email" className="pl-10" placeholder="admin@isolex.io" value={formData.owner_email} onChange={(e) => setFormData({...formData, owner_email: e.target.value})} />
                     </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="referral" className="font-bold text-cyan-700">Referral Code</Label>
-                    <Input 
-                      id="referral" 
-                      placeholder="ENTER-CODE" 
-                      className="border-cyan-200 focus:ring-cyan-500" 
-                      value={formData.referral_code} 
-                      onChange={(e) => setFormData({...formData, referral_code: e.target.value.toUpperCase()})} 
-                    />
+                    <Input id="referral" placeholder="ENTER-CODE" className="border-cyan-200 focus:ring-cyan-500" value={formData.referral_code} onChange={(e) => setFormData({...formData, referral_code: e.target.value.toUpperCase()})} />
                   </div>
                 </div>
 
-                <Button type="submit" disabled={loading} className="w-full bg-cyan-600 hover:bg-cyan-700 text-white h-12 text-lg font-bold shadow-lg">
+                <Button type="submit" disabled={loading} className="w-full bg-cyan-600 hover:bg-cyan-700 text-white h-12 text-lg font-bold rounded-xl shadow-lg">
                   {loading ? 'INITIALIZING...' : 'Register Business'}
                 </Button>
               </form>
