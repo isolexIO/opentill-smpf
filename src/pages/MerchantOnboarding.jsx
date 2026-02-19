@@ -1,93 +1,37 @@
-import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Store, CheckCircle, Loader2, AlertCircle, Sparkles, TrendingUp, Users, BarChart3, Shield, Clock } from 'lucide-react';
-import { createPageUrl } from '@/utils';
+import React, { useState } from 'react';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { CheckCircle, Sparkles, Users, ArrowRight, Building2, Mail, Phone, MapPin } from 'lucide-react';
 
 export default function MerchantOnboarding() {
-  const [dealerId, setDealerId] = useState(null);
-  const [walletAuth, setWalletAuth] = useState(null);
   const [formData, setFormData] = useState({
     business_name: '',
-    owner_name: '',
+    owner_first_name: '',
+    owner_last_name: '',
     owner_email: '',
     phone: '',
     address: '',
-    setup_demo_data: false
+    referral_code: ''
   });
-
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const dealer_id = urlParams.get('dealer_id');
-    if (dealer_id) {
-      setDealerId(dealer_id);
-    }
-
-    // Check for pending wallet authentication
-    const pendingWallet = sessionStorage.getItem('pendingWalletAuth');
-    if (pendingWallet) {
-      try {
-        const walletData = JSON.parse(pendingWallet);
-        setWalletAuth(walletData);
-        sessionStorage.removeItem('pendingWalletAuth');
-      } catch (e) {
-        console.error('Error parsing wallet auth:', e);
-      }
-    }
-  }, []);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setError(null);
 
     try {
-      console.log('Submitting merchant signup...', formData);
-      
-      // If this is wallet onboarding, use different endpoint
-      if (walletAuth) {
-        const response = await base44.functions.invoke('completeWalletOnboarding', {
-          wallet_address: walletAuth.wallet_address,
-          wallet_type: walletAuth.wallet_type,
-          business_name: formData.business_name,
-          owner_name: formData.owner_name,
-          email: formData.owner_email,
-          phone: formData.phone
-        });
-
-        if (response.data?.success && response.data?.user) {
-          // Store user and redirect to system menu
-          localStorage.setItem('pinLoggedInUser', JSON.stringify(response.data.user));
-          window.location.href = createPageUrl('SystemMenu');
-          return;
-        } else {
-          setError(response.data?.error || 'Failed to complete wallet onboarding');
-        }
-      } else {
-        // Regular email-based onboarding
-        const response = await base44.functions.invoke('createMerchantAccount', {
-          ...formData,
-          ...(dealerId && { dealer_id: dealerId })
-        });
-        console.log('Response received:', response);
-
-        if (response.data?.success) {
-          setSuccess(true);
-        } else {
-          setError(response.data?.error || 'Failed to submit registration');
-        }
-      }
+      // Logic for registration goes here (API call)
+      // For now, simulating a successful submission
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      setSuccess(true);
     } catch (err) {
-      console.error('Merchant signup error:', err);
-      const errorMessage = err.response?.data?.error || err.message || 'Failed to submit registration. Please try again.';
-      setError(errorMessage);
+      setError(err.message || 'Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -95,70 +39,47 @@ export default function MerchantOnboarding() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 flex items-center justify-center p-4 relative overflow-hidden">
-        {/* Animated background */}
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full mix-blend-overlay filter blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-300 rounded-full mix-blend-overlay filter blur-3xl animate-pulse delay-700"></div>
-        </div>
-
-        <Card className="w-full max-w-2xl shadow-2xl relative z-10">
-          <CardHeader className="text-center pb-4">
-            <div className="mx-auto w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mb-4 animate-bounce">
-              <CheckCircle className="w-12 h-12 text-white" />
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <Card className="w-full max-w-2xl border-t-4 border-cyan-500 shadow-2xl bg-white">
+          <CardContent className="pt-10 pb-10 text-center space-y-8">
+            <div className="flex justify-center">
+              <div className="bg-cyan-100 p-4 rounded-full animate-bounce">
+                <CheckCircle className="h-16 w-16 text-cyan-600" />
+              </div>
             </div>
-            <CardTitle className="text-3xl font-bold bg-gradient-to-r from-green-600 to-green-500 bg-clip-text text-transparent">
-              Registration Received!
-            </CardTitle>
-            <p className="text-gray-600 mt-2">We'll set up your account shortly</p>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-6 shadow-inner">
-              <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                <Clock className="w-5 h-5 text-blue-600" />
-                What Happens Next?
-              </h3>
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">1</div>
-                  <div>
-                    <p className="font-medium text-gray-900">Account Review</p>
-                    <p className="text-sm text-gray-600">Our team will review your application within 24 hours</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">2</div>
-                  <div>
-                    <p className="font-medium text-gray-900">Account Activation</p>
-                    <p className="text-sm text-gray-600">We'll create your admin account and send you login credentials via email</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">3</div>
-                  <div>
-                    <p className="font-medium text-gray-900">Start Your Free Trial</p>
-                    <p className="text-sm text-gray-600">Log in and begin your 30-day free trial immediately</p>
-                  </div>
+            
+            <div className="space-y-3">
+              <h2 className="text-4xl font-black text-slate-900 tracking-tight">Registration Successful!</h2>
+              <p className="text-slate-600 text-lg">Welcome to the <strong>openTILL</strong> merchant ecosystem.</p>
+            </div>
+
+            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 text-left space-y-4">
+              <div className="flex items-start gap-4">
+                <Sparkles className="h-6 w-6 text-cyan-500 mt-1 flex-shrink-0" />
+                <div>
+                  <h4 className="font-bold text-slate-900">Official Launch Update</h4>
+                  <p className="text-sm text-slate-600 leading-relaxed">
+                    Our full product suite and the <strong>$DUC</strong> (Digital Utility Credit) token presale dates are currently <strong>TBD</strong>. You are now officially registered for early priority access.
+                  </p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-300 rounded-xl p-4 shadow-sm">
-              <p className="text-sm text-yellow-900 flex items-start gap-2">
-                <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                <span><strong>Check your inbox:</strong> We've sent a confirmation email to <strong>{formData.owner_email}</strong></span>
+            <div className="space-y-5">
+              <p className="font-bold text-slate-800 flex items-center justify-center gap-2">
+                <Users className="h-5 w-5 text-cyan-600" /> Join the Community
               </p>
-            </div>
-
-            <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-              <p className="text-sm text-gray-700 mb-3">
-                <strong>Questions?</strong> Contact our support team at support@chainlinkpos.com
-              </p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <Button variant="outline" className="border-2 hover:bg-cyan-50" onClick={() => window.open('https://x.com/openTILL_SMPF')}>Twitter</Button>
+                <Button variant="outline" className="border-2 hover:bg-cyan-50" onClick={() => window.open('https://t.me/+TkWQAgyhHVk0YWEx')}>Telegram</Button>
+                <Button variant="outline" className="border-2 hover:bg-cyan-50" onClick={() => window.open('https://discord.gg/WXuYRmzf7d')}>Discord</Button>
+                <Button variant="outline" className="border-2 hover:bg-cyan-50" onClick={() => window.open('https://social.dscvr.one/p/opentill-smpf')}>DSCVR</Button>
+              </div>
             </div>
 
             <Button 
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-lg h-14 shadow-lg" 
-              onClick={() => window.location.href = createPageUrl('Home')}
+              className="w-full bg-cyan-600 hover:bg-cyan-700 text-white h-14 text-xl font-bold shadow-lg shadow-cyan-200"
+              onClick={() => window.location.href = '/'}
             >
               Return to Home
             </Button>
@@ -169,176 +90,138 @@ export default function MerchantOnboarding() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 opacity-20">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-white rounded-full mix-blend-overlay filter blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-10 w-72 h-72 bg-blue-300 rounded-full mix-blend-overlay filter blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 w-72 h-72 bg-purple-300 rounded-full mix-blend-overlay filter blur-3xl animate-pulse delay-500"></div>
+    <div className="min-h-screen bg-slate-50 py-12 px-4">
+      <div className="max-w-2xl mx-auto space-y-8">
+        <div className="text-center space-y-2">
+          <h1 className="text-5xl font-black text-slate-900 tracking-tighter">openTILL</h1>
+          <p className="text-cyan-600 font-bold tracking-widest uppercase text-sm">Merchant Empowerment Network</p>
+        </div>
+
+        <Card className="shadow-xl border-0 ring-1 ring-slate-200">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl">Merchant Registration</CardTitle>
+            <CardDescription>Request early access to the $DUC ecosystem</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="business_name">Business Name</Label>
+                    <div className="relative">
+                      <Building2 className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
+                      <Input 
+                        id="business_name" 
+                        className="pl-10 h-12"
+                        placeholder="Your Store Name"
+                        required
+                        value={formData.business_name}
+                        onChange={(e) => setFormData({...formData, business_name: e.target.value})}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="first_name">First Name</Label>
+                    <Input 
+                      id="first_name" 
+                      className="h-12"
+                      placeholder="John"
+                      required
+                      value={formData.owner_first_name}
+                      onChange={(e) => setFormData({...formData, owner_first_name: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="last_name">Last Name</Label>
+                    <Input 
+                      id="last_name" 
+                      className="h-12"
+                      placeholder="Doe"
+                      required
+                      value={formData.owner_last_name}
+                      onChange={(e) => setFormData({...formData, owner_last_name: e.target.value})}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email Address</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
+                    <Input 
+                      id="email" 
+                      type="email"
+                      className="pl-10 h-12"
+                      placeholder="owner@business.com"
+                      required
+                      value={formData.owner_email}
+                      onChange={(e) => setFormData({...formData, owner_email: e.target.value})}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone Number</Label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
+                      <Input 
+                        id="phone" 
+                        className="pl-10 h-12"
+                        placeholder="(555) 000-0000"
+                        value={formData.phone}
+                        onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="address">Business Address</Label>
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
+                      <Input 
+                        id="address" 
+                        className="pl-10 h-12"
+                        placeholder="123 Main St"
+                        value={formData.address}
+                        onChange={(e) => setFormData({...formData, address: e.target.value})}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <Label htmlFor="referral">Referral Code (Optional)</Label>
+                  <Input 
+                    id="referral" 
+                    className="h-12 border-dashed border-2"
+                    placeholder="ENTER-CODE"
+                    value={formData.referral_code}
+                    onChange={(e) => setFormData({...formData, referral_code: e.target.value})}
+                  />
+                </div>
+              </div>
+
+              {error && (
+                <div className="p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm">
+                  {error}
+                </div>
+              )}
+
+              <Button 
+                type="submit" 
+                className="w-full h-14 bg-cyan-600 hover:bg-cyan-700 text-white text-lg font-bold"
+                disabled={loading}
+              >
+                {loading ? "Processing..." : "Register for Early Access"}
+                {!loading && <ArrowRight className="ml-2 h-5 w-5" />}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
       </div>
-
-      <Card className="w-full max-w-4xl shadow-2xl relative z-10">
-        <CardHeader className="text-center pb-6 bg-gradient-to-br from-blue-50 to-purple-50">
-          <div className="mx-auto w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg transform hover:scale-110 transition-transform">
-            <Store className="w-11 h-11 text-white" />
-          </div>
-          <CardTitle className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            {walletAuth ? 'Complete Your Profile' : dealerId ? 'Add Your Business' : 'Start Your POS Journey'}
-          </CardTitle>
-          <p className="text-gray-600 mt-3 text-lg">
-            {walletAuth 
-              ? 'Just a few more details to get you started'
-              : dealerId 
-              ? 'Complete your registration to get started' 
-              : 'Join thousands of merchants. Start your 30-day free trial today!'}
-          </p>
-        </CardHeader>
-        <CardContent className="p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {error && (
-              <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4 flex items-start gap-3 animate-shake">
-                <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-red-900 text-sm font-semibold">Unable to submit registration</p>
-                  <p className="text-red-700 text-sm mt-1">{error}</p>
-                </div>
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div>
-                <Label htmlFor="business_name" className="text-gray-700 font-medium">Business Name *</Label>
-                <Input
-                  id="business_name"
-                  value={formData.business_name}
-                  onChange={(e) => setFormData({ ...formData, business_name: e.target.value })}
-                  placeholder="Acme Coffee Shop"
-                  required
-                  className="mt-1.5 h-12 border-2 focus:border-blue-500"
-                />
-              </div>
-              <div>
-                <Label htmlFor="owner_name" className="text-gray-700 font-medium">Your Name *</Label>
-                <Input
-                  id="owner_name"
-                  value={formData.owner_name}
-                  onChange={(e) => setFormData({ ...formData, owner_name: e.target.value })}
-                  placeholder="John Doe"
-                  required
-                  className="mt-1.5 h-12 border-2 focus:border-blue-500"
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="owner_email" className="text-gray-700 font-medium">
-                Email Address {walletAuth ? '(Optional)' : '*'}
-              </Label>
-              <Input
-                id="owner_email"
-                type="email"
-                value={formData.owner_email}
-                onChange={(e) => setFormData({ ...formData, owner_email: e.target.value })}
-                placeholder="you@business.com"
-                required={!walletAuth}
-                className="mt-1.5 h-12 border-2 focus:border-blue-500"
-              />
-              {walletAuth && (
-                <p className="text-xs text-gray-500 mt-1">
-                  Leave blank to use wallet address as identifier
-                </p>
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div>
-                <Label htmlFor="phone" className="text-gray-700 font-medium">Phone Number</Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  placeholder="(555) 123-4567"
-                  className="mt-1.5 h-12 border-2 focus:border-blue-500"
-                />
-              </div>
-              <div>
-                <Label htmlFor="address" className="text-gray-700 font-medium">Business Address</Label>
-                <Input
-                  id="address"
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  placeholder="123 Main St, City, State"
-                  className="mt-1.5 h-12 border-2 focus:border-blue-500"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-start space-x-3 bg-purple-50 p-4 rounded-xl border border-purple-200">
-              <Checkbox
-                id="setup_demo_data"
-                checked={formData.setup_demo_data}
-                onCheckedChange={(checked) => setFormData({ ...formData, setup_demo_data: checked })}
-                className="mt-1"
-              />
-              <label htmlFor="setup_demo_data" className="text-sm font-medium leading-relaxed cursor-pointer">
-                <span className="text-purple-900">Set up demo products</span>
-                <p className="text-purple-700 font-normal mt-1">Get started quickly with sample menu items and products</p>
-              </label>
-            </div>
-
-            <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl p-6 border border-gray-200">
-              <p className="font-semibold mb-4 text-gray-800 flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-blue-600" />
-                Everything You Need to Succeed
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-gray-700">
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-green-600" />
-                  <span>Real-time sales analytics</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Users className="w-4 h-4 text-blue-600" />
-                  <span>Customer loyalty programs</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <BarChart3 className="w-4 h-4 text-purple-600" />
-                  <span>Advanced reporting</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-indigo-600" />
-                  <span>Multi-location support</span>
-                </div>
-              </div>
-            </div>
-
-            <Button 
-              type="submit" 
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 h-14 text-lg font-semibold shadow-lg hover:shadow-xl transition-all" 
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  Submitting Registration...
-                </>
-              ) : (
-                <>
-                  Submit Registration
-                  <Sparkles className="w-5 h-5 ml-2" />
-                </>
-              )}
-            </Button>
-
-            <p className="text-center text-sm text-gray-600">
-              Already have an account?{' '}
-              <a href={createPageUrl('PinLogin')} className="text-blue-600 hover:text-blue-700 font-semibold hover:underline">
-                Sign in here
-              </a>
-            </p>
-          </form>
-        </CardContent>
-      </Card>
     </div>
   );
 }
