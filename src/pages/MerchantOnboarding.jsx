@@ -58,9 +58,9 @@ export default function MerchantOnboarding() {
             <div className="grid grid-cols-1 gap-3 max-w-sm mx-auto pt-4">
               <Button 
                 className="w-full bg-cyan-600 hover:bg-cyan-700 text-white h-14 text-lg font-bold shadow-lg group"
-                onClick={() => window.location.href = '/dashboard'}
+                onClick={() => window.location.href = '/EmailLogin'}
               >
-                Go to Dashboard
+                Go to Merchant Login
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
 
@@ -81,7 +81,7 @@ export default function MerchantOnboarding() {
                   <Twitter className="h-6 w-6" />
                 </a>
                 <a href="https://dscvr.one/p/isolex" target="_blank" rel="noreferrer" className="text-slate-400 hover:text-cyan-500 transition-colors">
-                  <img src="https://dscvr.one/favicon.ico" className="h-6 w-6 grayscale hover:grayscale-0 transition-all opacity-50 hover:opacity-100" alt="DSCVR" />
+                   <div className="h-6 w-6 bg-slate-400 hover:bg-cyan-500 rounded-sm flex items-center justify-center text-[8px] text-white font-bold">DSCVR</div>
                 </a>
                 <a href="https://github.com/opentill" target="_blank" rel="noreferrer" className="text-slate-400 hover:text-cyan-500 transition-colors">
                   <Github className="h-6 w-6" />
