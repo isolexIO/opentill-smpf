@@ -69,7 +69,7 @@ export default function MerchantOnboarding() {
                   <span className="bg-cyan-500 text-[10px] text-white px-2 py-0.5 rounded-full font-bold tracking-tighter uppercase">Priority Access</span>
                 </div>
                 <p className="text-[11px] text-slate-500 leading-relaxed max-w-[280px]">
-                  Official product launch and Digital Utility Credit ($DUC) token presale dates are <span className="font-bold">TBD</span>. You are now first in line.
+                  Official product launch and Digital Utility Credit ($DUC) token presale dates are <span className="font-bold">TBD</span>. You are now one of the first in line.
                 </p>
               </div>
             </div>
