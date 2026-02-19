@@ -110,7 +110,7 @@ export default function MerchantOnboarding() {
              />
           </div>
           <h1 className="text-5xl font-black text-slate-900 tracking-tighter uppercase">openTILL</h1>
-          <p className="text-cyan-600 font-bold tracking-widest uppercase text-sm">Merchant Empowerment Network</p>
+          <p className="text-cyan-600 font-bold tracking-widest uppercase text-sm">SMPF</p>
         </div>
 
         <Card className="shadow-xl border-0 ring-1 ring-slate-200 bg-white">
