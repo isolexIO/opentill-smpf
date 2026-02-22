@@ -311,6 +311,9 @@ export default function HomePage() {
               <a href={createPageUrl('Home')} className="text-green-300 font-semibold">
                 Home
               </a>
+              <a href={createPageUrl('Marketplace')} className="text-white hover:text-green-300 transition-colors">
+                Marketplace
+              </a>
               <a href="#features" className="text-white hover:text-green-300 transition-colors">
                 Features
               </a>

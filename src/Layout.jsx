@@ -26,7 +26,7 @@ import {
 import Home from '@/pages/Home';
 import NotificationBanner from '@/components/notifications/NotificationBanner';
 
-const PUBLIC_PAGES = ['Home', 'PinLogin', 'EmailLogin', 'WalletLoginPage', 'OnlineMenu', 'CustomerDisplay', 'KitchenDisplay', 'MerchantOnboarding', 'POS', 'PrivacyPolicy', 'TermsOfService', 'About', 'Contact', 'DeviceShop', 'DealerLanding', 'DealerDashboard', 'DealerHome', 'SuperAdmin'];
+const PUBLIC_PAGES = ['Home', 'PinLogin', 'EmailLogin', 'WalletLoginPage', 'OnlineMenu', 'CustomerDisplay', 'KitchenDisplay', 'MerchantOnboarding', 'POS', 'PrivacyPolicy', 'TermsOfService', 'About', 'Contact', 'DeviceShop', 'DealerLanding', 'DealerDashboard', 'DealerHome', 'SuperAdmin', 'Marketplace', 'ChipDetail'];
 
 function PublicLayout({ children }) {
   return <div className="min-h-screen">{children}</div>;
@@ -340,7 +340,7 @@ export default function Layout({ children, currentPageName }) {
   // If user is not authenticated (via base44.auth.me) and is trying to access a non-authentication
   // or non-home page, redirect them to the Home page.
   // Allow root_admin to access dealer pages
-  if (!user && !['EmailLogin', 'MerchantOnboarding', 'PinLogin', 'WalletLoginPage', 'Home', 'PrivacyPolicy', 'TermsOfService', 'About', 'Contact', 'CustomerDisplay', 'KitchenDisplay', 'OnlineMenu', 'DeviceShop', 'DealerOnboarding', 'DealerDashboard', 'DealerLanding'].includes(currentPageName)) {
+  if (!user && !['EmailLogin', 'MerchantOnboarding', 'PinLogin', 'WalletLoginPage', 'Home', 'PrivacyPolicy', 'TermsOfService', 'About', 'Contact', 'CustomerDisplay', 'KitchenDisplay', 'OnlineMenu', 'DeviceShop', 'DealerOnboarding', 'DealerDashboard', 'DealerLanding', 'Marketplace', 'ChipDetail'].includes(currentPageName)) {
     return <Home />;
   }
 
