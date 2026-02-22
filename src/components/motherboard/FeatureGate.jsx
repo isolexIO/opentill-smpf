@@ -1,82 +1,19 @@
-import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Lock, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { createPageUrl } from '@/utils';
+import { useFeatureAccess } from './useFeatureAccess';
 
 /**
- * FeatureGate - Wraps content that requires a specific chip to be unlocked
+ * FeatureGate - Wraps content that requires specific feature flags
  * 
  * Usage:
- * <FeatureGate chipName="Advanced Reports" fallback={<LockedMessage />}>
+ * <FeatureGate requiredFlags={['advanced_analytics']} fallback={<LockedMessage />}>
  *   <AdvancedReportsComponent />
  * </FeatureGate>
  */
-export default function FeatureGate({ chipName, children, fallback }) {
-  const [isUnlocked, setIsUnlocked] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [chip, setChip] = useState(null);
-
-  useEffect(() => {
-    checkFeatureAccess();
-  }, [chipName]);
-
-  const checkFeatureAccess = async () => {
-    try {
-      const user = await base44.auth.me();
-      
-      // Super admin/root admin has access to everything
-      if (user?.role === 'admin' || user?.role === 'root_admin') {
-        setIsUnlocked(true);
-        setLoading(false);
-        return;
-      }
-      
-      if (!user?.wallet_address) {
-        setIsUnlocked(false);
-        setLoading(false);
-        return;
-      }
-
-      // Load chip by name
-      const chips = await base44.entities.Chip.filter({ 
-        name: chipName,
-        is_active: true 
-      });
-
-      if (chips.length === 0) {
-        // If chip doesn't exist, allow access (feature is not gated)
-        setIsUnlocked(true);
-        setLoading(false);
-        return;
-      }
-
-      const targetChip = chips[0];
-      setChip(targetChip);
-
-      // Verify NFT ownership
-      const response = await base44.functions.invoke('verifyNFTOwnership', {
-        wallet_address: user.wallet_address,
-        chips: [{
-          id: targetChip.id,
-          collection: targetChip.required_nft_collection,
-          required_count: targetChip.required_nft_count
-        }]
-      });
-
-      if (response.data?.unlocked_chips?.[targetChip.id]?.unlocked) {
-        setIsUnlocked(true);
-      } else {
-        setIsUnlocked(false);
-      }
-    } catch (error) {
-      console.error('Feature gate error:', error);
-      setIsUnlocked(false);
-    } finally {
-      setLoading(false);
-    }
-  };
+export default function FeatureGate({ requiredFlags = [], children, fallback }) {
+  const { hasAccess, loading, missingFlags } = useFeatureAccess(requiredFlags);
 
   if (loading) {
     return (
@@ -86,7 +23,7 @@ export default function FeatureGate({ chipName, children, fallback }) {
     );
   }
 
-  if (!isUnlocked) {
+  if (!hasAccess) {
     if (fallback) {
       return fallback;
     }
@@ -97,15 +34,13 @@ export default function FeatureGate({ chipName, children, fallback }) {
         <AlertDescription className="text-orange-800 dark:text-orange-300">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="font-semibold mb-1">Feature Locked: {chipName}</p>
+              <p className="font-semibold mb-1">Premium Feature Locked</p>
               <p className="text-sm">
-                This feature requires specific NFTs to unlock. Connect your wallet on the Motherboard to access this feature.
+                This feature requires a chip with the following flags: {missingFlags.join(', ')}
               </p>
-              {chip && (
-                <p className="text-sm mt-2">
-                  Required: {chip.required_nft_count} NFT{chip.required_nft_count > 1 ? 's' : ''} from collection
-                </p>
-              )}
+              <p className="text-sm mt-2">
+                Visit the Marketplace to purchase required chips with $DUC.
+              </p>
             </div>
             <Button
               size="sm"
