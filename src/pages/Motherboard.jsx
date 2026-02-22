@@ -1,230 +1,250 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Cpu, Wallet, RefreshCw, AlertCircle, Unlink } from 'lucide-react';
-import WalletConnectButton from '@/components/motherboard/WalletConnectButton.jsx';
-import ChipCard from '@/components/motherboard/ChipCard.jsx';
+import { Badge } from '@/components/ui/badge';
+import { Cpu, Wallet, RefreshCw, AlertCircle, Power, PowerOff, CheckCircle, Lock, ExternalLink } from 'lucide-react';
+import { createPageUrl } from '@/utils';
 
 export default function Motherboard() {
   const [user, setUser] = useState(null);
-  const [chips, setChips] = useState([]);
-  const [walletAddress, setWalletAddress] = useState(null);
-  const [unlockedChips, setUnlockedChips] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [verifying, setVerifying] = useState(false);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
-    loadData();
+    loadUser();
+  }, []);
 
-    // Refresh chip access status every 5 minutes
-    const interval = setInterval(async () => {
-      if (user?.wallet_address) {
-        await checkNFTOwnership();
-      }
-    }, 5 * 60 * 1000);
-
-    return () => clearInterval(interval);
-  }, [user]);
-
-  const loadData = async () => {
-    setLoading(true);
+  const loadUser = async () => {
     try {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
-
-      // Load user's connected wallet
-      if (currentUser.wallet_address) {
-        setWalletAddress(currentUser.wallet_address);
-      }
-
-      // Load all available chips
-      const allChips = await base44.entities.Chip.filter({ is_active: true });
-      const sortedChips = allChips.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
-      setChips(sortedChips);
-
-      // If wallet is connected, verify NFTs
-      if (currentUser.wallet_address) {
-        await verifyNFTs(currentUser.wallet_address, sortedChips);
-      }
     } catch (error) {
-      console.error('Error loading motherboard data:', error);
-    } finally {
-      setLoading(false);
+      console.error('Error loading user:', error);
     }
   };
 
-  const verifyNFTs = async (wallet, chipsList = chips) => {
-    setVerifying(true);
-    try {
-      // Call backend function to verify NFT ownership
-      const response = await base44.functions.invoke('verifyNFTOwnership', {
-        wallet_address: wallet,
-        chips: chipsList.map(c => ({
-          id: c.id,
-          collection: c.required_nft_collection,
-          required_count: c.required_nft_count
-        }))
+  const { data: installedChips = [], isLoading: loadingInstalls } = useQuery({
+    queryKey: ['motherboard-installs', user?.merchant_id],
+    queryFn: async () => {
+      if (!user?.merchant_id) return [];
+      return await base44.entities.MotherboardInstall.filter({
+        owner_type: 'merchant',
+        owner_id: user.merchant_id,
+        is_active: true
       });
+    },
+    enabled: !!user?.merchant_id
+  });
 
-      if (response.data?.unlocked_chips) {
-        setUnlockedChips(response.data.unlocked_chips);
-      }
-    } catch (error) {
-      console.error('Error verifying NFTs:', error);
-    } finally {
-      setVerifying(false);
-    }
-  };
+  const { data: allChips = [], isLoading: loadingChips } = useQuery({
+    queryKey: ['all-chips'],
+    queryFn: () => base44.entities.Chip.filter({ 
+      status: 'PUBLISHED',
+      is_active: true 
+    })
+  });
 
-  const handleWalletConnected = async (publicKey) => {
-    try {
-      // Link wallet to user account
-      await base44.functions.invoke('linkWalletToUser', {
-        wallet_address: publicKey
+  const { data: ownedMints = [] } = useQuery({
+    queryKey: ['chip-mints', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      return await base44.entities.ChipMint.filter({
+        user_id: user.id
       });
-      
-      setWalletAddress(publicKey);
-      
-      // Verify NFTs
-      await verifyNFTs(publicKey);
-    } catch (error) {
-      console.error('Error linking wallet:', error);
+    },
+    enabled: !!user?.id
+  });
+
+  const { data: subscriptions = [] } = useQuery({
+    queryKey: ['chip-subscriptions', user?.merchant_id],
+    queryFn: async () => {
+      if (!user?.merchant_id) return [];
+      return await base44.entities.ChipSubscription.filter({
+        owner_type: 'merchant',
+        owner_id: user.merchant_id
+      });
+    },
+    enabled: !!user?.merchant_id
+  });
+
+  const toggleInstallMutation = useMutation({
+    mutationFn: async ({ chipId, isCurrentlyInstalled }) => {
+      if (isCurrentlyInstalled) {
+        const install = installedChips.find(i => i.chip_id === chipId);
+        if (install) {
+          await base44.entities.MotherboardInstall.update(install.id, { is_active: false });
+        }
+      } else {
+        const existing = await base44.entities.MotherboardInstall.filter({
+          owner_type: 'merchant',
+          owner_id: user.merchant_id,
+          chip_id: chipId
+        });
+        
+        if (existing.length > 0) {
+          await base44.entities.MotherboardInstall.update(existing[0].id, { is_active: true });
+        } else {
+          await base44.entities.MotherboardInstall.create({
+            owner_type: 'merchant',
+            owner_id: user.merchant_id,
+            chip_id: chipId,
+            wallet_address: user.wallet_address || 'pending'
+          });
+        }
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['motherboard-installs'] });
+    }
+  });
+
+  const canAccessChip = (chip) => {
+    if (chip.billing_type === 'ONE_TIME') {
+      return ownedMints.some(m => m.chip_id === chip.id);
+    } else {
+      const sub = subscriptions.find(s => s.chip_id === chip.id && s.status === 'ACTIVE');
+      if (!sub) return false;
+      if (chip.require_chip_nft) {
+        return ownedMints.some(m => m.chip_id === chip.id);
+      }
+      return true;
     }
   };
 
-  const handleRefresh = () => {
-    if (walletAddress) {
-      verifyNFTs(walletAddress);
-    }
+  const isInstalled = (chipId) => {
+    return installedChips.some(i => i.chip_id === chipId);
   };
 
-  const handleUnlinkWallet = async () => {
-    if (!confirm('Are you sure you want to unlink your wallet? This will lock all chip features.')) {
-      return;
-    }
-
-    try {
-      await base44.functions.invoke('unlinkWalletFromUser');
-      setWalletAddress(null);
-      setUnlockedChips({});
-    } catch (error) {
-      console.error('Error unlinking wallet:', error);
-      alert('Failed to unlink wallet');
-    }
-  };
-
-  if (loading) {
+  if (loadingChips || loadingInstalls) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-500">Loading Motherboard...</p>
-        </div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-600"></div>
       </div>
     );
   }
 
+  const enabledFeatures = installedChips
+    .map(install => allChips.find(c => c.id === install.chip_id))
+    .filter(Boolean)
+    .flatMap(chip => chip.feature_flags || []);
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+            <div className="w-12 h-12 bg-gradient-to-br from-cyan-600 to-blue-600 rounded-lg flex items-center justify-center">
               <Cpu className="w-7 h-7 text-white" />
             </div>
             <div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Motherboard</h1>
-              <p className="text-gray-500 dark:text-gray-400">Connect your wallet to unlock features</p>
+              <p className="text-gray-500 dark:text-gray-400">Install and manage your feature chips</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            {walletAddress && (
-              <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleRefresh}
-                  disabled={verifying}
-                >
-                  <RefreshCw className={`w-4 h-4 mr-2 ${verifying ? 'animate-spin' : ''}`} />
-                  Refresh
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleUnlinkWallet}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                >
-                  <Unlink className="w-4 h-4 mr-2" />
-                  Unlink Wallet
-                </Button>
-              </>
-            )}
-          </div>
+          <Button
+            variant="outline"
+            onClick={() => window.location.href = createPageUrl('Marketplace')}
+          >
+            <ExternalLink className="w-4 h-4 mr-2" />
+            Browse Marketplace
+          </Button>
         </div>
 
-        {/* Wallet Connection Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Wallet className="w-5 h-5" />
-              Wallet Connection
-            </CardTitle>
-            <CardDescription>
-              Connect your Solana wallet to verify NFT ownership and unlock features
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <WalletConnectButton onWalletConnected={handleWalletConnected} />
-          </CardContent>
-        </Card>
-
-        {/* No Wallet Warning */}
-        {!walletAddress && (
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              Connect your wallet to see which features you can unlock. Each feature requires specific NFTs from authorized collections.
+        {!user?.wallet_address && (
+          <Alert className="border-yellow-200 bg-yellow-50">
+            <AlertCircle className="h-4 w-4 text-yellow-600" />
+            <AlertDescription className="text-yellow-800">
+              Connect your Solana wallet in the Vault to mint and use chips
             </AlertDescription>
           </Alert>
         )}
 
-        {/* Chips Grid */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-              Available Chips
-            </h2>
-            {walletAddress && (
-              <div className="text-sm text-gray-500">
-                {Object.values(unlockedChips).filter(Boolean).length} / {chips.length} Unlocked
+        <Card>
+          <CardHeader>
+            <CardTitle>Enabled Features</CardTitle>
+            <CardDescription>
+              {installedChips.length} chip{installedChips.length !== 1 ? 's' : ''} installed • {enabledFeatures.length} feature{enabledFeatures.length !== 1 ? 's' : ''} unlocked
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {enabledFeatures.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {[...new Set(enabledFeatures)].map(flag => (
+                  <Badge key={flag} className="bg-green-100 text-green-800">
+                    <CheckCircle className="w-3 h-3 mr-1" />
+                    {flag.replace(/_/g, ' ')}
+                  </Badge>
+                ))}
               </div>
+            ) : (
+              <p className="text-gray-500 text-sm">No features enabled yet. Install chips to unlock features.</p>
             )}
-          </div>
+          </CardContent>
+        </Card>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {chips.map(chip => (
-              <ChipCard
-                key={chip.id}
-                chip={chip}
-                isUnlocked={unlockedChips[chip.id]?.unlocked || false}
-                nftCount={unlockedChips[chip.id]?.nft_count || 0}
-              />
-            ))}
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {allChips.map(chip => {
+            const hasAccess = canAccessChip(chip);
+            const installed = isInstalled(chip.id);
 
-          {chips.length === 0 && (
-            <Card>
-              <CardContent className="text-center py-12">
-                <Cpu className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500">No chips available yet. Check back soon!</p>
-              </CardContent>
-            </Card>
-          )}
+            return (
+              <Card key={chip.id} className={`${installed ? 'border-2 border-green-500' : ''} ${!hasAccess ? 'opacity-60' : ''}`}>
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <img 
+                      src={chip.image_url || '/api/placeholder/64/64'}
+                      alt={chip.name}
+                      className="w-12 h-12 rounded-lg"
+                    />
+                    {hasAccess ? (
+                      <Badge className="bg-green-100 text-green-800">
+                        <CheckCircle className="w-3 h-3 mr-1" />
+                        Owned
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline">
+                        <Lock className="w-3 h-3 mr-1" />
+                        Locked
+                      </Badge>
+                    )}
+                  </div>
+                  <CardTitle className="mt-3">{chip.name}</CardTitle>
+                  <CardDescription>{chip.short_description}</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {hasAccess ? (
+                    <Button
+                      className={`w-full ${installed ? 'bg-red-600 hover:bg-red-700' : 'bg-cyan-600 hover:bg-cyan-700'}`}
+                      onClick={() => toggleInstallMutation.mutate({ chipId: chip.id, isCurrentlyInstalled: installed })}
+                      disabled={toggleInstallMutation.isPending}
+                    >
+                      {installed ? (
+                        <>
+                          <PowerOff className="w-4 h-4 mr-2" />
+                          Uninstall
+                        </>
+                      ) : (
+                        <>
+                          <Power className="w-4 h-4 mr-2" />
+                          Install
+                        </>
+                      )}
+                    </Button>
+                  ) : (
+                    <Button
+                      className="w-full bg-cyan-600 hover:bg-cyan-700"
+                      onClick={() => window.location.href = createPageUrl(`ChipDetail?id=${chip.id}`)}
+                    >
+                      Get This Chip
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       </div>
     </div>

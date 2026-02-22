@@ -347,14 +347,23 @@ export default function SystemMenu() {
       permission: 'admin_settings'
     },
     {
+      id: 'marketplace',
+      icon: <Sparkles className="w-6 h-6" />,
+      title: 'Marketplace',
+      description: 'Browse and purchase chips',
+      path: 'Marketplace',
+      color: 'from-purple-600 to-pink-600',
+      permission: null
+      },
+      {
       id: 'motherboard',
       icon: <Cpu className="w-6 h-6" />,
       title: 'Motherboard',
-      description: 'Manage your feature chips',
+      description: 'Install and manage chips',
       path: 'Motherboard',
       color: 'from-blue-600 to-purple-600',
       permission: 'admin_settings'
-    },
+      },
     {
       id: 'duc_vault',
       icon: <Vault className="w-6 h-6" />,
