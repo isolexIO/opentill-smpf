@@ -28,6 +28,7 @@ import { createPageUrl } from '@/utils';
 
 import MerchantManagement from '../components/superadmin/MerchantManagement';
 import ChipManagement from '../components/superadmin/ChipManagement';
+import ChipManager from '../components/superadmin/ChipManager';
 import SubscriptionManagement from '../components/superadmin/SubscriptionManagement';
 import DeviceShopManagement from '../components/superadmin/DeviceShopManagement';
 import SystemLogs from '../components/superadmin/SystemLogs';
@@ -260,7 +261,7 @@ export default function SuperAdminPage() {
             }`}
           >
             <Building2 className="w-4 h-4" />
-            <span className="text-sm font-medium">Dealers</span>
+            <span className="text-sm font-medium">Ambassadors</span>
           </button>
           <button
             onClick={() => setActiveTab('subscriptions')}
@@ -399,11 +400,11 @@ export default function SuperAdminPage() {
             <h2 className="text-xl font-bold text-gray-900 dark:text-white">
               {activeTab === 'pending' && 'Pending Merchants'}
               {activeTab === 'merchants' && 'Merchant Management'}
-              {activeTab === 'dealers' && 'Dealer Management'}
+              {activeTab === 'dealers' && 'Ambassador Management'}
               {activeTab === 'subscriptions' && 'Subscription Management'}
               {activeTab === 'devices' && 'Device Shop'}
               {activeTab === 'amazon' && 'Amazon Affiliate'}
-              {activeTab === 'vault' && '$cLINK Vault'}
+              {activeTab === 'vault' && '$DUC Vault'}
               {activeTab === 'chips' && 'Chip Manager'}
               {activeTab === 'logs' && 'System Logs'}
               {activeTab === 'reports' && 'Global Reports'}
@@ -488,7 +489,7 @@ export default function SuperAdminPage() {
           )}
 
           {activeTab === 'chips' && (
-            <ChipManager />
+            <ChipManagement />
           )}
 
           {activeTab === 'logs' && (
