@@ -865,7 +865,7 @@ export default function HomePage() {
                 <li><a href={createPageUrl('DeviceShop')} className="text-gray-300 hover:text-white text-sm transition-colors">Device Shop</a></li>
                 <li>
                   <a href={createPageUrl('DealerLanding')} className="text-gray-300 hover:text-white text-sm transition-colors">
-                    Become a Dealer
+                    Become an Ambassador
                   </a>
                 </li>
               </ul>
@@ -879,7 +879,7 @@ export default function HomePage() {
                 <li><a href={createPageUrl('Contact')} className="text-gray-300 hover:text-white text-sm transition-colors">Contact</a></li>
                 <li>
                   <a href={createPageUrl('DealerLanding')} className="text-gray-300 hover:text-white text-sm transition-colors">
-                    Dealer Portal
+                    Ambassador Portal
                   </a>
                 </li>
               </ul>
@@ -901,7 +901,7 @@ export default function HomePage() {
                 href={createPageUrl('DealerLogin')} 
                 className="text-gray-400 hover:text-white text-sm transition-colors"
               >
-                Dealer Login
+                Ambassador Login
               </a>
             </div>
             <p className="text-gray-400 text-sm text-center">
