@@ -17,6 +17,7 @@ import JupiterChart from '@/components/vault/JupiterChart';
 export default function DUCVaultPage() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [purchaseChipId, setPurchaseChipId] = useState(null);
   const [walletConnected, setWalletConnected] = useState(false);
   const [vaultEnabled, setVaultEnabled] = useState(false);
   
