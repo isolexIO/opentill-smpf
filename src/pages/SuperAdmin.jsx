@@ -27,7 +27,7 @@ import {
 import { createPageUrl } from '@/utils';
 
 import MerchantManagement from '../components/superadmin/MerchantManagement';
-import ChipManager from '../components/superadmin/ChipManager';
+import ChipManagement from '../components/superadmin/ChipManagement';
 import SubscriptionManagement from '../components/superadmin/SubscriptionManagement';
 import DeviceShopManagement from '../components/superadmin/DeviceShopManagement';
 import SystemLogs from '../components/superadmin/SystemLogs';

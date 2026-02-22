@@ -26,6 +26,97 @@ import {
 import { motion } from 'framer-motion';
 import PriceTicker from '@/components/vault/PriceTicker';
 
+function FeaturedChipsSection() {
+  const [chips, setChips] = useState([]);
+
+  useEffect(() => {
+    loadFeaturedChips();
+  }, []);
+
+  const loadFeaturedChips = async () => {
+    try {
+      const allChips = await base44.entities.Chip.filter({ 
+        featured: true,
+        status: 'PUBLISHED',
+        is_active: true 
+      });
+      
+      const now = new Date();
+      const validChips = allChips.filter(chip => {
+        const inSchedule = (!chip.start_time || new Date(chip.start_time) <= now) &&
+                          (!chip.end_time || new Date(chip.end_time) >= now);
+        return inSchedule;
+      }).slice(0, 6);
+      
+      setChips(validChips);
+    } catch (error) {
+      console.error('Error loading featured chips:', error);
+    }
+  };
+
+  if (chips.length === 0) return null;
+
+  return (
+    <section className="py-20 bg-gradient-to-br from-cyan-50 to-blue-100 dark:from-gray-800 dark:to-gray-900">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-full text-sm font-bold mb-4">
+            <Cpu className="w-4 h-4" />
+            FEATURED CHIPS
+          </div>
+          <h2 className="text-4xl font-black mb-4 text-gray-900 dark:text-white">Unlock Premium Features</h2>
+          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            Purchase Chips with $DUC to enhance your POS capabilities
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {chips.map(chip => (
+            <Card key={chip.id} className="hover:shadow-xl transition-all border-2 hover:border-cyan-400 bg-white dark:bg-gray-800">
+              <CardHeader>
+                <img 
+                  src={chip.image_url || '/api/placeholder/80/80'}
+                  alt={chip.name}
+                  className="w-16 h-16 rounded-lg mb-4"
+                />
+                <CardTitle className="text-gray-900 dark:text-white">{chip.name}</CardTitle>
+                <CardDescription>{chip.short_description}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-sm text-gray-500">Price</span>
+                  <span className="font-bold text-cyan-600">
+                    {chip.billing_type === 'ONE_TIME' 
+                      ? `${chip.price_duc} $DUC` 
+                      : `${chip.recurring_price_duc} $DUC/mo`}
+                  </span>
+                </div>
+                <Button 
+                  className="w-full bg-cyan-600 hover:bg-cyan-700"
+                  onClick={() => window.location.href = createPageUrl(`ChipDetail?id=${chip.id}`)}
+                >
+                  View Details
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <div className="text-center">
+          <Button
+            size="lg"
+            className="bg-cyan-600 hover:bg-cyan-700"
+            onClick={() => window.location.href = createPageUrl('Marketplace')}
+          >
+            View Marketplace
+            <ArrowRight className="ml-2 h-5 w-5" />
+          </Button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function HomePage() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [subscriptionPlans, setSubscriptionPlans] = useState([]);
@@ -350,6 +441,9 @@ export default function HomePage() {
           </motion.div>
         </div>
       </section>
+
+      {/* Featured Chips Section */}
+      <FeaturedChipsSection />
 
       {/* Features Section */}
       <section id="features" className="py-24 bg-gray-50 dark:bg-gray-800">
