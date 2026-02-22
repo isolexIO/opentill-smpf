@@ -13,6 +13,7 @@ import {
 import PermissionCheck from '@/components/auth/PermissionCheck';
 import PriceTicker from '@/components/vault/PriceTicker';
 import JupiterChart from '@/components/vault/JupiterChart';
+import ChipPurchase from '@/components/vault/ChipPurchase';
 
 export default function DUCVaultPage() {
   const [user, setUser] = useState(null);
@@ -44,7 +45,17 @@ export default function DUCVaultPage() {
 
   useEffect(() => {
     loadVaultData();
+    
+    const params = new URLSearchParams(window.location.search);
+    const action = params.get('action');
+    const chipId = params.get('chip_id');
+    
+    if (action === 'mint' && chipId) {
+      setPurchaseChipId(chipId);
+    }
   }, []);
+
+  const loadData = loadVaultData;
 
   const loadVaultData = async () => {
     setLoading(true);
@@ -317,6 +328,16 @@ export default function DUCVaultPage() {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-16">
         <div className="p-6">
           <div className="max-w-7xl mx-auto space-y-6">
+          {purchaseChipId && (
+            <ChipPurchase 
+              chipId={purchaseChipId} 
+              onSuccess={() => {
+                setPurchaseChipId(null);
+                loadData();
+              }}
+            />
+          )}
+
           {/* Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
