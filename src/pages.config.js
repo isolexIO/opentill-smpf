@@ -88,6 +88,8 @@ import TermsOfService from './pages/TermsOfService';
 import Users from './pages/Users';
 import WalletLoginPage from './pages/WalletLoginPage';
 import cLINKVault from './pages/cLINKVault';
+import Marketplace from './pages/Marketplace';
+import ChipDetail from './pages/ChipDetail';
 import __Layout from './Layout.jsx';
 
 
@@ -133,6 +135,8 @@ export const PAGES = {
     "Users": Users,
     "WalletLoginPage": WalletLoginPage,
     "cLINKVault": cLINKVault,
+    "Marketplace": Marketplace,
+    "ChipDetail": ChipDetail,
 }
 
 export const pagesConfig = {
