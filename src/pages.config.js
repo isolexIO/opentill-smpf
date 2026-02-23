@@ -50,6 +50,7 @@
 import AIAssistant from './pages/AIAssistant';
 import AIWebsiteGenerator from './pages/AIWebsiteGenerator';
 import About from './pages/About';
+import ChipDetail from './pages/ChipDetail';
 import Contact from './pages/Contact';
 import CustomerDisplay from './pages/CustomerDisplay';
 import Customers from './pages/Customers';
@@ -68,6 +69,7 @@ import Home from './pages/Home';
 import Inventory from './pages/Inventory';
 import KitchenDisplay from './pages/KitchenDisplay';
 import LoyaltyProgram from './pages/LoyaltyProgram';
+import Marketplace from './pages/Marketplace';
 import MerchantOnboarding from './pages/MerchantOnboarding';
 import Motherboard from './pages/Motherboard';
 import OnlineMenu from './pages/OnlineMenu';
@@ -88,8 +90,6 @@ import TermsOfService from './pages/TermsOfService';
 import Users from './pages/Users';
 import WalletLoginPage from './pages/WalletLoginPage';
 import cLINKVault from './pages/cLINKVault';
-import Marketplace from './pages/Marketplace';
-import ChipDetail from './pages/ChipDetail';
 import __Layout from './Layout.jsx';
 
 
@@ -97,6 +97,7 @@ export const PAGES = {
     "AIAssistant": AIAssistant,
     "AIWebsiteGenerator": AIWebsiteGenerator,
     "About": About,
+    "ChipDetail": ChipDetail,
     "Contact": Contact,
     "CustomerDisplay": CustomerDisplay,
     "Customers": Customers,
@@ -115,6 +116,7 @@ export const PAGES = {
     "Inventory": Inventory,
     "KitchenDisplay": KitchenDisplay,
     "LoyaltyProgram": LoyaltyProgram,
+    "Marketplace": Marketplace,
     "MerchantOnboarding": MerchantOnboarding,
     "Motherboard": Motherboard,
     "OnlineMenu": OnlineMenu,
@@ -135,8 +137,6 @@ export const PAGES = {
     "Users": Users,
     "WalletLoginPage": WalletLoginPage,
     "cLINKVault": cLINKVault,
-    "Marketplace": Marketplace,
-    "ChipDetail": ChipDetail,
 }
 
 export const pagesConfig = {
