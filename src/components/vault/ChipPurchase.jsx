@@ -36,7 +36,7 @@ export default function ChipPurchase({ chipId, onSuccess }) {
 
   const handlePurchase = async () => {
     if (!user?.wallet_address) {
-      setError('Please connect your Solana wallet first');
+      setError('Please connect your Solana wallet in Settings first');
       return;
     }
 
@@ -44,22 +44,20 @@ export default function ChipPurchase({ chipId, onSuccess }) {
     setError(null);
 
     try {
-      // This would call a backend function to handle the actual $DUC transfer and NFT mint/subscription creation
-      const { data } = await base44.functions.invoke('purchaseChipWithDUC', {
+      const { data } = await base44.functions.invoke('mintChipNFT', {
         chip_id: chipId,
-        wallet_address: user.wallet_address,
-        merchant_id: user.merchant_id,
-        ambassador_id: user.ambassador_id
+        wallet_address: user.wallet_address
       });
 
       if (data.success) {
+        alert(`NFT minted successfully!\n\nMint Address: ${data.mint_address}\nTransaction: ${data.signature}`);
         if (onSuccess) onSuccess(data);
       } else {
-        setError(data.error || 'Purchase failed');
+        setError(data.error || 'Minting failed');
       }
     } catch (error) {
-      console.error('Purchase error:', error);
-      setError(error.message || 'Failed to complete purchase');
+      console.error('Mint error:', error);
+      setError(error.message || 'Failed to mint NFT');
     } finally {
       setPurchasing(false);
     }
@@ -142,12 +140,12 @@ export default function ChipPurchase({ chipId, onSuccess }) {
           {purchasing ? (
             <>
               <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-              Processing...
+              Minting NFT...
             </>
           ) : (
             <>
               <Sparkles className="w-5 h-5 mr-2" />
-              {chip.billing_type === 'ONE_TIME' ? 'Mint with $DUC' : 'Subscribe with $DUC'}
+              {chip.billing_type === 'ONE_TIME' ? 'Mint NFT' : 'Mint & Subscribe'}
             </>
           )}
         </Button>

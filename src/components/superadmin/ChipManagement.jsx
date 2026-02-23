@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Trash2, Eye, Sparkles } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, Sparkles, Upload, Loader2 } from 'lucide-react';
 
 const FEATURE_FLAGS = [
   'advanced_analytics',
@@ -174,6 +174,7 @@ export default function ChipManagement() {
 }
 
 function ChipForm({ chip, onSubmit, onCancel }) {
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [formData, setFormData] = useState(chip || {
     name: '',
     symbol: '',
@@ -204,6 +205,22 @@ function ChipForm({ chip, onSubmit, onCancel }) {
     }
   };
 
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    try {
+      const { data } = await base44.integrations.Core.UploadFile({ file });
+      setFormData({ ...formData, image_url: data.file_url });
+    } catch (error) {
+      console.error('Image upload error:', error);
+      alert('Failed to upload image');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   return (
     <form onSubmit={(e) => { e.preventDefault(); onSubmit(formData); }} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
@@ -225,6 +242,42 @@ function ChipForm({ chip, onSubmit, onCancel }) {
       <div>
         <Label>Long Description</Label>
         <Textarea value={formData.long_description} onChange={(e) => setFormData({...formData, long_description: e.target.value})} rows={4} />
+      </div>
+
+      <div>
+        <Label>Chip Image</Label>
+        <div className="flex items-center gap-4">
+          {formData.image_url && (
+            <img src={formData.image_url} alt="Preview" className="w-20 h-20 rounded-lg object-cover" />
+          )}
+          <div className="flex-1">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              disabled={uploadingImage}
+              className="hidden"
+              id="chip-image-upload"
+            />
+            <label htmlFor="chip-image-upload">
+              <Button type="button" variant="outline" disabled={uploadingImage} asChild>
+                <span>
+                  {uploadingImage ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-4 h-4 mr-2" />
+                      Upload Image
+                    </>
+                  )}
+                </span>
+              </Button>
+            </label>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
