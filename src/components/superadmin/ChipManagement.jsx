@@ -211,8 +211,8 @@ function ChipForm({ chip, onSubmit, onCancel }) {
 
     setUploadingImage(true);
     try {
-      const { data } = await base44.integrations.Core.UploadFile({ file });
-      setFormData({ ...formData, image_url: data.file_url });
+      const result = await base44.integrations.Core.UploadFile({ file });
+      setFormData({ ...formData, image_url: result.file_url });
     } catch (error) {
       console.error('Image upload error:', error);
       alert('Failed to upload image');
