@@ -96,6 +96,7 @@ import Users from './pages/Users';
 import WalletLoginPage from './pages/WalletLoginPage';
 import cLINKVault from './pages/cLINKVault';
 import Copyright from './pages/Copyright';
+import License from './pages/License';
 import __Layout from './Layout.jsx';
 
 
@@ -149,6 +150,7 @@ export const PAGES = {
     "WalletLoginPage": WalletLoginPage,
     "cLINKVault": cLINKVault,
     "Copyright": Copyright,
+    "License": License,
 }
 
 export const pagesConfig = {
