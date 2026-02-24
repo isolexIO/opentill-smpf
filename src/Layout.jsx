@@ -579,7 +579,7 @@ export default function Layout({ children, currentPageName }) {
         )}
       </div>
 
-      {!dealer?.settings?.hide_opentill_branding && !PUBLIC_PAGES.includes(currentPageName) && (
+      {!dealer?.settings?.hide_opentill_branding && (
         <div className="fixed bottom-4 right-4 flex flex-col items-end gap-2 z-50">
           <div className="text-xs text-gray-500 bg-white dark:bg-gray-800 px-3 py-1 rounded-full shadow-sm">
             © Isolex Corporation
