@@ -110,7 +110,7 @@ export default function EmailLoginPage() {
     }
   };
 
-  const brandName = dealer?.name || 'ChainLINK';
+  const brandName = dealer?.name || 'openTILL';
   const primaryColor = dealer?.primary_color || '#7B2FD6';
   const secondaryColor = dealer?.secondary_color || '#0FD17A';
   const logoUrl = dealer?.logo_url;
