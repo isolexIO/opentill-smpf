@@ -388,6 +388,9 @@ export default function SettingsPage() {
                 {activeTab === 'wallet-payments' && (
                   <WalletPaymentsTab merchant={merchant} onSave={handleSave} />
                 )}
+                {activeTab === 'staff' && (
+                  <StaffManagementTab merchant={merchant} />
+                )}
                 {activeTab === '2fa' && (
                   <TwoFactorTab />
                 )}
