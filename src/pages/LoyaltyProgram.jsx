@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Gift, Plus, Award, TrendingUp, Users, DollarSign, Edit, Trash2 } from 'lucide-react';
+import { Gift, Plus, Award, TrendingUp, Users, DollarSign, Edit, Trash2, Coins, Vault } from 'lucide-react';
 import PermissionGate from '../components/PermissionGate';
 
 export default function LoyaltyProgramPage() {
