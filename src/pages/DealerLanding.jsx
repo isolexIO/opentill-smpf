@@ -135,7 +135,7 @@ export default function DealerLanding() {
   const testimonials = [
     { name: 'Marcus T.', role: 'Tech Reseller, Miami', quote: 'Went from 0 to 22 merchants in 4 months. The white-label setup took under an hour.', stars: 5 },
     { name: 'Sandra K.', role: 'POS Consultant, Chicago', quote: 'My commission checks have replaced my old salary. The dashboard makes everything easy.', stars: 5 },
-    { name: 'Derek A.', role: 'MSP Owner, Atlanta', quote: 'openTILL's crypto payments and AI tools are a huge selling point for my clients.', stars: 5 },
+    { name: 'Derek A.', role: 'MSP Owner, Atlanta', quote: "openTILL's crypto payments and AI tools are a huge selling point for my clients.", stars: 5 },
   ];
 
   return (
