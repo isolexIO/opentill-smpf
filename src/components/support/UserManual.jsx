@@ -680,7 +680,7 @@ export default function UserManual() {
         },
         {
           title: 'What is Motherboard?',
-          content: 'NFT-gated premium features. Purchase NFTs from Solana marketplaces (Magic Eden, Tensor) to unlock advanced features like Premium Analytics, Multi-Location, API Access, White Label, etc. Connect wallet to verify ownership. No recurring subscription fees - one-time NFT purchase. Features unlocked instantly and remain active as long as you hold the NFT.'
+          content: 'Motherboard is openTILL\'s modular chip-based feature system. Purchase Chips (feature upgrades) with $DUC tokens to unlock advanced capabilities like AI Assistant, Advanced Analytics, Website Generator, Multi-Location, and more. Connect your Solana wallet, browse chips in the Marketplace, and purchase what you need. One-time chips unlock features permanently; subscription chips require ongoing payment. Features activate instantly.'
         },
         {
           title: 'How do I get a .opentill-pos.sol subdomain?',
