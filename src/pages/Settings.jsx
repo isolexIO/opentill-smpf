@@ -308,7 +308,7 @@ export default function SettingsPage() {
   const tabs = [
     { id: 'general', label: 'General', icon: SettingsIcon },
     { id: 'wallet-payments', label: 'Wallet & Payments', icon: Wallet },
-    { id: 'staff', label: 'Staff Management', icon: Shield },
+    { id: 'staff', label: 'Staff Management', icon: Users },
     { id: 'account', label: 'Account', icon: Trash2 },
     { id: '2fa', label: 'Two-Factor Auth', icon: Shield },
     { id: 'payments', label: 'Payment Gateways', icon: CreditCard },
