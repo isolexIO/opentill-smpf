@@ -1,4 +1,3 @@
-
 import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
 import Stripe from 'npm:stripe@17.4.0';
 import { Connection, PublicKey, Transaction, SystemProgram, Keypair, LAMPORTS_PER_SOL } from 'npm:@solana/web3.js@1.91.4';
@@ -121,7 +120,18 @@ Deno.serve(async (req) => {
           metadata: { payout_id, dealer_id: dealer.id, method: payout.payout_method }
         });
 
-        // TODO: Send success email notification
+        // Send notification to ambassador
+        try {
+          await base44.asServiceRole.functions.invoke('sendPayoutNotification', {
+            ambassador_id: dealer.id,
+            type: 'processed',
+            amount: payout.commission_amount,
+            merchant_names: payout.merchant_names || [],
+            details: { transaction_id: result.destination?.stripe_transfer_id }
+          });
+        } catch (notifyError) {
+          console.error('Notification sending failed:', notifyError);
+        }
         
         return Response.json({
           success: true,
