@@ -437,6 +437,9 @@ export default function SettingsPage() {
                     onUpdate={(display) => handleSave({ settings: { customer_display: display } })}
                   />
                 )}
+                {activeTab === 'web3identity' && (
+                  <Web3IdentityTab merchant={merchant} />
+                )}
                 {activeTab === 'domain' && (
                   <CustomDomainTab merchant={merchant} />
                 )}
