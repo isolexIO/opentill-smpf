@@ -23,7 +23,10 @@ import Web3IdentityTab from '../components/settings/Web3IdentityTab';
 import TwoFactorTab from '../components/settings/TwoFactorTab';
 
 export default function SettingsPage() {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [merchant, setMerchant] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
