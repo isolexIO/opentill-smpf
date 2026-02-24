@@ -273,7 +273,7 @@ export default function SupportPage() {
             Support Center
           </h1>
           <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
-            Get help with ChainLINK POS - We're here to help!
+            Get help with openTILL POS — We're here to help!
           </p>
         </motion.div>
 
