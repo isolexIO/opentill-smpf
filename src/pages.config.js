@@ -93,6 +93,8 @@ import WalletLoginPage from './pages/WalletLoginPage';
 import cLINKVault from './pages/cLINKVault';
 import Builders from './pages/Builders';
 import BuilderOnboarding from './pages/BuilderOnboarding';
+import BuilderDashboard from './pages/BuilderDashboard';
+import SubmitChip from './pages/SubmitChip';
 import __Layout from './Layout.jsx';
 
 
@@ -143,6 +145,8 @@ export const PAGES = {
     "cLINKVault": cLINKVault,
     "Builders": Builders,
     "BuilderOnboarding": BuilderOnboarding,
+    "BuilderDashboard": BuilderDashboard,
+    "SubmitChip": SubmitChip,
 }
 
 export const pagesConfig = {
