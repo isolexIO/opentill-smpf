@@ -43,16 +43,31 @@ export default function DealerDashboardPage() {
       }
       setCurrentUser(user);
 
+      // Check if impersonating - load dealer from stored dealerData first
+      const storedDealerData = localStorage.getItem('dealerData');
       let dealerData;
-      if (['root_admin', 'admin'].includes(user.role)) {
-        const dealerId = new URLSearchParams(window.location.search).get('dealer_id');
-        const dealers = dealerId
-          ? await base44.entities.Dealer.filter({ id: dealerId })
-          : await base44.entities.Dealer.list();
-        dealerData = dealers[0];
-      } else if (user.dealer_id) {
-        const dealers = await base44.entities.Dealer.filter({ id: user.dealer_id });
-        dealerData = dealers[0];
+
+      if (storedDealerData) {
+        try {
+          const parsed = JSON.parse(storedDealerData);
+          if (parsed.id) {
+            const dealers = await base44.entities.Dealer.filter({ id: parsed.id });
+            dealerData = dealers[0];
+          }
+        } catch { /* fall through */ }
+      }
+
+      if (!dealerData) {
+        if (['root_admin', 'admin'].includes(user.role)) {
+          const dealerId = new URLSearchParams(window.location.search).get('dealer_id');
+          const dealers = dealerId
+            ? await base44.entities.Dealer.filter({ id: dealerId })
+            : await base44.entities.Dealer.list();
+          dealerData = dealers[0];
+        } else if (user.dealer_id) {
+          const dealers = await base44.entities.Dealer.filter({ id: user.dealer_id });
+          dealerData = dealers[0];
+        }
       }
 
       if (!dealerData) throw new Error('No dealer found');
