@@ -116,26 +116,19 @@ export default function SupportPage() {
       setUser(currentUser);
 
       if (currentUser.merchant_id) {
-        const merchants = await base44.entities.Merchant.filter({ id: currentUser.merchant_id });
-        if (merchants && merchants.length > 0) {
-          setMerchant(merchants[0]);
-        } else {
-          console.error("Invalid merchant_id found on user. Logging out.");
-          localStorage.clear();
-          window.location.href = createPageUrl('EmailLogin');
-          return;
+        try {
+          const merchants = await base44.entities.Merchant.filter({ id: currentUser.merchant_id });
+          if (merchants && merchants.length > 0) {
+            setMerchant(merchants[0]);
+          }
+        } catch (e) {
+          console.warn('Could not load merchant:', e);
         }
       }
 
       await loadTickets(currentUser);
     } catch (error) {
       console.error('Error loading user or merchant:', error);
-      if (error.message && error.message.includes('Object not found')) {
-        console.error("Referenced merchant not found. Logging out.");
-        localStorage.clear();
-        window.location.href = createPageUrl('EmailLogin');
-        return;
-      }
     } finally {
       setLoading(false);
     }
