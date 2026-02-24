@@ -427,6 +427,63 @@ export default function SettingsPage() {
                     onSave={(securitySettings) => handleSave({ settings: securitySettings })}
                   />
                 )}
+                {activeTab === 'account' && (
+                  <div className="space-y-6">
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-900 dark:text-white">Account</h2>
+                      <p className="text-sm text-gray-500 mt-1">Manage your account settings</p>
+                    </div>
+                    <div className="border border-red-200 dark:border-red-800 rounded-lg p-6 bg-red-50 dark:bg-red-900/10 space-y-4">
+                      <div className="flex items-center gap-2 text-red-700 dark:text-red-400">
+                        <Trash2 className="w-5 h-5" />
+                        <h3 className="font-semibold text-lg">Delete Account</h3>
+                      </div>
+                      <p className="text-sm text-red-700 dark:text-red-400">
+                        This will mark your merchant account as cancelled. This action cannot be undone.
+                        All your data will be retained for legal/audit purposes.
+                      </p>
+                      {!showDeleteConfirm ? (
+                        <Button
+                          variant="destructive"
+                          onClick={() => setShowDeleteConfirm(true)}
+                          className="min-h-[44px]"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Delete My Account
+                        </Button>
+                      ) : (
+                        <div className="space-y-3">
+                          <p className="text-sm font-medium text-red-800 dark:text-red-300">
+                            Type <strong>DELETE</strong> to confirm account deletion:
+                          </p>
+                          <Input
+                            value={deleteConfirmText}
+                            onChange={(e) => setDeleteConfirmText(e.target.value)}
+                            placeholder="Type DELETE here"
+                            className="border-red-300 focus:border-red-500"
+                          />
+                          <div className="flex gap-2">
+                            <Button
+                              variant="destructive"
+                              onClick={handleDeleteAccount}
+                              disabled={deleteConfirmText !== 'DELETE'}
+                              className="min-h-[44px]"
+                            >
+                              Confirm Delete
+                            </Button>
+                            <Button
+                              variant="outline"
+                              onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(''); }}
+                              className="min-h-[44px]"
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
