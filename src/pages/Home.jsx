@@ -870,6 +870,11 @@ export default function HomePage() {
                     Become an Ambassador
                   </a>
                 </li>
+                <li>
+                  <a href={createPageUrl('Builders')} className="text-gray-300 hover:text-white text-sm transition-colors">
+                    Build with Us
+                  </a>
+                </li>
               </ul>
             </div>
 
