@@ -289,6 +289,96 @@ export default function LoyaltyProgramPage() {
                   </Button>
                 </CardContent>
               </Card>
+
+              {/* $DUC Consumer Rewards */}
+              <Card className="dark:bg-gray-800 dark:border-gray-700 border-yellow-200">
+                <CardHeader>
+                  <CardTitle className="dark:text-white flex items-center gap-2">
+                    <Coins className="w-5 h-5 text-yellow-500" />
+                    $DUC Consumer Rewards
+                  </CardTitle>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-sm text-gray-500 dark:text-gray-400">Your Vault Balance:</span>
+                    <span className={`text-sm font-bold ${merchantVaultBalance > 0 ? 'text-green-600' : 'text-red-500'}`}>
+                      {merchantVaultBalance.toFixed(2)} $DUC
+                    </span>
+                    {merchantVaultBalance <= 0 && (
+                      <span className="text-xs text-red-500">(Insufficient — fund your vault to enable)</span>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                    <div>
+                      <Label className="text-base font-medium dark:text-white">Enable $DUC Rewards for Customers</Label>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        Reward customers with $DUC tokens, funded from your vault
+                      </p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={loyaltySettings.duc_rewards_enabled || false}
+                      onChange={(e) => setLoyaltySettings({ ...loyaltySettings, duc_rewards_enabled: e.target.checked })}
+                      className="w-5 h-5"
+                      disabled={merchantVaultBalance <= 0}
+                    />
+                  </div>
+
+                  {loyaltySettings.duc_rewards_enabled && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label className="dark:text-gray-200">$DUC Per Dollar Spent</Label>
+                        <Input
+                          type="number"
+                          step="0.001"
+                          value={loyaltySettings.duc_per_dollar || 0.01}
+                          onChange={(e) => setLoyaltySettings({ ...loyaltySettings, duc_per_dollar: parseFloat(e.target.value) || 0 })}
+                          className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        />
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          How many $DUC to award per $1 spent
+                        </p>
+                      </div>
+
+                      <div>
+                        <Label className="dark:text-gray-200">$DUC Welcome Bonus</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={loyaltySettings.duc_welcome_bonus || 0}
+                          onChange={(e) => setLoyaltySettings({ ...loyaltySettings, duc_welcome_bonus: parseFloat(e.target.value) || 0 })}
+                          className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        />
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          $DUC awarded to new customers
+                        </p>
+                      </div>
+
+                      <div>
+                        <Label className="dark:text-gray-200">$DUC Birthday Bonus</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={loyaltySettings.duc_birthday_bonus || 0}
+                          onChange={(e) => setLoyaltySettings({ ...loyaltySettings, duc_birthday_bonus: parseFloat(e.target.value) || 0 })}
+                          className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <p className="text-xs text-gray-400 dark:text-gray-500">
+                    $DUC rewards are deducted from your merchant vault balance when issued to customers.
+                    <a href="#" onClick={(e) => { e.preventDefault(); window.location.href = '/DUCVault'; }} className="ml-1 text-yellow-600 underline">
+                      Manage your vault →
+                    </a>
+                  </p>
+
+                  <Button onClick={saveLoyaltySettings}>
+                    Save $DUC Settings
+                  </Button>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="rewards">
