@@ -1,10 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { createPageUrl } from '@/utils';
+import { base44 } from '@/api/base44Client';
 import { Code2, Users, TrendingUp, Shield, Zap, ArrowRight, Github, ExternalLink } from 'lucide-react';
 
 export default function BuildersPage() {
+  const [stats, setStats] = useState({
+    developers: 0,
+    chips: 0,
+    installs: 0,
+    revenue: 0
+  });
+
+  useEffect(() => {
+    loadStats();
+  }, []);
+
+  const loadStats = async () => {
+    try {
+      const builders = await base44.entities.Builder.list();
+      const verifiedBuilders = builders.filter(b => b.status === 'verified').length;
+      
+      const chipSubmissions = await base44.entities.ChipSubmission.filter({ status: 'published' });
+      
+      const totalInstalls = chipSubmissions.reduce((sum, chip) => sum + (chip.total_installs || 0), 0);
+      const totalRevenue = builders.reduce((sum, builder) => sum + (builder.total_earnings || 0), 0);
+
+      setStats({
+        developers: verifiedBuilders,
+        chips: chipSubmissions.length,
+        installs: totalInstalls,
+        revenue: totalRevenue
+      });
+    } catch (error) {
+      console.error('Error loading builder stats:', error);
+    }
+  };
+
   const features = [
     {
       icon: Code2,
@@ -34,10 +67,10 @@ export default function BuildersPage() {
   ];
 
   const buildersHighlight = [
-    { label: 'Developers', value: '150+' },
-    { label: 'Chips Published', value: '200+' },
-    { label: 'Total Installs', value: '5,000+' },
-    { label: 'Revenue Paid', value: '$50K+' },
+    { label: 'Verified Developers', value: stats.developers.toString() },
+    { label: 'Chips Published', value: stats.chips.toString() },
+    { label: 'Total Installs', value: stats.installs.toLocaleString() },
+    { label: 'Revenue Paid', value: `$${(stats.revenue / 1000).toFixed(0)}K` },
   ];
 
   return (

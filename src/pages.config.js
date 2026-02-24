@@ -50,6 +50,9 @@
 import AIAssistant from './pages/AIAssistant';
 import AIWebsiteGenerator from './pages/AIWebsiteGenerator';
 import About from './pages/About';
+import BuilderDashboard from './pages/BuilderDashboard';
+import BuilderOnboarding from './pages/BuilderOnboarding';
+import Builders from './pages/Builders';
 import ChipDetail from './pages/ChipDetail';
 import Contact from './pages/Contact';
 import CustomerDisplay from './pages/CustomerDisplay';
@@ -83,6 +86,7 @@ import Products from './pages/Products';
 import ReferralDashboard from './pages/ReferralDashboard';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
+import SubmitChip from './pages/SubmitChip';
 import Subscriptions from './pages/Subscriptions';
 import SuperAdmin from './pages/SuperAdmin';
 import Support from './pages/Support';
@@ -91,10 +95,6 @@ import TermsOfService from './pages/TermsOfService';
 import Users from './pages/Users';
 import WalletLoginPage from './pages/WalletLoginPage';
 import cLINKVault from './pages/cLINKVault';
-import Builders from './pages/Builders';
-import BuilderOnboarding from './pages/BuilderOnboarding';
-import BuilderDashboard from './pages/BuilderDashboard';
-import SubmitChip from './pages/SubmitChip';
 import __Layout from './Layout.jsx';
 
 
@@ -102,6 +102,9 @@ export const PAGES = {
     "AIAssistant": AIAssistant,
     "AIWebsiteGenerator": AIWebsiteGenerator,
     "About": About,
+    "BuilderDashboard": BuilderDashboard,
+    "BuilderOnboarding": BuilderOnboarding,
+    "Builders": Builders,
     "ChipDetail": ChipDetail,
     "Contact": Contact,
     "CustomerDisplay": CustomerDisplay,
@@ -135,6 +138,7 @@ export const PAGES = {
     "ReferralDashboard": ReferralDashboard,
     "Reports": Reports,
     "Settings": Settings,
+    "SubmitChip": SubmitChip,
     "Subscriptions": Subscriptions,
     "SuperAdmin": SuperAdmin,
     "Support": Support,
@@ -143,10 +147,6 @@ export const PAGES = {
     "Users": Users,
     "WalletLoginPage": WalletLoginPage,
     "cLINKVault": cLINKVault,
-    "Builders": Builders,
-    "BuilderOnboarding": BuilderOnboarding,
-    "BuilderDashboard": BuilderDashboard,
-    "SubmitChip": SubmitChip,
 }
 
 export const pagesConfig = {
