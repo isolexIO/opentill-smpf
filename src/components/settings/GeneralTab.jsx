@@ -492,31 +492,27 @@ export default function GeneralTab({ merchant, onSave, saving }) {
           {localSettings.hardware?.barcodeScanner?.enabled && (
             <>
               <div className="space-y-2">
-                <Label htmlFor="scanner-type">Scanner Type</Label>
-                <Select
-                  value={localSettings.hardware?.barcodeScanner?.type}
-                  onValueChange={(value) => {
-                    setLocalSettings(prev => ({
-                      ...prev,
-                      hardware: {
-                        ...prev.hardware,
-                        barcodeScanner: {
-                          ...prev.hardware.barcodeScanner,
-                          type: value
-                        }
-                      }
-                    }));
-                  }}
-                >
-                  <SelectTrigger id="scanner-type">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="keyboard">Keyboard Wedge</SelectItem>
-                    <SelectItem value="camera">Camera Scanner</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                 <Label htmlFor="scanner-type">Scanner Type</Label>
+                 <SelectWrapper
+                   value={localSettings.hardware?.barcodeScanner?.type}
+                   onValueChange={(value) => {
+                     setLocalSettings(prev => ({
+                       ...prev,
+                       hardware: {
+                         ...prev.hardware,
+                         barcodeScanner: {
+                           ...prev.hardware.barcodeScanner,
+                           type: value
+                         }
+                       }
+                     }));
+                   }}
+                   trigger="Select scanner type"
+                 >
+                   <SelectItem value="keyboard">Keyboard Wedge</SelectItem>
+                   <SelectItem value="camera">Camera Scanner</SelectItem>
+                 </SelectWrapper>
+               </div>
 
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
