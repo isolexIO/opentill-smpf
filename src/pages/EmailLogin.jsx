@@ -134,19 +134,12 @@ export default function EmailLoginPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-6">
         {/* Brand */}
-        <div className="text-center">
-          {logoUrl ? (
-            <img src={logoUrl} alt={brandName} className="h-16 mx-auto mb-4" />
-          ) : (
-            <div className="flex justify-center mb-4">
-              <div
-                className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-xl"
-                style={{ background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)` }}
-              >
-                <Link2 className="w-8 h-8 text-white" />
-              </div>
-            </div>
-          )}
+         <div className="text-center">
+           {logoUrl ? (
+             <img src={logoUrl} alt={brandName} className="h-16 mx-auto mb-4" />
+           ) : (
+             <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6970e2871534100b4ebb8d45/2e8077855_DUC.png" alt="DUC Token" className="h-16 mx-auto mb-4" />
+           )}
           <h1 className="text-3xl font-bold text-white mb-1">{brandName}</h1>
           <p className="text-purple-300 text-sm">Sign in to your account</p>
         </div>
