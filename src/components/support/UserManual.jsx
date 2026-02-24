@@ -39,20 +39,20 @@ export default function UserManual() {
       color: 'text-blue-600',
       content: [
         {
-          title: 'Welcome to ChainLINK POS',
-          content: 'ChainLINK POS is a modern point of sale system with blockchain integration. Access your dashboard at the main menu to view stats, pending orders, low stock alerts, and quick access to all features.'
+          title: 'Welcome to openTILL POS',
+          content: 'openTILL is a modern point of sale system with blockchain integration. The core POS is completely free — you pay only for premium chip-based features you choose. Access your dashboard at the System Menu to view stats, pending orders, low stock alerts, and quick access to all features.'
         },
         {
           title: 'First Time Setup',
-          content: '1. Complete merchant onboarding through the registration form\n2. Super Admin approves your account and activates your trial\n3. Login with your generated credentials (PIN or email)\n4. Navigate to Settings to configure your business profile\n5. Add products via Products page\n6. Configure payment gateways in Settings → Payment Gateways\n7. Create employee accounts in Users page\n8. Run a test transaction to verify everything works'
+          content: '1. Complete merchant onboarding at opentill-pos.com\n2. Super Admin approves your account and activates your account\n3. Login with your email and password\n4. Navigate to Settings → General to configure your business profile\n5. Add products via System Menu → Products\n6. Configure payment gateways in Settings → Payment Gateways\n7. Add staff members in Settings → Staff Management\n8. Run a test transaction to verify everything works'
         },
         {
           title: 'Logging In',
-          content: 'Employees can log in using multiple methods:\n• PIN Login - Quick 4-digit PIN for employee clock-in\n• Email Login - Full merchant account access with email/password\n• Wallet Login - Connect Solana wallets (Phantom, Solflare, Jupiter) for Web3 authentication\n\nOnce logged in, you will see the System Menu with access to all features.'
+          content: 'There are multiple ways to log in:\n• PIN Login - Quick 4-digit PIN for staff clock-in at the register\n• Email Login - Full merchant account access with email/password\n• Wallet Login - Connect Solana wallets (Phantom, Solflare) for Web3 authentication\n\nOnce logged in, you will see the System Menu with access to all features.'
         },
         {
           title: 'System Menu Navigation',
-          content: 'The System Menu is your central hub with:\n• POS - Process customer orders\n• Products - Manage catalog and inventory\n• Customers - Customer database and loyalty\n• Orders - View order history\n• Online Orders - Manage web/app orders\n• Reports - Analytics and insights\n• Departments - Organize products\n• Settings - System configuration\n• Marketplace - Third-party integrations\n• Device Shop - Purchase hardware\n• $cLINK Vault - Cryptocurrency rewards (if enabled)\n• Motherboard - NFT-gated premium features (if enabled)\n• Support - Help and documentation'
+          content: 'The System Menu is your central hub with:\n• POS - Process customer orders\n• Products - Manage catalog and inventory\n• Customers - Customer database and loyalty\n• Orders - View order history\n• Online Orders - Manage web/app orders\n• Reports - Analytics and insights\n• Departments - Organize products\n• Settings - System configuration (staff, payments, devices, pricing, etc.)\n• Marketplace - Browse and purchase chip-based feature upgrades\n• Device Shop - Purchase hardware\n• $cLINK Vault - Cryptocurrency rewards for CC processing\n• Motherboard - Chip-based premium features\n• Referral Dashboard - Track and manage your referrals\n• Support - Help and documentation'
         }
       ]
     },
