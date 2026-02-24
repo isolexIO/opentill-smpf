@@ -445,7 +445,18 @@ export default function Layout({ children, currentPageName }) {
              style={{marginTop: '-10px', marginLeft: '-10px', marginRight: '-10px'}}>
           <div className="px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16">
-              <div className="flex items-center">
+              <div className="flex items-center gap-2">
+                {showBackButton && (
+                  <button
+                    onClick={() => navigate(-1)}
+                    className="mr-1 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    aria-label="Go back"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                )}
                 <Link to={createPageUrl('SystemMenu')} className="flex items-center space-x-3">
                   {logoUrl ? (
                     <img src={logoUrl} alt={brandName} className="h-10" />
