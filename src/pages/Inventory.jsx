@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,6 +28,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 import InventoryForm from '../components/inventory/InventoryForm';
+import MobileInventoryCard from '@/components/mobile/MobileInventoryCard';
 import RestockDialog from '../components/inventory/RestockDialog';
 import PermissionGate from '../components/PermissionGate'; // Added PermissionGate component
 import ReorderSuggestions from '../components/inventory/ReorderSuggestions'; // Added ReorderSuggestions component
