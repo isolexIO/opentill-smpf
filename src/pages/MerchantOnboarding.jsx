@@ -1,38 +1,66 @@
-import React, { useState } from 'react';
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { 
-  CheckCircle, Sparkles, Users, ArrowRight, Building2, 
-  Mail, Phone, MapPin, Terminal, Twitter, Github, Globe 
-} from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { base44 } from '@/api/base44Client';
+import { createPageUrl } from '@/utils';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Link2, Twitter, Github, Terminal, CheckCircle } from 'lucide-react';
+import StepIndicator from '@/components/onboarding/StepIndicator';
+import StepReferral from '@/components/onboarding/StepReferral';
+import StepBusiness from '@/components/onboarding/StepBusiness';
+import StepWallet from '@/components/onboarding/StepWallet';
+import StepReview from '@/components/onboarding/StepReview';
+
+const INITIAL = {
+  business_name: '',
+  owner_first_name: '',
+  owner_last_name: '',
+  owner_email: '',
+  phone: '',
+  address: '',
+  referral_code: '',
+  wallet_address: '',
+};
 
 export default function MerchantOnboarding() {
-  const [formData, setFormData] = useState({
-    business_name: '',
-    owner_first_name: '',
-    owner_last_name: '',
-    owner_email: '',
-    phone: '',
-    address: '',
-    referral_code: ''
-  });
+  const [step, setStep] = useState(1);
+  const [formData, setFormData] = useState(INITIAL);
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(false);
 
-  const ducLogo = "https://opentill.io/$DUC.png";
+  // Pre-fill referral code from URL on mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get('ref') || params.get('referral') || params.get('code');
+    if (ref) {
+      setFormData((f) => ({ ...f, referral_code: ref.toUpperCase() }));
+    }
+  }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const onChange = (key, value) => setFormData((f) => ({ ...f, [key]: value }));
+
+  const handleSubmit = async () => {
     setLoading(true);
     setError(null);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const owner_name = `${formData.owner_first_name} ${formData.owner_last_name}`.trim();
+      const res = await base44.functions.invoke('createMerchantAccount', {
+        business_name: formData.business_name,
+        owner_name,
+        owner_email: formData.owner_email,
+        phone: formData.phone,
+        address: formData.address,
+        referral_code: formData.referral_code || null,
+        wallet_address: formData.wallet_address || null,
+        setup_demo_data: true,
+      });
+
+      if (!res.data?.success) {
+        throw new Error(res.data?.error || 'Registration failed.');
+      }
       setSuccess(true);
     } catch (err) {
-      setError(err.message || 'Registration failed.');
+      setError(err.message || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -40,70 +68,49 @@ export default function MerchantOnboarding() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-sans">
-        <Card className="w-full max-w-xl shadow-2xl bg-white border-none rounded-3xl overflow-hidden">
-          <CardContent className="pt-12 pb-10 text-center space-y-8 px-8">
-            {/* Header Success Icon */}
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <Card className="w-full max-w-lg shadow-2xl bg-white border-none rounded-3xl overflow-hidden">
+          <CardContent className="pt-12 pb-10 text-center space-y-6 px-8">
             <div className="flex justify-center">
-              <div className="rounded-full bg-cyan-50 p-4 border-4 border-white shadow-inner">
-                <CheckCircle className="h-12 w-12 text-cyan-500" />
+              <div className="w-20 h-20 rounded-full bg-cyan-50 border-4 border-white shadow-inner flex items-center justify-center">
+                <CheckCircle className="w-12 h-12 text-cyan-500" />
               </div>
             </div>
-            
             <div className="space-y-2">
-              <h2 className="text-3xl font-black text-slate-900 tracking-tight">Registration Successful!</h2>
-              <p className="text-slate-500 text-lg">
-                Welcome to the <span className="font-bold text-slate-800">openTILL</span> ecosystem.
+              <h2 className="text-3xl font-black text-slate-900 tracking-tight">Application Submitted!</h2>
+              <p className="text-slate-500">
+                Welcome to <span className="font-bold text-slate-800">openTILL</span>. Our team will review your application and activate your account within 24 hours.
               </p>
-            </div>
-
-            {/* $DUC Priority Access Card */}
-            <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100 flex items-center gap-4 text-left relative overflow-hidden group">
-              <div className="absolute right-[-20px] top-[-20px] opacity-5 group-hover:rotate-12 transition-transform duration-700">
-                <img src={ducLogo} alt="" className="h-32 w-32" />
-              </div>
-              <img src={ducLogo} alt="$DUC" className="h-14 w-14 shadow-lg rounded-full" />
-              <div className="space-y-1 relative z-10">
-                <div className="flex items-center gap-2">
-                  <span className="font-black text-slate-800 text-lg">$DUC</span>
-                  <span className="bg-cyan-500 text-[10px] text-white px-2 py-0.5 rounded-full font-bold tracking-tighter uppercase">Priority Access</span>
+              {formData.referral_code && (
+                <div className="inline-flex items-center gap-2 bg-cyan-50 text-cyan-700 text-sm font-semibold px-4 py-2 rounded-full border border-cyan-200">
+                  <CheckCircle className="w-4 h-4" />
+                  Referral code <strong>{formData.referral_code}</strong> applied
                 </div>
-                <p className="text-[11px] text-slate-500 leading-relaxed max-w-[280px]">
-                  Official product launch and Digital Utility Credit ($DUC) token presale dates are <span className="font-bold">TBD</span>. You are now one of the first in line.
-                </p>
-              </div>
+              )}
             </div>
-
-            {/* Action Buttons */}
             <div className="space-y-3 pt-2">
-               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-4">Join Our Community</p>
-               
-               <div className="grid grid-cols-4 gap-3 mb-6">
-                 <a href="https://x.com/opentill" target="_blank" rel="noreferrer" className="flex items-center justify-center p-3 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-sm">
-                   <Twitter className="h-5 w-5 text-slate-700" />
-                 </a>
-                 <a href="https://github.com/opentill" target="_blank" rel="noreferrer" className="flex items-center justify-center p-3 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-sm">
-                   <Github className="h-5 w-5 text-slate-700" />
-                 </a>
-                 <a href="https://dscvr.one/p/isolex" target="_blank" rel="noreferrer" className="flex items-center justify-center p-3 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-sm group">
-                   <span className="text-[10px] font-black text-slate-400 group-hover:text-cyan-600 transition-colors">DSCVR</span>
-                 </a>
-                 <button onClick={() => window.open('https://cmd.opentill.io', '_blank')} className="flex items-center justify-center p-3 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-sm group">
-                   <Terminal className="h-5 w-5 text-slate-700 group-hover:text-cyan-600" />
-                 </button>
-               </div>
-
-               <Button 
-                className="w-full bg-cyan-600 hover:bg-cyan-700 text-white h-14 rounded-xl text-lg font-bold shadow-lg transition-all active:scale-[0.98]"
-                onClick={() => window.location.href = '/EmailLogin'}
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Join Our Community</p>
+              <div className="grid grid-cols-3 gap-3">
+                <a href="https://x.com/opentill" target="_blank" rel="noreferrer"
+                   className="flex items-center justify-center p-3 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-sm">
+                  <Twitter className="h-5 w-5 text-slate-700" />
+                </a>
+                <a href="https://github.com/opentill" target="_blank" rel="noreferrer"
+                   className="flex items-center justify-center p-3 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-sm">
+                  <Github className="h-5 w-5 text-slate-700" />
+                </a>
+                <a href="https://cmd.opentill.io" target="_blank" rel="noreferrer"
+                   className="flex items-center justify-center p-3 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-sm">
+                  <Terminal className="h-5 w-5 text-slate-700" />
+                </a>
+              </div>
+              <Button
+                className="w-full bg-cyan-600 hover:bg-cyan-700 text-white h-12 rounded-xl text-base font-bold shadow-lg"
+                onClick={() => window.location.href = createPageUrl('EmailLogin')}
               >
                 Go to Merchant Login
               </Button>
             </div>
-
-            <p className="text-[10px] text-slate-400 font-mono opacity-60">
-              SYSTEM_AUTH_CONFIRMED // ISOLEX_ID: {Math.random().toString(36).toUpperCase().substring(2, 10)}
-            </p>
           </CardContent>
         </Card>
       </div>
@@ -111,85 +118,61 @@ export default function MerchantOnboarding() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 py-12 px-4">
-      <div className="max-w-4xl mx-auto space-y-8">
-        <div className="text-center space-y-4">
-          <div className="flex justify-center items-center gap-3">
-            <img src={ducLogo} alt="$DUC" className="h-12 w-12" />
-            <h1 className="text-4xl font-black tracking-tight text-slate-900">openTILL</h1>
-          </div>
-          <p className="text-xl text-slate-600 max-w-2xl mx-auto font-medium">
-            Next-gen POS, powered by Digital Utility Credits ($DUC).
-          </p>
+    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center py-10 px-4">
+      {/* Logo */}
+      <div className="flex items-center gap-2 mb-6">
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-cyan-500 to-blue-600">
+          <Link2 className="w-5 h-5 text-white" />
         </div>
+        <span className="text-2xl font-black text-slate-900 tracking-tight">openTILL</span>
+      </div>
 
-        <Card className="border-none shadow-xl overflow-hidden rounded-3xl">
-          <div className="grid grid-cols-1 md:grid-cols-5">
-            <div className="md:col-span-2 bg-cyan-600 p-8 text-white flex flex-col justify-between">
-              <div className="space-y-8">
-                <h3 className="text-2xl font-bold italic tracking-tighter">THE $DUC ADVANTAGE</h3>
-                <div className="space-y-6">
-                  <div className="flex gap-4">
-                    <div className="bg-cyan-500/30 p-2 rounded-lg shrink-0"><Sparkles className="h-6 w-6" /></div>
-                    <div><p className="font-semibold">Zero Processing Fees</p><p className="text-cyan-100 text-sm font-light">Keep 100% of your $DUC earnings.</p></div>
-                  </div>
-                  <div className="flex gap-4">
-                    <div className="bg-cyan-500/30 p-2 rounded-lg shrink-0"><Users className="h-6 w-6" /></div>
-                    <div><p className="font-semibold">Referral Rewards</p><p className="text-cyan-100 text-sm font-light">Earn $DUC for every onboarding.</p></div>
-                  </div>
-                </div>
-              </div>
+      <div className="w-full max-w-md">
+        <StepIndicator currentStep={step} />
 
-              <div className="pt-8 border-t border-cyan-500/50">
-                <p className="text-cyan-100 text-[10px] uppercase tracking-widest font-bold mb-4">Access Terminals</p>
-                <div className="space-y-3">
-                  <button type="button" onClick={() => window.open('https://cmd.opentill.io', '_blank')} className="text-white hover:text-cyan-200 flex items-center gap-2 text-sm underline underline-offset-4 bg-transparent border-none p-0 cursor-pointer font-mono">
-                    <Terminal size={14} /> {"> Whitepaper"}
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="md:col-span-3 p-8 bg-white">
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="business_name">Business Name</Label>
-                    <div className="relative">
-                      <Building2 className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                      <Input id="business_name" required className="pl-10" placeholder="Isolex Corporation" value={formData.business_name} onChange={(e) => setFormData({...formData, business_name: e.target.value})} />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="first_name">First Name</Label>
-                      <Input id="first_name" required placeholder="John" value={formData.owner_first_name} onChange={(e) => setFormData({...formData, owner_first_name: e.target.value})} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="last_name">Last Name</Label>
-                      <Input id="last_name" required placeholder="Doe" value={formData.owner_last_name} onChange={(e) => setFormData({...formData, owner_last_name: e.target.value})} />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                      <Input id="email" required type="email" className="pl-10" placeholder="admin@isolex.io" value={formData.owner_email} onChange={(e) => setFormData({...formData, owner_email: e.target.value})} />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="referral" className="font-bold text-cyan-700">Referral Code</Label>
-                    <Input id="referral" placeholder="ENTER-CODE" className="border-cyan-200 focus:ring-cyan-500" value={formData.referral_code} onChange={(e) => setFormData({...formData, referral_code: e.target.value.toUpperCase()})} />
-                  </div>
-                </div>
-
-                <Button type="submit" disabled={loading} className="w-full bg-cyan-600 hover:bg-cyan-700 text-white h-12 text-lg font-bold rounded-xl shadow-lg">
-                  {loading ? 'INITIALIZING...' : 'Register Business'}
-                </Button>
-              </form>
-            </div>
-          </div>
+        <Card className="border-none shadow-xl rounded-3xl overflow-hidden">
+          <CardContent className="p-7">
+            {step === 1 && (
+              <StepReferral
+                formData={formData}
+                onChange={onChange}
+                onNext={() => setStep(2)}
+              />
+            )}
+            {step === 2 && (
+              <StepBusiness
+                formData={formData}
+                onChange={onChange}
+                onNext={() => setStep(3)}
+                onBack={() => setStep(1)}
+              />
+            )}
+            {step === 3 && (
+              <StepWallet
+                formData={formData}
+                onChange={onChange}
+                onNext={() => setStep(4)}
+                onBack={() => setStep(2)}
+              />
+            )}
+            {step === 4 && (
+              <StepReview
+                formData={formData}
+                onSubmit={handleSubmit}
+                onBack={() => setStep(3)}
+                loading={loading}
+                error={error}
+              />
+            )}
+          </CardContent>
         </Card>
+
+        <p className="text-center text-xs text-slate-400 mt-4">
+          Already have an account?{' '}
+          <a href={createPageUrl('EmailLogin')} className="text-cyan-600 font-semibold hover:underline">
+            Sign in
+          </a>
+        </p>
       </div>
     </div>
   );
