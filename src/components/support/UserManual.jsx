@@ -723,7 +723,7 @@ export default function UserManual() {
     <div className="space-y-6">
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg p-6">
-        <h1 className="text-3xl font-bold mb-2">ChainLINK POS User Manual</h1>
+        <h1 className="text-3xl font-bold mb-2">openTILL POS User Manual</h1>
         <p className="text-blue-100">Complete guide to using your point of sale system</p>
       </div>
 
