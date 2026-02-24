@@ -36,14 +36,24 @@ Deno.serve(async (req) => {
 
       // Send activation email
       try {
-        await base44.asServiceRole.integrations.Core.SendEmail({
+        const transporter = nodemailer.createTransport({
+          host: Deno.env.get('SMTP_HOST'),
+          port: parseInt(Deno.env.get('SMTP_PORT') || '587'),
+          secure: false,
+          auth: {
+            user: Deno.env.get('SMTP_USER'),
+            pass: Deno.env.get('SMTP_PASS'),
+          },
+        });
+
+        await transporter.sendMail({
+          from: Deno.env.get('SMTP_USER'),
           to: merchantData.owner_email,
           subject: 'Your openTILL Account Has Been Activated',
-          body: `Dear ${merchantData.owner_name || 'Merchant'},\n\nCongratulations! Your openTILL account has been activated.\n\nBusiness Name: ${merchantData.business_name}\nTrial Period: 30 days\nTrial Expires: ${new Date(trialEndDate).toLocaleDateString()}\n\nYou can now log in and start using openTILL.\n\nBest regards,\nThe openTILL Team`
+          text: `Dear ${merchantData.owner_name || 'Merchant'},\n\nCongratulations! Your openTILL account has been activated.\n\nBusiness Name: ${merchantData.business_name}\nTrial Period: 30 days\nTrial Expires: ${new Date(trialEndDate).toLocaleDateString()}\n\nYou can now log in and start using openTILL.\n\nBest regards,\nThe openTILL Team`,
         });
       } catch (emailError) {
         console.error('Failed to send activation email:', emailError);
-        // Continue anyway - activation was successful
       }
 
       return Response.json({ success: true, merchant_id, data: updated });
