@@ -331,15 +331,13 @@ export default function Layout({ children, currentPageName }) {
   const handlePinLogout = () => {
     if (confirm('Are you sure you want to clock out?')) {
       localStorage.removeItem('pinLoggedInUser');
-      
-      // If user is authenticated via base44 auth, logout from that too
       base44.auth.logout(createPageUrl('Home'));
     }
   };
 
   const handleExitImpersonation = () => {
     localStorage.removeItem('pinLoggedInUser');
-    window.location.href = createPageUrl('SuperAdmin');
+    navigate(createPageUrl('SuperAdmin'));
   };
 
   // If user is not authenticated (via base44.auth.me) and is trying to access a non-authentication
