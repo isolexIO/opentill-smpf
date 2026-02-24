@@ -248,6 +248,21 @@ export default function DealerManagement() {
 
   return (
     <div className="space-y-6">
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="dealers" className="flex items-center gap-2">
+            <Building2 className="w-4 h-4" />
+            <span className="hidden sm:inline">Ambassadors</span>
+          </TabsTrigger>
+          <TabsTrigger value="payouts" className="flex items-center gap-2">
+            <DollarSign className="w-4 h-4" />
+            <span className="hidden sm:inline">Payout Control</span>
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Ambassadors Tab */}
+        <TabsContent value="dealers" className="space-y-6">
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
