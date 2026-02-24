@@ -329,13 +329,29 @@ export default function PayoutDashboard({ dealer, onUpdate }) {
           )}
         </CardContent>
       </Card>
+      </TabsContent>
+
+      {/* Commission Breakdown Tab */}
+      <TabsContent value="breakdown">
+        <CommissionBreakdown dealer={dealer} />
+      </TabsContent>
+
+      {/* Payout Methods Tab */}
+      <TabsContent value="methods">
+        <PayoutMethodSettings dealer={dealer} onUpdate={onUpdate} />
+      </TabsContent>
+
+      {/* Settings Tab */}
+      <TabsContent value="settings">
+        <PayoutThresholdSettings dealer={dealer} onUpdate={onUpdate} />
+      </TabsContent>
 
       {/* Payout Details Dialog */}
       {selectedPayout && (
         <Dialog open={!!selectedPayout} onOpenChange={() => setSelectedPayout(null)}>
           <DialogContent className="max-w-3xl">
             <DialogHeader>
-              <DialogTitle>Payout Details</DialogTitle>
+              <DialogTitle>Payout Reconciliation Details</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -361,12 +377,12 @@ export default function PayoutDashboard({ dealer, onUpdate }) {
 
               {selectedPayout.items && selectedPayout.items.length > 0 && (
                 <div>
-                  <h4 className="font-semibold mb-2">Contributing Merchants</h4>
+                  <h4 className="font-semibold mb-2">Contributing Merchants (Reconciliation)</h4>
                   <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead>Merchant</TableHead>
-                        <TableHead>Amount</TableHead>
+                        <TableHead>Revenue</TableHead>
                         <TableHead>Commission</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -385,7 +401,7 @@ export default function PayoutDashboard({ dealer, onUpdate }) {
 
               {selectedPayout.notes && (
                 <div>
-                  <p className="text-sm text-gray-500 mb-1">Notes</p>
+                  <p className="text-sm text-gray-500 mb-1">Reconciliation Notes</p>
                   <p className="text-sm">{selectedPayout.notes}</p>
                 </div>
               )}
@@ -393,6 +409,6 @@ export default function PayoutDashboard({ dealer, onUpdate }) {
           </DialogContent>
         </Dialog>
       )}
-    </div>
+    </Tabs>
   );
 }
