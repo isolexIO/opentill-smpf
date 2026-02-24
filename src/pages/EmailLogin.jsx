@@ -69,8 +69,10 @@ export default function EmailLoginPage() {
       window.location.href = createPageUrl('SuperAdmin');
     } else if (['dealer_admin', 'ambassador'].includes(role)) {
       window.location.href = createPageUrl('DealerDashboard');
-    } else {
+    } else if (user.merchant_id) {
       window.location.href = createPageUrl('SystemMenu');
+    } else {
+      window.location.href = createPageUrl('Home');
     }
   };
 

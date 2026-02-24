@@ -95,8 +95,15 @@ export default function PinLoginPage() {
       const user = data.user;
       localStorage.setItem('pinLoggedInUser', JSON.stringify(user));
 
-      // Staff PIN login only - always goes to SystemMenu
-      window.location.href = createPageUrl('SystemMenu');
+      // Redirect based on role and context
+      const role = user.role;
+      if (['admin', 'super_admin', 'root_admin'].includes(role)) {
+        window.location.href = createPageUrl('SuperAdmin');
+      } else if (['dealer_admin', 'ambassador'].includes(role)) {
+        window.location.href = createPageUrl('DealerDashboard');
+      } else {
+        window.location.href = createPageUrl('SystemMenu');
+      }
 
     } catch (error) {
       console.error('PIN login error:', error);
