@@ -687,12 +687,12 @@ export default function UserManual() {
           content: 'Request during merchant onboarding or later in Settings → General. Choose your preferred name (letters, numbers, hyphens). Submit request. Super Admin approves and generates subdomain. Use for branding, online menu, and Web3 identity. Link to Solana wallet for crypto payments. No renewal fees.'
         },
         {
-          title: 'Can I white label ChainLINK?',
-          content: 'Dealers can customize branding: Upload logo, set brand colors, use custom domain, hide ChainLINK branding. Requires dealer account + White Label NFT (via Motherboard). Merchants see your brand throughout the platform. Custom email templates available. Contact Super Admin about becoming a dealer.'
+          title: 'Can I white label openTILL?',
+          content: 'Ambassadors can fully customize branding: Upload logo, set brand colors, use custom domain, optionally hide openTILL branding. Requires an approved Ambassador account. Merchants see your brand throughout the platform. Custom email templates available. Contact Super Admin or register at the Ambassador Portal on the homepage.'
         },
         {
-          title: 'How do I become a dealer/reseller?',
-          content: 'Visit dealer landing page → Fill registration form → Submit application → Super Admin reviews and approves → Dealer account created → Set commission rates → Connect Stripe for payouts → Access Dealer Dashboard → Start onboarding merchants → Earn commissions on merchant revenue. Ideal for payment processors, POS resellers, and business consultants.'
+          title: 'How do I become an Ambassador/reseller?',
+          content: 'Visit the Ambassador Portal on the homepage → Fill registration form → Submit application → Super Admin reviews and approves → Ambassador account created → Commission rates set → Connect Stripe for payouts → Access Ambassador Dashboard → Start onboarding merchants → Earn commissions on merchant revenue. Ideal for payment processors, POS resellers, and business consultants.'
         },
         {
           title: 'What payment gateways are supported?',
