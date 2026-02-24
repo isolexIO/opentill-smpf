@@ -667,8 +667,8 @@ export default function UserManual() {
           content: 'Yes! Multi-location feature available via Motherboard (requires Multi-Location NFT). Each location has its own products, inventory, and settings. Transfer stock between locations. Consolidated reporting across all locations. Contact Super Admin for setup assistance.'
         },
         {
-          title: 'How secure is ChainLINK POS?',
-          content: 'ChainLINK uses:\n• Bank-level encryption (TLS/SSL)\n• PCI-DSS compliant payment processing\n• Secure blockchain transactions\n• Regular security audits\n• Data backup and redundancy\n• Role-based access control\n• Audit logging\n• Optional 2FA\n• SOC 2 Type II certified (in progress)'
+          title: 'How secure is openTILL POS?',
+          content: 'openTILL uses:\n• Bank-level encryption (TLS/SSL)\n• PCI-DSS compliant payment processing\n• Secure blockchain transactions\n• Regular security audits\n• Data backup and redundancy\n• Role-based access control with granular permissions\n• Audit logging\n• Optional 2FA (Settings → Two-Factor Auth)\n• Staff PIN-based access control'
         },
         {
           title: 'What devices are compatible?',
