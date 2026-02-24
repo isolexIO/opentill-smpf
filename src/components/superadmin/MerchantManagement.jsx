@@ -437,8 +437,94 @@ ChainLINK Support`
           </Button>
         </div>
 
-        {/* Merchants Table */}
-        <div className="border rounded-lg overflow-hidden">
+        {/* Mobile card layout */}
+        <div className="md:hidden space-y-3">
+          {loading ? (
+            <div className="text-center py-8">
+              <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2" />
+              <p>Loading merchants...</p>
+            </div>
+          ) : filteredMerchants.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">No merchants found</div>
+          ) : (
+            filteredMerchants.map((merchant) => (
+              <div key={merchant.id} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold text-gray-900 dark:text-white">{merchant.business_name}</p>
+                      {merchant.is_demo && (
+                        <Badge className="bg-purple-100 text-purple-800 flex items-center gap-1">
+                          <Sparkles className="w-3 h-3" />
+                          DEMO
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-500">{merchant.owner_name}</p>
+                    <p className="text-xs text-gray-400">{merchant.owner_email}</p>
+                  </div>
+                  {getStatusBadge(merchant.status)}
+                </div>
+                <div className="space-y-2 mb-3 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Revenue:</span>
+                    <span className="font-medium">${(merchant.total_revenue || 0).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Orders:</span>
+                    <span className="font-medium">{merchant.total_orders || 0}</span>
+                  </div>
+                </div>
+                <div className="flex gap-2 pt-2 border-t">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedMerchant(merchant);
+                      setShowDetails(true);
+                    }}
+                    className="flex-1 min-h-[44px]"
+                  >
+                    <Eye className="w-4 h-4 mr-1" />
+                    Details
+                  </Button>
+                  {merchant.status === 'active' ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleStatusChange(merchant, 'suspended')}
+                      className="flex-1 min-h-[44px] text-red-600"
+                    >
+                      <Ban className="w-4 h-4 mr-1" />
+                      Suspend
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleStatusChange(merchant, 'active')}
+                      className="flex-1 min-h-[44px] text-green-600"
+                    >
+                      <CheckCircle className="w-4 h-4 mr-1" />
+                      Activate
+                    </Button>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDelete(merchant)}
+                    className="min-h-[44px] text-red-600"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop table layout */}
+        <div className="hidden md:block border rounded-lg overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>
@@ -500,6 +586,7 @@ ChainLINK Support`
                             setSelectedMerchant(merchant);
                             setShowDetails(true);
                           }}
+                          className="min-h-[44px]"
                         >
                           <Eye className="w-4 h-4" />
                         </Button>
@@ -508,6 +595,7 @@ ChainLINK Support`
                             variant="ghost"
                             size="icon"
                             onClick={() => handleStatusChange(merchant, 'suspended')}
+                            className="min-h-[44px]"
                           >
                             <Ban className="w-4 h-4 text-red-500" />
                           </Button>
@@ -517,6 +605,7 @@ ChainLINK Support`
                             size="icon"
                             onClick={() => handleStatusChange(merchant, 'trial')}
                             title="Activate Merchant"
+                            className="min-h-[44px]"
                           >
                             <CheckCircle className="w-4 h-4 text-blue-500" />
                           </Button>
@@ -525,6 +614,7 @@ ChainLINK Support`
                             variant="ghost"
                             size="icon"
                             onClick={() => handleStatusChange(merchant, 'active')}
+                            className="min-h-[44px]"
                           >
                             <CheckCircle className="w-4 h-4 text-green-500" />
                           </Button>
@@ -533,6 +623,7 @@ ChainLINK Support`
                           variant="ghost"
                           size="icon"
                           onClick={() => handleDelete(merchant)}
+                          className="min-h-[44px]"
                         >
                           <Trash2 className="w-4 h-4 text-red-500" />
                         </Button>
@@ -639,14 +730,14 @@ ChainLINK Support`
                    <Button
                      variant={vaultSettings?.vault_enabled ? "default" : "outline"}
                      onClick={() => handleToggleVault(selectedMerchant, true)}
-                     className="flex-1"
+                     className="flex-1 min-h-[44px]"
                    >
                      Enable Vault
                    </Button>
                    <Button
                      variant={vaultSettings?.vault_enabled ? "outline" : "destructive"}
                      onClick={() => handleToggleVault(selectedMerchant, false)}
-                     className="flex-1"
+                     className="flex-1 min-h-[44px]"
                    >
                      Disable Vault
                    </Button>
@@ -666,7 +757,7 @@ ChainLINK Support`
                    <Button
                      variant={selectedMerchant.is_demo ? "default" : "outline"}
                      onClick={() => handleToggleDemo(selectedMerchant)}
-                     className={`flex-1 ${selectedMerchant.is_demo ? 'bg-purple-600 hover:bg-purple-700' : ''}`}
+                     className={`flex-1 min-h-[44px] ${selectedMerchant.is_demo ? 'bg-purple-600 hover:bg-purple-700' : ''}`}
                    >
                      {selectedMerchant.is_demo ? 'DEMO Enabled' : 'Mark as DEMO'}
                    </Button>
@@ -683,13 +774,13 @@ ChainLINK Support`
                </div>
 
                <div className="flex gap-2 justify-end pt-4 border-t">
-                 <Button variant="outline" onClick={() => handleImpersonate(selectedMerchant)}>
-                   <Eye className="w-4 h-4 mr-2" />
-                   Impersonate
-                 </Button>
-                 <Button variant="outline" onClick={() => setShowDetails(false)}>
-                   Close
-                 </Button>
+                 <Button variant="outline" onClick={() => handleImpersonate(selectedMerchant)} className="min-h-[44px]">
+                          <Eye className="w-4 h-4 mr-2" />
+                          Impersonate
+                        </Button>
+                        <Button variant="outline" onClick={() => setShowDetails(false)} className="min-h-[44px]">
+                          Close
+                        </Button>
                </div>
              </div>
            </DialogContent>
@@ -813,10 +904,10 @@ ChainLINK Support`
             </div>
           </div>
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setShowAddMerchant(false)}>
+            <Button variant="outline" onClick={() => setShowAddMerchant(false)} className="min-h-[44px]">
               Cancel
             </Button>
-            <Button onClick={handleAddMerchant}>
+            <Button onClick={handleAddMerchant} className="min-h-[44px]">
               Create Merchant
             </Button>
           </div>
