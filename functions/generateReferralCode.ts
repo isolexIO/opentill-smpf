@@ -17,9 +17,15 @@ Deno.serve(async (req) => {
     }
 
     // Get merchant
-    const merchants = await base44.asServiceRole.entities.Merchant.filter({ id: targetMerchantId });
+    let merchants = await base44.asServiceRole.entities.Merchant.filter({ id: targetMerchantId });
+    
+    // If not found by ID, try by owner_email (fallback for impersonation)
+    if ((!merchants || merchants.length === 0) && user.email) {
+      merchants = await base44.asServiceRole.entities.Merchant.filter({ owner_email: user.email });
+    }
+
     if (!merchants || merchants.length === 0) {
-      return Response.json({ error: 'Merchant not found' }, { status: 404 });
+      return Response.json({ error: 'Merchant not found', merchant_id: targetMerchantId }, { status: 404 });
     }
 
     const merchant = merchants[0];
