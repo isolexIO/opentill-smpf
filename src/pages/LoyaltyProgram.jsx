@@ -67,8 +67,14 @@ export default function LoyaltyProgramPage() {
       setProducts(productsList);
       
       if (merchantList.length > 0) {
-        setSettings(merchantList[0]);
-        setLoyaltySettings(merchantList[0].settings?.loyalty_program || loyaltySettings);
+        const m = merchantList[0];
+        setSettings(m);
+        setLoyaltySettings(m.settings?.loyalty_program || loyaltySettings);
+
+        // Load merchant's $DUC vault balance
+        const vaultRewards = await base44.entities.cLINKReward.filter({ merchant_id: user.merchant_id, status: 'available' });
+        const vaultBalance = vaultRewards.reduce((sum, r) => sum + r.amount, 0);
+        setMerchantVaultBalance(vaultBalance);
       }
     } catch (error) {
       console.error('Error loading loyalty data:', error);
