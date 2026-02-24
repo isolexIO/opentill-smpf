@@ -242,7 +242,28 @@ export default function EmployeeManagementPage() {
             </TabsList>
 
             <TabsContent value="employees">
-              <Card className="dark:bg-gray-800 dark:border-gray-700">
+              {/* Mobile card layout */}
+              <div className="md:hidden">
+                <div className="relative mb-4">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Input
+                    placeholder="Search employees..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                {filteredEmployees.map(emp => (
+                  <MobileUserCard
+                    key={emp.id}
+                    employee={emp}
+                    onEdit={(e) => { setEditingEmployee(e); setShowForm(true); }}
+                  />
+                ))}
+              </div>
+
+              {/* Desktop table */}
+              <Card className="hidden md:block dark:bg-gray-800 dark:border-gray-700">
                 <CardHeader>
                   <div className="flex justify-between items-center">
                     <CardTitle className="dark:text-white">Staff Directory</CardTitle>
