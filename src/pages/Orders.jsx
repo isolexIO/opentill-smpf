@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,8 +30,9 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
-  Calendar // Using Calendar icon for date filter
+  Calendar
 } from "lucide-react";
+import MobileOrderCard from '@/components/mobile/MobileOrderCard';
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 
 const ORDER_STATUS_CONFIG = {
