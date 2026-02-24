@@ -16,10 +16,8 @@ import DevicesTab from '../components/settings/DevicesTab';
 import DepartmentsTab from '../components/settings/DepartmentsTab';
 import CustomerDisplayTab from '../components/settings/CustomerDisplayTab';
 import CustomDomainTab from '../components/settings/CustomDomainTab';
-import WalletConnectionTab from '../components/settings/WalletConnectionTab';
+import WalletPaymentsTab from '../components/settings/WalletPaymentsTab';
 import SecurityTab from '../components/settings/SecurityTab';
-import SolanaPayTab from '../components/settings/SolanaPayTab';
-import Web3IdentityTab from '../components/settings/Web3IdentityTab';
 import TwoFactorTab from '../components/settings/TwoFactorTab';
 
 export default function SettingsPage() {
