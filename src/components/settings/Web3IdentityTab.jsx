@@ -131,7 +131,7 @@ export default function Web3IdentityTab({ merchant }) {
                   </Button>
                 </div>
                 <div className="text-2xl font-bold text-purple-900 break-all">
-                  {subdomain}.opentill-pos.sol
+                  {subdomain}.openTILL.sol
                 </div>
               </div>
 
