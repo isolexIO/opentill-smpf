@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import PullToRefresh from "@/components/mobile/PullToRefresh";
+import PageTransition from "@/components/mobile/PageTransition";
 import {
   Select,
   SelectContent,
@@ -205,7 +207,8 @@ export default function OrdersPage() {
   const stats = getOrderStats();
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
+    <PageTransition>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
       {/* Header */}
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 md:p-6 sticky top-0 z-10">
         <div className="flex items-center justify-between mb-4">
@@ -271,23 +274,25 @@ export default function OrdersPage() {
         </div>
       </div>
 
-      {/* Mobile card list */}
-      <div className="md:hidden p-4 space-y-1">
-        {loading ? (
-          <div className="flex justify-center py-12"><RefreshCw className="w-6 h-6 animate-spin text-blue-500" /></div>
-        ) : filteredOrders.length === 0 ? (
-          <p className="text-center text-gray-500 py-12">No orders found</p>
-        ) : (
-          filteredOrders.map(order => (
-            <MobileOrderCard
-              key={order.id}
-              order={order}
-              isSelected={selectedOrder?.id === order.id}
-              onClick={() => setSelectedOrder(order === selectedOrder ? null : order)}
-            />
-          ))
-        )}
-      </div>
+      {/* Mobile card list with pull-to-refresh */}
+      <PullToRefresh onRefresh={loadOrders}>
+        <div className="md:hidden p-4 space-y-1">
+          {loading ? (
+            <div className="flex justify-center py-12"><RefreshCw className="w-6 h-6 animate-spin text-blue-500" /></div>
+          ) : filteredOrders.length === 0 ? (
+            <p className="text-center text-gray-500 py-12">No orders found</p>
+          ) : (
+            filteredOrders.map(order => (
+              <MobileOrderCard
+                key={order.id}
+                order={order}
+                isSelected={selectedOrder?.id === order.id}
+                onClick={() => setSelectedOrder(order === selectedOrder ? null : order)}
+              />
+            ))
+          )}
+        </div>
+      </PullToRefresh>
 
       {/* Desktop Two Column Layout */}
       <div className="hidden md:flex flex-1 overflow-hidden"> 
@@ -612,7 +617,8 @@ export default function OrdersPage() {
             </CardContent>
           </Card>
         </div>
-      </div>
-    </div>
-  );
-}
+        </div>
+        </div>
+        </PageTransition>
+        );
+        }
