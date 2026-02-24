@@ -210,33 +210,33 @@ export default function SystemLogs() {
         </div>
 
         {/* Mobile card layout */}
-        <div className="md:hidden space-y-3">
-          {loading ? (
-            <div className="text-center py-8">
-              <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2" />
-              <p>Loading logs...</p>
-            </div>
-          ) : filteredLogs.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">No logs found</div>
-          ) : (
-            filteredLogs.map((log) => (
-              <div key={log.id} className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                <div className="flex items-start gap-2 mb-2">
-                  {getSeverityIcon(log.severity)}
-                  {getSeverityBadge(log.severity)}
-                </div>
-                <p className="font-semibold text-gray-900 dark:text-white mb-2">{log.action}</p>
-                <div className="space-y-1 text-sm">
-                  <div className="flex justify-between"><span className="text-gray-500">Type:</span><Badge variant="outline" className="text-xs">{log.log_type.replace(/_/g, ' ')}</Badge></div>
-                  <div className="flex justify-between"><span className="text-gray-500">User:</span><span>{log.user_email || 'System'}</span></div>
-                  <div className="flex justify-between"><span className="text-gray-500">Time:</span><span>{new Date(log.created_date).toLocaleString()}</span></div>
-                  {log.description && <p className="text-gray-600 dark:text-gray-400 mt-2">{log.description}</p>}
-                  {log.ip_address && <div className="text-xs text-gray-500 mt-2">IP: {log.ip_address}</div>}
-                </div>
-              </div>
-            ))
-          )}
-        </div>
+         <div className="md:hidden space-y-3 pb-safe">
+           {loading ? (
+             <div className="text-center py-8">
+               <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2" />
+               <p>Loading logs...</p>
+             </div>
+           ) : filteredLogs.length === 0 ? (
+             <div className="text-center py-8 text-gray-500">No logs found</div>
+           ) : (
+             filteredLogs.map((log) => (
+               <div key={log.id} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                 <div className="flex items-start gap-2 mb-3">
+                   {getSeverityIcon(log.severity)}
+                   {getSeverityBadge(log.severity)}
+                 </div>
+                 <p className="font-semibold text-gray-900 dark:text-white mb-2">{log.action}</p>
+                 <div className="space-y-2 text-sm">
+                   <div className="flex justify-between"><span className="text-gray-500">Type:</span><Badge variant="outline" className="text-xs">{log.log_type.replace(/_/g, ' ')}</Badge></div>
+                   <div className="flex justify-between"><span className="text-gray-500">User:</span><span className="text-right">{log.user_email || 'System'}</span></div>
+                   <div className="flex justify-between"><span className="text-gray-500">Time:</span><span className="text-right text-xs">{new Date(log.created_date).toLocaleString()}</span></div>
+                   {log.description && <p className="text-gray-600 dark:text-gray-400 mt-2 pt-2 border-t">{log.description}</p>}
+                   {log.ip_address && <div className="text-xs text-gray-500 mt-2">IP: {log.ip_address}</div>}
+                 </div>
+               </div>
+             ))
+           )}
+         </div>
 
         {/* Desktop table layout */}
         <div className="hidden md:block border rounded-lg overflow-hidden">
