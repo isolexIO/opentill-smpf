@@ -192,13 +192,13 @@ export default function Web3IdentityTab({ merchant }) {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">What is a .chainlink-pos.sol subdomain?</CardTitle>
+          <CardTitle className="text-sm">What is a .opentill-pos.sol subdomain?</CardTitle>
         </CardHeader>
         <CardContent>
           <ul className="space-y-2 text-sm text-gray-600">
             <li className="flex items-start gap-2">
               <CheckCircle className="w-4 h-4 text-green-600 mt-0.5" />
-              <span>Acts as your unique Web3 identity within the ChainLINK POS ecosystem</span>
+              <span>Acts as your unique Web3 identity within the openTILL ecosystem</span>
             </li>
             <li className="flex items-start gap-2">
               <CheckCircle className="w-4 h-4 text-green-600 mt-0.5" />
