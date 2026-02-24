@@ -372,7 +372,7 @@ export default function UserManual() {
       content: [
         {
           title: 'What is $cLINK Vault?',
-          content: 'Cryptocurrency rewards program:\n• Earn $cLINK tokens for processing credit card payments\n• Earn 0.5% of CC processing volume in $cLINK\n• Stake $cLINK to earn APY\n• Swap $cLINK for other crypto via Jupiter\n• Rewards based on monthly processing volume\n\nExample:\n• Process $10,000 in card payments\n• Earn 0.5% = $50 worth of $cLINK\n• Stake for 12% APY\n• Compound rewards monthly\n\nAccess: Navigate to "$cLINK Vault" from System Menu'
+          content: 'Cryptocurrency rewards program for openTILL merchants:\n• Earn $cLINK tokens for processing credit card payments\n• Earn 0.5% of your monthly CC processing volume in $cLINK\n• Stake $cLINK to earn APY (up to 20% for 365-day lockup)\n• Swap $cLINK for USDC or other tokens via Jupiter DEX\n• Rewards calculated automatically at month-end\n\nExample:\n• Process $10,000 in card payments\n• Earn 0.5% = $50 worth of $cLINK\n• Stake for 12% APY\n• Compound rewards monthly\n\nAccess: Navigate to "$cLINK Vault" from System Menu\n\nRequirement: Connect a Solana wallet in Settings → Wallet & Payments first'
         },
         {
           title: 'Earning Rewards',
