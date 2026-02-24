@@ -157,35 +157,42 @@ export default function DealerManagement() {
     }
   };
 
-  const handleImpersonateDealer = async (dealerId) => {
+  const handleImpersonateDealer = async (dealer) => {
     try {
-      // Find the dealer admin user for this dealer
-      const users = await base44.entities.User.filter({
-        dealer_id: dealerId,
-        role: 'dealer_admin'
-      });
+      const currentUser = await base44.auth.me();
 
-      if (!users || users.length === 0) {
-        alert('No dealer admin user found for this dealer');
-        return;
-      }
-
-      const dealerUser = users[0];
-
-      // Store impersonation data in localStorage
-      const impersonationData = {
-        ...dealerUser,
-        is_impersonating: true,
-        original_admin_email: (await base44.auth.me()).email
+      // Build a synthetic dealer session that matches what dealerAuth login produces
+      const dealerData = {
+        id: dealer.id,
+        name: dealer.name,
+        slug: dealer.slug,
+        owner_email: dealer.owner_email,
+        owner_name: dealer.owner_name,
+        primary_color: dealer.primary_color,
+        secondary_color: dealer.secondary_color,
+        logo_url: dealer.logo_url,
+        status: dealer.status,
+        commission_percent: dealer.commission_percent,
       };
 
-      localStorage.setItem('pinLoggedInUser', JSON.stringify(impersonationData));
+      const syntheticUser = {
+        id: dealer.id,
+        full_name: dealer.owner_name || dealer.name,
+        email: dealer.owner_email,
+        role: 'dealer_admin',
+        dealer_id: dealer.id,
+        is_impersonating: true,
+        original_admin_email: currentUser.email
+      };
 
-      // Redirect to dealer dashboard
+      localStorage.setItem('dealerToken', 'impersonation_' + dealer.id);
+      localStorage.setItem('dealerData', JSON.stringify(dealerData));
+      localStorage.setItem('pinLoggedInUser', JSON.stringify(syntheticUser));
+
       window.location.href = createPageUrl('DealerDashboard');
     } catch (error) {
-      console.error('Error impersonating dealer:', error);
-      alert('Failed to impersonate dealer');
+      console.error('Error impersonating ambassador:', error);
+      alert('Failed to impersonate ambassador');
     }
   };
 
