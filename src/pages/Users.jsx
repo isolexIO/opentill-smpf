@@ -18,6 +18,7 @@ import {
   LogOut
 } from 'lucide-react';
 import PermissionGate from '../components/PermissionGate';
+import MobileUserCard from '@/components/mobile/MobileUserCard';
 import EmployeeForm from '../components/users/EmployeeForm';
 import EmployeeList from '../components/users/EmployeeList';
 import PerformanceTab from '../components/users/PerformanceTab';
