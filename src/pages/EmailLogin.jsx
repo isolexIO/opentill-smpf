@@ -32,10 +32,7 @@ export default function EmailLoginPage() {
         if (user) redirectAfterLogin({ ...user, role: user.role });
       } catch { /* not logged in yet */ }
     };
-    // Only auto-check when landing on this page fresh (no hash / oauth params)
-    if (window.location.search.includes('token') || window.location.hash) {
-      checkAuth();
-    }
+    checkAuth();
   }, []);
 
   useEffect(() => {
