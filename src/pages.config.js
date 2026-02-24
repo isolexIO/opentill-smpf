@@ -54,6 +54,7 @@ import ChipDetail from './pages/ChipDetail';
 import Contact from './pages/Contact';
 import CustomerDisplay from './pages/CustomerDisplay';
 import Customers from './pages/Customers';
+import DUCVault from './pages/DUCVault';
 import DealerAdmin from './pages/DealerAdmin';
 import DealerDashboard from './pages/DealerDashboard';
 import DealerHome from './pages/DealerHome';
@@ -90,7 +91,6 @@ import TermsOfService from './pages/TermsOfService';
 import Users from './pages/Users';
 import WalletLoginPage from './pages/WalletLoginPage';
 import cLINKVault from './pages/cLINKVault';
-import DUCVault from './pages/DUCVault';
 import __Layout from './Layout.jsx';
 
 
@@ -102,6 +102,7 @@ export const PAGES = {
     "Contact": Contact,
     "CustomerDisplay": CustomerDisplay,
     "Customers": Customers,
+    "DUCVault": DUCVault,
     "DealerAdmin": DealerAdmin,
     "DealerDashboard": DealerDashboard,
     "DealerHome": DealerHome,
@@ -138,7 +139,6 @@ export const PAGES = {
     "Users": Users,
     "WalletLoginPage": WalletLoginPage,
     "cLINKVault": cLINKVault,
-    "DUCVault": DUCVault,
 }
 
 export const pagesConfig = {

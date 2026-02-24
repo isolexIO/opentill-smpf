@@ -17,6 +17,7 @@ import DepartmentsTab from '../components/settings/DepartmentsTab';
 import CustomerDisplayTab from '../components/settings/CustomerDisplayTab';
 import CustomDomainTab from '../components/settings/CustomDomainTab';
 import WalletPaymentsTab from '../components/settings/WalletPaymentsTab';
+import StaffManagementTab from '../components/settings/StaffManagementTab';
 import SecurityTab from '../components/settings/SecurityTab';
 import TwoFactorTab from '../components/settings/TwoFactorTab';
 
