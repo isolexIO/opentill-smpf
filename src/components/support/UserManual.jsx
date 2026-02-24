@@ -683,8 +683,8 @@ export default function UserManual() {
           content: 'NFT-gated premium features. Purchase NFTs from Solana marketplaces (Magic Eden, Tensor) to unlock advanced features like Premium Analytics, Multi-Location, API Access, White Label, etc. Connect wallet to verify ownership. No recurring subscription fees - one-time NFT purchase. Features unlocked instantly and remain active as long as you hold the NFT.'
         },
         {
-          title: 'How do I get a .chainlink-pos.sol subdomain?',
-          content: 'Request during merchant onboarding or later in Settings → Subdomain. Choose your preferred name (letters, numbers, hyphens). Submit request. Super Admin approves and generates subdomain. Use for branding and online menu. Link to Solana wallet for Web3 identity. No renewal fees.'
+          title: 'How do I get a .opentill-pos.sol subdomain?',
+          content: 'Request during merchant onboarding or later in Settings → General. Choose your preferred name (letters, numbers, hyphens). Submit request. Super Admin approves and generates subdomain. Use for branding, online menu, and Web3 identity. Link to Solana wallet for crypto payments. No renewal fees.'
         },
         {
           title: 'Can I white label ChainLINK?',
