@@ -572,9 +572,14 @@ export default function Layout({ children, currentPageName }) {
           </div>
         )}
 
-        <main className="flex-1">
+        <main className="flex-1 pb-safe">
           {children}
         </main>
+
+        {/* Mobile Bottom Nav (only for authenticated non-public pages) */}
+        {!PUBLIC_PAGES.includes(currentPageName) && pinUser && (
+          <MobileBottomNav currentPageName={currentPageName} />
+        )}
       </div>
 
       {!dealer?.settings?.hide_opentill_branding && !PUBLIC_PAGES.includes(currentPageName) && (
