@@ -20,11 +20,31 @@ Deno.serve(async (req) => {
 
     if (action === 'activate') {
       // Activate merchant with trial
+      const merchant = await base44.asServiceRole.entities.Merchant.list({ id: merchant_id });
+      const merchantData = merchant?.[0];
+      
+      if (!merchantData) {
+        return Response.json({ error: 'Merchant not found' }, { status: 404 });
+      }
+
       const updated = await base44.asServiceRole.entities.Merchant.update(merchant_id, {
         status: 'trial',
         activated_at: now,
         trial_ends_at: trialEndDate
       });
+
+      // Send activation email
+      try {
+        await base44.asServiceRole.integrations.Core.SendEmail({
+          to: merchantData.owner_email,
+          subject: 'Your openTILL Account Has Been Activated',
+          body: `Dear ${merchantData.owner_name || 'Merchant'},\n\nCongratulations! Your openTILL account has been activated.\n\nBusiness Name: ${merchantData.business_name}\nTrial Period: 30 days\nTrial Expires: ${new Date(trialEndDate).toLocaleDateString()}\n\nYou can now log in and start using openTILL.\n\nBest regards,\nThe openTILL Team`
+        });
+      } catch (emailError) {
+        console.error('Failed to send activation email:', emailError);
+        // Continue anyway - activation was successful
+      }
+
       return Response.json({ success: true, merchant_id, data: updated });
     } else if (action === 'reject') {
       // Reject/cancel merchant registration
