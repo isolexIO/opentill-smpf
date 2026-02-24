@@ -25,6 +25,8 @@ import {
 // This import is necessary for the `return <Home />` statement to be valid.
 import Home from '@/pages/Home';
 import NotificationBanner from '@/components/notifications/NotificationBanner';
+import MobileBottomNav from '@/components/mobile/MobileBottomNav';
+import { useNavigate } from 'react-router-dom';
 
 const PUBLIC_PAGES = ['Home', 'PinLogin', 'EmailLogin', 'WalletLoginPage', 'OnlineMenu', 'CustomerDisplay', 'KitchenDisplay', 'MerchantOnboarding', 'POS', 'PrivacyPolicy', 'TermsOfService', 'About', 'Contact', 'DeviceShop', 'DealerLanding', 'DealerDashboard', 'DealerHome', 'SuperAdmin', 'Marketplace', 'ChipDetail'];
 
