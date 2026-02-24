@@ -34,7 +34,10 @@ function PublicLayout({ children }) {
   return <div className="min-h-screen">{children}</div>;
 }
 
+const ROOT_PAGES = ['Home', 'SystemMenu', 'PinLogin', 'EmailLogin', 'WalletLoginPage', 'MerchantOnboarding'];
+
 export default function Layout({ children, currentPageName }) {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [pinUser, setPinUser] = useState(null);
   const [dealer, setDealer] = useState(null);
