@@ -543,12 +543,44 @@ export default function GeneralTab({ merchant, onSave, saving }) {
       </Card>
 
       {/* Save Button */}
-      <div className="flex justify-end">
+      <div className="flex justify-end mb-6">
         <Button onClick={handleSave} size="lg" disabled={saving}>
           <Save className="w-4 h-4 mr-2" />
           {saving ? 'Saving...' : 'Save Changes'}
         </Button>
       </div>
+
+      {/* Delete Account Section */}
+      <Card className="border-red-200 dark:border-red-800">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-red-600 dark:text-red-400">
+            <AlertCircle className="w-5 h-5" />
+            Danger Zone
+          </CardTitle>
+          <CardDescription>Irreversible account actions</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg space-y-4">
+            <div>
+              <h4 className="font-semibold text-red-700 dark:text-red-400 flex items-center gap-2 mb-2">
+                <Trash2 className="w-4 h-4" />
+                Delete Merchant Account
+              </h4>
+              <p className="text-sm text-red-600 dark:text-red-300 mb-4">
+                Permanently delete your merchant account. This action cannot be undone. All customer data will be retained for legal/audit purposes.
+              </p>
+            </div>
+            <Button
+              variant="destructive"
+              onClick={() => window.location.href = `${window.location.pathname}#delete-account`}
+              className="w-full min-h-[44px]"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete My Merchant Account
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
