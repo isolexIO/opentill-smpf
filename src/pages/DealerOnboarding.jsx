@@ -1,19 +1,20 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Building2, CheckCircle, Loader2, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Building2, CheckCircle, Loader2, AlertCircle, Link2, ArrowRight, Rocket, Shield, DollarSign, Globe } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 
+const STEPS = ['Account Info', 'Your Brand', 'Review'];
+
 export default function DealerOnboarding() {
+  const [step, setStep] = useState(0);
   const [formData, setFormData] = useState({
-    dealer_name: '',
-    owner_name: '',
-    owner_email: '',
-    contact_phone: '',
-    slug: ''
+    dealer_name: '', owner_name: '', owner_email: '', contact_phone: '', slug: '',
+    primary_color: '#10b981', secondary_color: '#7c3aed'
   });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -21,106 +22,83 @@ export default function DealerOnboarding() {
   const [error, setError] = useState('');
 
   const handleSlugChange = (value) => {
-    const sanitized = value.toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 30);
-    setFormData({ ...formData, slug: sanitized });
+    setFormData({ ...formData, slug: value.toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 30) });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+  const nextStep = () => {
     setError('');
-
-    if (formData.slug.length < 3) {
-      setError('Slug must be at least 3 characters long');
-      setLoading(false);
-      return;
+    if (step === 0) {
+      if (!formData.dealer_name || !formData.owner_name || !formData.owner_email) {
+        setError('Please fill in all required fields'); return;
+      }
     }
+    if (step === 1 && formData.slug.length < 3) {
+      setError('Slug must be at least 3 characters'); return;
+    }
+    setStep(s => s + 1);
+  };
 
+  const handleSubmit = async () => {
+    setLoading(true); setError('');
     try {
-      const response = await base44.functions.invoke('createDealerAccount', formData);
-
-      if (response.success) {
+      const { data } = await base44.functions.invoke('createDealerAccount', formData);
+      if (data?.success || data?.dealer) {
         setCredentials({
-          pin: response.credentials.pin,
-          email: response.user.email,
-          temp_password: response.credentials.temp_password,
-          slug: response.dealer.slug
+          pin: data.credentials?.pin,
+          email: data.user?.email,
+          temp_password: data.credentials?.temp_password,
+          slug: data.dealer?.slug
         });
         setSuccess(true);
       } else {
-        setError(response.error || 'Failed to create dealer account');
+        setError(data?.error || 'Failed to create account');
       }
     } catch (err) {
-      console.error('Dealer signup error:', err);
-      setError(err.message || 'Failed to create dealer account. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+      setError(err.message || 'Failed to create account. Please try again.');
+    } finally { setLoading(false); }
   };
 
   if (success && credentials) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
-        <Card className="w-full max-w-2xl dark:bg-gray-800 dark:border-gray-700">
-          <CardHeader className="text-center">
-            <div className="mx-auto w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mb-4">
-              <CheckCircle className="w-10 h-10 text-green-600 dark:text-green-400" />
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900 flex items-center justify-center p-4">
+        <Card className="w-full max-w-lg bg-white/8 border-white/15 backdrop-blur-xl">
+          <CardContent className="p-8 text-center space-y-6">
+            <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto">
+              <CheckCircle className="w-10 h-10 text-emerald-400" />
             </div>
-            <CardTitle className="text-2xl dark:text-white">Dealer Account Created!</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-6">
-              <h3 className="font-semibold text-lg mb-4 dark:text-white">Your Login Credentials</h3>
-              <div className="space-y-3">
-                <div>
-                  <Label className="text-gray-600 dark:text-gray-300">Email</Label>
-                  <div className="font-mono bg-white dark:bg-gray-700 p-3 rounded border dark:border-gray-600 dark:text-white">
-                    {credentials.email}
-                  </div>
-                </div>
-                <div>
-                  <Label className="text-gray-600 dark:text-gray-300">6-Digit PIN</Label>
-                  <div className="font-mono text-2xl font-bold bg-white dark:bg-gray-700 p-3 rounded border dark:border-gray-600 dark:text-white">
-                    {credentials.pin}
-                  </div>
-                </div>
-                <div>
-                  <Label className="text-gray-600 dark:text-gray-300">Temporary Password</Label>
-                  <div className="font-mono bg-white dark:bg-gray-700 p-3 rounded border dark:border-gray-600 dark:text-white break-all">
-                    {credentials.temp_password}
-                  </div>
-                </div>
-                <div>
-                  <Label className="text-gray-600 dark:text-gray-300">Your Dealer URL</Label>
-                  <div className="font-mono bg-white dark:bg-gray-700 p-3 rounded border dark:border-gray-600 dark:text-white">
-                    https://{credentials.slug}.chainlinkpos.isolex.io
-                  </div>
-                </div>
-              </div>
+            <div>
+              <h2 className="text-2xl font-black text-white mb-1">You're In! 🎉</h2>
+              <p className="text-white/50 text-sm">Your ambassador account is ready. Here are your credentials.</p>
             </div>
-
-            <div className="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4">
-              <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                <strong>Important:</strong> Check your email for detailed setup instructions. These credentials have also been sent to your email address.
-              </p>
+            <div className="space-y-3 text-left">
+              {[
+                { label: 'Email', value: credentials.email },
+                { label: '6-Digit PIN', value: credentials.pin },
+                { label: 'Temp Password', value: credentials.temp_password },
+                { label: 'Your Portal URL', value: `https://${credentials.slug}.chainlinkpos.isolex.io` },
+              ].map((item, i) => (
+                <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-3">
+                  <div className="text-white/40 text-xs uppercase tracking-wide mb-1">{item.label}</div>
+                  <div className="text-white font-mono text-sm break-all">{item.value}</div>
+                </div>
+              ))}
             </div>
-
-            <div className="space-y-3">
-              <h4 className="font-semibold dark:text-white">Next Steps:</h4>
-              <ol className="list-decimal list-inside space-y-2 text-gray-600 dark:text-gray-300">
-                <li>Log in to your dealer dashboard</li>
-                <li>Configure your white-label branding</li>
-                <li>Set up Stripe Connect for commission payouts</li>
-                <li>Customize your dealer landing page</li>
-                <li>Start inviting merchants to your platform!</li>
+            <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-3 text-yellow-200 text-xs text-left">
+              <strong>Important:</strong> Save these credentials and check your email for setup instructions.
+            </div>
+            <div className="space-y-2">
+              <h4 className="text-white font-semibold text-sm text-left">Next Steps:</h4>
+              <ol className="text-left space-y-1 text-white/50 text-sm">
+                {['Log in and complete your branding', 'Set up Stripe Connect for payouts', 'Customize your landing page', 'Start inviting merchants!'].map((s, i) => (
+                  <li key={i} className="flex items-center gap-2"><span className="text-emerald-400 font-bold">{i + 1}.</span> {s}</li>
+                ))}
               </ol>
             </div>
-
-            <Button 
-              className="w-full" 
-              size="lg"
-              onClick={() => window.location.href = createPageUrl('PinLogin')}
+            <Button
+              className="w-full bg-gradient-to-r from-emerald-500 to-purple-600 hover:from-emerald-400 hover:to-purple-500 text-white font-semibold"
+              onClick={() => window.location.href = createPageUrl('EmailLogin')}
             >
+              <ArrowRight className="w-4 h-4 mr-2" />
               Go to Login
             </Button>
           </CardContent>
@@ -130,126 +108,208 @@ export default function DealerOnboarding() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl dark:bg-gray-800 dark:border-gray-700">
-        <CardHeader className="text-center">
-          <div className="mx-auto w-16 h-16 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center mb-4">
-            <Building2 className="w-10 h-10 text-purple-600 dark:text-purple-400" />
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900 flex items-center justify-center p-4">
+      <div className="w-full max-w-lg space-y-6">
+        {/* Logo */}
+        <div className="text-center">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-400 to-purple-600 flex items-center justify-center mx-auto mb-3">
+            <Link2 className="w-7 h-7 text-white" />
           </div>
-          <CardTitle className="text-2xl dark:text-white">Become a ChainLINK Dealer</CardTitle>
-          <p className="text-gray-500 dark:text-gray-400 mt-2">
-            White-label POS platform with commission-based revenue
-          </p>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <h1 className="text-2xl font-black text-white">Become an openTILL Ambassador</h1>
+          <p className="text-white/50 text-sm mt-1">White-label POS · Recurring commissions · 30-day free trial</p>
+        </div>
+
+        {/* Step indicator */}
+        <div className="flex items-center justify-center gap-2">
+          {STEPS.map((s, i) => (
+            <React.Fragment key={i}>
+              <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                i === step ? 'bg-emerald-500 text-white' : i < step ? 'bg-emerald-900/50 text-emerald-400' : 'bg-white/5 text-white/30'
+              }`}>
+                {i < step ? <CheckCircle className="w-3 h-3" /> : <span>{i + 1}</span>}
+                {s}
+              </div>
+              {i < STEPS.length - 1 && <div className={`h-px w-6 ${i < step ? 'bg-emerald-500' : 'bg-white/10'}`} />}
+            </React.Fragment>
+          ))}
+        </div>
+
+        <Card className="bg-white/8 border-white/15 backdrop-blur-xl">
+          <CardContent className="p-6">
             {error && (
-              <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg p-4 flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
-                <p className="text-red-800 dark:text-red-200 text-sm">{error}</p>
+              <Alert className="mb-4 bg-red-500/15 border-red-400/30">
+                <AlertCircle className="h-4 w-4 text-red-300" />
+                <AlertDescription className="text-red-200">{error}</AlertDescription>
+              </Alert>
+            )}
+
+            {/* STEP 0: Account Info */}
+            {step === 0 && (
+              <div className="space-y-4">
+                <h2 className="text-lg font-bold text-white mb-4">Account Information</h2>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-white/60 text-xs">Company Name *</Label>
+                    <Input placeholder="Acme POS Co."
+                      value={formData.dealer_name}
+                      onChange={e => setFormData({ ...formData, dealer_name: e.target.value })}
+                      className="bg-white/5 border-white/15 text-white placeholder:text-white/20 focus:border-emerald-500"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-white/60 text-xs">Your Name *</Label>
+                    <Input placeholder="Jane Smith"
+                      value={formData.owner_name}
+                      onChange={e => setFormData({ ...formData, owner_name: e.target.value })}
+                      className="bg-white/5 border-white/15 text-white placeholder:text-white/20 focus:border-emerald-500"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-white/60 text-xs">Email Address *</Label>
+                  <Input type="email" placeholder="jane@acmepos.com"
+                    value={formData.owner_email}
+                    onChange={e => setFormData({ ...formData, owner_email: e.target.value })}
+                    className="bg-white/5 border-white/15 text-white placeholder:text-white/20 focus:border-emerald-500"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-white/60 text-xs">Phone</Label>
+                  <Input type="tel" placeholder="(555) 123-4567"
+                    value={formData.contact_phone}
+                    onChange={e => setFormData({ ...formData, contact_phone: e.target.value })}
+                    className="bg-white/5 border-white/15 text-white placeholder:text-white/20 focus:border-emerald-500"
+                  />
+                </div>
+                <div className="grid grid-cols-3 gap-3 pt-2">
+                  {[
+                    { icon: DollarSign, text: '10–30% recurring commission' },
+                    { icon: Globe, text: 'Custom domain & SSL' },
+                    { icon: Shield, text: '30-day free trial' },
+                  ].map((b, i) => (
+                    <div key={i} className="flex flex-col items-center text-center gap-1 p-3 bg-emerald-500/5 border border-emerald-500/15 rounded-xl">
+                      <b.icon className="w-5 h-5 text-emerald-400" />
+                      <span className="text-white/50 text-xs">{b.text}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="dealer_name" className="dark:text-gray-200">Dealer/Company Name *</Label>
-                <Input
-                  id="dealer_name"
-                  value={formData.dealer_name}
-                  onChange={(e) => setFormData({ ...formData, dealer_name: e.target.value })}
-                  placeholder="Your Company Name"
-                  required
-                  className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                />
+            {/* STEP 1: Branding */}
+            {step === 1 && (
+              <div className="space-y-4">
+                <h2 className="text-lg font-bold text-white mb-4">Your Brand Identity</h2>
+                <div className="space-y-1">
+                  <Label className="text-white/60 text-xs">Portal Slug (URL) *</Label>
+                  <Input placeholder="yourcompany"
+                    value={formData.slug}
+                    onChange={e => handleSlugChange(e.target.value)}
+                    className="bg-white/5 border-white/15 text-white placeholder:text-white/20 focus:border-emerald-500"
+                  />
+                  <p className="text-white/30 text-xs">
+                    Portal URL: https://<span className="text-emerald-400">{formData.slug || 'yourcompany'}</span>.chainlinkpos.isolex.io
+                  </p>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-white/60 text-xs">Primary Color</Label>
+                    <div className="flex items-center gap-2 bg-white/5 border border-white/15 rounded-md px-3 py-2">
+                      <input type="color" value={formData.primary_color}
+                        onChange={e => setFormData({ ...formData, primary_color: e.target.value })}
+                        className="w-8 h-8 rounded cursor-pointer border-0 bg-transparent"
+                      />
+                      <span className="text-white font-mono text-sm">{formData.primary_color}</span>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-white/60 text-xs">Secondary Color</Label>
+                    <div className="flex items-center gap-2 bg-white/5 border border-white/15 rounded-md px-3 py-2">
+                      <input type="color" value={formData.secondary_color}
+                        onChange={e => setFormData({ ...formData, secondary_color: e.target.value })}
+                        className="w-8 h-8 rounded cursor-pointer border-0 bg-transparent"
+                      />
+                      <span className="text-white font-mono text-sm">{formData.secondary_color}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-4 rounded-xl border border-white/10" style={{
+                  background: `linear-gradient(135deg, ${formData.primary_color}22, ${formData.secondary_color}22)`
+                }}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{
+                      background: `linear-gradient(135deg, ${formData.primary_color}, ${formData.secondary_color})`
+                    }}>
+                      <Building2 className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <div className="text-white font-bold text-sm">{formData.dealer_name || 'Your Company'}</div>
+                      <div className="text-white/40 text-xs">Point of Sale</div>
+                    </div>
+                  </div>
+                  <p className="text-white/40 text-xs mt-2">Preview of your branded navbar</p>
+                </div>
               </div>
-              <div>
-                <Label htmlFor="owner_name" className="dark:text-gray-200">Your Name *</Label>
-                <Input
-                  id="owner_name"
-                  value={formData.owner_name}
-                  onChange={(e) => setFormData({ ...formData, owner_name: e.target.value })}
-                  placeholder="John Doe"
-                  required
-                  className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                />
+            )}
+
+            {/* STEP 2: Review */}
+            {step === 2 && (
+              <div className="space-y-4">
+                <h2 className="text-lg font-bold text-white mb-4">Review & Confirm</h2>
+                <div className="space-y-2">
+                  {[
+                    { label: 'Company', value: formData.dealer_name },
+                    { label: 'Owner', value: formData.owner_name },
+                    { label: 'Email', value: formData.owner_email },
+                    { label: 'Phone', value: formData.contact_phone || 'Not provided' },
+                    { label: 'Portal Slug', value: formData.slug },
+                  ].map((item, i) => (
+                    <div key={i} className="flex justify-between items-center py-2 border-b border-white/5">
+                      <span className="text-white/40 text-sm">{item.label}</span>
+                      <span className="text-white text-sm font-medium">{item.value}</span>
+                    </div>
+                  ))}
+                  <div className="flex justify-between items-center py-2">
+                    <span className="text-white/40 text-sm">Brand Colors</span>
+                    <div className="flex gap-2">
+                      <div className="w-5 h-5 rounded-full border border-white/20" style={{ background: formData.primary_color }} />
+                      <div className="w-5 h-5 rounded-full border border-white/20" style={{ background: formData.secondary_color }} />
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 text-emerald-300 text-xs">
+                  ✓ 30-day free trial · No credit card required · 10–30% recurring commissions
+                </div>
               </div>
-            </div>
+            )}
 
-            <div>
-              <Label htmlFor="owner_email" className="dark:text-gray-200">Email Address *</Label>
-              <Input
-                id="owner_email"
-                type="email"
-                value={formData.owner_email}
-                onChange={(e) => setFormData({ ...formData, owner_email: e.target.value })}
-                placeholder="your@email.com"
-                required
-                className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="contact_phone" className="dark:text-gray-200">Phone Number</Label>
-              <Input
-                id="contact_phone"
-                type="tel"
-                value={formData.contact_phone}
-                onChange={(e) => setFormData({ ...formData, contact_phone: e.target.value })}
-                placeholder="(555) 123-4567"
-                className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="slug" className="dark:text-gray-200">Dealer Slug (URL) *</Label>
-              <div className="relative">
-                <Input
-                  id="slug"
-                  value={formData.slug}
-                  onChange={(e) => handleSlugChange(e.target.value)}
-                  placeholder="yourcompany"
-                  required
-                  pattern="[a-z0-9-]{3,30}"
-                  className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                />
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Your URL: https://{formData.slug || 'yourcompany'}.chainlinkpos.isolex.io
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 text-sm text-gray-600 dark:text-gray-300">
-              <p className="font-semibold mb-2 dark:text-white">Dealer Benefits:</p>
-              <ul className="list-disc list-inside space-y-1">
-                <li>20% commission on all merchant transactions</li>
-                <li>White-label branding with your logo and colors</li>
-                <li>Custom domain support</li>
-                <li>Stripe Connect automated payouts</li>
-                <li>Merchant management dashboard</li>
-                <li>30-day free trial</li>
-              </ul>
-            </div>
-
-            <Button type="submit" className="w-full" size="lg" disabled={loading}>
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Creating Dealer Account...
-                </>
-              ) : (
-                'Create Dealer Account'
+            <div className="flex gap-3 mt-6">
+              {step > 0 && (
+                <Button variant="outline" onClick={() => setStep(s => s - 1)}
+                  className="flex-1 bg-white/5 border-white/15 text-white hover:bg-white/10">
+                  Back
+                </Button>
               )}
-            </Button>
+              {step < STEPS.length - 1 ? (
+                <Button onClick={nextStep}
+                  className="flex-1 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-semibold">
+                  Continue <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              ) : (
+                <Button onClick={handleSubmit} disabled={loading}
+                  className="flex-1 bg-gradient-to-r from-emerald-500 to-purple-600 hover:from-emerald-400 hover:to-purple-500 text-white font-semibold">
+                  {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Creating...</> : <><Rocket className="w-4 h-4 mr-2" /> Launch My Platform</>}
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
-            <p className="text-center text-sm text-gray-500 dark:text-gray-400">
-              Already a dealer?{' '}
-              <a href={createPageUrl('PinLogin')} className="text-purple-600 dark:text-purple-400 hover:underline">
-                Sign in
-              </a>
-            </p>
-          </form>
-        </CardContent>
-      </Card>
+        <p className="text-center text-white/30 text-xs">
+          Already an ambassador?{' '}
+          <a href={createPageUrl('DealerLanding')} className="text-emerald-400 hover:underline">Sign in →</a>
+        </p>
+      </div>
     </div>
   );
 }
