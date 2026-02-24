@@ -463,8 +463,8 @@ export default function UserManual() {
       color: 'text-purple-600',
       content: [
         {
-          title: 'What is ChainLINK Subdomain?',
-          content: 'Get your .chainlink-pos.sol domain:\n• Unique Solana-based subdomain\n• Example: yourstore.chainlink-pos.sol\n• Blockchain-verified ownership\n• Use for branding\n• Link to online menu\n• Free for active merchants\n\nBenefits:\n• Web3 identity\n• Easy to remember\n• Shareable URL\n• SEO friendly\n• No renewal fees\n• On-chain verification'
+          title: 'What is openTILL Subdomain?',
+          content: 'Get your .opentill-pos.sol domain:\n• Unique Solana-based subdomain\n• Example: yourstore.opentill-pos.sol\n• Blockchain-verified ownership\n• Use for branding\n• Link to your online menu\n• Free for active merchants\n\nBenefits:\n• Web3 identity\n• Easy to remember\n• Shareable URL\n• SEO friendly\n• No renewal fees\n• On-chain verification'
         },
         {
           title: 'Requesting Your Subdomain',
