@@ -334,6 +334,7 @@ export default function SettingsPage() {
     { id: 'devices', label: 'Hardware Devices', icon: Printer },
     { id: 'departments', label: 'Departments', icon: Layers },
     { id: 'display', label: 'Customer Display', icon: Monitor },
+    { id: 'web3identity', label: 'openTILL Identity', icon: Globe },
     { id: 'domain', label: 'Custom Domain', icon: Globe },
     { id: 'security', label: 'Security', icon: Shield }
   ];
