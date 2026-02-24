@@ -192,7 +192,7 @@ export default function Web3IdentityTab({ merchant }) {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">What is a .opentill-pos.sol subdomain?</CardTitle>
+          <CardTitle className="text-sm">What is a .openTILL.sol subdomain?</CardTitle>
         </CardHeader>
         <CardContent>
           <ul className="space-y-2 text-sm text-gray-600">
