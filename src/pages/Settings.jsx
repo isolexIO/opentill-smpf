@@ -330,7 +330,7 @@ export default function SettingsPage() {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => window.location.href = createPageUrl('SystemMenu')}
+                onClick={() => navigate(createPageUrl('SystemMenu'))}
               >
                 <ArrowLeft className="w-5 h-5" />
               </Button>
