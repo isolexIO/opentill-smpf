@@ -71,10 +71,21 @@ Deno.serve(async (req) => {
       // Send rejection email
       if (merchantData?.owner_email) {
         try {
-          await base44.asServiceRole.integrations.Core.SendEmail({
+          const transporter = nodemailer.createTransport({
+            host: Deno.env.get('SMTP_HOST'),
+            port: parseInt(Deno.env.get('SMTP_PORT') || '587'),
+            secure: false,
+            auth: {
+              user: Deno.env.get('SMTP_USER'),
+              pass: Deno.env.get('SMTP_PASS'),
+            },
+          });
+
+          await transporter.sendMail({
+            from: Deno.env.get('SMTP_USER'),
             to: merchantData.owner_email,
             subject: 'Your openTILL Application Status',
-            body: `Dear ${merchantData.owner_name || 'Applicant'},\n\nThank you for your interest in openTILL. Unfortunately, your application for ${merchantData.business_name} has been rejected by our team.\n\nIf you have any questions, please contact our support team.\n\nBest regards,\nThe openTILL Team`
+            text: `Dear ${merchantData.owner_name || 'Applicant'},\n\nThank you for your interest in openTILL. Unfortunately, your application for ${merchantData.business_name} has been rejected by our team.\n\nIf you have any questions, please contact our support team.\n\nBest regards,\nThe openTILL Team`,
           });
         } catch (emailError) {
           console.error('Failed to send rejection email:', emailError);
