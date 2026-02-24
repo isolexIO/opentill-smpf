@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { AlertCircle, Loader2, ArrowLeft, Settings as SettingsIcon, CreditCard, DollarSign, Monitor, Layers, ShoppingBag, Globe, Wallet, Shield, Printer, Trash2, Users } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { useNavigate } from 'react-router-dom';
