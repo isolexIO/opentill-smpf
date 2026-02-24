@@ -380,19 +380,15 @@ export default function GeneralTab({ merchant, onSave, saving }) {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="default-view">Default POS View</Label>
-            <Select
+            <SelectWrapper
               value={localSettings.defaultPosView}
               onValueChange={(value) => handleChange('defaultPosView', value)}
+              trigger="Select view"
             >
-              <SelectTrigger id="default-view">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="orders">Orders</SelectItem>
-                <SelectItem value="products">Products</SelectItem>
-                <SelectItem value="quick_service">Quick Service</SelectItem>
-              </SelectContent>
-            </Select>
+              <SelectItem value="orders">Orders</SelectItem>
+              <SelectItem value="products">Products</SelectItem>
+              <SelectItem value="quick_service">Quick Service</SelectItem>
+            </SelectWrapper>
           </div>
 
           <div className="flex items-center justify-between">
