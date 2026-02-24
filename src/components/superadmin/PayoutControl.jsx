@@ -66,11 +66,26 @@ export default function PayoutControl() {
 
   const handleApprove = async () => {
     try {
+      const user = await base44.auth.me();
       await base44.entities.DealerPayout.update(actionDialog.payout.id, {
         status: 'approved',
-        approved_by: (await base44.auth.me()).email,
+        approved_by: user.email,
         approved_at: new Date().toISOString()
       });
+
+      // Send notification
+      try {
+        await base44.functions.invoke('triggerManualPayoutNotification', {
+          ambassador_id: actionDialog.payout.dealer_id,
+          action: 'approved',
+          reason: 'Payout approved by administrator',
+          amount: actionDialog.payout.commission_amount,
+          payout_id: actionDialog.payout.id
+        });
+      } catch (notifyError) {
+        console.error('Notification failed:', notifyError);
+      }
+
       await loadPayouts();
       setActionDialog({ open: false, payout: null, action: null });
     } catch (error) {
