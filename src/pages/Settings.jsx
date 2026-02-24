@@ -105,6 +105,23 @@ export default function SettingsPage() {
         }
       }
 
+      // Final fallback: look up by owner_email
+      if (!merchantData && currentUser.email) {
+        try {
+          const byEmail = await base44.entities.Merchant.filter({ owner_email: currentUser.email });
+          if (byEmail && byEmail.length > 0) {
+            merchantData = byEmail[0];
+            console.log('Settings: Loaded merchant via email fallback:', merchantData?.business_name);
+            // Update localStorage with correct merchant_id
+            const updated = { ...currentUser, merchant_id: merchantData.id };
+            localStorage.setItem('pinLoggedInUser', JSON.stringify(updated));
+            setUser(updated);
+          }
+        } catch (emailError) {
+          console.error('Settings: email fallback failed:', emailError);
+        }
+      }
+
       if (!merchantData) {
         throw new Error(`Merchant not found (ID: ${currentUser.merchant_id}). The merchant may have been deleted or you may not have access.`);
       }
