@@ -49,6 +49,7 @@ export default function DealerManagement() {
   const [dealers, setDealers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState('dealers');
   const [editDialog, setEditDialog] = useState({ open: false, dealer: null, tab: 'basic' });
 
   useEffect(() => {
