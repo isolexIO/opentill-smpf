@@ -276,7 +276,7 @@ export default function OrdersPage() {
 
       {/* Mobile card list with pull-to-refresh */}
       <PullToRefresh onRefresh={loadOrders}>
-        <div className="md:hidden p-4 space-y-1">
+        <div className="md:hidden p-4 space-y-1 pb-safe">
           {loading ? (
             <div className="flex justify-center py-12"><RefreshCw className="w-6 h-6 animate-spin text-blue-500" /></div>
           ) : filteredOrders.length === 0 ? (
