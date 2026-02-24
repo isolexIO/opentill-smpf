@@ -79,7 +79,7 @@ export default function Web3IdentityTab({ merchant }) {
                 openTILL Identity & Subdomain
               </CardTitle>
               <CardDescription>
-                Your unique .opentill-pos.sol subdomain identity
+                Your unique .openTILL.sol subdomain identity
               </CardDescription>
             </div>
             {getStatusBadge()}
