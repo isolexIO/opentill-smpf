@@ -454,9 +454,9 @@ export default function InventoryPage() {
             onComplete={handleRestockComplete}
           />
         )}
-        </div>
-        </div>
-        </PermissionGate>
-        </PageTransition>
-        );
-        }
+       </div>
+      </div>
+     </PermissionGate>
+    </PageTransition>
+  );
+}
