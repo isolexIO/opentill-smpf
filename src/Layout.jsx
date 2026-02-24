@@ -461,10 +461,7 @@ export default function Layout({ children, currentPageName }) {
                   {logoUrl ? (
                     <img src={logoUrl} alt={brandName} className="h-10" />
                   ) : (
-                    <div className="w-10 h-10 rounded-lg flex items-center justify-center"
-                         style={{background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`}}>
-                      <Link2 className="w-6 h-6 text-white" />
-                    </div>
+                    <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6970e2871534100b4ebb8d45/8e45f76fe_DUC3.png" alt="openTILL" className="w-10 h-10" />
                   )}
                   <div>
                     <span className="text-xl font-bold text-gray-900 dark:text-white">
