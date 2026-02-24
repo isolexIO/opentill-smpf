@@ -1,17 +1,20 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { ConnectionProvider, WalletProvider, useWallet } from '@solana/wallet-adapter-react';
 import { WalletModalProvider, WalletMultiButton } from '@solana/wallet-adapter-react-ui';
-import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
+import {
+  PhantomWalletAdapter,
+  SolflareWalletAdapter,
+  BackpackWalletAdapter,
+} from '@solana/wallet-adapter-wallets';
+import { SolanaMobileWalletAdapter, createDefaultAuthorizationResultCache, createDefaultAddressSelector } from '@solana-mobile/wallet-adapter-mobile';
 import { clusterApiUrl } from '@solana/web3.js';
 import '@solana/wallet-adapter-react-ui/styles.css';
-import { base44 } from '@/api/base44Client';
-import { Button } from '@/components/ui/button';
-import { Wallet, Link2, CheckCircle2 } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 
 function WalletConnectContent({ onWalletConnected }) {
   const { publicKey, connected } = useWallet();
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (connected && publicKey) {
       onWalletConnected(publicKey.toString());
     }
@@ -35,13 +38,36 @@ function WalletConnectContent({ onWalletConnected }) {
 
 export default function WalletConnectButton({ onWalletConnected }) {
   const endpoint = useMemo(() => clusterApiUrl('mainnet-beta'), []);
-  const wallets = useMemo(
-    () => [
+
+  const wallets = useMemo(() => {
+    const isMobile = /Android|webOS|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const adapters = [
       new PhantomWalletAdapter(),
-      new SolflareWalletAdapter()
-    ],
-    []
-  );
+      new SolflareWalletAdapter(),
+      new BackpackWalletAdapter(),
+    ];
+
+    if (isMobile) {
+      try {
+        adapters.unshift(
+          new SolanaMobileWalletAdapter({
+            addressSelector: createDefaultAddressSelector(),
+            appIdentity: {
+              name: 'openTILL',
+              uri: window.location.origin,
+              icon: `${window.location.origin}/favicon.ico`,
+            },
+            authorizationResultCache: createDefaultAuthorizationResultCache(),
+            cluster: 'mainnet-beta',
+          })
+        );
+      } catch (e) {
+        // silently skip
+      }
+    }
+
+    return adapters;
+  }, []);
 
   return (
     <ConnectionProvider endpoint={endpoint}>
