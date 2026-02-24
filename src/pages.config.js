@@ -55,6 +55,7 @@ import BuilderOnboarding from './pages/BuilderOnboarding';
 import Builders from './pages/Builders';
 import ChipDetail from './pages/ChipDetail';
 import Contact from './pages/Contact';
+import Copyright from './pages/Copyright';
 import CustomerDisplay from './pages/CustomerDisplay';
 import Customers from './pages/Customers';
 import DUCVault from './pages/DUCVault';
@@ -72,6 +73,7 @@ import EmailLogin from './pages/EmailLogin';
 import Home from './pages/Home';
 import Inventory from './pages/Inventory';
 import KitchenDisplay from './pages/KitchenDisplay';
+import License from './pages/License';
 import LoyaltyProgram from './pages/LoyaltyProgram';
 import Marketplace from './pages/Marketplace';
 import MerchantOnboarding from './pages/MerchantOnboarding';
@@ -95,8 +97,6 @@ import TermsOfService from './pages/TermsOfService';
 import Users from './pages/Users';
 import WalletLoginPage from './pages/WalletLoginPage';
 import cLINKVault from './pages/cLINKVault';
-import Copyright from './pages/Copyright';
-import License from './pages/License';
 import __Layout from './Layout.jsx';
 
 
@@ -109,6 +109,7 @@ export const PAGES = {
     "Builders": Builders,
     "ChipDetail": ChipDetail,
     "Contact": Contact,
+    "Copyright": Copyright,
     "CustomerDisplay": CustomerDisplay,
     "Customers": Customers,
     "DUCVault": DUCVault,
@@ -126,6 +127,7 @@ export const PAGES = {
     "Home": Home,
     "Inventory": Inventory,
     "KitchenDisplay": KitchenDisplay,
+    "License": License,
     "LoyaltyProgram": LoyaltyProgram,
     "Marketplace": Marketplace,
     "MerchantOnboarding": MerchantOnboarding,
@@ -149,8 +151,6 @@ export const PAGES = {
     "Users": Users,
     "WalletLoginPage": WalletLoginPage,
     "cLINKVault": cLINKVault,
-    "Copyright": Copyright,
-    "License": License,
 }
 
 export const pagesConfig = {
