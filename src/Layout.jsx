@@ -561,7 +561,7 @@ export default function Layout({ children, currentPageName }) {
         </main>
       </div>
 
-      {!dealer?.settings?.hide_chainlink_branding && !PUBLIC_PAGES.includes(currentPageName) && (
+      {!dealer?.settings?.hide_opentill_branding && !PUBLIC_PAGES.includes(currentPageName) && (
         <a 
           href="https://isolex.io" 
           target="_blank" 
