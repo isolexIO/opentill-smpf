@@ -407,12 +407,6 @@ export default function SettingsPage() {
                 {activeTab === 'departments' && (
                   <DepartmentsTab merchant={merchant} />
                 )}
-                {activeTab === 'solana-pay' && (
-                  <SolanaPayTab 
-                    settings={merchant.settings}
-                    onUpdate={handleUpdateSettings}
-                  />
-                )}
                 {activeTab === 'display' && (
                   <CustomerDisplayTab 
                     settings={merchant.settings?.customer_display || {}} 
