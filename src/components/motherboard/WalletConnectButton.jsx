@@ -43,7 +43,6 @@ export default function WalletConnectButton({ onWalletConnected }) {
     const adapters = [
       new PhantomWalletAdapter(),
       new SolflareWalletAdapter(),
-      new BackpackWalletAdapter(),
     ];
 
     if (isMobile) {

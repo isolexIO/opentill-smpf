@@ -154,7 +154,6 @@ export default function WalletLogin({ onSuccess, merchantId }) {
     const adapters = [
       new PhantomWalletAdapter(),
       new SolflareWalletAdapter(),
-      new BackpackWalletAdapter(),
     ];
 
     // Add Solana Mobile Wallet Adapter for mobile devices (Saga / Seeker)
