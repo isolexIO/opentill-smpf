@@ -145,9 +145,29 @@ export default function PayoutDashboard({ dealer, onUpdate }) {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <Tabs defaultValue="overview" className="space-y-6">
+      <TabsList className="grid w-full grid-cols-4">
+        <TabsTrigger value="overview" className="flex items-center gap-2">
+          <DollarSign className="w-4 h-4" />
+          <span className="hidden sm:inline">Overview</span>
+        </TabsTrigger>
+        <TabsTrigger value="breakdown" className="flex items-center gap-2">
+          <BarChart3 className="w-4 h-4" />
+          <span className="hidden sm:inline">Commission</span>
+        </TabsTrigger>
+        <TabsTrigger value="methods" className="flex items-center gap-2">
+          <Clock className="w-4 h-4" />
+          <span className="hidden sm:inline">Methods</span>
+        </TabsTrigger>
+        <TabsTrigger value="settings" className="flex items-center gap-2">
+          <Settings className="w-4 h-4" />
+          <span className="hidden sm:inline">Settings</span>
+        </TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="overview" className="space-y-6">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
