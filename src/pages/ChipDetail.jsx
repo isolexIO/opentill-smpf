@@ -201,13 +201,35 @@ export default function ChipDetail() {
                   </div>
                 )}
               </CardContent>
-              <CardFooter>
+              <CardFooter className="flex flex-col gap-3 w-full">
+                {mintError && (
+                  <Alert className="border-red-200 bg-red-50 w-full">
+                    <XCircle className="h-4 w-4 text-red-600" />
+                    <AlertDescription className="text-red-800">{mintError}</AlertDescription>
+                  </Alert>
+                )}
+                {mintSuccess && (
+                  <Alert className="border-green-200 bg-green-50 w-full">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <AlertDescription className="text-green-800">{mintSuccess}</AlertDescription>
+                  </Alert>
+                )}
+                {user && !user.wallet_address && (
+                  <Alert className="border-yellow-200 bg-yellow-50 w-full">
+                    <Wallet className="h-4 w-4 text-yellow-600" />
+                    <AlertDescription className="text-yellow-800">
+                      Connect your Solana wallet in Settings to mint this chip.
+                    </AlertDescription>
+                  </Alert>
+                )}
                 <Button
                   className="w-full bg-cyan-600 hover:bg-cyan-700 h-14 text-lg font-bold"
                   onClick={handleMintOrSubscribe}
-                  disabled={isSoldOut || isComingSoon}
+                  disabled={isSoldOut || isComingSoon || minting}
                 >
-                  {isSoldOut ? 'Sold Out' : isComingSoon ? 'Coming Soon' : chip.billing_type === 'ONE_TIME' ? 'Mint with $DUC' : 'Subscribe with $DUC'}
+                  {minting ? (
+                    <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Minting NFT...</>
+                  ) : isSoldOut ? 'Sold Out' : isComingSoon ? 'Coming Soon' : chip.billing_type === 'ONE_TIME' ? 'Mint NFT with $DUC' : 'Subscribe & Mint with $DUC'}
                 </Button>
               </CardFooter>
             </Card>
