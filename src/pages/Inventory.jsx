@@ -233,8 +233,31 @@ export default function InventoryPage() {
             </TabsList>
 
             <TabsContent value="inventory" className="mt-6">
-              {/* Inventory Table */}
-              <Card>
+              {/* Mobile card layout */}
+              <div className="md:hidden">
+                {loading ? (
+                  <div className="flex justify-center py-12"><RefreshCw className="w-6 h-6 animate-spin text-blue-500" /></div>
+                ) : filteredInventory.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Package className="w-12 h-12 mx-auto text-gray-300 mb-3" />
+                    <p className="text-gray-500">No inventory items found</p>
+                    <Button onClick={() => setShowForm(true)} className="mt-4"><Plus className="w-4 h-4 mr-2" />Add Item</Button>
+                  </div>
+                ) : (
+                  filteredInventory.map(item => (
+                    <MobileInventoryCard
+                      key={item.id}
+                      item={item}
+                      onEdit={(i) => { setSelectedItem(i); setShowForm(true); }}
+                      onRestock={handleRestock}
+                      onDelete={handleDelete}
+                    />
+                  ))
+                )}
+              </div>
+
+              {/* Desktop table */}
+              <Card className="hidden md:block">
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle>Inventory Items</CardTitle>
