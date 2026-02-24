@@ -329,6 +329,70 @@ export default function PayoutDashboard({ dealer, onUpdate }) {
           )}
         </CardContent>
       </Card>
+
+      {/* Payout Details Dialog */}
+      {selectedPayout && (
+        <Dialog open={!!selectedPayout} onOpenChange={() => setSelectedPayout(null)}>
+          <DialogContent className="max-w-3xl">
+            <DialogHeader>
+              <DialogTitle>Payout Reconciliation Details</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-gray-500">Period</p>
+                  <p className="font-semibold">
+                    {new Date(selectedPayout.period_start).toLocaleDateString()} - {new Date(selectedPayout.period_end).toLocaleDateString()}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Status</p>
+                  <div className="mt-1">{getStatusBadge(selectedPayout.status)}</div>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Commission Amount</p>
+                  <p className="font-semibold text-green-600">${selectedPayout.commission_amount.toFixed(2)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Processing Fees</p>
+                  <p className="font-semibold">${(selectedPayout.fees || 0).toFixed(2)}</p>
+                </div>
+              </div>
+
+              {selectedPayout.items && selectedPayout.items.length > 0 && (
+                <div>
+                  <h4 className="font-semibold mb-2">Contributing Merchants (Reconciliation)</h4>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Merchant</TableHead>
+                        <TableHead>Revenue</TableHead>
+                        <TableHead>Commission</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {selectedPayout.items.map((item) => (
+                        <TableRow key={item.id}>
+                          <TableCell>{item.merchant_name}</TableCell>
+                          <TableCell>${item.amount.toFixed(2)}</TableCell>
+                          <TableCell>${(item.amount * (item.commission_percent / 100)).toFixed(2)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+
+              {selectedPayout.notes && (
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">Reconciliation Notes</p>
+                  <p className="text-sm">{selectedPayout.notes}</p>
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
       </TabsContent>
 
       {/* Commission Breakdown Tab */}
@@ -345,71 +409,6 @@ export default function PayoutDashboard({ dealer, onUpdate }) {
       <TabsContent value="settings">
         <PayoutThresholdSettings dealer={dealer} onUpdate={onUpdate} />
       </TabsContent>
-
-        {/* Payout Details Dialog */}
-        {selectedPayout && (
-          <Dialog open={!!selectedPayout} onOpenChange={() => setSelectedPayout(null)}>
-            <DialogContent className="max-w-3xl">
-              <DialogHeader>
-                <DialogTitle>Payout Reconciliation Details</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-gray-500">Period</p>
-                    <p className="font-semibold">
-                      {new Date(selectedPayout.period_start).toLocaleDateString()} - {new Date(selectedPayout.period_end).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Status</p>
-                    <div className="mt-1">{getStatusBadge(selectedPayout.status)}</div>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Commission Amount</p>
-                    <p className="font-semibold text-green-600">${selectedPayout.commission_amount.toFixed(2)}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Processing Fees</p>
-                    <p className="font-semibold">${(selectedPayout.fees || 0).toFixed(2)}</p>
-                  </div>
-                </div>
-
-                {selectedPayout.items && selectedPayout.items.length > 0 && (
-                  <div>
-                    <h4 className="font-semibold mb-2">Contributing Merchants (Reconciliation)</h4>
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Merchant</TableHead>
-                          <TableHead>Revenue</TableHead>
-                          <TableHead>Commission</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {selectedPayout.items.map((item) => (
-                          <TableRow key={item.id}>
-                            <TableCell>{item.merchant_name}</TableCell>
-                            <TableCell>${item.amount.toFixed(2)}</TableCell>
-                            <TableCell>${(item.amount * (item.commission_percent / 100)).toFixed(2)}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                )}
-
-                {selectedPayout.notes && (
-                  <div>
-                    <p className="text-sm text-gray-500 mb-1">Reconciliation Notes</p>
-                    <p className="text-sm">{selectedPayout.notes}</p>
-                  </div>
-                )}
-              </div>
-            </DialogContent>
-          </Dialog>
-        )}
-      </TabsContent>
-    </Tabs>
+      </Tabs>
   );
 }
