@@ -487,8 +487,8 @@ export default function UserManual() {
       color: 'text-emerald-600',
       content: [
         {
-          title: 'What is a Dealer?',
-          content: 'Reseller/White-label partner:\n• Dealers resell ChainLINK to merchants\n• Earn commissions on merchant revenue\n• Custom branding options\n• Manage your own merchant base\n• Dedicated dealer dashboard\n• Stripe Connect payouts\n\nIdeal for:\n• Payment processors\n• POS resellers\n• Business consultants\n• Technology partners\n• Marketing agencies\n\nAccess: Separate Dealer Dashboard (invite-only)'
+          title: 'What is an Ambassador?',
+          content: 'Ambassador = openTILL\'s reseller/white-label partner program:\n• Ambassadors resell openTILL to merchants under their own brand\n• Earn commissions on merchant revenue\n• Custom branding (logo, colors, domain)\n• Manage your own merchant base\n• Dedicated Ambassador Dashboard\n• Stripe Connect payouts\n\nIdeal for:\n• Payment processors\n• POS resellers\n• Business consultants\n• Technology partners\n• Marketing agencies\n\nAccess: Register at the Ambassador Portal on the homepage. Invite-only after approval.'
         },
         {
           title: 'Dealer Registration',
