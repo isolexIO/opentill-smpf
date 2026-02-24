@@ -483,7 +483,7 @@ export default function UserManual() {
     {
       id: 'dealer',
       icon: TrendingUp,
-      title: 'Dealer Dashboard (Resellers)',
+      title: 'Ambassador Program (Resellers)',
       color: 'text-emerald-600',
       content: [
         {
