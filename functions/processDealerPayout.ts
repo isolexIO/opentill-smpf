@@ -165,7 +165,18 @@ Deno.serve(async (req) => {
           metadata: { payout_id, dealer_id: dealer.id, attempt_count: attemptCount, error: result.error }
         });
 
-        // TODO: Send failure email notification
+        // Send failure notification
+        try {
+          await base44.asServiceRole.functions.invoke('sendPayoutNotification', {
+            ambassador_id: dealer.id,
+            type: 'failed',
+            amount: payout.commission_amount,
+            merchant_names: payout.merchant_names || [],
+            error_message: result.error || 'Unknown error'
+          });
+        } catch (notifyError) {
+          console.error('Notification sending failed:', notifyError);
+        }
 
         return Response.json({
           success: false,
