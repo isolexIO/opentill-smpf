@@ -28,12 +28,17 @@ export default function LoyaltyProgramPage() {
   const [redemptions, setRedemptions] = useState([]);
   const [products, setProducts] = useState([]);
   const [settings, setSettings] = useState(null);
+  const [merchantVaultBalance, setMerchantVaultBalance] = useState(0);
   const [loyaltySettings, setLoyaltySettings] = useState({
     enabled: true,
     points_per_dollar: 10,
     welcome_bonus: 100,
     birthday_bonus: 50,
-    referral_bonus: 200
+    referral_bonus: 200,
+    duc_rewards_enabled: false,
+    duc_per_dollar: 0.01,
+    duc_welcome_bonus: 0,
+    duc_birthday_bonus: 0
   });
   const [showRewardForm, setShowRewardForm] = useState(false);
   const [editingReward, setEditingReward] = useState(null);
