@@ -209,8 +209,37 @@ export default function SystemLogs() {
           </Select>
         </div>
 
-        {/* Logs Table */}
-        <div className="border rounded-lg overflow-hidden">
+        {/* Mobile card layout */}
+        <div className="md:hidden space-y-3">
+          {loading ? (
+            <div className="text-center py-8">
+              <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2" />
+              <p>Loading logs...</p>
+            </div>
+          ) : filteredLogs.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">No logs found</div>
+          ) : (
+            filteredLogs.map((log) => (
+              <div key={log.id} className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                <div className="flex items-start gap-2 mb-2">
+                  {getSeverityIcon(log.severity)}
+                  {getSeverityBadge(log.severity)}
+                </div>
+                <p className="font-semibold text-gray-900 dark:text-white mb-2">{log.action}</p>
+                <div className="space-y-1 text-sm">
+                  <div className="flex justify-between"><span className="text-gray-500">Type:</span><Badge variant="outline" className="text-xs">{log.log_type.replace(/_/g, ' ')}</Badge></div>
+                  <div className="flex justify-between"><span className="text-gray-500">User:</span><span>{log.user_email || 'System'}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-500">Time:</span><span>{new Date(log.created_date).toLocaleString()}</span></div>
+                  {log.description && <p className="text-gray-600 dark:text-gray-400 mt-2">{log.description}</p>}
+                  {log.ip_address && <div className="text-xs text-gray-500 mt-2">IP: {log.ip_address}</div>}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop table layout */}
+        <div className="hidden md:block border rounded-lg overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>
@@ -241,9 +270,7 @@ export default function SystemLogs() {
                 filteredLogs.map((log) => (
                   <TableRow key={log.id}>
                     <TableCell>{getSeverityIcon(log.severity)}</TableCell>
-                    <TableCell className="text-sm">
-                      {new Date(log.created_date).toLocaleString()}
-                    </TableCell>
+                    <TableCell className="text-sm">{new Date(log.created_date).toLocaleString()}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className="text-xs">
                         {log.log_type.replace(/_/g, ' ')}
@@ -252,16 +279,12 @@ export default function SystemLogs() {
                     <TableCell className="font-medium">{log.action}</TableCell>
                     <TableCell className="text-sm">
                       {log.user_email || 'System'}
-                      {log.user_role && (
-                        <div className="text-xs text-gray-500">{log.user_role}</div>
-                      )}
+                      {log.user_role && <div className="text-xs text-gray-500">{log.user_role}</div>}
                     </TableCell>
                     <TableCell>{getSeverityBadge(log.severity)}</TableCell>
                     <TableCell className="text-sm max-w-md truncate">
                       {log.description}
-                      {log.ip_address && (
-                        <div className="text-xs text-gray-500 mt-1">IP: {log.ip_address}</div>
-                      )}
+                      {log.ip_address && <div className="text-xs text-gray-500 mt-1">IP: {log.ip_address}</div>}
                     </TableCell>
                   </TableRow>
                 ))
