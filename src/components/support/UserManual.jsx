@@ -524,7 +524,7 @@ export default function UserManual() {
       content: [
         {
           title: 'Super Admin Overview',
-          content: 'Platform administration:\n• Platform-wide management\n• All merchant access\n• System configuration\n• User management\n• Financial oversight\n• Feature toggles\n\nAccess: Only for ChainLINK team\n• Navigate to "Super Admin" from System Menu\n• Requires admin role\n\nNOTE: This section is for internal use. Merchants do not have access to Super Admin features.'
+          content: 'Platform administration:\n• Platform-wide management\n• All merchant access\n• System configuration\n• User management\n• Financial oversight\n• Feature toggles\n\nAccess: Only for openTILL/Isolex team\n• Navigate to "Super Admin" from System Menu\n• Requires admin role\n\nNOTE: This section is for internal use. Merchants do not have access to Super Admin features.'
         },
         {
           title: 'Pending Merchants',
