@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
@@ -322,7 +321,7 @@ export default function DealerLanding() {
   ];
 
   const heroSettings = landingSettings?.hero || {
-    headline: "Welcome to\nChainLINK Dealer Portal", // Added \n to match original line break
+    headline: "Welcome to\nopenTILL Dealer Portal", // Added \n to match original line break
     subheadline: "Manage your white-label network, merchants, and commissions from one powerful dashboard.",
     badge_text: "White-Label POS Platform"
   };
@@ -347,7 +346,7 @@ export default function DealerLanding() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Building2 className="w-8 h-8 text-emerald-500" />
-              <span className="text-2xl font-bold text-white">ChainLINK <span className="text-emerald-500">Dealers</span></span>
+              <span className="text-2xl font-bold text-white">openTILL <span className="text-emerald-500">Dealers</span></span>
             </div>
             <div className="flex gap-4">
               <Button
@@ -386,9 +385,9 @@ export default function DealerLanding() {
                     {/* Preserve existing span for "ChainLINK" if it's in the second line */}
                     {line.includes('ChainLINK') ? (
                       <>
-                        {line.split('ChainLINK')[0]}
-                        <span className="text-emerald-500">ChainLINK</span>
-                        {line.split('ChainLINK')[1]}
+                        {line.split('openTILL')[0]}
+                        <span className="text-emerald-500">openTILL</span>
+                        {line.split('openTILL')[1]}
                       </>
                     ) : (
                       line

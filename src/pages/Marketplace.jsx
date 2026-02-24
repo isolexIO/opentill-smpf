@@ -163,7 +163,7 @@ function ChipMarketCard({ chip, status }) {
           <img 
             src={chip.image_url || '/api/placeholder/80/80'} 
             alt={chip.name}
-            className="w-16 h-16 rounded-lg object-cover"
+            className="w-full aspect-square rounded-lg object-cover"
           />
           <Badge className={`${config.color} text-white`}>
             <Icon className="w-3 h-3 mr-1" />

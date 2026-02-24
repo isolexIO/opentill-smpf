@@ -95,7 +95,7 @@ export default function DeviceShopPage() {
               </div>
               <div>
                 <span className="text-xl font-bold text-gray-900 dark:text-white">
-                  ChainLINK
+                  openTILL
                 </span>
                 <span className="text-xs text-gray-500 dark:text-gray-400 block -mt-1">
                   Device Shop
@@ -107,6 +107,9 @@ export default function DeviceShopPage() {
             <div className="hidden md:flex items-center space-x-6">
               <Link to={createPageUrl('Home')} className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                 Home
+              </Link>
+              <Link to={createPageUrl('Marketplace')} className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                Marketplace
               </Link>
               <Link to={createPageUrl('About')} className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                 About
@@ -163,6 +166,9 @@ export default function DeviceShopPage() {
               <div className="flex flex-col space-y-3">
                 <Link to={createPageUrl('Home')} className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-3 py-2">
                   Home
+                </Link>
+                <Link to={createPageUrl('Marketplace')} className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-3 py-2">
+                  Marketplace
                 </Link>
                 <Link to={createPageUrl('About')} className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-3 py-2">
                   About

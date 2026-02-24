@@ -74,7 +74,7 @@ export default function ChipDetail() {
                 <img 
                   src={chip.image_url || '/api/placeholder/400/400'}
                   alt={chip.name}
-                  className="w-full rounded-lg shadow-lg"
+                  className="w-[90%] mx-auto rounded-lg shadow-lg"
                 />
               </CardContent>
             </Card>
