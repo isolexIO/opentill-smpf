@@ -26,6 +26,13 @@ export default function Cart({
   isMobile,
   settings,
 }) {
+  const handleOptimisticUpdate = (index, newQuantity) => {
+    onUpdateQuantity(index, newQuantity);
+  };
+
+  const handleOptimisticRemove = (index) => {
+    onRemoveItem(index);
+  };
 
   const isDualPricingEnabled = settings?.pricing_and_surcharge?.enable_dual_pricing && settings?.pricing_and_surcharge?.show_dual_prices;
   const hasEbtEligibleItems = parseFloat(totals.ebtEligibleTotal || 0) > 0;
@@ -101,22 +108,22 @@ export default function Cart({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8"
-                      onClick={() => onUpdateQuantity(index, item.quantity - 1)}
+                      className="h-8 w-8 min-h-[44px] md:min-h-[32px]"
+                      onClick={() => handleOptimisticUpdate(index, item.quantity - 1)}
                     >
                       <Minus className="w-3 h-3" />
                     </Button>
                     <Input
                       type="number"
                       value={item.quantity}
-                      onChange={(e) => onUpdateQuantity(index, parseInt(e.target.value) || 1)}
+                      onChange={(e) => handleOptimisticUpdate(index, parseInt(e.target.value) || 1)}
                       className="w-12 h-8 text-center border-none focus-visible:ring-0"
                     />
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8"
-                      onClick={() => onUpdateQuantity(index, item.quantity + 1)}
+                      className="h-8 w-8 min-h-[44px] md:min-h-[32px]"
+                      onClick={() => handleOptimisticUpdate(index, item.quantity + 1)}
                     >
                       <Plus className="w-3 h-3" />
                     </Button>
@@ -124,8 +131,8 @@ export default function Cart({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-red-500"
-                    onClick={() => onRemoveItem(index)}
+                    className="h-8 w-8 min-h-[44px] md:min-h-[32px] text-red-500"
+                    onClick={() => handleOptimisticRemove(index)}
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -194,7 +201,7 @@ export default function Cart({
                 variant="outline"
                 size="lg"
                 onClick={onSendToKitchen}
-                className="w-full"
+                className="w-full min-h-[44px]"
               >
                 <UtensilsCrossed className="w-4 h-4 mr-2" />
                 Send to Kitchen
@@ -203,7 +210,7 @@ export default function Cart({
             <Button
               size="lg"
               onClick={onCheckout}
-              className="w-full bg-blue-600 hover:bg-blue-700"
+              className="w-full min-h-[44px] bg-blue-600 hover:bg-blue-700"
               disabled={cart.length === 0}
             >
               Pay
