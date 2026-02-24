@@ -867,14 +867,14 @@ export default function DealerManagement() {
             </Button>
           </DialogFooter>
         </DialogContent>
-      </Dialog>
+        </Dialog>
         </TabsContent>
 
         {/* Payout Control Tab */}
         <TabsContent value="payouts" className="space-y-6">
           <PayoutControl />
         </TabsContent>
-      </Tabs>
-    </div>
-  );
-}
+        </Tabs>
+        </div>
+        );
+        }
