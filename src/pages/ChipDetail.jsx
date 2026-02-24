@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ArrowLeft, Sparkles, CheckCircle, Clock, Shield, Zap } from 'lucide-react';
+import { ArrowLeft, Sparkles, CheckCircle, Clock, Shield, Zap, Loader2, Wallet, XCircle } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 
 export default function ChipDetail() {
