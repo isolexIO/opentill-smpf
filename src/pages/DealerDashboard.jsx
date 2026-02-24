@@ -110,10 +110,7 @@ export default function DealerDashboardPage() {
             {dealer.logo_url ? (
               <img src={dealer.logo_url} alt={dealer.name} className="h-9 object-contain" />
             ) : (
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-                style={{ background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})` }}>
-                <Link2 className="w-5 h-5 text-white" />
-              </div>
+              <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6970e2871534100b4ebb8d45/8e45f76fe_DUC3.png" alt="openTILL" className="w-9 h-9" />
             )}
             <div>
               <div className="font-bold text-gray-900 dark:text-white text-sm leading-none">{dealer.name}</div>

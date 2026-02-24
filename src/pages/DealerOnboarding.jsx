@@ -112,9 +112,7 @@ export default function DealerOnboarding() {
       <div className="w-full max-w-lg space-y-6">
         {/* Logo */}
         <div className="text-center">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-400 to-purple-600 flex items-center justify-center mx-auto mb-3">
-            <Link2 className="w-7 h-7 text-white" />
-          </div>
+          <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6970e2871534100b4ebb8d45/8e45f76fe_DUC3.png" alt="openTILL" className="w-14 h-14 mx-auto mb-3" />
           <h1 className="text-2xl font-black text-white">Become an openTILL Ambassador</h1>
           <p className="text-white/50 text-sm mt-1">White-label POS · Recurring commissions · 30-day free trial</p>
         </div>

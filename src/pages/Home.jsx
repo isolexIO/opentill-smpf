@@ -124,7 +124,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     activeMerchants: 0,
-    activeDealers: 0,
+    activeAmbassadors: 0,
     loading: true
   });
 

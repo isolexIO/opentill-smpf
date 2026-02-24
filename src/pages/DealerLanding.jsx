@@ -124,7 +124,7 @@ export default function DealerLanding() {
   );
 
   const benefits = [
-    { icon: Palette, title: 'Full White Label', desc: 'Your brand, your domain, your colors' },
+    { icon: Palette, title: 'Your Branding', desc: 'Your brand, your domain, your colors' },
     { icon: DollarSign, title: 'Earn 10–30%', desc: 'Recurring commissions monthly' },
     { icon: Users, title: 'Merchant Portal', desc: 'Manage all your merchants in one place' },
     { icon: Globe, title: 'Custom Domain', desc: 'yourcompany.com with SSL included' },
@@ -133,7 +133,7 @@ export default function DealerLanding() {
   ];
 
   const testimonials = [
-    { name: 'Marcus T.', role: 'Tech Reseller, Miami', quote: 'Went from 0 to 22 merchants in 4 months. The white-label setup took under an hour.', stars: 5 },
+    { name: 'Marcus T.', role: 'Tech Reseller, Miami', quote: 'Went from 0 to 22 merchants in 4 months. Getting set up took under an hour.', stars: 5 },
     { name: 'Sandra K.', role: 'POS Consultant, Chicago', quote: 'My commission checks have replaced my old salary. The dashboard makes everything easy.', stars: 5 },
     { name: 'Derek A.', role: 'MSP Owner, Atlanta', quote: "openTILL's crypto payments and AI tools are a huge selling point for my clients.", stars: 5 },
   ];
@@ -144,9 +144,7 @@ export default function DealerLanding() {
       <nav className="border-b border-white/10 backdrop-blur-md sticky top-0 z-50 bg-black/20">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-purple-600 flex items-center justify-center">
-              <Link2 className="w-5 h-5 text-white" />
-            </div>
+            <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6970e2871534100b4ebb8d45/8e45f76fe_DUC3.png" alt="openTILL" className="w-9 h-9" />
             <span className="text-xl font-bold text-white">openTILL <span className="text-emerald-400">Ambassadors</span></span>
           </div>
           <div className="hidden md:flex items-center gap-6 text-sm text-white/70">
@@ -171,7 +169,7 @@ export default function DealerLanding() {
             <div className="space-y-5">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/15 border border-emerald-500/30 rounded-full">
                 <Rocket className="w-4 h-4 text-emerald-400" />
-                <span className="text-emerald-300 text-sm font-semibold">White-Label POS Ambassador Program</span>
+                <span className="text-emerald-300 text-sm font-semibold">openTILL Ambassador Program</span>
               </div>
 
               <h1 className="text-5xl lg:text-6xl font-black leading-tight">
@@ -182,7 +180,7 @@ export default function DealerLanding() {
               </h1>
 
               <p className="text-lg text-white/70 leading-relaxed max-w-lg">
-                Resell openTILL under your own brand. Earn 10–30% recurring commissions. Launch in under an hour with full white-label support, AI marketing tools, and Solana-native payments.
+                Resell openTILL under your own brand. Earn 10–30% recurring commissions. Launch in under an hour with AI marketing tools and Solana-native payments.
               </p>
             </div>
 
