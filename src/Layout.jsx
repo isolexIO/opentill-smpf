@@ -401,6 +401,8 @@ export default function Layout({ children, currentPageName }) {
   const brandName = dealer?.name || 'openTILL';
   const logoUrl = dealer?.logo_url;
 
+  const showBackButton = !PUBLIC_PAGES.includes(currentPageName) && !ROOT_PAGES.includes(currentPageName);
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 relative">
       <div className="fixed inset-0 pointer-events-none z-50">
