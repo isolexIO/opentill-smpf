@@ -893,13 +893,15 @@ export default function HomePage() {
             </div>
 
             {/* Legal */}
-            <div>
-              <h3 className="text-white font-semibold mb-4">Legal</h3>
-              <ul className="space-y-2">
-                <li><a href={createPageUrl('PrivacyPolicy')} className="text-gray-300 hover:text-white text-sm transition-colors">Privacy Policy</a></li>
-                <li><a href={createPageUrl('TermsOfService')} className="text-gray-300 hover:text-white text-sm transition-colors">Terms of Service</a></li>
-              </ul>
-            </div>
+             <div>
+               <h3 className="text-white font-semibold mb-4">Legal</h3>
+               <ul className="space-y-2">
+                 <li><a href={createPageUrl('PrivacyPolicy')} className="text-gray-300 hover:text-white text-sm transition-colors">Privacy Policy</a></li>
+                 <li><a href={createPageUrl('TermsOfService')} className="text-gray-300 hover:text-white text-sm transition-colors">Terms of Service</a></li>
+                 <li><a href={createPageUrl('License')} className="text-gray-300 hover:text-white text-sm transition-colors">License</a></li>
+                 <li><a href={createPageUrl('Copyright')} className="text-gray-300 hover:text-white text-sm transition-colors">Copyright</a></li>
+               </ul>
+             </div>
           </div>
 
           <div className="border-t border-white/10 mt-8 pt-8">
