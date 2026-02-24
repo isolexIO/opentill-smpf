@@ -306,13 +306,13 @@ export default function SettingsPage() {
 
   const tabs = [
     { id: 'general', label: 'General', icon: SettingsIcon },
+    { id: 'wallet-payments', label: 'Wallet & Payments', icon: Wallet },
     { id: 'account', label: 'Account', icon: Trash2 },
     { id: '2fa', label: 'Two-Factor Auth', icon: Shield },
     { id: 'payments', label: 'Payment Gateways', icon: CreditCard },
     { id: 'pricing', label: 'Pricing & Surcharge', icon: DollarSign },
     { id: 'devices', label: 'Hardware Devices', icon: Printer },
     { id: 'departments', label: 'Departments', icon: Layers },
-    { id: 'solana-pay', label: 'Solana Pay', icon: null, customIcon: 'https://solana.com/src/img/branding/solanaLogoMark.svg' },
     { id: 'display', label: 'Customer Display', icon: Monitor },
     { id: 'domain', label: 'Custom Domain', icon: Globe },
     { id: 'security', label: 'Security', icon: Shield }
