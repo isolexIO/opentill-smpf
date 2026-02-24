@@ -2,59 +2,40 @@ import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Wallet, CheckCircle, ExternalLink, Info, ChevronRight } from 'lucide-react';
+import { Wallet, CheckCircle, Info, ChevronRight, Loader2 } from 'lucide-react';
+import { ConnectionProvider, WalletProvider, useWallet } from '@solana/wallet-adapter-react';
+import { WalletModalProvider, WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
+import { clusterApiUrl } from '@solana/web3.js';
+import '@solana/wallet-adapter-react-ui/styles.css';
 
-const WALLET_OPTIONS = [
-  { id: 'phantom', name: 'Phantom', url: 'https://phantom.app', color: '#ab9ff2' },
-  { id: 'solflare', name: 'Solflare', url: 'https://solflare.com', color: '#fc8a16' },
-  { id: 'backpack', name: 'Backpack', url: 'https://backpack.app', color: '#e33e3f' },
-];
-
-export default function StepWallet({ formData, onChange, onNext, onBack }) {
+function WalletConnectContent({ formData, onChange, onNext, onBack }) {
+  const { publicKey, connected, signMessage, connecting } = useWallet();
+  const [authenticating, setAuthenticating] = useState(false);
   const [manualMode, setManualMode] = useState(!!formData.wallet_address);
 
   const isValidSolana = (addr) => addr && /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(addr);
 
-  return (
-    <div className="space-y-5">
-      <div className="text-center space-y-1 mb-2">
-        <div className="flex justify-center">
-          <div className="w-14 h-14 rounded-full bg-purple-50 flex items-center justify-center">
-            <Wallet className="w-7 h-7 text-purple-500" />
-          </div>
-        </div>
-        <h2 className="text-2xl font-black text-slate-900">Connect Your Wallet</h2>
-        <p className="text-slate-500 text-sm">Your Solana wallet will receive $DUC rewards. You can skip this now.</p>
-      </div>
+  React.useEffect(() => {
+    if (connected && publicKey && !authenticating) {
+      onChange('wallet_address', publicKey.toString());
+      setAuthenticating(false);
+    }
+  }, [connected, publicKey]);
 
-      {!manualMode ? (
-        <div className="space-y-3">
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Popular Wallets</p>
-          {WALLET_OPTIONS.map((w) => (
-            <button
-              key={w.id}
-              type="button"
-              onClick={() => window.open(w.url, '_blank')}
-              className="w-full flex items-center justify-between p-4 bg-white border border-slate-200 rounded-xl hover:border-slate-300 hover:shadow-sm transition-all group"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg flex items-center justify-center font-black text-xs"
-                     style={{ background: w.color + '22', color: w.color }}>{w.name[0]}</div>
-                <span className="font-semibold text-slate-800">{w.name}</span>
-              </div>
-              <ExternalLink className="w-4 h-4 text-slate-400 group-hover:text-slate-600" />
-            </button>
-          ))}
-          <button
-            type="button"
-            onClick={() => setManualMode(true)}
-            className="w-full flex items-center justify-between p-4 bg-slate-50 border border-dashed border-slate-300 rounded-xl text-slate-500 hover:bg-slate-100 transition-all text-sm"
-          >
-            <span>I already have a wallet address</span>
-            <ChevronRight className="w-4 h-4" />
-          </button>
+  if (manualMode) {
+    return (
+      <div className="space-y-5">
+        <div className="text-center space-y-1 mb-2">
+          <div className="flex justify-center">
+            <div className="w-14 h-14 rounded-full bg-purple-50 flex items-center justify-center">
+              <Wallet className="w-7 h-7 text-purple-500" />
+            </div>
+          </div>
+          <h2 className="text-2xl font-black text-slate-900">Connect Your Wallet</h2>
+          <p className="text-slate-500 text-sm">Your Solana wallet will receive $DUC rewards. You can skip this now.</p>
         </div>
-      ) : (
+
         <div className="space-y-3">
           <div className="space-y-1.5">
             <Label htmlFor="wallet" className="font-medium text-slate-700">Solana Wallet Address</Label>
@@ -79,9 +60,62 @@ export default function StepWallet({ formData, onChange, onNext, onBack }) {
             type="button"
             onClick={() => { setManualMode(false); onChange('wallet_address', ''); }}
             className="text-xs text-slate-400 underline"
-          >← Back to wallet options</button>
+          >← Back to connect wallet</button>
         </div>
-      )}
+
+        <div className="flex items-start gap-2 bg-blue-50 border border-blue-100 rounded-xl p-3 text-xs text-blue-700">
+          <Info className="w-4 h-4 shrink-0 mt-0.5" />
+          <p>Your wallet is used only to receive $DUC rewards. You can add or change it later in Settings.</p>
+        </div>
+
+        <div className="flex gap-3 pt-1">
+          <Button type="button" variant="outline" onClick={onBack} className="flex-1 h-12">Back</Button>
+          <Button
+            type="button"
+            onClick={onNext}
+            className="flex-[2] bg-cyan-600 hover:bg-cyan-700 text-white h-12 font-bold rounded-xl"
+          >
+            {formData.wallet_address && isValidSolana(formData.wallet_address) ? 'Continue with Wallet' : 'Skip for Now'}
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-5">
+      <div className="text-center space-y-1 mb-2">
+        <div className="flex justify-center">
+          <div className="w-14 h-14 rounded-full bg-purple-50 flex items-center justify-center">
+            <Wallet className="w-7 h-7 text-purple-500" />
+          </div>
+        </div>
+        <h2 className="text-2xl font-black text-slate-900">Connect Your Wallet</h2>
+        <p className="text-slate-500 text-sm">Your Solana wallet will receive $DUC rewards. You can skip this now.</p>
+      </div>
+
+      <div className="space-y-3">
+        <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Select Your Wallet</p>
+        <WalletMultiButton className="!w-full !h-14 !rounded-lg !justify-start !text-base !font-medium" />
+        
+        {connected && publicKey && (
+          <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+            <p className="text-xs text-green-700">
+              <CheckCircle className="w-3 h-3 inline mr-1" />
+              Connected: {publicKey.toString().slice(0, 8)}...{publicKey.toString().slice(-8)}
+            </p>
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={() => setManualMode(true)}
+          className="w-full flex items-center justify-between p-4 bg-slate-50 border border-dashed border-slate-300 rounded-xl text-slate-500 hover:bg-slate-100 transition-all text-sm"
+        >
+          <span>Or paste wallet address</span>
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
 
       <div className="flex items-start gap-2 bg-blue-50 border border-blue-100 rounded-xl p-3 text-xs text-blue-700">
         <Info className="w-4 h-4 shrink-0 mt-0.5" />
@@ -94,10 +128,39 @@ export default function StepWallet({ formData, onChange, onNext, onBack }) {
           type="button"
           onClick={onNext}
           className="flex-[2] bg-cyan-600 hover:bg-cyan-700 text-white h-12 font-bold rounded-xl"
+          disabled={connecting}
         >
-          {formData.wallet_address && isValidSolana(formData.wallet_address) ? 'Continue with Wallet' : 'Skip for Now'}
+          {connecting ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Connecting...
+            </>
+          ) : (
+            formData.wallet_address ? 'Continue with Wallet' : 'Skip for Now'
+          )}
         </Button>
       </div>
     </div>
+  );
+}
+
+export default function StepWallet({ formData, onChange, onNext, onBack }) {
+  const endpoint = React.useMemo(() => clusterApiUrl('mainnet-beta'), []);
+  
+  const wallets = React.useMemo(() => {
+    return [
+      new PhantomWalletAdapter(),
+      new SolflareWalletAdapter(),
+    ];
+  }, []);
+
+  return (
+    <ConnectionProvider endpoint={endpoint}>
+      <WalletProvider wallets={wallets} autoConnect={false}>
+        <WalletModalProvider>
+          <WalletConnectContent formData={formData} onChange={onChange} onNext={onNext} onBack={onBack} />
+        </WalletModalProvider>
+      </WalletProvider>
+    </ConnectionProvider>
   );
 }
