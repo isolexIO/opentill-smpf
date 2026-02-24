@@ -44,6 +44,7 @@ import DealerManagement from '../components/rootadmin/DealerManagement';
 import PendingMerchants from '../components/superadmin/PendingMerchants';
 import AmazonAffiliateManager from '../components/superadmin/AmazonAffiliateManager';
 import VaultManager from '../components/superadmin/VaultManager';
+import BuilderManagement from '../components/superadmin/BuilderManagement';
 
 export default function SuperAdminPage() {
   const [user, setUser] = useState(null);
@@ -319,6 +320,17 @@ export default function SuperAdminPage() {
             <span className="text-sm font-medium">Chips</span>
           </button>
           <button
+            onClick={() => setActiveTab('builders')}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
+              activeTab === 'builders'
+                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+            }`}
+          >
+            <Users className="w-4 h-4" />
+            <span className="text-sm font-medium">Builders</span>
+          </button>
+          <button
             onClick={() => setActiveTab('logs')}
             className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
               activeTab === 'logs'
@@ -406,6 +418,7 @@ export default function SuperAdminPage() {
               {activeTab === 'amazon' && 'Amazon Affiliate'}
               {activeTab === 'vault' && '$DUC Vault'}
               {activeTab === 'chips' && 'Chip Manager'}
+              {activeTab === 'builders' && 'Builder Management'}
               {activeTab === 'logs' && 'System Logs'}
               {activeTab === 'reports' && 'Global Reports'}
               {activeTab === 'ads' && 'Advertising'}
@@ -490,6 +503,10 @@ export default function SuperAdminPage() {
 
           {activeTab === 'chips' && (
             <ChipManagement />
+          )}
+
+          {activeTab === 'builders' && (
+            <BuilderManagement />
           )}
 
           {activeTab === 'logs' && (
