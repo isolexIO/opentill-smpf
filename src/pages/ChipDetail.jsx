@@ -11,6 +11,9 @@ import { createPageUrl } from '@/utils';
 export default function ChipDetail() {
   const [user, setUser] = useState(null);
   const [chipId, setChipId] = useState(null);
+  const [minting, setMinting] = useState(false);
+  const [mintError, setMintError] = useState(null);
+  const [mintSuccess, setMintSuccess] = useState(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -27,7 +30,7 @@ export default function ChipDetail() {
     }
   };
 
-  const { data: chip, isLoading } = useQuery({
+  const { data: chip, isLoading, refetch } = useQuery({
     queryKey: ['chip', chipId],
     queryFn: async () => {
       const chips = await base44.entities.Chip.filter({ id: chipId });
@@ -36,12 +39,33 @@ export default function ChipDetail() {
     enabled: !!chipId
   });
 
-  const handleMintOrSubscribe = () => {
+  const handleMintOrSubscribe = async () => {
     if (!user) {
       window.location.href = createPageUrl('EmailLogin');
       return;
     }
-    window.location.href = createPageUrl(`DUCVault?action=mint&chip_id=${chipId}`);
+    if (!user.wallet_address) {
+      setMintError('Please connect your Solana wallet in Settings before purchasing a chip.');
+      return;
+    }
+
+    setMinting(true);
+    setMintError(null);
+    setMintSuccess(null);
+
+    const { data } = await base44.functions.invoke('mintChipNFT', {
+      chip_id: chipId,
+      wallet_address: user.wallet_address
+    });
+
+    if (data.success) {
+      setMintSuccess(`NFT minted successfully! Mint address: ${data.mint_address}`);
+      refetch();
+    } else {
+      setMintError(data.error || 'Minting failed. Please try again.');
+    }
+
+    setMinting(false);
   };
 
   if (isLoading || !chip) {
