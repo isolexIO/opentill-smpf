@@ -454,15 +454,17 @@ export default function SettingsPage() {
                   <div className="space-y-6">
                     <div>
                       <h2 className="text-xl font-bold text-gray-900 dark:text-white">Account</h2>
-                      <p className="text-sm text-gray-500 mt-1">Manage your account settings</p>
+                      <p className="text-sm text-gray-500 mt-1">Manage your merchant account</p>
                     </div>
+
+                    {/* Delete Merchant Account */}
                     <div className="border border-red-200 dark:border-red-800 rounded-lg p-6 bg-red-50 dark:bg-red-900/10 space-y-4">
                       <div className="flex items-center gap-2 text-red-700 dark:text-red-400">
                         <Trash2 className="w-5 h-5" />
-                        <h3 className="font-semibold text-lg">Delete Account</h3>
+                        <h3 className="font-semibold text-lg">Delete Merchant Account</h3>
                       </div>
                       <p className="text-sm text-red-700 dark:text-red-400">
-                        This will mark your merchant account as cancelled. This action cannot be undone.
+                        This will permanently mark your merchant account as cancelled. This action cannot be undone.
                         All your data will be retained for legal/audit purposes.
                       </p>
                       {!showDeleteConfirm ? (
