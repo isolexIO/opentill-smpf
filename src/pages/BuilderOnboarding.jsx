@@ -4,7 +4,6 @@ import { createPageUrl } from '@/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { StepIndicator } from '@/components/onboarding/StepIndicator';
 import { CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 
 export default function BuilderOnboardingPage() {
