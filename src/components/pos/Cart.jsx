@@ -27,10 +27,14 @@ export default function Cart({
   settings,
 }) {
   const handleOptimisticUpdate = (index, newQuantity) => {
-    onUpdateQuantity(index, newQuantity);
+    // Optimistic update: immediately update UI state
+    if (newQuantity > 0) {
+      onUpdateQuantity(index, newQuantity);
+    }
   };
 
   const handleOptimisticRemove = (index) => {
+    // Optimistic update: immediately remove from UI
     onRemoveItem(index);
   };
 
