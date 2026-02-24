@@ -10,19 +10,27 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
 
     // Use service role to bypass RLS and get stats
-    const activeMerchants = await base44.asServiceRole.entities.Merchant.filter({ 
-      status: 'active' 
-    });
+    const merchants = await base44.asServiceRole.entities.Merchant.list();
+    const activeMerchants = merchants.filter(m => m.status === 'active' || m.status === 'trial');
     
-    const activeDealers = await base44.asServiceRole.entities.Dealer.filter({ 
-      $or: [{ status: 'active' }, { status: 'trial' }] 
-    });
+    const dealers = await base44.asServiceRole.entities.Dealer.list();
+    const activeDealers = dealers.filter(d => d.status === 'active' || d.status === 'trial');
+
+    // Calculate additional stats
+    const totalRevenue = merchants.reduce((sum, m) => sum + (m.total_revenue || 0), 0);
+    const totalBuilders = await base44.asServiceRole.entities.Builder.list();
+    const verifiedBuilders = totalBuilders.filter(b => b.status === 'verified').length;
 
     return Response.json({
       success: true,
       stats: {
         activeMerchants: activeMerchants.length,
-        activeDealers: activeDealers.length
+        activeDealers: activeDealers.length,
+        totalMerchants: merchants.length,
+        totalDealers: dealers.length,
+        totalRevenue: totalRevenue,
+        totalBuilders: totalBuilders.length,
+        verifiedBuilders: verifiedBuilders
       }
     });
 
@@ -33,7 +41,12 @@ Deno.serve(async (req) => {
       error: 'Failed to fetch stats',
       stats: {
         activeMerchants: 0,
-        activeDealers: 0
+        activeDealers: 0,
+        totalMerchants: 0,
+        totalDealers: 0,
+        totalRevenue: 0,
+        totalBuilders: 0,
+        verifiedBuilders: 0
       }
     }, { status: 500 });
   }
