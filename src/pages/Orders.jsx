@@ -271,8 +271,26 @@ export default function OrdersPage() {
         </div>
       </div>
 
-      {/* Main Content - Two Column Layout */}
-      <div className="flex flex-1 overflow-hidden"> 
+      {/* Mobile card list */}
+      <div className="md:hidden p-4 space-y-1">
+        {loading ? (
+          <div className="flex justify-center py-12"><RefreshCw className="w-6 h-6 animate-spin text-blue-500" /></div>
+        ) : filteredOrders.length === 0 ? (
+          <p className="text-center text-gray-500 py-12">No orders found</p>
+        ) : (
+          filteredOrders.map(order => (
+            <MobileOrderCard
+              key={order.id}
+              order={order}
+              isSelected={selectedOrder?.id === order.id}
+              onClick={() => setSelectedOrder(order === selectedOrder ? null : order)}
+            />
+          ))
+        )}
+      </div>
+
+      {/* Desktop Two Column Layout */}
+      <div className="hidden md:flex flex-1 overflow-hidden"> 
         {/* Left Panel - Order Details */}
         <div className="w-96 min-w-96 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 overflow-y-auto custom-scrollbar shadow-lg">
           {selectedOrder ? (
