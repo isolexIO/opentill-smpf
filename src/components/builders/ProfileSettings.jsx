@@ -3,13 +3,24 @@ import { CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { base44 } from '@/api/base44Client';
-import { AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { AlertCircle, CheckCircle, Loader2, Trash2 } from 'lucide-react';
 
 export default function ProfileSettings({ builder, user, onUpdated }) {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const [formData, setFormData] = useState({
     full_name: builder.full_name || '',
@@ -43,6 +54,22 @@ export default function ProfileSettings({ builder, user, onUpdated }) {
       setError(err.message || 'An error occurred');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    setDeleting(true);
+    setError('');
+
+    try {
+      await base44.entities.Builder.delete(builder.id);
+      setSuccess('Account deleted successfully');
+      setTimeout(() => {
+        base44.auth.logout();
+      }, 1500);
+    } catch (err) {
+      setError(err.message || 'Failed to delete account');
+      setDeleting(false);
     }
   };
 
@@ -244,27 +271,76 @@ export default function ProfileSettings({ builder, user, onUpdated }) {
       </div>
 
       {/* Stripe Status */}
-      <div className="border-t border-gray-200 pt-6">
-        <h4 className="font-bold text-gray-900 mb-4">Payment Information</h4>
-        {builder.stripe_connected ? (
-          <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-            <p className="text-green-800 font-medium">✓ Stripe Connected</p>
-            <p className="text-sm text-green-700 mt-1">
-              Stripe ID: {builder.stripe_connect_id}
-            </p>
-          </div>
-        ) : (
-          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg space-y-3">
-            <p className="text-yellow-800 font-medium">Stripe Not Connected</p>
-            <p className="text-sm text-yellow-700">
-              Connect your Stripe account to receive payouts
-            </p>
-            <Button size="sm" className="bg-yellow-600 hover:bg-yellow-700">
-              Connect Stripe
-            </Button>
-          </div>
-        )}
-      </div>
-    </CardContent>
-  );
-}
+       <div className="border-t border-gray-200 pt-6">
+         <h4 className="font-bold text-gray-900 mb-4">Payment Information</h4>
+         {builder.stripe_connected ? (
+           <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+             <p className="text-green-800 font-medium">✓ Stripe Connected</p>
+             <p className="text-sm text-green-700 mt-1">
+               Stripe ID: {builder.stripe_connect_id}
+             </p>
+           </div>
+         ) : (
+           <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg space-y-3">
+             <p className="text-yellow-800 font-medium">Stripe Not Connected</p>
+             <p className="text-sm text-yellow-700">
+               Connect your Stripe account to receive payouts
+             </p>
+             <Button size="sm" className="bg-yellow-600 hover:bg-yellow-700">
+               Connect Stripe
+             </Button>
+           </div>
+         )}
+       </div>
+
+       {/* Delete Account Section */}
+       <div className="border-t border-gray-200 pt-6">
+         <h4 className="font-bold text-gray-900 mb-4">Danger Zone</h4>
+         <div className="p-4 bg-red-50 border border-red-200 rounded-lg space-y-3">
+           <p className="text-sm text-red-700">
+             Deleting your account is permanent and cannot be undone. All your builder data and listings will be removed.
+           </p>
+           <Button
+             variant="destructive"
+             size="sm"
+             onClick={() => setShowDeleteConfirm(true)}
+             disabled={deleting}
+             className="w-full"
+           >
+             <Trash2 className="w-4 h-4 mr-2" />
+             Delete Account
+           </Button>
+         </div>
+       </div>
+
+       {/* Delete Confirmation Dialog */}
+       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+         <AlertDialogContent>
+           <AlertDialogHeader>
+             <AlertDialogTitle>Delete Account</AlertDialogTitle>
+             <AlertDialogDescription>
+               This will permanently delete your builder account and all associated data. This action cannot be undone.
+             </AlertDialogDescription>
+           </AlertDialogHeader>
+           <div className="flex gap-3">
+             <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+             <AlertDialogAction
+               onClick={handleDeleteAccount}
+               disabled={deleting}
+               className="bg-red-600 hover:bg-red-700"
+             >
+               {deleting ? (
+                 <>
+                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                   Deleting...
+                 </>
+               ) : (
+                 'Delete Account'
+               )}
+             </AlertDialogAction>
+           </div>
+         </AlertDialogContent>
+       </AlertDialog>
+      </CardContent>
+      );
+      }
