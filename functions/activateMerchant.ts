@@ -48,8 +48,8 @@ Deno.serve(async (req) => {
       return Response.json({ success: true, merchant_id, data: updated });
     } else if (action === 'reject') {
       // Reject/cancel merchant registration
-      const merchant = await base44.asServiceRole.entities.Merchant.list({ id: merchant_id });
-      const merchantData = merchant?.[0];
+      const merchants = await base44.asServiceRole.entities.Merchant.filter({ id: merchant_id });
+      const merchantData = merchants?.[0];
 
       const updated = await base44.asServiceRole.entities.Merchant.update(merchant_id, {
         status: 'cancelled',
