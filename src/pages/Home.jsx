@@ -77,7 +77,7 @@ function FeaturedChipsSection() {
                 <img 
                   src={chip.image_url || '/api/placeholder/80/80'}
                   alt={chip.name}
-                  className="w-16 h-16 rounded-lg mb-4"
+                  className="w-[90%] mx-auto aspect-square rounded-lg object-cover mb-4"
                 />
                 <CardTitle className="text-gray-900 dark:text-white">{chip.name}</CardTitle>
                 <CardDescription>{chip.short_description}</CardDescription>
