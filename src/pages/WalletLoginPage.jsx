@@ -1,9 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { createPageUrl } from '@/utils';
-import { Button } from '@/components/ui/button';
-import { KeyRound, Mail, Link2 } from 'lucide-react';
-import WalletLogin from '@/components/auth/WalletLogin.jsx';
-import { base44 } from '@/api/base44Client';
 
 export default function WalletLoginPage() {
   const [dealer, setDealer] = useState(null);
