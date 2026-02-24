@@ -5,9 +5,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DollarSign, Package, Plus, TrendingUp, Users, AlertCircle, Loader2 } from 'lucide-react';
-import SubmissionManager from '@/components/builders/SubmissionManager';
-import AnalyticsDashboard from '@/components/builders/AnalyticsDashboard';
-import ProfileSettings from '@/components/builders/ProfileSettings';
+import SubmissionManager from '@/components/builders/SubmissionManager.jsx';
+import AnalyticsDashboard from '@/components/builders/AnalyticsDashboard.jsx';
+import ProfileSettings from '@/components/builders/ProfileSettings.jsx';
 
 export default function BuilderDashboardPage() {
   const [user, setUser] = useState(null);
