@@ -20,7 +20,7 @@ export default function Web3IdentityTab({ merchant }) {
 
   useEffect(() => {
     if (merchant) {
-      setSubdomain(merchant.chainlink_subdomain);
+      setSubdomain(merchant.opentill_subdomain);
       setStatus(merchant.subdomain_status || 'pending');
     }
   }, [merchant]);
