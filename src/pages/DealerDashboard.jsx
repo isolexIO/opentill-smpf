@@ -218,7 +218,7 @@ export default function DealerDashboardPage() {
             <AIMarketingTools dealerId={dealer.id} />
           </TabsContent>
           <TabsContent value="payouts">
-            <PayoutDashboard dealerId={dealer.id} />
+            <PayoutDashboard dealer={dealer} onUpdate={loadDealerData} />
           </TabsContent>
           <TabsContent value="staff">
             <StaffManagement dealerId={dealer.id} />
