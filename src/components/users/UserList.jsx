@@ -148,12 +148,12 @@ export default function UserList({ users, onEdit, onDelete }) {
                     {user.last_login ? new Date(user.last_login).toLocaleDateString() : "Never"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <Button variant="ghost" size="sm" onClick={() => onEdit(user)} className="mr-2 min-h-[44px]">
-                      <Edit2 className="w-4 h-4" />
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => onDelete(user)} className="text-red-600 hover:text-red-700 min-h-[44px]">
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => onEdit(user)} className="mr-2 min-h-[44px] md:min-h-[auto]">
+                        <Edit2 className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => onDelete(user)} className="text-red-600 hover:text-red-700 min-h-[44px] md:min-h-[auto]">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
                   </td>
                 </tr>
               ))}
