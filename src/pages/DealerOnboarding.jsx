@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Building2, CheckCircle, Loader2, AlertCircle, Link2, ArrowRight, Rocket, Shield, DollarSign, Globe } from 'lucide-react';
+import { Building2, CheckCircle, Loader2, AlertCircle, ArrowRight, Rocket, Shield, DollarSign, Globe } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 
 const STEPS = ['Account Info', 'Your Brand', 'Review'];

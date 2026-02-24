@@ -5,7 +5,6 @@ import { Badge } from '@/components/ui/badge';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import {
-  Link2,
   CreditCard,
   Lock,
   CheckCircle,

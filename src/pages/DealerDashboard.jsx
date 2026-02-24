@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { createPageUrl } from '@/utils';
 import {
   Store, DollarSign, TrendingUp, Settings, CreditCard, Sparkles, Users,
-  LogOut, Bell, Link2, Globe, BarChart3, Wallet
+  LogOut, Bell, Globe, BarChart3, Wallet
 } from 'lucide-react';
 import StripeConnectSetup from '../components/dealer/StripeConnectSetup.jsx';
 import CustomDomainSSL from '../components/dealer/CustomDomainSSL.jsx';

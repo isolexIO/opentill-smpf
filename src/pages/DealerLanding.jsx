@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Building2, CheckCircle, Zap, DollarSign, Users, Shield, Globe,
   TrendingUp, Loader2, AlertCircle, Star, ArrowRight, BarChart3,
-  Palette, Link2, Mail, Lock, Rocket, Award, ChevronRight, Phone
+  Palette, Mail, Lock, Rocket, Award, ChevronRight, Phone
 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 
