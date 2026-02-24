@@ -438,7 +438,7 @@ ChainLINK Support`
         </div>
 
         {/* Mobile card layout */}
-        <div className="md:hidden space-y-3">
+        <div className="md:hidden space-y-3 pb-safe">
           {loading ? (
             <div className="text-center py-8">
               <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2" />
@@ -465,7 +465,7 @@ ChainLINK Support`
                   </div>
                   {getStatusBadge(merchant.status)}
                 </div>
-                <div className="space-y-2 mb-3 text-sm">
+                <div className="space-y-2 mb-3 text-sm border-b pb-3">
                   <div className="flex justify-between">
                     <span className="text-gray-500">Revenue:</span>
                     <span className="font-medium">${(merchant.total_revenue || 0).toFixed(2)}</span>
@@ -475,7 +475,7 @@ ChainLINK Support`
                     <span className="font-medium">{merchant.total_orders || 0}</span>
                   </div>
                 </div>
-                <div className="flex gap-2 pt-2 border-t">
+                <div className="flex gap-2 pt-2">
                   <Button
                     variant="outline"
                     size="sm"
