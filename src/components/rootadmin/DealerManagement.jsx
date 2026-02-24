@@ -384,7 +384,7 @@ export default function DealerManagement() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleImpersonateDealer(dealer.id)}
+                      onClick={() => handleImpersonateDealer(dealer)}
                       title="Impersonate dealer"
                     >
                       <UserCheck className="w-4 h-4" />
