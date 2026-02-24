@@ -55,8 +55,6 @@ export default function DUCVaultPage() {
     }
   }, []);
 
-  const loadData = loadVaultData;
-
   const loadVaultData = async () => {
     setLoading(true);
     try {
