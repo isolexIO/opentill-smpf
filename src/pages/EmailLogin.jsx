@@ -102,7 +102,7 @@ export default function EmailLoginPage() {
     setGoogleLoading(true);
     setError('');
     try {
-      await base44.auth.redirectToLogin(createPageUrl('PinLogin'));
+      await base44.auth.redirectToLogin(createPageUrl('EmailLogin'));
     } catch {
       setError('Failed to initiate Google login');
       setGoogleLoading(false);

@@ -46,7 +46,7 @@ function WalletLoginContent({ onSuccess, merchantId }) {
 
       const { data } = await base44.functions.invoke('authenticateWallet', {
         wallet_address: publicKey.toString(),
-        wallet_type: 'adapter',
+        wallet_type: 'phantom',
         signature_data: {
           signature: Array.from(signature),
           message,
