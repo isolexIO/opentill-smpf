@@ -91,6 +91,8 @@ import TermsOfService from './pages/TermsOfService';
 import Users from './pages/Users';
 import WalletLoginPage from './pages/WalletLoginPage';
 import cLINKVault from './pages/cLINKVault';
+import Builders from './pages/Builders';
+import BuilderOnboarding from './pages/BuilderOnboarding';
 import __Layout from './Layout.jsx';
 
 
@@ -139,6 +141,8 @@ export const PAGES = {
     "Users": Users,
     "WalletLoginPage": WalletLoginPage,
     "cLINKVault": cLINKVault,
+    "Builders": Builders,
+    "BuilderOnboarding": BuilderOnboarding,
 }
 
 export const pagesConfig = {
