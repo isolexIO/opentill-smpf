@@ -27,10 +27,13 @@ export default function ReferralDashboard() {
   const loadReferralData = async () => {
     setLoading(true);
     try {
+      const pinUserJSON = localStorage.getItem('pinLoggedInUser');
+      const pinUser = pinUserJSON ? JSON.parse(pinUserJSON) : null;
       const user = await base44.auth.me();
-      
+      const merchantId = pinUser?.merchant_id || user?.merchant_id;
+
       // Get merchant
-      const merchants = await base44.entities.Merchant.filter({ id: user.merchant_id });
+      const merchants = await base44.entities.Merchant.filter({ id: merchantId });
       if (merchants && merchants.length > 0) {
         const merchantData = merchants[0];
         setMerchant(merchantData);
@@ -43,7 +46,7 @@ export default function ReferralDashboard() {
 
       // Get referrals
       const referralData = await base44.entities.MerchantReferral.filter({
-        referrer_merchant_id: user.merchant_id
+        referrer_merchant_id: merchantId
       });
       
       setReferrals(referralData || []);
