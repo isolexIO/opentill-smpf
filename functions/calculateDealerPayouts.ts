@@ -153,7 +153,8 @@ Deno.serve(async (req) => {
           status: status,
           scheduled_at: scheduledAt ? scheduledAt.toISOString() : null,
           carryover_amount: status === 'on_hold' ? totalCommission : 0,
-          notes: notes
+          notes: notes,
+          merchant_names: payoutItems.map(item => item.merchant_name)
         });
 
         // Create payout items
@@ -169,6 +170,21 @@ Deno.serve(async (req) => {
           commission_pending: totalCommission,
           next_payout_date: scheduledAt ? scheduledAt.toISOString() : null
         });
+
+        // Send scheduled payout notification if status is scheduled
+        if (status === 'scheduled') {
+          try {
+            await base44.asServiceRole.functions.invoke('sendPayoutNotification', {
+              ambassador_id: dealer.id,
+              type: 'scheduled',
+              amount: totalCommission,
+              merchant_names: payoutItems.map(item => item.merchant_name),
+              details: { scheduled_at: scheduledAt.toISOString() }
+            });
+          } catch (notifyError) {
+            console.error('Notification sending failed:', notifyError);
+          }
+        }
 
         results.created++;
         results.payouts.push({
