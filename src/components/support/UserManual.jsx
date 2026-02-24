@@ -468,7 +468,7 @@ export default function UserManual() {
         },
         {
           title: 'Requesting Your Subdomain',
-          content: 'How to get subdomain:\n\n1. Merchant applies during onboarding\n2. Or later via Settings → Subdomain\n3. Request your preferred name:\n   • All lowercase\n   • Letters, numbers, hyphens\n   • No special characters\n   • Availability checked\n4. Submit request\n5. Status: Pending\n6. Super Admin reviews and approves\n7. System generates subdomain\n8. Status: Active\n9. Link to your wallet (optional)\n10. Use for online menu or branding\n\nNote: Super Admin can approve, regenerate, or disable subdomains'
+          content: 'How to get your subdomain:\n\n1. Merchant applies during onboarding\n2. Or later via Settings → General\n3. Request your preferred name:\n   • All lowercase\n   • Letters, numbers, hyphens\n   • No special characters\n   • Availability checked\n4. Submit request → Status: Pending\n5. Super Admin reviews and approves\n6. Status becomes: Active\n7. Link to your Solana wallet (optional)\n8. Use for online menu, branding, and crypto payments\n\nNote: Super Admin can approve, regenerate, or disable subdomains'
         },
         {
           title: 'Using Your Subdomain',
