@@ -207,6 +207,20 @@ export default function SettingsPage() {
     await handleSave({ settings: newSettings });
   };
 
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== 'DELETE') {
+      alert('Please type DELETE to confirm.');
+      return;
+    }
+    try {
+      await base44.entities.Merchant.update(merchant.id, { status: 'cancelled' });
+      localStorage.removeItem('pinLoggedInUser');
+      base44.auth.logout(createPageUrl('Home'));
+    } catch (err) {
+      alert('Failed to delete account: ' + err.message);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
