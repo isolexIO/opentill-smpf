@@ -91,7 +91,7 @@ export default function Web3IdentityTab({ merchant }) {
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  Request a unique subdomain to establish your Web3 identity within the ChainLINK POS ecosystem.
+                  Request a unique subdomain to establish your Web3 identity within the openTILL ecosystem.
                   This subdomain will be used for payments, receipts, and rewards attribution.
                 </AlertDescription>
               </Alert>
