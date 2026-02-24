@@ -164,13 +164,13 @@ export default function HomePage() {
       if (response.data.success && response.data.stats) {
         setStats({
           activeMerchants: response.data.stats.activeMerchants,
-          activeDealers: response.data.stats.activeDealers,
+          activeAmbassadors: response.data.stats.activeDealers,
           loading: false
         });
       } else {
         setStats({
           activeMerchants: 0,
-          activeDealers: 0,
+          activeAmbassadors: 0,
           loading: false
         });
       }
@@ -178,7 +178,7 @@ export default function HomePage() {
       console.error('Error loading stats:', error);
       setStats({
         activeMerchants: 0,
-        activeDealers: 0,
+        activeAmbassadors: 0,
         loading: false
       });
     }
@@ -240,7 +240,7 @@ export default function HomePage() {
           features: [
             { text: 'Unlimited Terminals', included: true },
             { text: 'Unlimited Orders', included: true },
-            { text: 'White Label Solution', included: true },
+            { text: 'Custom Branding', included: true },
             { text: '24/7 Phone Support', included: true },
             { text: 'All Payment Methods', included: true },
             { text: 'Custom Integrations', included: true },
@@ -265,8 +265,8 @@ export default function HomePage() {
     },
     {
       icon: Users,
-      value: stats.loading ? '...' : stats.activeDealers.toLocaleString(),
-      label: 'Active Dealers'
+      value: stats.loading ? '...' : (stats.activeAmbassadors || 0).toLocaleString(),
+      label: 'Active Ambassadors'
     },
     {
       icon: Activity,
@@ -303,7 +303,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.location.href = createPageUrl('Home')}>
-              <Link2 className="w-8 h-8 text-white" />
+              <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6970e2871534100b4ebb8d45/8e45f76fe_DUC3.png" alt="openTILL" className="w-8 h-8" />
               <span className="text-2xl font-bold text-white">openTILL</span>
             </div>
             <div className="hidden md:flex items-center gap-6">
@@ -844,7 +844,7 @@ export default function HomePage() {
             {/* Company Info */}
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <Link2 className="w-6 h-6 text-white" />
+                <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6970e2871534100b4ebb8d45/8e45f76fe_DUC3.png" alt="openTILL" className="w-6 h-6" />
                 <span className="text-xl font-bold text-white">openTILL</span>
               </div>
               <p className="text-gray-300 text-sm mb-4">
