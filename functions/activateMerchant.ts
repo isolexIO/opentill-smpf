@@ -20,8 +20,8 @@ Deno.serve(async (req) => {
 
     if (action === 'activate') {
       // Activate merchant with trial
-      const merchant = await base44.asServiceRole.entities.Merchant.list({ id: merchant_id });
-      const merchantData = merchant?.[0];
+      const merchants = await base44.asServiceRole.entities.Merchant.filter({ id: merchant_id });
+      const merchantData = merchants?.[0];
       
       if (!merchantData) {
         return Response.json({ error: 'Merchant not found' }, { status: 404 });
