@@ -676,7 +676,7 @@ export default function UserManual() {
         },
         {
           title: 'How does $cLINK Vault work?',
-          content: 'Earn cryptocurrency rewards for processing credit card payments. Earn 0.5% of your monthly CC volume in $cLINK tokens. Connect Solana wallet, claim rewards, stake for APY, or swap via Jupiter. Rewards calculated automatically at month-end. Minimum claim threshold applies. Access via "$cLINK Vault" in System Menu.'
+          content: 'Earn cryptocurrency rewards for processing credit card payments. Earn 0.5% of your monthly CC volume in $cLINK tokens. First, connect a Solana wallet in Settings → Wallet & Payments. Then access $cLINK Vault from System Menu. Claim rewards to your wallet, stake for APY (up to 20%), or swap for USDC via Jupiter. Rewards are calculated automatically at month-end. A minimum claim threshold applies.'
         },
         {
           title: 'What is Motherboard?',
