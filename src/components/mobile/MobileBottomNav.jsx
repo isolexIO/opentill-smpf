@@ -1,6 +1,7 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Home, ShoppingCart, Package, Users, Settings } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 
 const NAV_ITEMS = [
   { label: 'Home', icon: Home, page: 'SystemMenu' },
@@ -11,6 +12,30 @@ const NAV_ITEMS = [
 ];
 
 export default function MobileBottomNav({ currentPageName }) {
+  const location = useLocation();
+  const historyRef = useRef({
+    SystemMenu: null,
+    Orders: null,
+    Inventory: null,
+    Users: null,
+    Settings: null,
+  });
+
+  // Store scroll position when leaving a tab
+  useEffect(() => {
+    historyRef.current[currentPageName] = window.scrollY || 0;
+  }, [currentPageName]);
+
+  // Restore scroll position when entering a tab
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const scrollPos = historyRef.current[currentPageName] || 0;
+      window.scrollTo(0, scrollPos);
+    }, 0);
+
+    return () => clearTimeout(timer);
+  }, [currentPageName]);
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 flex md:hidden"
          style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
