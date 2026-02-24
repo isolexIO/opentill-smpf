@@ -812,7 +812,7 @@ export default function UserManual() {
             <div>
               <h3 className="font-semibold text-lg mb-2">Still need help?</h3>
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                Our support team is available 24/7 to assist you with any questions or issues.
+                Our support team is here to help you succeed. Use live chat for the fastest response!
               </p>
               <div className="flex flex-wrap gap-2">
                 <Badge className="bg-blue-600 text-white">Live Chat Available</Badge>
