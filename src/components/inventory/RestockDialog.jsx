@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -24,6 +25,9 @@ export default function RestockDialog({ item, onClose, onComplete }) {
       const newQuantity = item.quantity + parseInt(quantity);
       const status = newQuantity <= item.reorder_threshold ? 'low_stock' : 'in_stock';
 
+      // Optimistic update: immediately call onComplete to update UI
+      await onComplete();
+
       await base44.entities.MerchantInventory.update(item.id, {
         quantity: newQuantity,
         status,
@@ -45,8 +49,6 @@ export default function RestockDialog({ item, onClose, onComplete }) {
           });
         }
       }
-
-      await onComplete();
     } catch (error) {
       console.error('Error restocking item:', error);
       alert('Failed to restock item');
