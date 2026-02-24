@@ -13,24 +13,31 @@ const NAV_ITEMS = [
 
 export default function MobileBottomNav({ currentPageName }) {
   const location = useLocation();
-  const historyRef = useRef({
-    SystemMenu: null,
-    Orders: null,
-    Inventory: null,
-    Users: null,
-    Settings: null,
+  const stackRef = useRef({
+    SystemMenu: { url: createPageUrl('SystemMenu'), scroll: 0 },
+    Orders: { url: createPageUrl('Orders'), scroll: 0 },
+    Inventory: { url: createPageUrl('Inventory'), scroll: 0 },
+    Users: { url: createPageUrl('Users'), scroll: 0 },
+    Settings: { url: createPageUrl('Settings'), scroll: 0 },
   });
 
-  // Store scroll position when leaving a tab
+  // Store navigation state when leaving a tab
   useEffect(() => {
-    historyRef.current[currentPageName] = window.scrollY || 0;
-  }, [currentPageName]);
+    if (currentPageName && NAV_ITEMS.some(item => item.page === currentPageName)) {
+      stackRef.current[currentPageName] = {
+        url: location.pathname + location.search,
+        scroll: window.scrollY || 0
+      };
+    }
+  }, [currentPageName, location.pathname, location.search]);
 
-  // Restore scroll position when entering a tab
+  // Restore navigation state when entering a tab
   useEffect(() => {
     const timer = setTimeout(() => {
-      const scrollPos = historyRef.current[currentPageName] || 0;
-      window.scrollTo(0, scrollPos);
+      const stack = stackRef.current[currentPageName];
+      if (stack) {
+        window.scrollTo(0, stack.scroll);
+      }
     }, 0);
 
     return () => clearTimeout(timer);
