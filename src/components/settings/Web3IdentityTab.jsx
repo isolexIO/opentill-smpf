@@ -76,10 +76,10 @@ export default function Web3IdentityTab({ merchant }) {
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Globe className="w-5 h-5" />
-                Web3 Identity & Subdomain
+                openTILL Identity & Subdomain
               </CardTitle>
               <CardDescription>
-                Your unique .chainlink-pos.sol subdomain identity
+                Your unique .opentill-pos.sol subdomain identity
               </CardDescription>
             </div>
             {getStatusBadge()}
