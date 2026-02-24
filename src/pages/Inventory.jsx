@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import PullToRefresh from '@/components/mobile/PullToRefresh';
+import PageTransition from '@/components/mobile/PageTransition';
 import {
   Table,
   TableBody,
@@ -159,8 +161,9 @@ export default function InventoryPage() {
   const lowStockCount = lowStockItems.length;
 
   return (
-    <PermissionGate permission="manage_inventory">
-      <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
+    <PageTransition>
+      <PermissionGate permission="manage_inventory">
+        <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
@@ -233,28 +236,30 @@ export default function InventoryPage() {
             </TabsList>
 
             <TabsContent value="inventory" className="mt-6">
-              {/* Mobile card layout */}
-              <div className="md:hidden">
-                {loading ? (
-                  <div className="flex justify-center py-12"><RefreshCw className="w-6 h-6 animate-spin text-blue-500" /></div>
-                ) : filteredInventory.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Package className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-                    <p className="text-gray-500">No inventory items found</p>
-                    <Button onClick={() => setShowForm(true)} className="mt-4"><Plus className="w-4 h-4 mr-2" />Add Item</Button>
-                  </div>
-                ) : (
-                  filteredInventory.map(item => (
-                    <MobileInventoryCard
-                      key={item.id}
-                      item={item}
-                      onEdit={(i) => { setSelectedItem(i); setShowForm(true); }}
-                      onRestock={handleRestock}
-                      onDelete={handleDelete}
-                    />
-                  ))
-                )}
-              </div>
+               {/* Mobile card layout with pull-to-refresh */}
+               <PullToRefresh onRefresh={loadData}>
+                 <div className="md:hidden">
+                   {loading ? (
+                     <div className="flex justify-center py-12"><RefreshCw className="w-6 h-6 animate-spin text-blue-500" /></div>
+                   ) : filteredInventory.length === 0 ? (
+                     <div className="text-center py-12">
+                       <Package className="w-12 h-12 mx-auto text-gray-300 mb-3" />
+                       <p className="text-gray-500">No inventory items found</p>
+                       <Button onClick={() => setShowForm(true)} className="mt-4"><Plus className="w-4 h-4 mr-2" />Add Item</Button>
+                     </div>
+                   ) : (
+                     filteredInventory.map(item => (
+                       <MobileInventoryCard
+                         key={item.id}
+                         item={item}
+                         onEdit={(i) => { setSelectedItem(i); setShowForm(true); }}
+                         onRestock={handleRestock}
+                         onDelete={handleDelete}
+                       />
+                     ))
+                   )}
+                 </div>
+               </PullToRefresh>
 
               {/* Desktop table */}
               <Card className="hidden md:block">
