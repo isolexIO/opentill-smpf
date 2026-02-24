@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Table,
   TableBody,
@@ -25,10 +26,15 @@ import {
   AlertCircle,
   Eye,
   Calendar,
-  Loader2
+  Loader2,
+  Settings,
+  BarChart3
 } from 'lucide-react';
+import CommissionBreakdown from './CommissionBreakdown';
+import PayoutMethodSettings from './PayoutMethodSettings';
+import PayoutThresholdSettings from './PayoutThresholdSettings';
 
-export default function PayoutDashboard({ dealer }) {
+export default function PayoutDashboard({ dealer, onUpdate }) {
   const [payouts, setPayouts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [preview, setPreview] = useState(null);
