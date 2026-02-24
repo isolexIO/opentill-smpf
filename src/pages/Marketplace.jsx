@@ -61,8 +61,28 @@ export default function Marketplace() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 py-12 px-4">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
+      {/* Header Navigation */}
+      <nav className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.location.href = createPageUrl('Home')}>
+              <Sparkles className="w-8 h-8 text-cyan-600" />
+              <span className="text-2xl font-bold text-gray-900 dark:text-white">openTILL Marketplace</span>
+            </div>
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" onClick={() => window.location.href = createPageUrl('Home')}>
+                Home
+              </Button>
+              <Button onClick={() => window.location.href = createPageUrl('EmailLogin')}>
+                Sign In
+              </Button>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <div className="max-w-7xl mx-auto py-12 px-4 space-y-8">
         {/* Header */}
         <div className="text-center space-y-4">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-cyan-100 dark:bg-cyan-900/30 text-cyan-800 dark:text-cyan-300 rounded-full text-sm font-bold">
@@ -159,13 +179,13 @@ function ChipMarketCard({ chip, status }) {
   return (
     <Card className="group hover:shadow-2xl transition-all duration-300 border-2 hover:border-cyan-400">
       <CardHeader>
-        <div className="flex items-start justify-between mb-4">
+        <div className="relative mb-4">
           <img 
             src={chip.image_url || '/api/placeholder/80/80'} 
             alt={chip.name}
             className="w-full aspect-square rounded-lg object-cover"
           />
-          <Badge className={`${config.color} text-white`}>
+          <Badge className={`absolute top-2 left-2 ${config.color} text-white shadow-lg z-10`}>
             <Icon className="w-3 h-3 mr-1" />
             {config.text}
           </Badge>

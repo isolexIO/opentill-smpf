@@ -56,8 +56,31 @@ export default function ChipDetail() {
   const isComingSoon = chip.start_time && new Date(chip.start_time) > new Date();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-12 px-4">
-      <div className="max-w-5xl mx-auto space-y-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      {/* Header Navigation */}
+      <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.location.href = createPageUrl('Home')}>
+              <Sparkles className="w-8 h-8 text-cyan-600" />
+              <span className="text-2xl font-bold text-gray-900">openTILL Marketplace</span>
+            </div>
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" onClick={() => window.location.href = createPageUrl('Marketplace')}>
+                Marketplace
+              </Button>
+              <Button variant="ghost" onClick={() => window.location.href = createPageUrl('Home')}>
+                Home
+              </Button>
+              <Button onClick={() => window.location.href = createPageUrl('EmailLogin')}>
+                Sign In
+              </Button>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <div className="max-w-5xl mx-auto py-12 px-4 space-y-8">
         <Button
           variant="ghost"
           onClick={() => window.location.href = createPageUrl('Marketplace')}

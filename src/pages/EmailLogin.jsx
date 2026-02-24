@@ -72,11 +72,21 @@ export default function EmailLoginPage() {
       }
 
       if (result.data.success && result.data.user) {
-        // Store user in localStorage for PIN login compatibility
-        localStorage.setItem('pinLoggedInUser', JSON.stringify(result.data.user));
+        const user = result.data.user;
+        localStorage.setItem('pinLoggedInUser', JSON.stringify(user));
         
-        // Redirect to system menu
-        window.location.href = createPageUrl('SystemMenu');
+        // Role-based routing: SuperAdmin, MerchantAdmin, Ambassador
+        let redirectUrl = createPageUrl('SystemMenu');
+        
+        if (user.role === 'admin' || user.role === 'super_admin' || user.role === 'root_admin') {
+          redirectUrl = createPageUrl('SuperAdmin');
+        } else if (user.role === 'dealer_admin' || user.role === 'ambassador') {
+          redirectUrl = createPageUrl('DealerDashboard');
+        } else if (user.merchant_id) {
+          redirectUrl = createPageUrl('SystemMenu'); // Merchant admin/staff
+        }
+        
+        window.location.href = redirectUrl;
       } else {
         setError(result.data.error || 'Login failed');
       }
@@ -258,14 +268,7 @@ export default function EmailLoginPage() {
               )}
             </Button>
 
-            <Button
-              variant="ghost"
-              className="w-full text-sm"
-              onClick={() => window.location.href = createPageUrl('PinLogin')}
-            >
-              <KeyRound className="w-4 h-4 mr-2" />
-              Use PIN Login
-            </Button>
+
           </div>
 
           <div className="mt-4 text-center">

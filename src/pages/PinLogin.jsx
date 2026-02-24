@@ -8,8 +8,7 @@ import { createPageUrl } from '@/utils';
 // WalletLogin component is removed from the outline, so removing its import
 // import WalletLogin from '../components/auth/WalletLogin';
 
-// Define brandName as it's used in the outline but not imported/defined in the original file
-const brandName = 'ChainLINK';
+const brandName = 'openTILL';
 
 export default function PinLoginPage() {
   const [pin, setPin] = useState('');
@@ -96,14 +95,8 @@ export default function PinLoginPage() {
       const user = data.user;
       localStorage.setItem('pinLoggedInUser', JSON.stringify(user));
 
-      let redirectUrl = createPageUrl('SystemMenu');
-      if (user.role === 'super_admin' || user.role === 'admin' || user.role === 'root_admin') {
-        redirectUrl = createPageUrl('SuperAdmin');
-      } else if (user.role === 'dealer_admin') {
-        redirectUrl = createPageUrl('DealerDashboard');
-      }
-
-      window.location.href = redirectUrl;
+      // Staff PIN login only - always goes to SystemMenu
+      window.location.href = createPageUrl('SystemMenu');
 
     } catch (error) {
       console.error('PIN login error:', error);
