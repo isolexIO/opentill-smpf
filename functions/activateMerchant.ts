@@ -48,11 +48,28 @@ Deno.serve(async (req) => {
       return Response.json({ success: true, merchant_id, data: updated });
     } else if (action === 'reject') {
       // Reject/cancel merchant registration
+      const merchant = await base44.asServiceRole.entities.Merchant.list({ id: merchant_id });
+      const merchantData = merchant?.[0];
+
       const updated = await base44.asServiceRole.entities.Merchant.update(merchant_id, {
         status: 'cancelled',
         suspended_at: now,
         suspension_reason: 'Registration rejected by admin'
       });
+
+      // Send rejection email
+      if (merchantData?.owner_email) {
+        try {
+          await base44.asServiceRole.integrations.Core.SendEmail({
+            to: merchantData.owner_email,
+            subject: 'Your openTILL Application Status',
+            body: `Dear ${merchantData.owner_name || 'Applicant'},\n\nThank you for your interest in openTILL. Unfortunately, your application for ${merchantData.business_name} has been rejected by our team.\n\nIf you have any questions, please contact our support team.\n\nBest regards,\nThe openTILL Team`
+          });
+        } catch (emailError) {
+          console.error('Failed to send rejection email:', emailError);
+        }
+      }
+
       return Response.json({ success: true, merchant_id, data: updated });
     } else {
       return Response.json({ error: 'Invalid action', merchant_id }, { status: 400 });
