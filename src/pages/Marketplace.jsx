@@ -144,7 +144,6 @@ export default function Marketplace() {
         </Tabs>
       </div>
     </div>
-    </div>
   );
 }
 

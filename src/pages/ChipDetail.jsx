@@ -223,6 +223,5 @@ export default function ChipDetail() {
         </div>
       </div>
     </div>
-    </div>
   );
 }
