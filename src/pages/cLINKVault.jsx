@@ -331,7 +331,7 @@ export default function DUCVaultPage() {
               chipId={purchaseChipId} 
               onSuccess={() => {
                 setPurchaseChipId(null);
-                loadData();
+                loadVaultData();
               }}
             />
           )}
