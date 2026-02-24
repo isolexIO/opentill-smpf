@@ -71,7 +71,13 @@ export default function ReferralDashboard() {
   const generateReferralCode = async () => {
     setLoading(true);
     try {
-      const { data } = await base44.functions.invoke('generateReferralCode', {});
+      const pinUserJSON = localStorage.getItem('pinLoggedInUser');
+      const pinUser = pinUserJSON ? JSON.parse(pinUserJSON) : null;
+      const merchantId = pinUser?.merchant_id || merchant?.id;
+
+      const { data } = await base44.functions.invoke('generateReferralCode', {
+        merchant_id: merchantId
+      });
       
       if (data.success) {
         setReferralCode(data.referral_code);
