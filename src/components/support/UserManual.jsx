@@ -404,7 +404,7 @@ export default function UserManual() {
       content: [
         {
           title: 'What is Motherboard?',
-          content: 'NFT-gated premium features:\n• Unlock advanced features by holding NFTs\n• Each "Chip" requires specific NFT collection\n• Modular system - only buy what you need\n• Blockchain-verified access\n• No recurring subscription fees\n\nHow it works:\n1. View available Chips in Motherboard\n2. See which NFT is required\n3. Purchase NFT from marketplace (Magic Eden, Tensor, etc.)\n4. Connect wallet to ChainLINK\n5. System verifies NFT ownership\n6. Feature unlocked instantly\n\nAccess: Navigate to "Motherboard" from System Menu'
+          content: 'The Motherboard is openTILL\'s modular chip-based feature system:\n• Unlock premium features by purchasing "Chips" with $DUC tokens\n• Each chip represents a specific feature upgrade\n• Some chips are one-time purchases; others are recurring monthly/yearly\n• Blockchain-verified access — features activate instantly\n• Only pay for what you need\n\nHow it works:\n1. Connect your Solana wallet in Settings → Wallet & Payments\n2. Navigate to System Menu → Motherboard\n3. Browse available chips (or visit the Marketplace)\n4. Purchase a chip with $DUC tokens\n5. Feature unlocks instantly\n6. For subscription chips: feature stays active while subscription is paid\n\nAccess: Navigate to "Motherboard" from System Menu'
         },
         {
           title: 'Connecting Your Wallet',
