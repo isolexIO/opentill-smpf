@@ -141,45 +141,9 @@ function WalletLoginContent({ onSuccess, merchantId }) {
 }
 
 export default function WalletLogin({ onSuccess, merchantId }) {
-  const endpoint = useMemo(() => clusterApiUrl('mainnet-beta'), []);
-
-  const wallets = useMemo(() => {
-    const isMobile = /Android|webOS|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    const adapters = [
-      new PhantomWalletAdapter(),
-      new SolflareWalletAdapter(),
-    ];
-
-    // Add Solana Mobile Wallet Adapter for mobile devices (Saga / Seeker)
-    if (isMobile) {
-      try {
-        adapters.unshift(
-          new SolanaMobileWalletAdapter({
-            addressSelector: createDefaultAddressSelector(),
-            appIdentity: {
-              name: 'openTILL',
-              uri: window.location.origin,
-              icon: `${window.location.origin}/favicon.ico`,
-            },
-            authorizationResultCache: createDefaultAuthorizationResultCache(),
-            cluster: 'mainnet-beta',
-          })
-        );
-      } catch (e) {
-        // silently skip if not available
-      }
-    }
-
-    return adapters;
-  }, []);
-
   return (
-    <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider wallets={wallets} autoConnect={false}>
-        <WalletModalProvider>
-          <WalletLoginContent onSuccess={onSuccess} merchantId={merchantId} />
-        </WalletModalProvider>
-      </WalletProvider>
-    </ConnectionProvider>
+    <SolanaWalletProvider autoConnect={false}>
+      <WalletLoginContent onSuccess={onSuccess} merchantId={merchantId} />
+    </SolanaWalletProvider>
   );
 }
