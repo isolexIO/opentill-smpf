@@ -8,10 +8,10 @@ function WalletConnectContent({ onWalletConnected }) {
   const { publicKey, connected } = useWallet();
 
   useEffect(() => {
-    if (connected && publicKey) {
+    if (connected && publicKey && onWalletConnected) {
       onWalletConnected(publicKey.toString());
     }
-  }, [connected, publicKey, onWalletConnected]);
+  }, [connected, publicKey]);
 
   return (
     <div className="flex items-center gap-2">
