@@ -143,22 +143,9 @@ function WalletConnectContent({ formData, onChange, onNext, onBack }) {
 }
 
 export default function StepWallet({ formData, onChange, onNext, onBack }) {
-  const endpoint = React.useMemo(() => clusterApiUrl('mainnet-beta'), []);
-  
-  const wallets = React.useMemo(() => {
-    return [
-      new PhantomWalletAdapter(),
-      new SolflareWalletAdapter(),
-    ];
-  }, []);
-
   return (
-    <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider wallets={wallets} autoConnect={false}>
-        <WalletModalProvider>
-          <WalletConnectContent formData={formData} onChange={onChange} onNext={onNext} onBack={onBack} />
-        </WalletModalProvider>
-      </WalletProvider>
-    </ConnectionProvider>
+    <SolanaWalletProvider autoConnect={false}>
+      <WalletConnectContent formData={formData} onChange={onChange} onNext={onNext} onBack={onBack} />
+    </SolanaWalletProvider>
   );
 }
