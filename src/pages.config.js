@@ -96,7 +96,6 @@ import SystemMenu from './pages/SystemMenu';
 import TermsOfService from './pages/TermsOfService';
 import Users from './pages/Users';
 import WalletLoginPage from './pages/WalletLoginPage';
-import cLINKVault from './pages/cLINKVault';
 import __Layout from './Layout.jsx';
 
 
@@ -150,7 +149,6 @@ export const PAGES = {
     "TermsOfService": TermsOfService,
     "Users": Users,
     "WalletLoginPage": WalletLoginPage,
-    "cLINKVault": cLINKVault,
 }
 
 export const pagesConfig = {
