@@ -51,7 +51,7 @@ export default function VaultManager() {
           staking_apy: data.settings.staking_apy ?? 12,
           staking_lockup_days: data.settings.staking_lockup_days ?? 90,
           jupiter_referral_code: data.settings.jupiter_referral_code || '',
-          clink_mint_address: data.settings.clink_mint_address || 'FPzmBaifnDkTDi26cuiEkRGofnvF7ReXUtWT7Eebjupx',
+          duc_mint_address: data.settings.duc_mint_address || data.settings.clink_mint_address || 'FPzmBaifnDkTDi26cuiEkRGofnvF7ReXUtWT7Eebjupx',
           token_symbol: data.settings.token_symbol || '$DUC',
           auto_calculate_rewards: data.settings.auto_calculate_rewards ?? true,
           cc_reward_rate: data.settings.cc_reward_rate ?? 0.001,
