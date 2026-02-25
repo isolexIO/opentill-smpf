@@ -52,7 +52,7 @@ export default function BuilderOnboardingPage() {
       }
 
       const res = await base44.functions.invoke('createBuilderProfile', {
-        user_email: user.email,
+        user_email: user?.email || formData.support_email,
         full_name: formData.full_name,
         company_name: formData.company_name,
         bio: formData.bio,
