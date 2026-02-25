@@ -20,7 +20,7 @@ export default function VaultManager() {
     staking_apy: 12,
     staking_lockup_days: 90,
     jupiter_referral_code: '',
-    clink_mint_address: 'FPzmBaifnDkTDi26cuiEkRGofnvF7ReXUtWT7Eebjupx',
+    duc_mint_address: 'FPzmBaifnDkTDi26cuiEkRGofnvF7ReXUtWT7Eebjupx',
     token_symbol: '$DUC',
     auto_calculate_rewards: true,
     cc_reward_rate: 0.001,
