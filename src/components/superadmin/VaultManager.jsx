@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Vault, Save, RefreshCw } from 'lucide-react';
+import AdminVaultWallet from '@/components/vault/AdminVaultWallet';
 
 export default function VaultManager() {
   const [globalSettings, setGlobalSettings] = useState(null);
