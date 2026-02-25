@@ -58,7 +58,6 @@ import Contact from './pages/Contact';
 import Copyright from './pages/Copyright';
 import CustomerDisplay from './pages/CustomerDisplay';
 import Customers from './pages/Customers';
-import DUCVault from './pages/DUCVault';
 import DealerAdmin from './pages/DealerAdmin';
 import DealerDashboard from './pages/DealerDashboard';
 import DealerHome from './pages/DealerHome';
@@ -111,7 +110,6 @@ export const PAGES = {
     "Copyright": Copyright,
     "CustomerDisplay": CustomerDisplay,
     "Customers": Customers,
-    "DUCVault": DUCVault,
     "DealerAdmin": DealerAdmin,
     "DealerDashboard": DealerDashboard,
     "DealerHome": DealerHome,
