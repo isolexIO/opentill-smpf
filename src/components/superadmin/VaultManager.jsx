@@ -137,12 +137,23 @@ export default function VaultManager() {
               </div>
               
               <div>
-                <Label>$DUC Token Mint Address</Label>
+                <Label>Token Symbol</Label>
+                <Input
+                  value={formData.token_symbol}
+                  onChange={(e) => setFormData({...formData, token_symbol: e.target.value})}
+                  placeholder="e.g. $DUC"
+                />
+                <p className="text-sm text-gray-500 mt-1">Display name shown in the vault and price ticker</p>
+              </div>
+
+              <div>
+                <Label>Token Mint Address</Label>
                 <Input
                   value={formData.clink_mint_address}
                   onChange={(e) => setFormData({...formData, clink_mint_address: e.target.value})}
                   placeholder="Solana token mint address"
                 />
+                <p className="text-sm text-gray-500 mt-1">The SPL token mint used for live price fetching and swaps</p>
               </div>
 
               <div className="flex items-center justify-between">
