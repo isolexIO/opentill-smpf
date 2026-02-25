@@ -59,6 +59,7 @@ export default function VaultManager() {
           cc_reward_rate: data.settings.cc_reward_rate ?? 0.001,
           min_reward_amount: data.settings.min_reward_amount ?? 0.01,
           staking_vault_address: data.settings.staking_vault_address || '',
+          central_vault_wallet: data.settings.central_vault_wallet || '',
           network: data.settings.network || 'mainnet-beta',
           referral_reward_rate: data.settings.referral_reward_rate ?? 0.1,
           min_referral_reward: data.settings.min_referral_reward ?? 0.001
