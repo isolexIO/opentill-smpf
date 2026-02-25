@@ -30,44 +30,9 @@ function WalletConnectContent({ onWalletConnected }) {
 }
 
 export default function WalletConnectButton({ onWalletConnected }) {
-  const endpoint = useMemo(() => clusterApiUrl('mainnet-beta'), []);
-
-  const wallets = useMemo(() => {
-    const isMobile = /Android|webOS|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    const adapters = [
-      new PhantomWalletAdapter(),
-      new SolflareWalletAdapter(),
-    ];
-
-    if (isMobile) {
-      try {
-        adapters.unshift(
-          new SolanaMobileWalletAdapter({
-            addressSelector: createDefaultAddressSelector(),
-            appIdentity: {
-              name: 'openTILL',
-              uri: window.location.origin,
-              icon: `${window.location.origin}/favicon.ico`,
-            },
-            authorizationResultCache: createDefaultAuthorizationResultCache(),
-            cluster: 'mainnet-beta',
-          })
-        );
-      } catch (e) {
-        // silently skip
-      }
-    }
-
-    return adapters;
-  }, []);
-
   return (
-    <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider wallets={wallets} autoConnect>
-        <WalletModalProvider>
-          <WalletConnectContent onWalletConnected={onWalletConnected} />
-        </WalletModalProvider>
-      </WalletProvider>
-    </ConnectionProvider>
+    <SolanaWalletProvider autoConnect={false}>
+      <WalletConnectContent onWalletConnected={onWalletConnected} />
+    </SolanaWalletProvider>
   );
 }
