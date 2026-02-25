@@ -47,9 +47,6 @@ export default function BuilderOnboardingPage() {
     setLoading(true);
     setError('');
     try {
-      if (!user) {
-        throw new Error('You must be logged in');
-      }
       if (!formData.full_name || !formData.company_name || !formData.support_email) {
         throw new Error('Please fill in all required fields');
       }
