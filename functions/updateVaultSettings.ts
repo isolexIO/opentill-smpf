@@ -22,10 +22,9 @@ Deno.serve(async (req) => {
     } else if (action === 'update') {
       result = await base44.asServiceRole.entities.cLINKVaultSettings.update(settings_id, settings_data);
     } else if (action === 'get') {
-      const settings = await base44.asServiceRole.entities.cLINKVaultSettings.filter({
-        merchant_id: null
-      });
-      return Response.json({ success: true, settings: settings[0] || null });
+      const settings = await base44.asServiceRole.entities.cLINKVaultSettings.list();
+      const global = settings.find(s => !s.merchant_id) || settings[0] || null;
+      return Response.json({ success: true, settings: global });
     }
 
     return Response.json({ success: true, data: result });
