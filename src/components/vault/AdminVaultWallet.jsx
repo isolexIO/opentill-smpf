@@ -116,7 +116,7 @@ function AdminVaultWalletContent({ settingsId, currentVaultWallet, onSaved }) {
 
 export default function AdminVaultWallet({ settingsId, currentVaultWallet, onSaved }) {
   return (
-    <SolanaWalletProvider>
+    <SolanaWalletProvider autoConnect={true}>
       <AdminVaultWalletContent
         settingsId={settingsId}
         currentVaultWallet={currentVaultWallet}
