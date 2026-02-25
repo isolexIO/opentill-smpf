@@ -1,19 +1,13 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Wallet, Loader2, AlertCircle, QrCode, Smartphone } from 'lucide-react';
+import { Wallet, Loader2, AlertCircle, QrCode } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { ConnectionProvider, WalletProvider, useWallet } from '@solana/wallet-adapter-react';
-import { WalletModalProvider, WalletMultiButton } from '@solana/wallet-adapter-react-ui';
-import {
-  PhantomWalletAdapter,
-  SolflareWalletAdapter,
-} from '@solana/wallet-adapter-wallets';
-import { SolanaMobileWalletAdapter, createDefaultAuthorizationResultCache, createDefaultAddressSelector } from '@solana-mobile/wallet-adapter-mobile';
-import { clusterApiUrl } from '@solana/web3.js';
-import '@solana/wallet-adapter-react-ui/styles.css';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import SolanaWalletProvider from './SolanaWalletProvider';
 import JupiterMobileQR from './JupiterMobileQR';
 
 function WalletLoginContent({ onSuccess, merchantId }) {
