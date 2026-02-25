@@ -149,8 +149,8 @@ export default function VaultManager() {
               <div>
                 <Label>Token Mint Address</Label>
                 <Input
-                  value={formData.clink_mint_address}
-                  onChange={(e) => setFormData({...formData, clink_mint_address: e.target.value})}
+                  value={formData.duc_mint_address}
+                  onChange={(e) => setFormData({...formData, duc_mint_address: e.target.value})}
                   placeholder="Solana token mint address"
                 />
                 <p className="text-sm text-gray-500 mt-1">The SPL token mint used for live price fetching and swaps</p>
