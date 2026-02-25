@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { base44 } from '@/api/base44Client';
