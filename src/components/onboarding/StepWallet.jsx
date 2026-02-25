@@ -3,11 +3,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Wallet, CheckCircle, Info, ChevronRight, Loader2 } from 'lucide-react';
-import { ConnectionProvider, WalletProvider, useWallet } from '@solana/wallet-adapter-react';
-import { WalletModalProvider, WalletMultiButton } from '@solana/wallet-adapter-react-ui';
-import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
-import { clusterApiUrl } from '@solana/web3.js';
-import '@solana/wallet-adapter-react-ui/styles.css';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import SolanaWalletProvider from '@/components/auth/SolanaWalletProvider';
 
 function WalletConnectContent({ formData, onChange, onNext, onBack }) {
   const { publicKey, connected, signMessage, connecting } = useWallet();
