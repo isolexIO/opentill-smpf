@@ -27,6 +27,7 @@ export default function VaultManager() {
     cc_reward_rate: 0.001,
     min_reward_amount: 0.01,
     staking_vault_address: '',
+    central_vault_wallet: '',
     network: 'mainnet-beta',
     referral_reward_rate: 0.1,
     min_referral_reward: 0.001
