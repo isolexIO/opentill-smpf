@@ -18,7 +18,7 @@ export default function PriceTicker() {
   const loadSettingsThenPrice = async () => {
     try {
       const { data } = await base44.functions.invoke('updateVaultSettings', { action: 'get' });
-      const mint = data?.settings?.clink_mint_address || DEFAULT_MINT;
+      const mint = data?.settings?.duc_mint_address || data?.settings?.clink_mint_address || DEFAULT_MINT;
       const symbol = data?.settings?.token_symbol || '$DUC';
       setMintAddress(mint);
       setTokenSymbol(symbol);
