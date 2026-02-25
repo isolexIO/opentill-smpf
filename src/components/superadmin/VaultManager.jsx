@@ -173,8 +173,6 @@ export default function VaultManager() {
 
         <TabsContent value="vault_wallet">
           <AdminVaultWallet
-            settingsId={globalSettings?.id}
-            currentVaultWallet={formData.central_vault_wallet}
             onSaved={(addr) => setFormData(f => ({ ...f, central_vault_wallet: addr }))}
           />
         </TabsContent>
