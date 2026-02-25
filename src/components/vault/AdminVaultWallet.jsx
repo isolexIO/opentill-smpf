@@ -8,25 +8,38 @@ import { Badge } from '@/components/ui/badge';
 import { Wallet, CheckCircle, AlertCircle, Copy, RefreshCw } from 'lucide-react';
 import SolanaWalletProvider from '@/components/auth/SolanaWalletProvider';
 
-function AdminVaultWalletContent({ settingsId, currentVaultWallet, onSaved }) {
+function AdminVaultWalletContent({ onSaved }) {
   const { publicKey, connected } = useWallet();
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [currentVaultWallet, setCurrentVaultWallet] = useState('');
+  const [loadedSettingsId, setLoadedSettingsId] = useState(null);
 
   const walletAddress = publicKey?.toBase58();
   const isCurrentVault = walletAddress && walletAddress === currentVaultWallet;
+
+  // Load the current vault wallet directly
+  useEffect(() => {
+    base44.functions.invoke('updateVaultSettings', { action: 'get' }).then(({ data }) => {
+      if (data.success && data.settings) {
+        setCurrentVaultWallet(data.settings.central_vault_wallet || '');
+        setLoadedSettingsId(data.settings.id || null);
+      }
+    });
+  }, []);
 
   const handleSetAsVault = async () => {
     if (!walletAddress) return;
     setSaving(true);
     try {
       const { data } = await base44.functions.invoke('updateVaultSettings', {
-        action: settingsId ? 'update' : 'create',
-        settings_id: settingsId,
+        action: loadedSettingsId ? 'update' : 'create',
+        settings_id: loadedSettingsId,
         settings_data: { central_vault_wallet: walletAddress }
       });
       if (data.success) {
-        onSaved(walletAddress);
+        setCurrentVaultWallet(walletAddress);
+        if (onSaved) onSaved(walletAddress);
         alert('Central vault wallet saved!');
       } else {
         throw new Error(data.error);
