@@ -21,7 +21,8 @@ function WalletLoginContent({ onSuccess, merchantId }) {
     if (connected && publicKey && !authenticated && !authenticating) {
       handleAuthenticate();
     }
-  }, [connected, publicKey]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [connected, publicKey, authenticated]);
 
   useEffect(() => {
     if (!error) return;
