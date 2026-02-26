@@ -143,7 +143,7 @@ function WalletLoginContent({ onSuccess, merchantId }) {
 
 export default function WalletLogin({ onSuccess, merchantId }) {
   return (
-    <SolanaWalletProvider autoConnect={false}>
+    <SolanaWalletProvider autoConnect={true}>
       <WalletLoginContent onSuccess={onSuccess} merchantId={merchantId} />
     </SolanaWalletProvider>
   );
