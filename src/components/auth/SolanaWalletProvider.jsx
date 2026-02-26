@@ -34,13 +34,27 @@ function buildWallets() {
  * Wrap any component tree that needs wallet access with this.
  * autoConnect defaults to false to avoid unexpected prompts.
  */
+// Detect if running inside Solana Mobile dApp Store (MWA runtime present)
+function isMobileWalletAdapterAvailable() {
+  return typeof window !== 'undefined' && 
+    window.location.protocol !== 'https:' ? false :
+    /Android/i.test(navigator.userAgent) || 
+    typeof window.solanaMobileWalletAdapterInjected !== 'undefined';
+}
+
+function AutoSelectMobileWallet() {
+  const { select, wallets, connected } = useMemo ? null : null;
+  return null;
+}
+
 export default function SolanaWalletProvider({ children, autoConnect = false }) {
   const wallets = useMemo(() => buildWallets(), []);
+  // On Solana Mobile (dApp Store), autoConnect must be true so MWA connects automatically
+  const shouldAutoConnect = autoConnect || isMobileWalletAdapterAvailable();
 
   return (
     <ConnectionProvider endpoint={ENDPOINT}>
-      <WalletProvider wallets={wallets} autoConnect={autoConnect} onError={(err) => {
-        // Suppress "User rejected" noise
+      <WalletProvider wallets={wallets} autoConnect={shouldAutoConnect} onError={(err) => {
         if (!err.message?.includes('User rejected') && !err.message?.includes('User cancelled')) {
           console.error('[WalletProvider]', err);
         }
