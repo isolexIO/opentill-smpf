@@ -328,42 +328,27 @@ export default function HomePage() {
                 className="text-white p-2 rounded-md hover:bg-white/10 transition-colors"
                 aria-label="Toggle menu"
               >
-                {mobileMenuOpen ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
-                )}
+                {mobileMenuOpen
+                  ? <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                  : <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+                }
               </button>
             </div>
           </div>
+          {/* Mobile Dropdown */}
+          {mobileMenuOpen && (
+            <div className="md:hidden border-t border-white/10 pt-3 pb-2 mt-3 flex flex-col gap-1">
+              <a href={createPageUrl('Home')} className="text-green-300 font-semibold px-2 py-2 rounded hover:bg-white/10">Home</a>
+              <a href={createPageUrl('Marketplace')} className="text-white px-2 py-2 rounded hover:bg-white/10">Marketplace</a>
+              <a href="#features" onClick={() => setMobileMenuOpen(false)} className="text-white px-2 py-2 rounded hover:bg-white/10">Features</a>
+              <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="text-white px-2 py-2 rounded hover:bg-white/10">Pricing</a>
+              <a href={createPageUrl('About')} className="text-white px-2 py-2 rounded hover:bg-white/10">About</a>
+              <a href={createPageUrl('Contact')} className="text-white px-2 py-2 rounded hover:bg-white/10">Contact</a>
+              <a href={createPageUrl('DeviceShop')} className="text-white px-2 py-2 rounded hover:bg-white/10">Device Shop</a>
+            </div>
+          )}
         </div>
       </nav>
-
-      {/* Mobile Nav Menu */}
-      {mobileMenuOpen && (
-        <div className="md:hidden bg-black/90 backdrop-blur-md border-b border-white/10 z-40">
-          <div className="px-4 py-3 flex flex-col gap-1">
-            {[
-              { label: 'Home', href: createPageUrl('Home') },
-              { label: 'Marketplace', href: createPageUrl('Marketplace') },
-              { label: 'Features', href: '#features' },
-              { label: 'Pricing', href: '#pricing' },
-              { label: 'About', href: createPageUrl('About') },
-              { label: 'Contact', href: createPageUrl('Contact') },
-              { label: 'Device Shop', href: createPageUrl('DeviceShop') },
-            ].map(item => (
-              <a
-                key={item.label}
-                href={item.href}
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-white hover:text-green-300 py-2 px-3 rounded-md hover:bg-white/10 transition-colors text-sm font-medium"
-              >
-                {item.label}
-              </a>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Hero Section */}
       <section
