@@ -18,17 +18,15 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    // Check if wallet already has an account
-    const walletField = `${wallet_type}_wallet`;
-    const allUsers = await base44.asServiceRole.entities.User.list();
-    
-    for (const u of allUsers) {
-      if (u.pos_settings?.[walletField] === wallet_address) {
-        return Response.json({
-          success: false,
-          error: 'This wallet is already registered'
-        }, { status: 409 });
-      }
+    // Check if wallet already has an account (direct field lookup)
+    const existingWalletUsers = await base44.asServiceRole.entities.User.filter({
+      wallet_address: wallet_address
+    });
+    if (existingWalletUsers && existingWalletUsers.length > 0) {
+      return Response.json({
+        success: false,
+        error: 'This wallet is already registered'
+      }, { status: 409 });
     }
 
     // Create merchant account
@@ -73,10 +71,8 @@ Deno.serve(async (req) => {
       merchant_id: merchant.id,
       permissions: ['process_orders', 'manage_inventory', 'manage_users', 'view_reports', 'admin_settings', 'configure_payments', 'submit_tickets'],
       is_active: true,
-      last_login: new Date().toISOString(),
-      pos_settings: {
-        [walletField]: wallet_address
-      }
+      wallet_address: wallet_address,
+      last_login: new Date().toISOString()
     });
 
     console.log('Created user:', user.id);
