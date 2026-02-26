@@ -373,7 +373,7 @@ export default function Layout({ children, currentPageName }) {
   const showBackButton = !PUBLIC_PAGES.includes(currentPageName) && !ROOT_PAGES.includes(currentPageName);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 relative">
+    <div className="min-h-screen bg-gray-50 relative">
       <div className="fixed inset-0 pointer-events-none z-50">
         <div className="absolute top-0 left-0 right-0 h-[10px]" 
              style={{
