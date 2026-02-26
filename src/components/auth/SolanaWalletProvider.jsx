@@ -34,32 +34,44 @@ function buildWallets() {
  * Wrap any component tree that needs wallet access with this.
  * autoConnect defaults to false to avoid unexpected prompts.
  */
-// Detect if running inside Solana Mobile dApp Store (MWA runtime present)
-function isMobileWalletAdapterAvailable() {
-  return typeof window !== 'undefined' && 
-    window.location.protocol !== 'https:' ? false :
-    /Android/i.test(navigator.userAgent) || 
-    typeof window.solanaMobileWalletAdapterInjected !== 'undefined';
+// Auto-selects the MWA adapter when running inside the Solana Mobile dApp Store
+function MWAAutoSelector() {
+  const { select, wallets, wallet, connected } = useWallet();
+
+  useEffect(() => {
+    if (connected || wallet) return;
+    // The MWA adapter name as registered
+    const mwaAdapter = wallets.find(w =>
+      w.adapter.name === 'Mobile Wallet Adapter' || w.adapter.name === 'Solana Mobile'
+    );
+    if (mwaAdapter) {
+      select(mwaAdapter.adapter.name);
+    }
+  }, [wallets]);
+
+  return null;
 }
 
-function AutoSelectMobileWallet() {
-  const { select, wallets, connected } = useMemo ? null : null;
-  return null;
+// Check if running inside Solana Mobile dApp Store environment
+function isInsideMobileWalletAdapterApp() {
+  return typeof window !== 'undefined' &&
+    /Android/i.test(navigator.userAgent) &&
+    window.isSecureContext;
 }
 
 export default function SolanaWalletProvider({ children, autoConnect = false }) {
   const wallets = useMemo(() => buildWallets(), []);
-  // On Solana Mobile (dApp Store), autoConnect must be true so MWA connects automatically
-  const shouldAutoConnect = autoConnect || isMobileWalletAdapterAvailable();
+  const inMobileApp = isInsideMobileWalletAdapterApp();
 
   return (
     <ConnectionProvider endpoint={ENDPOINT}>
-      <WalletProvider wallets={wallets} autoConnect={shouldAutoConnect} onError={(err) => {
+      <WalletProvider wallets={wallets} autoConnect={autoConnect || inMobileApp} onError={(err) => {
         if (!err.message?.includes('User rejected') && !err.message?.includes('User cancelled')) {
           console.error('[WalletProvider]', err);
         }
       }}>
         <WalletModalProvider>
+          {inMobileApp && <MWAAutoSelector />}
           {children}
         </WalletModalProvider>
       </WalletProvider>
