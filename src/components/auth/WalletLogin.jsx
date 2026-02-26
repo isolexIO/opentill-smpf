@@ -18,11 +18,12 @@ function WalletLoginContent({ onSuccess, merchantId }) {
   const [authenticated, setAuthenticated] = useState(false);
 
   useEffect(() => {
-    if (connected && publicKey && !authenticated && !authenticating) {
+    // Wait until all three are ready: connected, publicKey, AND signMessage
+    if (connected && publicKey && signMessage && !authenticated && !authenticating) {
       handleAuthenticate();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [connected, publicKey, authenticated]);
+  }, [connected, publicKey, signMessage, authenticated]);
 
   useEffect(() => {
     if (!error) return;
