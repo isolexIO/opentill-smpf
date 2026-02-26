@@ -40,6 +40,7 @@ import {
   Lightbulb
 } from 'lucide-react';
 import AdvertisingTile from '../components/system-menu/AdvertisingTile';
+import CommunityLinks from '../components/shared/CommunityLinks';
 
 export default function SystemMenu() {
   const [user, setUser] = useState(null);
