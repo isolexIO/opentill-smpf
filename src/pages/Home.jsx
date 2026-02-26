@@ -349,6 +349,22 @@ export default function HomePage() {
         </div>
       </nav>
 
+      {/* Mobile Menu Dropdown */}
+      {mobileMenuOpen && (
+        <div className="md:hidden bg-black/80 backdrop-blur-md border-b border-white/10 px-6 py-4 space-y-3">
+          <a href={createPageUrl('Home')} className="block text-green-300 font-semibold py-2">Home</a>
+          <a href={createPageUrl('Marketplace')} className="block text-white hover:text-green-300 py-2">Marketplace</a>
+          <a href="#features" onClick={() => setMobileMenuOpen(false)} className="block text-white hover:text-green-300 py-2">Features</a>
+          <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="block text-white hover:text-green-300 py-2">Pricing</a>
+          <a href={createPageUrl('About')} className="block text-white hover:text-green-300 py-2">About</a>
+          <a href={createPageUrl('Contact')} className="block text-white hover:text-green-300 py-2">Contact</a>
+          <a href={createPageUrl('DeviceShop')} className="block text-white hover:text-green-300 py-2">Device Shop</a>
+          <Button onClick={() => window.location.href = createPageUrl('MerchantOnboarding')} className="w-full bg-white text-purple-700 hover:bg-gray-100 font-semibold mt-2">
+            Get Started Free
+          </Button>
+        </div>
+      )}
+
       {/* Hero Section */}
       <section
         className="relative py-20 px-4 overflow-hidden"
