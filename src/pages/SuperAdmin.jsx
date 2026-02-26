@@ -118,7 +118,7 @@ export default function SuperAdminPage() {
 
       setStats({
         totalMerchants: merchants.length,
-        activeMerchants: merchants.filter(m => m.status === 'active' || m.status === 'trial').length,
+        activeMerchants: merchants.filter(m => (m.status === 'active' || m.status === 'trial') && !m.is_demo).length,
         totalRevenue: totalRevenue,
         activeSubscriptions: subscriptions.length
       });

@@ -69,7 +69,7 @@ export default function GlobalReports() {
   // Merchant Status Distribution
   const merchantStatus = ['active', 'trial', 'suspended', 'cancelled'].map(status => ({
     name: status.charAt(0).toUpperCase() + status.slice(1),
-    value: merchants.filter(m => m.status === status).length
+    value: merchants.filter(m => m.status === status && !m.is_demo).length
   }));
 
   // Monthly Revenue Trend (last 6 months)
@@ -105,9 +105,9 @@ export default function GlobalReports() {
       generated: new Date().toISOString(),
       merchants: {
         total: merchants.length,
-        active: merchants.filter(m => m.status === 'active').length,
-        trial: merchants.filter(m => m.status === 'trial').length,
-        suspended: merchants.filter(m => m.status === 'suspended').length
+        active: merchants.filter(m => m.status === 'active' && !m.is_demo).length,
+        trial: merchants.filter(m => m.status === 'trial' && !m.is_demo).length,
+        suspended: merchants.filter(m => m.status === 'suspended' && !m.is_demo).length
       },
       subscriptions: {
         total: subscriptions.length,

@@ -58,6 +58,7 @@ import Contact from './pages/Contact';
 import Copyright from './pages/Copyright';
 import CustomerDisplay from './pages/CustomerDisplay';
 import Customers from './pages/Customers';
+import DUCVault from './pages/DUCVault';
 import DealerAdmin from './pages/DealerAdmin';
 import DealerDashboard from './pages/DealerDashboard';
 import DealerHome from './pages/DealerHome';
@@ -95,7 +96,6 @@ import SystemMenu from './pages/SystemMenu';
 import TermsOfService from './pages/TermsOfService';
 import Users from './pages/Users';
 import WalletLoginPage from './pages/WalletLoginPage';
-import DUCVault from './pages/DUCVault';
 import __Layout from './Layout.jsx';
 
 
@@ -111,6 +111,7 @@ export const PAGES = {
     "Copyright": Copyright,
     "CustomerDisplay": CustomerDisplay,
     "Customers": Customers,
+    "DUCVault": DUCVault,
     "DealerAdmin": DealerAdmin,
     "DealerDashboard": DealerDashboard,
     "DealerHome": DealerHome,
@@ -148,7 +149,6 @@ export const PAGES = {
     "TermsOfService": TermsOfService,
     "Users": Users,
     "WalletLoginPage": WalletLoginPage,
-    "DUCVault": DUCVault,
 }
 
 export const pagesConfig = {
