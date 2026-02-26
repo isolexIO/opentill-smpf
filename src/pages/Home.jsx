@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import PriceTicker from '@/components/vault/PriceTicker';
+import CommunityLinks from '@/components/shared/CommunityLinks';
 
 function FeaturedChipsSection() {
   const [chips, setChips] = useState([]);
