@@ -433,10 +433,10 @@ export default function Layout({ children, currentPageName }) {
                     <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6970e2871534100b4ebb8d45/8e45f76fe_DUC3.png" alt="openTILL" className="w-10 h-10" />
                   )}
                   <div>
-                    <span className="text-xl font-bold text-gray-900 dark:text-white">
+                    <span className="text-xl font-bold text-gray-900">
                       {brandName}
                     </span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400 block -mt-1">
+                    <span className="text-xs text-gray-500 block -mt-1">
                       Point of Sale
                     </span>
                   </div>
