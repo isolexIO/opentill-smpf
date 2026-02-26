@@ -1,3 +1,9 @@
+
+/* Force light theme universally - no dark mode */
+html, body, :root {
+  color-scheme: light !important;
+}
+
 /* Mobile-first safe area and scroll behavior */
 html, body {
   overscroll-behavior: none;
