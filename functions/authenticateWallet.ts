@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import { PublicKey } from 'npm:@solana/web3.js@1.87.6';
 import nacl from 'npm:tweetnacl@1.0.3';
 import bs58 from 'npm:bs58@5.0.0';

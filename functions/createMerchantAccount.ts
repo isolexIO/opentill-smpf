@@ -121,11 +121,11 @@ Deno.serve(async (req) => {
                });
 
                await transporter.sendMail({
-                   from: `"ChainLINK POS" <${Deno.env.get('SMTP_USER')}>`,
+                   from: `"openTILL" <${Deno.env.get('SMTP_USER')}>`,
                    to: owner_email.toLowerCase().trim(),
-                   subject: 'Welcome to ChainLINK POS - Registration Received',
+                   subject: 'Welcome to openTILL - Registration Received',
                    html: `
-                       <h2>Welcome to ChainLINK POS, ${owner_name}!</h2>
+                       <h2>Welcome to openTILL, ${owner_name}!</h2>
                        <p>Your merchant registration has been received successfully.</p>
 
                        <h3>What's Next?</h3>
@@ -136,9 +136,9 @@ Deno.serve(async (req) => {
                        <p><strong>Business Name:</strong> ${business_name}</p>
                        <p><strong>Email:</strong> ${owner_email.toLowerCase().trim()}</p>
 
-                       <p>Thank you for choosing ChainLINK POS!</p>
+                       <p>Thank you for choosing openTILL!</p>
                    `,
-                   text: `Welcome to ChainLINK POS, ${owner_name}!\n\nYour merchant registration has been received successfully.\n\nWhat's Next?\nOur team will review your application and activate your account within 24 hours.\nYou will receive an email with your login credentials once your account is ready.\n\nYour Registration Details:\nBusiness Name: ${business_name}\nEmail: ${owner_email.toLowerCase().trim()}\n\nThank you for choosing ChainLINK POS!`
+                   text: `Welcome to openTILL, ${owner_name}!\n\nYour merchant registration has been received successfully.\n\nWhat's Next?\nOur team will review your application and activate your account within 24 hours.\nYou will receive an email with your login credentials once your account is ready.\n\nYour Registration Details:\nBusiness Name: ${business_name}\nEmail: ${owner_email.toLowerCase().trim()}\n\nThank you for choosing openTILL!`
                });
            } catch (emailError) {
                console.error('Failed to send confirmation email:', emailError);
