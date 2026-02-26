@@ -932,6 +932,10 @@ export default function HomePage() {
           </div>
 
           <div className="border-t border-white/10 mt-8 pt-8">
+            <div className="mb-6">
+              <p className="text-center text-gray-400 text-xs mb-3 uppercase tracking-widest">Community</p>
+              <CommunityLinks className="[&_a]:text-gray-300 [&_a]:hover:text-white [&_a]:bg-white/10 [&_a]:hover:bg-white/20 [&_a]:border-white/10" />
+            </div>
             <div className="flex justify-center mb-4">
               <a 
                 href={createPageUrl('DealerLogin')} 
