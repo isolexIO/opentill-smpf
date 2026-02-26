@@ -22,8 +22,13 @@ Deno.serve(async (req) => {
       ({ merchant_id, customer_id, customer_phone, order_id, order_total } = body);
     }
 
-    if (!merchant_id || !order_id || !order_total) {
+    if (!merchant_id || !order_id) {
       return Response.json({ success: false, error: 'Missing required fields' }, { status: 400 });
+    }
+
+    // Skip if no customer attached
+    if (!customer_id && !customer_phone) {
+      return Response.json({ success: true, message: 'No customer on order, skipped' });
     }
 
     // Load merchant settings
