@@ -448,9 +448,17 @@ export default function LoyaltyProgramPage() {
                           <p className="font-medium dark:text-white">{customer.name}</p>
                           <p className="text-sm text-gray-500 dark:text-gray-400">{customer.phone}</p>
                         </div>
-                        <div className="text-right">
-                          <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{customer.loyalty_points || 0}</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">points</p>
+                        <div className="text-right flex gap-4 items-end">
+                          <div>
+                            <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{customer.loyalty_points || 0}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">points</p>
+                          </div>
+                          {(customer.duc_balance > 0 || loyaltySettings.duc_rewards_enabled) && (
+                            <div>
+                              <p className="text-lg font-bold text-yellow-600 dark:text-yellow-400">{(customer.duc_balance || 0).toFixed(4)}</p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">$DUC</p>
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))}
