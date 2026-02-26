@@ -10,7 +10,20 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized: Admin access required' }, { status: 403 });
     }
 
-    const { settings_id, settings_data, action } = await req.json();
+    const body = await req.json();
+    const { settings_id, settings_data, action } = body;
+
+    // Allow public read of global settings (no admin required for 'get')
+    if (action === 'get') {
+      const settings = await base44.asServiceRole.entities.cLINKVaultSettings.list();
+      const global = settings.find(s => !s.merchant_id) || settings[0] || null;
+      return Response.json({ success: true, settings: global });
+    }
+
+    // All write operations require admin
+    if (!user || !['admin', 'super_admin', 'root_admin'].includes(user.role)) {
+      return Response.json({ error: 'Unauthorized: Admin access required' }, { status: 403 });
+    }
 
     let result;
     
