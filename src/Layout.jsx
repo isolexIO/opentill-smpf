@@ -550,15 +550,15 @@ export default function Layout({ children, currentPageName }) {
 
       {!dealer?.settings?.hide_opentill_branding && (
         <div className="fixed bottom-4 right-4 flex flex-col items-end gap-2 z-50">
-          <div className="text-xs text-gray-500 bg-white dark:bg-gray-800 px-3 py-1 rounded-full shadow-sm">
+          <div className="text-xs text-gray-500 bg-white px-3 py-1 rounded-full shadow-sm">
             © Isolex Corporation
           </div>
-          <div className="text-xs bg-white dark:bg-gray-800 rounded-full shadow-sm overflow-hidden">
-            <Link to={createPageUrl('License')} className="px-3 py-1 inline-block text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
+          <div className="text-xs bg-white rounded-full shadow-sm overflow-hidden">
+            <Link to={createPageUrl('License')} className="px-3 py-1 inline-block text-blue-600 hover:text-blue-700 transition-colors">
               License
             </Link>
-            <span className="text-gray-300 dark:text-gray-600">|</span>
-            <Link to={createPageUrl('Copyright')} className="px-3 py-1 inline-block text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
+            <span className="text-gray-300">|</span>
+            <Link to={createPageUrl('Copyright')} className="px-3 py-1 inline-block text-blue-600 hover:text-blue-700 transition-colors">
               Copyright
             </Link>
           </div>
