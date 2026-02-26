@@ -1,20 +1,26 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
-/**
- * Issues $DUC loyalty rewards to a customer, funded from the merchant's vault.
- * Called after order completion if merchant has duc_rewards_enabled.
- *
- * Payload:
- *   merchant_id   - the merchant's ID
- *   customer_id   - the customer's ID (optional, if phone provided)
- *   customer_phone - fallback lookup if no customer_id
- *   order_id      - the completed order ID
- *   order_total   - the order total in USD
- */
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { merchant_id, customer_id, customer_phone, order_id, order_total } = await req.json();
+    const body = await req.json();
+
+    // Support both direct call and entity automation payload
+    let merchant_id, customer_id, customer_phone, order_id, order_total;
+    if (body.event && body.data) {
+      // Entity automation: only handle completed orders
+      const { event, data } = body;
+      if ((event.type !== 'create' && event.type !== 'update') || !data || data.status !== 'completed') {
+        return Response.json({ success: true, message: 'Skipped - not a completed order event' });
+      }
+      merchant_id = data.merchant_id;
+      customer_id = data.customer_id || null;
+      customer_phone = data.customer_phone || null;
+      order_id = data.id;
+      order_total = data.total || 0;
+    } else {
+      ({ merchant_id, customer_id, customer_phone, order_id, order_total } = body);
+    }
 
     if (!merchant_id || !order_id || !order_total) {
       return Response.json({ success: false, error: 'Missing required fields' }, { status: 400 });
