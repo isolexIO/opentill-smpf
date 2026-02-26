@@ -559,6 +559,10 @@ export default function SystemMenu() {
           </button>
         </div>
 
+        <div className="mt-10 border-t dark:border-gray-700 pt-8">
+          <CommunityLinks variant="compact" />
+        </div>
+
         <div className="mt-8 text-center flex flex-col items-center gap-4">
           {isPinUserLoggedIn ? (
             <button
