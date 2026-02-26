@@ -2,25 +2,155 @@ import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Wallet, CheckCircle, Info, ChevronRight, Loader2 } from 'lucide-react';
+import { Wallet, CheckCircle, Info, ChevronRight, Loader2, Monitor, Smartphone } from 'lucide-react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import SolanaWalletProvider from '@/components/auth/SolanaWalletProvider';
 
-function WalletConnectContent({ formData, onChange, onNext, onBack }) {
-  const { publicKey, connected, signMessage, connecting } = useWallet();
-  const [authenticating, setAuthenticating] = useState(false);
-  const [manualMode, setManualMode] = useState(!!formData.wallet_address);
+// Detect if running on a mobile browser or installed APK/PWA
+function isMobileOrApp() {
+  const ua = navigator.userAgent || '';
+  const isMobile = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(ua);
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  return isMobile || isStandalone;
+}
 
-  const isValidSolana = (addr) => addr && /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(addr);
+const isValidSolana = (addr) => addr && /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(addr);
+
+function ManualWalletEntry({ formData, onChange, onNext, onBack, showSwitchToConnect }) {
+  return (
+    <div className="space-y-5">
+      <div className="text-center space-y-1 mb-2">
+        <div className="flex justify-center">
+          <div className="w-14 h-14 rounded-full bg-purple-50 flex items-center justify-center">
+            <Wallet className="w-7 h-7 text-purple-500" />
+          </div>
+        </div>
+        <h2 className="text-2xl font-black text-slate-900">Connect Your Wallet</h2>
+        <p className="text-slate-500 text-sm">Your Solana wallet will receive $DUC rewards. You can skip this now.</p>
+      </div>
+
+      <div className="space-y-3">
+        <div className="space-y-1.5">
+          <Label htmlFor="wallet" className="font-medium text-slate-700">Solana Wallet Address</Label>
+          <Input
+            id="wallet"
+            placeholder="Enter your public wallet address..."
+            value={formData.wallet_address || ''}
+            onChange={(e) => onChange('wallet_address', e.target.value.trim())}
+            className="font-mono text-sm h-11"
+          />
+          {formData.wallet_address && (
+            isValidSolana(formData.wallet_address) ? (
+              <p className="flex items-center gap-1 text-xs text-cyan-600">
+                <CheckCircle className="w-3.5 h-3.5" /> Valid Solana address
+              </p>
+            ) : (
+              <p className="text-xs text-amber-600">Address format looks off — double check before continuing.</p>
+            )
+          )}
+        </div>
+
+        {showSwitchToConnect && (
+          <button
+            type="button"
+            onClick={() => onChange('__forceDesktop', true)}
+            className="text-xs text-slate-400 underline"
+          >← Back to connect wallet</button>
+        )}
+      </div>
+
+      <div className="flex items-start gap-2 bg-blue-50 border border-blue-100 rounded-xl p-3 text-xs text-blue-700">
+        <Info className="w-4 h-4 shrink-0 mt-0.5" />
+        <p>Your wallet is used only to receive $DUC rewards. You can add or change it later in Settings.</p>
+      </div>
+
+      <div className="flex gap-3 pt-1">
+        <Button type="button" variant="outline" onClick={onBack} className="flex-1 h-12">Back</Button>
+        <Button
+          type="button"
+          onClick={onNext}
+          className="flex-[2] bg-cyan-600 hover:bg-cyan-700 text-white h-12 font-bold rounded-xl"
+        >
+          {formData.wallet_address && isValidSolana(formData.wallet_address) ? 'Continue with Wallet' : 'Skip for Now'}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function WalletConnectContent({ formData, onChange, onNext, onBack }) {
+  const { publicKey, connected, connecting } = useWallet();
+  const mobile = isMobileOrApp();
+  const [manualMode, setManualMode] = useState(mobile || !!formData.wallet_address);
 
   React.useEffect(() => {
-    if (connected && publicKey && !authenticating) {
+    if (connected && publicKey) {
       onChange('wallet_address', publicKey.toString());
-      setAuthenticating(false);
     }
   }, [connected, publicKey]);
 
+  // On mobile/APK: only show manual paste — wallet browser extensions don't work here
+  if (mobile) {
+    return (
+      <div className="space-y-5">
+        <div className="text-center space-y-1 mb-2">
+          <div className="flex justify-center">
+            <div className="w-14 h-14 rounded-full bg-purple-50 flex items-center justify-center">
+              <Wallet className="w-7 h-7 text-purple-500" />
+            </div>
+          </div>
+          <h2 className="text-2xl font-black text-slate-900">Connect Your Wallet</h2>
+          <p className="text-slate-500 text-sm">Your Solana wallet will receive $DUC rewards. You can skip this now.</p>
+        </div>
+
+        <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-700">
+          <Smartphone className="w-4 h-4 shrink-0 mt-0.5" />
+          <p>
+            <strong>Browser wallet extensions are not supported on mobile.</strong> Paste your Solana address below, or skip and connect via Settings on a desktop browser later.
+          </p>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="wallet" className="font-medium text-slate-700">Solana Wallet Address</Label>
+          <Input
+            id="wallet"
+            placeholder="Paste your public wallet address..."
+            value={formData.wallet_address || ''}
+            onChange={(e) => onChange('wallet_address', e.target.value.trim())}
+            className="font-mono text-sm h-11"
+          />
+          {formData.wallet_address && (
+            isValidSolana(formData.wallet_address) ? (
+              <p className="flex items-center gap-1 text-xs text-cyan-600">
+                <CheckCircle className="w-3.5 h-3.5" /> Valid Solana address
+              </p>
+            ) : (
+              <p className="text-xs text-amber-600">Address format looks off — double check before continuing.</p>
+            )
+          )}
+        </div>
+
+        <div className="flex items-start gap-2 bg-blue-50 border border-blue-100 rounded-xl p-3 text-xs text-blue-700">
+          <Info className="w-4 h-4 shrink-0 mt-0.5" />
+          <p>Your wallet is used only to receive $DUC rewards. You can add or change it later in Settings.</p>
+        </div>
+
+        <div className="flex gap-3 pt-1">
+          <Button type="button" variant="outline" onClick={onBack} className="flex-1 h-12">Back</Button>
+          <Button
+            type="button"
+            onClick={onNext}
+            className="flex-[2] bg-cyan-600 hover:bg-cyan-700 text-white h-12 font-bold rounded-xl"
+          >
+            {formData.wallet_address && isValidSolana(formData.wallet_address) ? 'Continue with Wallet' : 'Skip for Now'}
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Desktop: show wallet connect button + option to paste manually
   if (manualMode) {
     return (
       <div className="space-y-5">
@@ -92,10 +222,15 @@ function WalletConnectContent({ formData, onChange, onNext, onBack }) {
         <p className="text-slate-500 text-sm">Your Solana wallet will receive $DUC rewards. You can skip this now.</p>
       </div>
 
+      <div className="flex items-start gap-2 bg-slate-50 border border-slate-100 rounded-xl p-3 text-xs text-slate-600">
+        <Monitor className="w-4 h-4 shrink-0 mt-0.5" />
+        <p>Wallet browser extensions work on <strong>desktop browsers</strong> (Chrome, Firefox, Brave). On mobile, paste your address instead.</p>
+      </div>
+
       <div className="space-y-3">
         <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Select Your Wallet</p>
         <WalletMultiButton className="!w-full !h-14 !rounded-lg !justify-start !text-base !font-medium" />
-        
+
         {connected && publicKey && (
           <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
             <p className="text-xs text-green-700">
@@ -129,10 +264,7 @@ function WalletConnectContent({ formData, onChange, onNext, onBack }) {
           disabled={connecting}
         >
           {connecting ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Connecting...
-            </>
+            <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Connecting...</>
           ) : (
             formData.wallet_address ? 'Continue with Wallet' : 'Skip for Now'
           )}
