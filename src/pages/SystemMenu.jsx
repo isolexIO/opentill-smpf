@@ -446,9 +446,10 @@ export default function SystemMenu() {
           <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-2">
             openTILL
           </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-400">
+          <p className="text-xl text-gray-600 dark:text-gray-400 mb-4">
             Next-Generation Point of Sale System
           </p>
+          <CommunityLinks />
         </motion.div>
 
         {user?.merchant_id && (
