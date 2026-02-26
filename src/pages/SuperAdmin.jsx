@@ -213,24 +213,10 @@ export default function SuperAdminPage() {
     );
   }
 
-  const handleTabChange = (tab) => {
-    setActiveTab(tab);
-    setSidebarOpen(false);
-  };
-
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
-      {/* Mobile sidebar overlay */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-30 md:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
       {/* Sidebar */}
-      <div className={`w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex-shrink-0 fixed h-full overflow-y-auto z-40 transition-transform duration-200
-        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
+      <div className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex-shrink-0 fixed h-full overflow-y-auto">
         <div className="p-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3">
             <Shield className="w-8 h-8 text-red-600" />
@@ -247,7 +233,7 @@ export default function SuperAdminPage() {
 
         <nav className="p-2">
           <button
-            onClick={() => handleTabChange('pending')}
+            onClick={() => setActiveTab('pending')}
             className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
               activeTab === 'pending'
                 ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
@@ -258,7 +244,7 @@ export default function SuperAdminPage() {
             <span className="text-sm font-medium">Pending</span>
           </button>
           <button
-            onClick={() => handleTabChange('merchants')}
+            onClick={() => setActiveTab('merchants')}
             className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
               activeTab === 'merchants'
                 ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
@@ -269,7 +255,7 @@ export default function SuperAdminPage() {
             <span className="text-sm font-medium">Merchants</span>
           </button>
           <button
-            onClick={() => handleTabChange('dealers')}
+            onClick={() => setActiveTab('dealers')}
             className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
               activeTab === 'dealers'
                 ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
@@ -280,7 +266,7 @@ export default function SuperAdminPage() {
             <span className="text-sm font-medium">Ambassadors</span>
           </button>
           <button
-            onClick={() => handleTabChange('subscriptions')}
+            onClick={() => setActiveTab('subscriptions')}
             className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
               activeTab === 'subscriptions'
                 ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
@@ -291,7 +277,7 @@ export default function SuperAdminPage() {
             <span className="text-sm font-medium">Subscriptions</span>
           </button>
           <button
-            onClick={() => handleTabChange('devices')}
+            onClick={() => setActiveTab('devices')}
             className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
               activeTab === 'devices'
                 ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
@@ -302,7 +288,7 @@ export default function SuperAdminPage() {
             <span className="text-sm font-medium">Device Shop</span>
           </button>
           <button
-            onClick={() => handleTabChange('amazon')}
+            onClick={() => setActiveTab('amazon')}
             className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
               activeTab === 'amazon'
                 ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
@@ -313,7 +299,7 @@ export default function SuperAdminPage() {
             <span className="text-sm font-medium">Amazon</span>
           </button>
           <button
-            onClick={() => handleTabChange('vault')}
+            onClick={() => setActiveTab('vault')}
             className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
               activeTab === 'vault'
                 ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
@@ -324,7 +310,7 @@ export default function SuperAdminPage() {
             <span className="text-sm font-medium">Vault</span>
           </button>
           <button
-            onClick={() => handleTabChange('chips')}
+            onClick={() => setActiveTab('chips')}
             className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
               activeTab === 'chips'
                 ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
@@ -335,7 +321,7 @@ export default function SuperAdminPage() {
             <span className="text-sm font-medium">Chips</span>
           </button>
           <button
-            onClick={() => handleTabChange('builders')}
+            onClick={() => setActiveTab('builders')}
             className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
               activeTab === 'builders'
                 ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
@@ -346,7 +332,7 @@ export default function SuperAdminPage() {
             <span className="text-sm font-medium">Builders</span>
           </button>
           <button
-            onClick={() => handleTabChange('logs')}
+            onClick={() => setActiveTab('logs')}
             className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
               activeTab === 'logs'
                 ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
@@ -357,7 +343,7 @@ export default function SuperAdminPage() {
             <span className="text-sm font-medium">Logs</span>
           </button>
           <button
-            onClick={() => handleTabChange('reports')}
+            onClick={() => setActiveTab('reports')}
             className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
               activeTab === 'reports'
                 ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
@@ -368,7 +354,7 @@ export default function SuperAdminPage() {
             <span className="text-sm font-medium">Reports</span>
           </button>
           <button
-            onClick={() => handleTabChange('ads')}
+            onClick={() => setActiveTab('ads')}
             className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
               activeTab === 'ads'
                 ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
@@ -379,7 +365,7 @@ export default function SuperAdminPage() {
             <span className="text-sm font-medium">Ads</span>
           </button>
           <button
-            onClick={() => handleTabChange('notifications')}
+            onClick={() => setActiveTab('notifications')}
             className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
               activeTab === 'notifications'
                 ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
@@ -390,7 +376,7 @@ export default function SuperAdminPage() {
             <span className="text-sm font-medium">Notifications</span>
           </button>
           <button
-            onClick={() => handleTabChange('settings')}
+            onClick={() => setActiveTab('settings')}
             className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
               activeTab === 'settings'
                 ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
@@ -421,15 +407,9 @@ export default function SuperAdminPage() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 md:ml-64">
+      <div className="flex-1 ml-64">
         <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10 shadow-sm">
-          <div className="px-4 md:px-6 py-4 flex items-center gap-3">
-            <button
-              className="md:hidden p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300"
-              onClick={() => setSidebarOpen(true)}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
-            </button>
+          <div className="px-6 py-4">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white">
               {activeTab === 'pending' && 'Pending Merchants'}
               {activeTab === 'merchants' && 'Merchant Management'}
@@ -449,9 +429,9 @@ export default function SuperAdminPage() {
           </div>
         </div>
 
-        <div className="p-4 md:p-6">
+        <div className="p-6">
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Merchants</CardTitle>

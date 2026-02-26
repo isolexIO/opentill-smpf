@@ -308,45 +308,44 @@ export default function HomePage() {
               <span className="text-2xl font-bold text-white">openTILL</span>
             </div>
             <div className="hidden md:flex items-center gap-6">
-              <a href={createPageUrl('Home')} className="text-green-300 font-semibold">Home</a>
-              <a href={createPageUrl('Marketplace')} className="text-white hover:text-green-300 transition-colors">Marketplace</a>
-              <a href="#features" className="text-white hover:text-green-300 transition-colors">Features</a>
-              <a href="#pricing" className="text-white hover:text-green-300 transition-colors">Pricing</a>
-              <a href={createPageUrl('About')} className="text-white hover:text-green-300 transition-colors">About</a>
-              <a href={createPageUrl('Contact')} className="text-white hover:text-green-300 transition-colors">Contact</a>
-              <a href={createPageUrl('DeviceShop')} className="text-white hover:text-green-300 transition-colors">Device Shop</a>
-              <Button onClick={() => window.location.href = createPageUrl('EmailLogin')} className="bg-green-500 hover:bg-green-600 text-white">
+              <a href={createPageUrl('Home')} className="text-green-300 font-semibold">
+                Home
+              </a>
+              <a href={createPageUrl('Marketplace')} className="text-white hover:text-green-300 transition-colors">
+                Marketplace
+              </a>
+              <a href="#features" className="text-white hover:text-green-300 transition-colors">
+                Features
+              </a>
+              <a href="#pricing" className="text-white hover:text-green-300 transition-colors">
+                Pricing
+              </a>
+              <a href={createPageUrl('About')} className="text-white hover:text-green-300 transition-colors">
+                About
+              </a>
+              <a href={createPageUrl('Contact')} className="text-white hover:text-green-300 transition-colors">
+                Contact
+              </a>
+              <a href={createPageUrl('DeviceShop')} className="text-white hover:text-green-300 transition-colors">
+                Device Shop
+              </a>
+              <Button
+                onClick={() => window.location.href = createPageUrl('EmailLogin')}
+                className="bg-green-500 hover:bg-green-600 text-white"
+              >
                 Sign In
               </Button>
             </div>
-            <div className="md:hidden flex items-center gap-2">
-              <Button onClick={() => window.location.href = createPageUrl('EmailLogin')} size="sm" className="bg-green-500 hover:bg-green-600 text-white">
+            <div className="md:hidden">
+              <Button
+                onClick={() => window.location.href = createPageUrl('EmailLogin')}
+                size="sm"
+                className="bg-green-500 hover:bg-green-600 text-white"
+              >
                 Sign In
               </Button>
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="text-white p-2 rounded-md hover:bg-white/10 transition-colors"
-                aria-label="Toggle menu"
-              >
-                {mobileMenuOpen
-                  ? <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                  : <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
-                }
-              </button>
             </div>
           </div>
-          {/* Mobile Dropdown */}
-          {mobileMenuOpen && (
-            <div className="md:hidden border-t border-white/10 pt-3 pb-2 mt-3 flex flex-col gap-1">
-              <a href={createPageUrl('Home')} className="text-green-300 font-semibold px-2 py-2 rounded hover:bg-white/10">Home</a>
-              <a href={createPageUrl('Marketplace')} className="text-white px-2 py-2 rounded hover:bg-white/10">Marketplace</a>
-              <a href="#features" onClick={() => setMobileMenuOpen(false)} className="text-white px-2 py-2 rounded hover:bg-white/10">Features</a>
-              <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="text-white px-2 py-2 rounded hover:bg-white/10">Pricing</a>
-              <a href={createPageUrl('About')} className="text-white px-2 py-2 rounded hover:bg-white/10">About</a>
-              <a href={createPageUrl('Contact')} className="text-white px-2 py-2 rounded hover:bg-white/10">Contact</a>
-              <a href={createPageUrl('DeviceShop')} className="text-white px-2 py-2 rounded hover:bg-white/10">Device Shop</a>
-            </div>
-          )}
         </div>
       </nav>
 
