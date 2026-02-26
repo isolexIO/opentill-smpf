@@ -74,6 +74,22 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Issue $DUC to customer if merchant has loyalty enabled and order has a customer
+    if (data.customer_id || data.customer_phone) {
+      try {
+        await base44.functions.invoke('issueDUCToCustomer', {
+          merchant_id: data.merchant_id,
+          customer_id: data.customer_id || null,
+          customer_phone: data.customer_phone || null,
+          order_id: data.id,
+          order_total: data.total || 0
+        });
+      } catch (loyaltyErr) {
+        // Non-fatal: log but don't fail the reward creation
+        console.error('Customer $DUC loyalty error:', loyaltyErr.message);
+      }
+    }
+
     // Create reward record
     await base44.asServiceRole.entities.cLINKReward.create({
       merchant_id: data.merchant_id,
