@@ -369,6 +369,9 @@ export default function HomePage() {
           <a href={createPageUrl('About')} className="block text-white hover:text-green-300 py-2">About</a>
           <a href={createPageUrl('Contact')} className="block text-white hover:text-green-300 py-2">Contact</a>
           <a href={createPageUrl('DeviceShop')} className="block text-white hover:text-green-300 py-2">Device Shop</a>
+          <div className="pt-2 border-t border-white/10">
+            <CommunityLinks variant="compact" className="[&_a]:text-gray-300 [&_a]:hover:text-white justify-start" />
+          </div>
           <Button onClick={() => window.location.href = createPageUrl('MerchantOnboarding')} className="w-full bg-white text-purple-700 hover:bg-gray-100 font-semibold mt-2">
             Get Started Free
           </Button>
