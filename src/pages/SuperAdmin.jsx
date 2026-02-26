@@ -270,160 +270,20 @@ export default function SuperAdminPage() {
         </div>
 
         <nav className="p-2">
-          <button
-            onClick={() => setActiveTab('pending')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
-              activeTab === 'pending'
-                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-            }`}
-          >
-            <UserPlus className="w-4 h-4" />
-            <span className="text-sm font-medium">Pending</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('merchants')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
-              activeTab === 'merchants'
-                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-            }`}
-          >
-            <Users className="w-4 h-4" />
-            <span className="text-sm font-medium">Merchants</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('dealers')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
-              activeTab === 'dealers'
-                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-            }`}
-          >
-            <Building2 className="w-4 h-4" />
-            <span className="text-sm font-medium">Ambassadors</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('subscriptions')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
-              activeTab === 'subscriptions'
-                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-            }`}
-          >
-            <CreditCard className="w-4 h-4" />
-            <span className="text-sm font-medium">Subscriptions</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('devices')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
-              activeTab === 'devices'
-                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-            }`}
-          >
-            <Package className="w-4 h-4" />
-            <span className="text-sm font-medium">Device Shop</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('amazon')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
-              activeTab === 'amazon'
-                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-            }`}
-          >
-            <Package className="w-4 h-4" />
-            <span className="text-sm font-medium">Amazon</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('vault')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
-              activeTab === 'vault'
-                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-            }`}
-          >
-            <Vault className="w-4 h-4" />
-            <span className="text-sm font-medium">Vault</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('chips')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
-              activeTab === 'chips'
-                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-            }`}
-          >
-            <Cpu className="w-4 h-4" />
-            <span className="text-sm font-medium">Chips</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('builders')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
-              activeTab === 'builders'
-                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-            }`}
-          >
-            <Users className="w-4 h-4" />
-            <span className="text-sm font-medium">Builders</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('logs')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
-              activeTab === 'logs'
-                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-            }`}
-          >
-            <FileText className="w-4 h-4" />
-            <span className="text-sm font-medium">Logs</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('reports')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
-              activeTab === 'reports'
-                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-            }`}
-          >
-            <TrendingUp className="w-4 h-4" />
-            <span className="text-sm font-medium">Reports</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('ads')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
-              activeTab === 'ads'
-                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-            }`}
-          >
-            <Building2 className="w-4 h-4" />
-            <span className="text-sm font-medium">Ads</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('notifications')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
-              activeTab === 'notifications'
-                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-            }`}
-          >
-            <AlertCircle className="w-4 h-4" />
-            <span className="text-sm font-medium">Notifications</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('settings')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
-              activeTab === 'settings'
-                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-            }`}
-          >
-            <Settings className="w-4 h-4" />
-            <span className="text-sm font-medium">Settings</span>
-          </button>
+          {navItems.map(({ key, icon: Icon, label }) => (
+            <button
+              key={key}
+              onClick={() => { setActiveTab(key); setSidebarOpen(false); }}
+              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
+                activeTab === key
+                  ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+              }`}
+            >
+              <Icon className="w-4 h-4" />
+              <span className="text-sm font-medium">{label}</span>
+            </button>
+          ))}
 
           <div className="border-t border-gray-200 dark:border-gray-700 my-2 pt-2">
             <button
@@ -445,25 +305,16 @@ export default function SuperAdminPage() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 ml-64">
-        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10 shadow-sm">
-          <div className="px-6 py-4">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-              {activeTab === 'pending' && 'Pending Merchants'}
-              {activeTab === 'merchants' && 'Merchant Management'}
-              {activeTab === 'dealers' && 'Ambassador Management'}
-              {activeTab === 'subscriptions' && 'Subscription Management'}
-              {activeTab === 'devices' && 'Device Shop'}
-              {activeTab === 'amazon' && 'Amazon Affiliate'}
-              {activeTab === 'vault' && '$DUC Vault'}
-              {activeTab === 'chips' && 'Chip Manager'}
-              {activeTab === 'builders' && 'Builder Management'}
-              {activeTab === 'logs' && 'System Logs'}
-              {activeTab === 'reports' && 'Global Reports'}
-              {activeTab === 'ads' && 'Advertising'}
-              {activeTab === 'notifications' && 'Notifications'}
-              {activeTab === 'settings' && 'Settings'}
-            </h2>
+      <div className="flex-1 lg:ml-0 min-w-0">
+        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-30 shadow-sm">
+          <div className="px-4 py-3 flex items-center gap-3">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="lg:hidden p-2 rounded-md text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+            </button>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">{tabLabels[activeTab]}</h2>
           </div>
         </div>
 
