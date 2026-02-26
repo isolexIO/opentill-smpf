@@ -118,6 +118,7 @@ function FeaturedChipsSection() {
 
 export default function HomePage() {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [subscriptionPlans, setSubscriptionPlans] = useState([]);
   const [isLoadingPlans, setIsLoadingPlans] = useState(true);
   const [settings, setSettings] = useState(null);

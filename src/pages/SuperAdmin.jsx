@@ -50,6 +50,7 @@ export default function SuperAdminPage() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('pending');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [stats, setStats] = useState({
     totalMerchants: 0,
     activeMerchants: 0,
