@@ -347,13 +347,13 @@ export default function Layout({ children, currentPageName }) {
   // Block inactive merchants from accessing the platform
   if (pinUser && pinUser.merchant_id && pinUser.role !== 'admin' && merchantStatus === 'inactive' && !PUBLIC_PAGES.includes(currentPageName)) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 text-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
           <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <AlertCircle className="w-10 h-10 text-yellow-600" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Account Pending Activation</h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Account Pending Activation</h2>
+          <p className="text-gray-600 mb-6">
             Your merchant account is currently being reviewed by our team. 
             You'll receive an email once your account has been activated.
           </p>
