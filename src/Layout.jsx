@@ -410,7 +410,7 @@ export default function Layout({ children, currentPageName }) {
       </div>
 
       <div className="relative min-h-screen" style={{padding: '10px'}}>
-        <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-[10px] z-40 shadow-sm"
+        <nav className="bg-white border-b border-gray-200 sticky top-[10px] z-40 shadow-sm"
              style={{marginTop: '-10px', marginLeft: '-10px', marginRight: '-10px'}}>
           <div className="px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16">
