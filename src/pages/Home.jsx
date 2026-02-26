@@ -336,14 +336,21 @@ export default function HomePage() {
                 Sign In
               </Button>
             </div>
-            <div className="md:hidden">
-              <Button
-                onClick={() => window.location.href = createPageUrl('EmailLogin')}
-                size="sm"
-                className="bg-green-500 hover:bg-green-600 text-white"
-              >
+            <div className="md:hidden flex items-center gap-2">
+              <Button onClick={() => window.location.href = createPageUrl('EmailLogin')} size="sm" className="bg-green-500 hover:bg-green-600 text-white text-xs px-3">
                 Sign In
               </Button>
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="text-white p-2 rounded-md hover:bg-white/10 transition-colors"
+                aria-label="Toggle menu"
+              >
+                {mobileMenuOpen ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+                )}
+              </button>
             </div>
           </div>
         </div>
