@@ -11,7 +11,7 @@ Deno.serve(async (req) => {
 
     // Use service role to bypass RLS and get stats
     const merchants = await base44.asServiceRole.entities.Merchant.list();
-    const activeMerchants = merchants.filter(m => m.status === 'active' || m.status === 'trial');
+    const activeMerchants = merchants.filter(m => (m.status === 'active' || m.status === 'trial') && !m.is_demo);
     
     const dealers = await base44.asServiceRole.entities.Dealer.list();
     const activeDealers = dealers.filter(d => d.status === 'active' || d.status === 'trial');
