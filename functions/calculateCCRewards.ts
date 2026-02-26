@@ -3,7 +3,8 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { event, data, old_data } = await req.json();
+    const body = await req.json();
+    const { event, data, old_data } = body;
 
     // Only process completed orders with card payments
     if (event.type !== 'create' && event.type !== 'update') {
