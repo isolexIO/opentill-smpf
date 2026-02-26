@@ -303,37 +303,48 @@ export default function HomePage() {
       <nav className="bg-black/30 backdrop-blur-md border-b border-white/10 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
+
             <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.location.href = createPageUrl('Home')}>
               <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6970e2871534100b4ebb8d45/8e45f76fe_DUC3.png" alt="openTILL" className="w-8 h-8" />
               <span className="text-2xl font-bold text-white">openTILL</span>
             </div>
             <div className="hidden md:flex items-center gap-6">
-              <a href={createPageUrl('Home')} className="text-green-300 font-semibold">Home</a>
-              <a href={createPageUrl('Marketplace')} className="text-white hover:text-green-300 transition-colors">Marketplace</a>
-              <a href="#features" className="text-white hover:text-green-300 transition-colors">Features</a>
-              <a href="#pricing" className="text-white hover:text-green-300 transition-colors">Pricing</a>
-              <a href={createPageUrl('About')} className="text-white hover:text-green-300 transition-colors">About</a>
-              <a href={createPageUrl('Contact')} className="text-white hover:text-green-300 transition-colors">Contact</a>
-              <a href={createPageUrl('DeviceShop')} className="text-white hover:text-green-300 transition-colors">Device Shop</a>
-              <Button onClick={() => window.location.href = createPageUrl('EmailLogin')} className="bg-green-500 hover:bg-green-600 text-white">
+              <a href={createPageUrl('Home')} className="text-green-300 font-semibold">
+                Home
+              </a>
+              <a href={createPageUrl('Marketplace')} className="text-white hover:text-green-300 transition-colors">
+                Marketplace
+              </a>
+              <a href="#features" className="text-white hover:text-green-300 transition-colors">
+                Features
+              </a>
+              <a href="#pricing" className="text-white hover:text-green-300 transition-colors">
+                Pricing
+              </a>
+              <a href={createPageUrl('About')} className="text-white hover:text-green-300 transition-colors">
+                About
+              </a>
+              <a href={createPageUrl('Contact')} className="text-white hover:text-green-300 transition-colors">
+                Contact
+              </a>
+              <a href={createPageUrl('DeviceShop')} className="text-white hover:text-green-300 transition-colors">
+                Device Shop
+              </a>
+              <Button
+                onClick={() => window.location.href = createPageUrl('EmailLogin')}
+                className="bg-green-500 hover:bg-green-600 text-white"
+              >
                 Sign In
               </Button>
             </div>
-            <div className="md:hidden flex items-center gap-2">
-              <Button onClick={() => window.location.href = createPageUrl('EmailLogin')} size="sm" className="bg-green-500 hover:bg-green-600 text-white">
+            <div className="md:hidden">
+              <Button
+                onClick={() => window.location.href = createPageUrl('EmailLogin')}
+                size="sm"
+                className="bg-green-500 hover:bg-green-600 text-white"
+              >
                 Sign In
               </Button>
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="text-white p-2 rounded-md hover:bg-white/10 transition-colors"
-                aria-label="Toggle menu"
-              >
-                {mobileMenuOpen ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
-                )}
-              </button>
             </div>
           </div>
         </div>
