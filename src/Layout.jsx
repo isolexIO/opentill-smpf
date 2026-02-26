@@ -197,40 +197,9 @@ export default function Layout({ children, currentPageName }) {
     gtag('config', 'G-THS8JRL2G6');
   }, []);
 
-  // Apply theme on mount and listen for system theme changes
+  // Always force light theme
   useEffect(() => {
-    const applyTheme = (theme) => {
-      const root = document.documentElement;
-      const savedTheme = theme || localStorage.getItem('theme') || 'system';
-      
-      if (savedTheme === 'system') {
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        if (prefersDark) {
-          root.classList.add('dark');
-        } else {
-          root.classList.remove('dark');
-        }
-      } else if (savedTheme === 'dark') {
-        root.classList.add('dark');
-      } else {
-        root.classList.remove('dark');
-      }
-    };
-
-    // Apply theme immediately
-    applyTheme();
-
-    // Listen for system theme changes
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = () => {
-      const savedTheme = localStorage.getItem('theme') || 'system';
-      if (savedTheme === 'system') {
-        applyTheme('system'); // Re-apply to respect system preference
-      }
-    };
-    mediaQuery.addEventListener('change', handleChange);
-    
-    return () => mediaQuery.removeEventListener('change', handleChange);
+    document.documentElement.classList.remove('dark');
   }, []);
 
   const loadAuth = async () => {
