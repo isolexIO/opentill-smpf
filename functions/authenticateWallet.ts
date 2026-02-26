@@ -71,19 +71,25 @@ Deno.serve(async (req) => {
       }, { status: 401 });
     }
 
-    // First, check if this wallet is linked to an existing user via pos_settings
-    const walletField = `${wallet_type}_wallet`;
-    // For efficient lookup, ideally the database would support querying nested JSON fields.
-    // As a workaround, we fetch all users and iterate. For a large number of users, this
-    // might become inefficient and would require a more advanced database query mechanism
-    // if available or a denormalized field.
-    const allUsers = await base44.asServiceRole.entities.User.list();
+    // First, check if this wallet is linked to an existing user via wallet_address field
+    // Try direct wallet_address field lookup first (most common)
     let linkedUser = null;
+    const directWalletUsers = await base44.asServiceRole.entities.User.filter({
+      wallet_address: wallet_address
+    });
+    if (directWalletUsers && directWalletUsers.length > 0) {
+      linkedUser = directWalletUsers[0];
+    }
 
-    for (const u of allUsers) {
-      if (u.pos_settings?.[walletField] === wallet_address) {
-        linkedUser = u;
-        break;
+    // Fallback: check pos_settings nested field (legacy)
+    if (!linkedUser) {
+      const walletField = `${wallet_type}_wallet`;
+      const allUsers = await base44.asServiceRole.entities.User.list('-created_date', 500);
+      for (const u of allUsers) {
+        if (u.pos_settings?.[walletField] === wallet_address) {
+          linkedUser = u;
+          break;
+        }
       }
     }
 
