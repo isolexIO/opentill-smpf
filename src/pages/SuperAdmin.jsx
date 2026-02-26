@@ -213,21 +213,59 @@ export default function SuperAdminPage() {
     );
   }
 
+  const navItems = [
+    { key: 'pending', icon: UserPlus, label: 'Pending' },
+    { key: 'merchants', icon: Users, label: 'Merchants' },
+    { key: 'dealers', icon: Building2, label: 'Ambassadors' },
+    { key: 'subscriptions', icon: CreditCard, label: 'Subscriptions' },
+    { key: 'devices', icon: Package, label: 'Device Shop' },
+    { key: 'amazon', icon: Package, label: 'Amazon' },
+    { key: 'vault', icon: Vault, label: 'Vault' },
+    { key: 'chips', icon: Cpu, label: 'Chips' },
+    { key: 'builders', icon: Users, label: 'Builders' },
+    { key: 'logs', icon: FileText, label: 'Logs' },
+    { key: 'reports', icon: TrendingUp, label: 'Reports' },
+    { key: 'ads', icon: Building2, label: 'Ads' },
+    { key: 'notifications', icon: AlertCircle, label: 'Notifications' },
+    { key: 'settings', icon: Settings, label: 'Settings' },
+  ];
+
+  const tabLabels = {
+    pending: 'Pending Merchants', merchants: 'Merchant Management', dealers: 'Ambassador Management',
+    subscriptions: 'Subscription Management', devices: 'Device Shop', amazon: 'Amazon Affiliate',
+    vault: '$DUC Vault', chips: 'Chip Manager', builders: 'Builder Management', logs: 'System Logs',
+    reports: 'Global Reports', ads: 'Advertising', notifications: 'Notifications', settings: 'Settings',
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <div className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex-shrink-0 fixed h-full overflow-y-auto">
+      <div className={`
+        fixed h-full z-50 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 overflow-y-auto transition-transform duration-300
+        w-64
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+        lg:translate-x-0 lg:static lg:flex-shrink-0
+      `}>
         <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex items-center gap-3">
-            <Shield className="w-8 h-8 text-red-600" />
-            <div>
-              <h1 className="text-lg font-bold text-gray-900 dark:text-white">Super Admin</h1>
-              {user && (
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {user.email}
-                </p>
-              )}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Shield className="w-8 h-8 text-red-600" />
+              <div>
+                <h1 className="text-lg font-bold text-gray-900 dark:text-white">Super Admin</h1>
+                {user && <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>}
+              </div>
             </div>
+            <button className="lg:hidden p-1 rounded text-gray-500 hover:bg-gray-100" onClick={() => setSidebarOpen(false)}>
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
           </div>
         </div>
 
