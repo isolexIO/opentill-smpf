@@ -309,8 +309,6 @@ export default function HomePage() {
               <span className="text-2xl font-bold text-white">openTILL</span>
             </div>
             <div className="hidden md:flex items-center gap-6">
-              <CommunityLinks variant="compact" className="gap-3 mr-2" />
-              <div className="w-px h-5 bg-white/20"></div>
               <a href={createPageUrl('Home')} className="text-green-300 font-semibold">
                 Home
               </a>
