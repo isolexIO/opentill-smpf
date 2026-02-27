@@ -80,6 +80,7 @@ Deno.serve(async (req) => {
             phone: phone || '',
             address: address || '',
             dealer_id: dealer_id || null,
+            wallet_address: wallet_address || null,
             status: 'inactive',
             trial_ends_at: null,
             subscription_plan: 'free',
