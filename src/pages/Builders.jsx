@@ -86,7 +86,7 @@ export default function BuildersPage() {
               <Button
                 size="sm"
                 variant="outline"
-                className="border-white/20 text-white hover:bg-white/10"
+                className="border-white text-white bg-white/10 hover:bg-white hover:text-gray-900"
                 onClick={() => window.location.href = createPageUrl('EmailLogin')}
               >
                 Sign In
