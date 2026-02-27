@@ -529,6 +529,14 @@ export default function SystemMenu() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {visibleItems.map((item) => {
+            // Determine if this item is locked by feature gate
+            const requiredFlag = FEATURE_REQUIREMENTS[item.id];
+            const isLocked = !featureIsAdmin && requiredFlag && !hasFeature(requiredFlag) && !ALWAYS_ENABLED.has(item.id);
+
+            if (isLocked) {
+              return <LockedFeatureTile key={item.id} item={item} />;
+            }
+
             return (
               <Card
                 key={item.id}
