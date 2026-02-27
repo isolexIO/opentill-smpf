@@ -57,24 +57,31 @@ function MWAAutoSelector() {
   return null;
 }
 
-// Detect if running on a mobile device
-function isLikelyMobileDevice() {
-  return typeof window !== 'undefined' && /Mobi|Android/i.test(navigator.userAgent);
+// Detect if running on an Android device (for MWA auto-select)
+function isAndroidDevice() {
+  return typeof window !== 'undefined' && /Android/i.test(navigator.userAgent);
 }
 
 export default function SolanaWalletProvider({ children, autoConnect = false }) {
   const wallets = useMemo(() => buildWallets(), []);
-  const isMobile = isLikelyMobileDevice();
+  const isAndroid = isAndroidDevice();
 
   return (
     <ConnectionProvider endpoint={ENDPOINT}>
-      <WalletProvider wallets={wallets} autoConnect={autoConnect || isMobile} onError={(err) => {
-        if (!err.message?.includes('User rejected') && !err.message?.includes('User cancelled')) {
-          console.error('[WalletProvider]', err);
+      <WalletProvider wallets={wallets} autoConnect={autoConnect} onError={(err) => {
+        // Suppress session drop errors (1006) - these happen when wallet app closes
+        if (
+          err.message?.includes('User rejected') ||
+          err.message?.includes('User cancelled') ||
+          err.message?.includes('session dropped') ||
+          err.message?.includes('1006')
+        ) {
+          return;
         }
+        console.error('[WalletProvider]', err);
       }}>
         <WalletModalProvider>
-          {isMobile && <MWAAutoSelector />}
+          {isAndroid && <MWAAutoSelector />}
           {children}
         </WalletModalProvider>
       </WalletProvider>
