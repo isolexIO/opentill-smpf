@@ -16,17 +16,19 @@ function isMobileOrApp() {
 
 const isValidSolana = (addr) => addr && /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(addr);
 
-// Build Phantom deep link URL for mobile connection
+// Phantom deep link — uses phantom:// URI scheme to open the native app
 function buildPhantomDeepLink() {
-  const currentUrl = window.location.href;
-  // Phantom uses universal links / deep links to connect
-  const redirectUrl = encodeURIComponent(currentUrl);
-  return `https://phantom.app/ul/v1/connect?app_url=${encodeURIComponent(window.location.origin)}&redirect_link=${redirectUrl}&cluster=mainnet-beta`;
+  const appUrl = encodeURIComponent(window.location.origin);
+  const redirectLink = encodeURIComponent(window.location.href);
+  // phantom:// scheme opens the app directly; fallback to universal link if not installed
+  return `phantom://v1/connect?app_url=${appUrl}&redirect_link=${redirectLink}&cluster=mainnet-beta`;
 }
 
+// Solflare deep link — uses solflare:// URI scheme
 function buildSolflareDeepLink() {
-  const currentUrl = window.location.href;
-  return `https://solflare.com/ul/v1/connect?app_url=${encodeURIComponent(window.location.origin)}&redirect_link=${encodeURIComponent(currentUrl)}&cluster=mainnet-beta`;
+  const appUrl = encodeURIComponent(window.location.origin);
+  const redirectLink = encodeURIComponent(window.location.href);
+  return `solflare://v1/connect?app_url=${appUrl}&redirect_link=${redirectLink}&cluster=mainnet-beta`;
 }
 
 function MobileWalletConnect({ formData, onChange, onNext, onBack }) {
