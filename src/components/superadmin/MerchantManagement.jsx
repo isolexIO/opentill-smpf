@@ -788,6 +788,56 @@ ChainLINK Support`
                  })}
                </div>
 
+               {/* DUC Stake Requirement */}
+               <div className="border-t pt-4">
+                 <div className="flex items-center gap-2 mb-3">
+                   <Vault className="w-4 h-4 text-yellow-600" />
+                   <h4 className="font-semibold">$DUC Stake Requirement</h4>
+                 </div>
+                 <div className="space-y-3">
+                   <div className="flex items-center justify-between">
+                     <span className="text-sm text-gray-700">Require $DUC Stake</span>
+                     <button
+                       onClick={async () => {
+                         const newVal = !(selectedMerchant.duc_stake_required ?? true);
+                         await base44.entities.Merchant.update(selectedMerchant.id, { duc_stake_required: newVal });
+                         setSelectedMerchant({ ...selectedMerchant, duc_stake_required: newVal });
+                         setMerchants(prev => prev.map(m => m.id === selectedMerchant.id ? { ...m, duc_stake_required: newVal } : m));
+                       }}
+                       className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${(selectedMerchant.duc_stake_required ?? true) ? 'bg-yellow-500' : 'bg-gray-200'}`}
+                     >
+                       <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${(selectedMerchant.duc_stake_required ?? true) ? 'translate-x-5' : 'translate-x-1'}`} />
+                     </button>
+                   </div>
+                   <div>
+                     <Label className="text-sm">Required Stake Amount ($DUC)</Label>
+                     <div className="flex gap-2 mt-1">
+                       <Input
+                         type="number"
+                         value={selectedMerchant.duc_stake_amount ?? 50000}
+                         onChange={(e) => setSelectedMerchant({ ...selectedMerchant, duc_stake_amount: Number(e.target.value) })}
+                         className="w-40"
+                       />
+                       <Button
+                         size="sm"
+                         variant="outline"
+                         onClick={async () => {
+                           const amount = selectedMerchant.duc_stake_amount ?? 50000;
+                           await base44.entities.Merchant.update(selectedMerchant.id, { duc_stake_amount: amount });
+                           setMerchants(prev => prev.map(m => m.id === selectedMerchant.id ? { ...m, duc_stake_amount: amount } : m));
+                           alert('Stake amount saved.');
+                         }}
+                       >
+                         Save
+                       </Button>
+                     </div>
+                   </div>
+                   <p className="text-xs text-gray-500">
+                     Status: {(selectedMerchant.duc_stake_required ?? true) ? `✓ Required — ${(selectedMerchant.duc_stake_amount ?? 50000).toLocaleString()} $DUC` : '✗ Not required'}
+                   </p>
+                 </div>
+               </div>
+
                {/* DEMO Account Toggle */}
                <div className="border-t pt-4">
                  <div className="flex items-center gap-2 mb-3">
