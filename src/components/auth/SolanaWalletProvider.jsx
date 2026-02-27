@@ -13,25 +13,29 @@ const WALLETS = [
 ];
 
 export default function SolanaWalletProvider({ children, autoConnect = false }) {
-  const wallets = useMemo(() => buildWallets(), []);
-  const isAndroid = isAndroidDevice();
-
   return (
     <ConnectionProvider endpoint={ENDPOINT}>
-      <WalletProvider wallets={wallets} autoConnect={autoConnect} onError={(err) => {
-        // Suppress session drop errors (1006) - these happen when wallet app closes
+      <WalletProvider wallets={WALLETS} autoConnect={autoConnect} onError={(err) => {
+        // Suppress all known benign wallet errors
+        const msg = err?.message || '';
+        const name = err?.name || '';
         if (
-          err.message?.includes('User rejected') ||
-          err.message?.includes('User cancelled') ||
-          err.message?.includes('session dropped') ||
-          err.message?.includes('1006')
+          msg.includes('User rejected') ||
+          msg.includes('User cancelled') ||
+          msg.includes('session dropped') ||
+          msg.includes('1006') ||
+          msg.includes('mobile wallet protocol') ||
+          msg.includes('no installed wallet') ||
+          msg.includes('No wallet found') ||
+          name === 'WalletNotFoundError' ||
+          name === 'WalletSignMessageError' ||
+          name === 'WalletConnectionError'
         ) {
           return;
         }
         console.error('[WalletProvider]', err);
       }}>
         <WalletModalProvider>
-          {isAndroid && <MWAAutoSelector />}
           {children}
         </WalletModalProvider>
       </WalletProvider>
