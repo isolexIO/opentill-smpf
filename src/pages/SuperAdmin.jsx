@@ -45,6 +45,7 @@ import PendingMerchants from '../components/superadmin/PendingMerchants';
 import AmazonAffiliateManager from '../components/superadmin/AmazonAffiliateManager';
 import VaultManager from '../components/superadmin/VaultManager';
 import BuilderManagement from '../components/superadmin/BuilderManagement';
+import BuilderSplashEditor from '../components/superadmin/BuilderSplashEditor';
 
 export default function SuperAdminPage() {
   const [user, setUser] = useState(null);
