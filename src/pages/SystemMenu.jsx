@@ -41,6 +41,8 @@ import {
 } from 'lucide-react';
 import AdvertisingTile from '../components/system-menu/AdvertisingTile';
 import CommunityLinks from '../components/shared/CommunityLinks';
+import { useMerchantFeatures } from '../components/motherboard/useMerchantFeatures';
+import LockedFeatureTile from '../components/motherboard/LockedFeatureTile';
 
 export default function SystemMenu() {
   const [user, setUser] = useState(null);
