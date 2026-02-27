@@ -330,11 +330,19 @@ function DesktopWalletConnect({ formData, onChange, onNext, onBack }) {
       <div className="space-y-3">
         <WalletMultiButton className="!w-full !h-14 !rounded-lg !justify-start !text-base !font-medium" />
 
-        {connected && publicKey && (
+        {connected && publicKey && signing && (
+          <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-xs text-yellow-700 flex items-center gap-1">
+              <Loader2 className="w-3 h-3 animate-spin" />
+              Please sign the message in your wallet to verify ownership...
+            </p>
+          </div>
+        )}
+        {connected && publicKey && signed && !signing && (
           <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
             <p className="text-xs text-green-700 flex items-center gap-1">
               <CheckCircle className="w-3 h-3" />
-              Connected: {publicKey.toString().slice(0, 8)}...{publicKey.toString().slice(-8)}
+              Verified: {publicKey.toString().slice(0, 8)}...{publicKey.toString().slice(-8)}
             </p>
           </div>
         )}
