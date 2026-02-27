@@ -18,6 +18,7 @@ export default function BuilderManagement() {
   const [updating, setUpdating] = useState(null);
   const [error, setError] = useState('');
   const [selectedBuilder, setSelectedBuilder] = useState(null);
+  const [activeTab, setActiveTab] = useState('builders'); // 'builders' | 'fees'
 
   useEffect(() => {
     loadBuilders();
