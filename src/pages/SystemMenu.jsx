@@ -44,9 +44,26 @@ import CommunityLinks from '../components/shared/CommunityLinks';
 import { useMerchantFeatures } from '../components/motherboard/useMerchantFeatures';
 import LockedFeatureTile from '../components/motherboard/LockedFeatureTile';
 
+// Map menu item IDs to the feature flag needed to unlock them
+const FEATURE_REQUIREMENTS = {
+  customers: 'customers',
+  loyalty: 'loyalty',
+  online_menu: 'online_menu',
+  online_orders: 'online_orders',
+  reports: 'reports',
+  ai_website: 'ai_website',
+  inventory: 'inventory',
+  device_monitor: 'device_monitor',
+  ai_assistant: 'ai_assistant',
+};
+
+// Items that are always visible (no chip needed)
+const ALWAYS_ENABLED = new Set(['pos', 'products', 'orders', 'settings', 'departments', 'users', 'marketplace', 'motherboard', 'duc_vault', 'referral_program', 'super_admin', 'dealer_dashboard']);
+
 export default function SystemMenu() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { hasFeature, isAdmin: featureIsAdmin, loading: featuresLoading } = useMerchantFeatures();
   const [isPinUserLoggedIn, setIsPinUserLoggedIn] = useState(false);
   const [stats, setStats] = useState({
     pendingOrders: 0,
