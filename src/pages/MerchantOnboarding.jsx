@@ -177,5 +177,6 @@ export default function MerchantOnboarding() {
         </p>
       </div>
     </div>
+    </SolanaWalletProvider>
   );
 }
