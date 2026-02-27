@@ -88,6 +88,7 @@ Deno.serve(async (req) => {
             total_revenue: 0,
             total_orders: 0,
             referred_by_code: referral_code ? referral_code.toUpperCase().trim() : null,
+            features_enabled: ['pos', 'solana_pay'],
             settings: {
                 timezone: 'America/New_York',
                 currency: 'USD',
