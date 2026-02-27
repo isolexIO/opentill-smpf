@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
-import { Code2, Users, TrendingUp, Shield, Zap, ArrowRight, Github } from 'lucide-react';
+import { Code2, Users, TrendingUp, Shield, Zap, ArrowRight, Github, Menu, X } from 'lucide-react';
 
 const ICON_MAP = { Code2, Users, TrendingUp, Shield, Zap, Github };
 
