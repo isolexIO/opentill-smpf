@@ -364,8 +364,8 @@ function DesktopWalletConnect({ formData, onChange, onNext, onBack }) {
 
       <div className="flex gap-3 pt-1">
         <Button type="button" variant="outline" onClick={onBack} className="flex-1 h-12">Back</Button>
-        <Button type="button" onClick={onNext} disabled={connecting} className="flex-[2] bg-cyan-600 hover:bg-cyan-700 text-white h-12 font-bold rounded-xl">
-          {connecting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Connecting...</> : formData.wallet_address ? 'Continue with Wallet' : 'Skip for Now'}
+        <Button type="button" onClick={onNext} disabled={connecting || signing} className="flex-[2] bg-cyan-600 hover:bg-cyan-700 text-white h-12 font-bold rounded-xl">
+          {signing ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Signing...</> : connecting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Connecting...</> : formData.wallet_address ? 'Continue with Wallet' : 'Skip for Now'}
         </Button>
       </div>
     </div>
