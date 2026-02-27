@@ -9,24 +9,35 @@ import '@solana/wallet-adapter-react-ui/styles.css';
 const ENDPOINT = clusterApiUrl('mainnet-beta');
 
 function buildWallets() {
-  // Always include SolanaMobileWalletAdapter — required for Solana Mobile dApp Store (Saga/Seeker).
-  // The adapter self-selects only when the MWA runtime is present, so it's safe on all platforms.
-  const mobileAdapter = new SolanaMobileWalletAdapter({
-    addressSelector: createDefaultAddressSelector(),
-    appIdentity: {
-      name: 'openTILL',
-      uri: 'https://opentill-pos.com',
-      icon: '/favicon.ico',
-    },
-    authorizationResultCache: createDefaultAuthorizationResultCache(),
-    cluster: 'mainnet-beta',
-  });
-
-  return [
-    mobileAdapter,
+  const adapters = [
     new PhantomWalletAdapter(),
     new SolflareWalletAdapter(),
   ];
+
+  // Only include SolanaMobileWalletAdapter on actual Android/Saga devices with MWA runtime
+  if (typeof window !== 'undefined' && /Android/i.test(navigator.userAgent)) {
+    try {
+      const mobileAdapter = new SolanaMobileWalletAdapter({
+        addressSelector: createDefaultAddressSelector(),
+        appIdentity: {
+          name: 'openTILL',
+          uri: 'https://opentill-pos.com',
+          icon: '/favicon.ico',
+        },
+        authorizationResultCache: createDefaultAuthorizationResultCache(),
+        cluster: 'mainnet-beta',
+        onWalletNotFound: async (mobileWalletAdapter) => {
+          // Wallet app not found — do nothing, user can use Phantom/Solflare deep links
+          console.log('Solana Mobile Wallet not found on device');
+        },
+      });
+      adapters.unshift(mobileAdapter);
+    } catch (e) {
+      // If MWA adapter fails to initialize, continue without it
+    }
+  }
+
+  return adapters;
 }
 
 /**
