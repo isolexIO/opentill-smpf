@@ -69,12 +69,16 @@ export default function SolanaWalletProvider({ children, autoConnect = false }) 
   return (
     <ConnectionProvider endpoint={ENDPOINT}>
       <WalletProvider wallets={wallets} autoConnect={autoConnect} onError={(err) => {
-        // Suppress session drop errors (1006) - these happen when wallet app closes
+        // Suppress known benign wallet errors
         if (
           err.message?.includes('User rejected') ||
           err.message?.includes('User cancelled') ||
           err.message?.includes('session dropped') ||
-          err.message?.includes('1006')
+          err.message?.includes('1006') ||
+          err.message?.includes('no installed wallet') ||
+          err.message?.includes('No wallet found') ||
+          err.message?.includes('WalletNotFoundError') ||
+          err.name === 'WalletNotFoundError'
         ) {
           return;
         }
