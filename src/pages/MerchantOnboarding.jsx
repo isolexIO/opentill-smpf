@@ -9,6 +9,7 @@ import StepReferral from '@/components/onboarding/StepReferral';
 import StepBusiness from '@/components/onboarding/StepBusiness';
 import StepWallet from '@/components/onboarding/StepWallet';
 import StepReview from '@/components/onboarding/StepReview';
+import SolanaWalletProvider from '@/components/auth/SolanaWalletProvider';
 
 const INITIAL = {
   business_name: '',
