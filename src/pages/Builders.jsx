@@ -36,6 +36,7 @@ const DEFAULT_SETTINGS = {
 export default function BuildersPage() {
   const [s, setS] = useState(DEFAULT_SETTINGS);
   const [stats, setStats] = useState({ developers: 0, chips: 0, installs: 0 });
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     loadData();
