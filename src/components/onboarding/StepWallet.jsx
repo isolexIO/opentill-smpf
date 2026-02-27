@@ -220,14 +220,40 @@ function MobileWalletConnect({ formData, onChange, onNext, onBack }) {
 }
 
 function DesktopWalletConnect({ formData, onChange, onNext, onBack }) {
-  const { publicKey, connected, connecting } = useWallet();
+  const { publicKey, connected, connecting, signMessage } = useWallet();
   const [manualMode, setManualMode] = useState(!!formData.wallet_address);
+  const [signing, setSigning] = useState(false);
+  const [signed, setSigned] = useState(false);
 
   useEffect(() => {
-    if (connected && publicKey) {
-      onChange('wallet_address', publicKey.toString());
+    if (connected && publicKey && !signed) {
+      requestSignature();
     }
   }, [connected, publicKey]);
+
+  const requestSignature = async () => {
+    if (!publicKey || !signMessage) {
+      // wallet doesn't support signMessage — just save the address
+      onChange('wallet_address', publicKey.toString());
+      setSigned(true);
+      return;
+    }
+    setSigning(true);
+    try {
+      const message = new TextEncoder().encode(
+        `openTILL Wallet Verification\n\nI confirm this wallet belongs to me and authorize its use for receiving $DUC rewards.\n\nAddress: ${publicKey.toString()}\nTimestamp: ${Date.now()}`
+      );
+      await signMessage(message);
+      onChange('wallet_address', publicKey.toString());
+      setSigned(true);
+    } catch (e) {
+      // User rejected signature — clear the address
+      onChange('wallet_address', '');
+      setSigned(false);
+    } finally {
+      setSigning(false);
+    }
+  };
 
   if (manualMode) {
     return (
