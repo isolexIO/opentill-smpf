@@ -3,7 +3,8 @@ import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { AlertCircle, CheckCircle, Ban, Loader2, Eye } from 'lucide-react';
+import { AlertCircle, CheckCircle, Ban, Loader2, Eye, Settings } from 'lucide-react';
+import BuilderFeeSettings from './BuilderFeeSettings';
 
 const STATUS_COLORS = {
   pending: 'bg-yellow-100 text-yellow-800',
