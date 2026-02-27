@@ -69,6 +69,7 @@ export default function MerchantOnboarding() {
 
   if (success) {
     return (
+      <SolanaWalletProvider autoConnect={false}>
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
         <Card className="w-full max-w-lg shadow-2xl bg-white border-none rounded-3xl overflow-hidden">
           <CardContent className="pt-12 pb-10 text-center space-y-6 px-8">
