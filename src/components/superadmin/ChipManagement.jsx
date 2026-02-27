@@ -30,12 +30,39 @@ const FEATURE_FLAGS = [
 export default function ChipManagement() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingChip, setEditingChip] = useState(null);
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
+  const [reviewingSubmission, setReviewingSubmission] = useState(null);
+  const [reviewNotes, setReviewNotes] = useState('');
   const queryClient = useQueryClient();
 
   const { data: chips = [], isLoading } = useQuery({
     queryKey: ['admin-chips'],
     queryFn: () => base44.entities.Chip.list()
   });
+
+  const { data: submissions = [], isLoading: loadingSubmissions } = useQuery({
+    queryKey: ['admin-chip-submissions'],
+    queryFn: () => base44.entities.ChipSubmission.list('-created_date')
+  });
+
+  const updateSubmissionMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.ChipSubmission.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-chip-submissions'] });
+      setReviewDialogOpen(false);
+      setReviewingSubmission(null);
+      setReviewNotes('');
+    }
+  });
+
+  const handleReview = (submission, action) => {
+    const updates = {
+      review_notes: reviewNotes,
+      status: action === 'approve' ? 'approved' : action === 'publish' ? 'published' : action === 'reject' ? 'rejected' : 'reviewing',
+    };
+    if (action === 'publish') updates.published_at = new Date().toISOString();
+    updateSubmissionMutation.mutate({ id: submission.id, data: updates });
+  };
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.Chip.create(data),
