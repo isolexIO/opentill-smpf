@@ -747,6 +747,47 @@ ChainLINK Support`
                  </p>
                </div>
 
+               {/* Feature Access Management */}
+               <div className="border-t pt-4">
+                 <div className="flex items-center gap-2 mb-3">
+                   <CreditCard className="w-4 h-4" />
+                   <h4 className="font-semibold">Feature Access</h4>
+                 </div>
+                 <p className="text-xs text-gray-500 mb-3">Toggle features on/off for this merchant (overrides chip requirements)</p>
+                 {[
+                   { key: 'customers', label: 'Customers' },
+                   { key: 'loyalty', label: 'Loyalty Program' },
+                   { key: 'online_menu', label: 'Online Menu' },
+                   { key: 'online_orders', label: 'Online Orders' },
+                   { key: 'reports', label: 'Reports & Analytics' },
+                   { key: 'ai_website', label: 'AI Website Generator' },
+                   { key: 'inventory', label: 'Inventory Management' },
+                   { key: 'device_monitor', label: 'Device Monitor' },
+                   { key: 'ai_assistant', label: 'AI Assistant' },
+                   { key: 'customer_display', label: 'Customer Display' },
+                   { key: 'kitchen_display', label: 'Kitchen Display' },
+                 ].map(({ key, label }) => {
+                   const enabled = (selectedMerchant.features_enabled || ['pos']).includes(key);
+                   return (
+                     <div key={key} className="flex items-center justify-between py-1.5 border-b border-gray-100 last:border-0">
+                       <span className="text-sm text-gray-700">{label}</span>
+                       <button
+                         onClick={async () => {
+                           const current = selectedMerchant.features_enabled || ['pos'];
+                           const updated = enabled ? current.filter(f => f !== key) : [...current, key];
+                           await base44.entities.Merchant.update(selectedMerchant.id, { features_enabled: updated });
+                           setSelectedMerchant({ ...selectedMerchant, features_enabled: updated });
+                           setMerchants(prev => prev.map(m => m.id === selectedMerchant.id ? { ...m, features_enabled: updated } : m));
+                         }}
+                         className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${enabled ? 'bg-green-500' : 'bg-gray-200'}`}
+                       >
+                         <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${enabled ? 'translate-x-5' : 'translate-x-1'}`} />
+                       </button>
+                     </div>
+                   );
+                 })}
+               </div>
+
                {/* DEMO Account Toggle */}
                <div className="border-t pt-4">
                  <div className="flex items-center gap-2 mb-3">
