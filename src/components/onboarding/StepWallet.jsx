@@ -350,8 +350,6 @@ function WalletConnectContent({ formData, onChange, onNext, onBack }) {
 
 export default function StepWallet({ formData, onChange, onNext, onBack }) {
   return (
-    <SolanaWalletProvider autoConnect={false}>
-      <WalletConnectContent formData={formData} onChange={onChange} onNext={onNext} onBack={onBack} />
-    </SolanaWalletProvider>
+    <WalletConnectContent formData={formData} onChange={onChange} onNext={onNext} onBack={onBack} />
   );
 }
