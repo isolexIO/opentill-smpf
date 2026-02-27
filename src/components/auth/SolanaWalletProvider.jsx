@@ -27,7 +27,14 @@ export default function SolanaWalletProvider({ children, autoConnect = false }) 
           msg.includes('mobile wallet protocol') ||
           msg.includes('no installed wallet') ||
           msg.includes('No wallet found') ||
+          msg.includes('MWA') ||
+          msg.includes('Mobile Wallet Adapter') ||
+          msg.includes('compatible app') ||
+          msg.includes('WalletNotFound') ||
+          msg.includes('not installed') ||
+          msg.includes('not found') ||
           name === 'WalletNotFoundError' ||
+          name === 'WalletNotReadyError' ||
           name === 'WalletSignMessageError' ||
           name === 'WalletConnectionError'
         ) {
