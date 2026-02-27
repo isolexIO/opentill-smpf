@@ -12,7 +12,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Badge } from '@/components/ui/badge';
 import { Plus, Edit, Trash2, Eye, Sparkles, Upload, Loader2, CheckCircle, XCircle, Clock, AlertTriangle, ExternalLink } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Textarea } from '@/components/ui/textarea';
 
 const FEATURE_FLAGS = [
   'advanced_analytics',
