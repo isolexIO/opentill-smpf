@@ -95,12 +95,24 @@ export default function ChipManagement() {
     }
   };
 
+  const STATUS_COLORS = {
+    draft: 'bg-gray-100 text-gray-800',
+    submitted: 'bg-blue-100 text-blue-800',
+    reviewing: 'bg-yellow-100 text-yellow-800',
+    approved: 'bg-green-100 text-green-800',
+    rejected: 'bg-red-100 text-red-800',
+    published: 'bg-emerald-100 text-emerald-800',
+    archived: 'bg-slate-100 text-slate-800',
+  };
+
+  const pendingCount = submissions.filter(s => ['submitted', 'reviewing'].includes(s.status)).length;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Chip Management</h2>
-          <p className="text-gray-500">Create and manage feature chips for the marketplace</p>
+          <p className="text-gray-500">Manage chips and review builder submissions</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
@@ -132,72 +144,213 @@ export default function ChipManagement() {
         </Dialog>
       </div>
 
-      <div className="grid gap-4">
-        {chips.map(chip => (
-          <Card key={chip.id}>
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-4">
-                  {chip.image_url && (
-                    <img src={chip.image_url} alt={chip.name} className="w-16 h-16 rounded-lg" />
-                  )}
-                  <div>
-                    <CardTitle>{chip.name}</CardTitle>
-                    <CardDescription>{chip.short_description}</CardDescription>
-                    <div className="flex gap-2 mt-2">
-                      <Badge>{chip.billing_type}</Badge>
-                      <Badge variant="outline">{chip.category}</Badge>
-                      <Badge className={chip.status === 'PUBLISHED' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
-                        {chip.status}
-                      </Badge>
-                      {chip.featured && <Badge className="bg-yellow-100 text-yellow-800">Featured</Badge>}
+      <Tabs defaultValue="submissions">
+        <TabsList>
+          <TabsTrigger value="submissions" className="relative">
+            Builder Submissions
+            {pendingCount > 0 && (
+              <span className="ml-2 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5">{pendingCount}</span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="chips">Platform Chips</TabsTrigger>
+        </TabsList>
+
+        {/* Builder Submissions Tab */}
+        <TabsContent value="submissions" className="space-y-4 mt-4">
+          {loadingSubmissions ? (
+            <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-gray-400" /></div>
+          ) : submissions.length === 0 ? (
+            <Card><CardContent className="p-12 text-center text-gray-500">No submissions yet</CardContent></Card>
+          ) : (
+            submissions.map(sub => (
+              <Card key={sub.id}>
+                <CardContent className="p-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start gap-3 flex-1">
+                      {sub.logo_url && <img src={sub.logo_url} alt={sub.name} className="w-12 h-12 rounded-lg shrink-0" />}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-bold text-gray-900">{sub.name}</h3>
+                          <Badge className={STATUS_COLORS[sub.status]}>{sub.status}</Badge>
+                          {sub.featured && <Badge className="bg-amber-100 text-amber-800">Featured</Badge>}
+                        </div>
+                        <p className="text-sm text-gray-600 mb-2">{sub.short_description}</p>
+                        <div className="flex flex-wrap gap-3 text-xs text-gray-500">
+                          <span>By: <strong>{sub.builder_email}</strong></span>
+                          <span>Category: <strong>{sub.category}</strong></span>
+                          <span>Pricing: <strong>{sub.pricing_model} {sub.price ? `$${sub.price}` : ''}</strong></span>
+                          {sub.repository_url && (
+                            <a href={sub.repository_url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
+                              <ExternalLink className="w-3 h-3" /> Repo
+                            </a>
+                          )}
+                          {sub.documentation_url && (
+                            <a href={sub.documentation_url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
+                              <ExternalLink className="w-3 h-3" /> Docs
+                            </a>
+                          )}
+                        </div>
+                        {sub.review_notes && (
+                          <div className={`mt-2 p-2 rounded text-xs ${sub.status === 'rejected' ? 'bg-red-50 text-red-700' : 'bg-blue-50 text-blue-700'}`}>
+                            <strong>Notes:</strong> {sub.review_notes}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex gap-2 shrink-0">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => { setReviewingSubmission(sub); setReviewNotes(sub.review_notes || ''); setReviewDialogOpen(true); }}
+                      >
+                        Review
+                      </Button>
                     </div>
                   </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setEditingChip(chip);
-                      setDialogOpen(true);
-                    }}
-                  >
-                    <Edit className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDelete(chip.id)}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-3 gap-4 text-sm">
-                <div>
-                  <span className="text-gray-500">Price:</span>
-                  <div className="font-medium">
-                    {chip.billing_type === 'ONE_TIME' 
-                      ? `${chip.price_duc} $DUC` 
-                      : `${chip.recurring_price_duc} $DUC/${chip.interval}`}
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </TabsContent>
+
+        {/* Platform Chips Tab */}
+        <TabsContent value="chips" className="space-y-4 mt-4">
+          {chips.map(chip => (
+            <Card key={chip.id}>
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-4">
+                    {chip.image_url && (
+                      <img src={chip.image_url} alt={chip.name} className="w-16 h-16 rounded-lg" />
+                    )}
+                    <div>
+                      <CardTitle>{chip.name}</CardTitle>
+                      <CardDescription>{chip.short_description}</CardDescription>
+                      <div className="flex gap-2 mt-2">
+                        <Badge>{chip.billing_type}</Badge>
+                        <Badge variant="outline">{chip.category}</Badge>
+                        <Badge className={chip.status === 'PUBLISHED' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
+                          {chip.status}
+                        </Badge>
+                        {chip.featured && <Badge className="bg-yellow-100 text-yellow-800">Featured</Badge>}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={() => { setEditingChip(chip); setDialogOpen(true); }}>
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => handleDelete(chip.id)}>
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
                   </div>
                 </div>
-                <div>
-                  <span className="text-gray-500">Mints:</span>
-                  <div className="font-medium">{chip.mints_count || 0} {chip.total_supply ? `/ ${chip.total_supply}` : ''}</div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-3 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-500">Price:</span>
+                    <div className="font-medium">
+                      {chip.billing_type === 'ONE_TIME' 
+                        ? `${chip.price_duc} $DUC` 
+                        : `${chip.recurring_price_duc} $DUC/${chip.interval}`}
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Mints:</span>
+                    <div className="font-medium">{chip.mints_count || 0} {chip.total_supply ? `/ ${chip.total_supply}` : ''}</div>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Features:</span>
+                    <div className="font-medium">{chip.feature_flags?.length || 0} flags</div>
+                  </div>
                 </div>
-                <div>
-                  <span className="text-gray-500">Features:</span>
-                  <div className="font-medium">{chip.feature_flags?.length || 0} flags</div>
+              </CardContent>
+            </Card>
+          ))}
+        </TabsContent>
+      </Tabs>
+
+      {/* Review Dialog */}
+      <Dialog open={reviewDialogOpen} onOpenChange={setReviewDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Review: {reviewingSubmission?.name}</DialogTitle>
+            <DialogDescription>Review this chip submission and take action</DialogDescription>
+          </DialogHeader>
+          {reviewingSubmission && (
+            <div className="space-y-4">
+              <div className="p-3 bg-gray-50 rounded-lg text-sm space-y-1">
+                <p><strong>Builder:</strong> {reviewingSubmission.builder_email}</p>
+                <p><strong>Category:</strong> {reviewingSubmission.category}</p>
+                <p><strong>Pricing:</strong> {reviewingSubmission.pricing_model} {reviewingSubmission.price ? `- $${reviewingSubmission.price}` : ''}</p>
+                <p className="text-gray-600">{reviewingSubmission.description}</p>
+                <div className="flex gap-3 pt-1">
+                  {reviewingSubmission.repository_url && (
+                    <a href={reviewingSubmission.repository_url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline text-xs flex items-center gap-1">
+                      <ExternalLink className="w-3 h-3" /> Repository
+                    </a>
+                  )}
+                  {reviewingSubmission.documentation_url && (
+                    <a href={reviewingSubmission.documentation_url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline text-xs flex items-center gap-1">
+                      <ExternalLink className="w-3 h-3" /> Documentation
+                    </a>
+                  )}
+                  {reviewingSubmission.demo_url && (
+                    <a href={reviewingSubmission.demo_url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline text-xs flex items-center gap-1">
+                      <ExternalLink className="w-3 h-3" /> Demo
+                    </a>
+                  )}
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              <div>
+                <label className="text-sm font-medium">Review Notes (shown to builder)</label>
+                <Textarea
+                  value={reviewNotes}
+                  onChange={(e) => setReviewNotes(e.target.value)}
+                  placeholder="Add feedback or reason for decision..."
+                  className="mt-1"
+                  rows={3}
+                />
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleReview(reviewingSubmission, 'reviewing')}
+                  disabled={updateSubmissionMutation.isPending}
+                >
+                  <Clock className="w-3 h-3 mr-1" /> Mark as Reviewing
+                </Button>
+                <Button
+                  size="sm"
+                  className="bg-green-600 hover:bg-green-700"
+                  onClick={() => handleReview(reviewingSubmission, 'approve')}
+                  disabled={updateSubmissionMutation.isPending}
+                >
+                  <CheckCircle className="w-3 h-3 mr-1" /> Approve
+                </Button>
+                <Button
+                  size="sm"
+                  className="bg-emerald-600 hover:bg-emerald-700"
+                  onClick={() => handleReview(reviewingSubmission, 'publish')}
+                  disabled={updateSubmissionMutation.isPending}
+                >
+                  <Sparkles className="w-3 h-3 mr-1" /> Approve & Publish
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => handleReview(reviewingSubmission, 'reject')}
+                  disabled={updateSubmissionMutation.isPending}
+                >
+                  <XCircle className="w-3 h-3 mr-1" /> Reject
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
