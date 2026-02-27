@@ -324,7 +324,25 @@ export default function BuilderManagement() {
                   </div>
                 )}
 
-                <div className="border-t pt-4 flex gap-2">
+                <div className="border-t pt-4 flex gap-2 flex-wrap">
+                  <Button
+                    className="bg-orange-500 hover:bg-orange-600 text-white"
+                    onClick={() => {
+                      const impersonateUser = {
+                        id: selectedBuilder.id,
+                        full_name: selectedBuilder.full_name,
+                        email: selectedBuilder.user_email,
+                        role: 'builder',
+                        is_impersonating: true,
+                        impersonating_builder_id: selectedBuilder.id,
+                      };
+                      localStorage.setItem('pinLoggedInUser', JSON.stringify(impersonateUser));
+                      window.location.href = createPageUrl('BuilderDashboard');
+                    }}
+                  >
+                    <UserCheck className="w-4 h-4 mr-2" />
+                    Impersonate Builder
+                  </Button>
                   <Button variant="outline" onClick={() => setSelectedBuilder(null)}>
                     Close
                   </Button>
