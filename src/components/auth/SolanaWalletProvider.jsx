@@ -16,7 +16,7 @@ function buildWallets() {
     appIdentity: {
       name: 'openTILL',
       uri: 'https://opentill-pos.com',
-      icon: 'https://opentill-pos.com/favicon.ico',
+      icon: '/favicon.ico',
     },
     authorizationResultCache: createDefaultAuthorizationResultCache(),
     cluster: 'mainnet-beta',
