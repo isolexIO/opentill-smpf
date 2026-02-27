@@ -101,6 +101,8 @@ function WalletLoginContent({ onSuccess, merchantId }) {
     );
   }
 
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
   return (
     <Card>
       <CardHeader>
@@ -113,25 +115,56 @@ function WalletLoginContent({ onSuccess, merchantId }) {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {error && !error.toLowerCase().includes('mwa') && !error.toLowerCase().includes('compatible') && !error.toLowerCase().includes('not found') && !error.toLowerCase().includes('not installed') && (
-          <Alert className="bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800">
-            <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
-            <AlertDescription className="text-red-800 dark:text-red-300">{error}</AlertDescription>
+        {error && (
+          <Alert className="bg-red-50 border-red-200">
+            <AlertCircle className="h-4 w-4 text-red-600" />
+            <AlertDescription className="text-red-800">{error}</AlertDescription>
           </Alert>
         )}
 
         {(connecting || authenticating) && (
           <div className="flex items-center justify-center gap-2 py-2 text-sm text-gray-500">
             <Loader2 className="w-4 h-4 animate-spin" />
-            {authenticating ? 'Authenticating...' : 'Connecting...'}
+            {authenticating ? 'Authenticating...' : 'Connecting wallet...'}
           </div>
         )}
 
-        {/* Wallet Adapter Multi-Button — auto-detects all installed wallets */}
         <div className="flex flex-col items-stretch gap-3">
+          {/* On mobile, show Phantom/Solflare deep links first */}
+          {isMobile ? (
+            <>
+              <a
+                href={`https://phantom.app/ul/browse/${encodeURIComponent(window.location.origin + window.location.pathname)}`}
+                className="flex items-center gap-3 w-full h-14 px-4 rounded-md border border-gray-200 hover:bg-gray-50 transition"
+              >
+                <img src="https://phantom.app/img/phantom-logo.svg" alt="Phantom" className="w-7 h-7" onError={e => e.target.style.display='none'} />
+                <div className="text-left">
+                  <p className="font-medium text-sm">Open in Phantom</p>
+                  <p className="text-xs text-gray-500">Connect with Phantom wallet</p>
+                </div>
+              </a>
+              <a
+                href={`solflare://ul/browse?url=${encodeURIComponent(window.location.href)}`}
+                className="flex items-center gap-3 w-full h-14 px-4 rounded-md border border-gray-200 hover:bg-gray-50 transition"
+              >
+                <img src="https://solflare.com/assets/logo.svg" alt="Solflare" className="w-7 h-7" onError={e => e.target.style.display='none'} />
+                <div className="text-left">
+                  <p className="font-medium text-sm">Open in Solflare</p>
+                  <p className="text-xs text-gray-500">Connect with Solflare wallet</p>
+                </div>
+              </a>
+              <div className="relative flex items-center gap-2">
+                <div className="flex-1 border-t border-gray-200" />
+                <span className="text-xs text-gray-400 whitespace-nowrap">or use browser extension</span>
+                <div className="flex-1 border-t border-gray-200" />
+              </div>
+            </>
+          ) : null}
+
+          {/* Wallet adapter multi-button for desktop browser extensions */}
           <WalletMultiButton className="!w-full !h-14 !rounded-md !justify-start !text-base !font-medium" />
 
-          {/* Jupiter QR for cross-device */}
+          {/* QR scan option */}
           <Button
             onClick={() => setShowJupiterQR(true)}
             variant="outline"
@@ -139,14 +172,14 @@ function WalletLoginContent({ onSuccess, merchantId }) {
           >
             <QrCode className="w-6 h-6 text-green-600" />
             <div className="text-left">
-              <p className="font-medium">Scan with Phone</p>
-              <p className="text-xs text-gray-500">Connect your mobile wallet via QR</p>
+              <p className="font-medium">Scan QR with Phone</p>
+              <p className="text-xs text-gray-500">Use any Solana wallet to scan & login</p>
             </div>
           </Button>
         </div>
 
-        <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
-          Detects Phantom, Solflare, Backpack, Solana Mobile (Saga/Seeker) and more
+        <p className="text-xs text-gray-500 text-center">
+          Works with Phantom, Solflare, Backpack & more
         </p>
       </CardContent>
     </Card>
