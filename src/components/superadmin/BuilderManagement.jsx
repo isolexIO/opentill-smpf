@@ -259,8 +259,6 @@ export default function BuilderManagement() {
         </CardContent>
       </Card>
 
-      {/* Builder Details Modal */}
-      </>}
       {activeTab === 'builders' && selectedBuilder && (
         <Card className="border-blue-200 bg-blue-50">
           <CardHeader className="flex flex-row items-center justify-between">
