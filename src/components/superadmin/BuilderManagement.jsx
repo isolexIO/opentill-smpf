@@ -89,6 +89,33 @@ export default function BuilderManagement() {
 
   return (
     <div className="space-y-6">
+      {/* Tab Nav */}
+      <div className="flex gap-2 border-b border-gray-200 pb-0">
+        <button
+          onClick={() => setActiveTab('builders')}
+          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+            activeTab === 'builders'
+              ? 'border-blue-600 text-blue-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          All Builders
+        </button>
+        <button
+          onClick={() => setActiveTab('fees')}
+          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-1 ${
+            activeTab === 'fees'
+              ? 'border-blue-600 text-blue-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          <Settings className="w-3.5 h-3.5" /> Platform Fees
+        </button>
+      </div>
+
+      {activeTab === 'fees' && <BuilderFeeSettings />}
+
+      {activeTab === 'builders' && <>
       {error && (
         <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex gap-2">
           <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />
