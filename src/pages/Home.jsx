@@ -899,7 +899,7 @@ export default function HomePage() {
                   </a>
                 </li>
                 <li>
-                  <a href={createPageUrl('BuilderOnboarding')} className="text-gray-300 hover:text-white text-sm transition-colors">
+                  <a href={createPageUrl('Builders')} className="text-gray-300 hover:text-white text-sm transition-colors">
                     Build with Us
                   </a>
                 </li>
