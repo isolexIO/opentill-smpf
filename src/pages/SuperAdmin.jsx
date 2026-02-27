@@ -546,6 +546,7 @@ export default function SuperAdminPage() {
               <SubscriptionPlansManager />
               <PaymentSettingsManager />
               <LandingPageEditor />
+              <BuilderSplashEditor />
               <DealerLandingEditor />
               <DemoMenuManager />
             </div>
