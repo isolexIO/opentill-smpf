@@ -47,11 +47,31 @@ function MobileWalletConnect({ formData, onChange, onNext, onBack }) {
 
   const handleDeepLink = (wallet) => {
     setConnectingWallet(wallet);
+    
+    let deepLink, fallbackUrl;
     if (wallet === 'phantom') {
-      window.location.href = buildPhantomDeepLink();
-    } else if (wallet === 'solflare') {
-      window.location.href = buildSolflareDeepLink();
+      deepLink = buildPhantomDeepLink();
+      fallbackUrl = 'https://phantom.app/download';
+    } else {
+      deepLink = buildSolflareDeepLink();
+      fallbackUrl = 'https://solflare.com/download';
     }
+
+    // Try native app URI — if app not installed, fall back to store after a delay
+    const start = Date.now();
+    const timeout = setTimeout(() => {
+      // If we're still here after 2s, app likely not installed
+      if (Date.now() - start < 3000) {
+        window.location.href = fallbackUrl;
+      }
+    }, 2000);
+
+    window.location.href = deepLink;
+
+    // Cancel timeout if user returns (page becomes visible again)
+    const cancelOnReturn = () => clearTimeout(timeout);
+    window.addEventListener('visibilitychange', cancelOnReturn, { once: true });
+    window.addEventListener('pagehide', cancelOnReturn, { once: true });
   };
 
   if (manualMode) {
