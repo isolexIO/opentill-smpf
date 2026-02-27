@@ -190,6 +190,9 @@ export default function BuilderDashboardPage() {
               <TabsTrigger value="settings" className="rounded-t-lg">
                 Settings
               </TabsTrigger>
+              <TabsTrigger value="docs" className="rounded-t-lg">
+                <BookOpen className="w-4 h-4 mr-1" /> How to Submit
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="submissions">
@@ -202,6 +205,10 @@ export default function BuilderDashboardPage() {
 
             <TabsContent value="settings">
               <ProfileSettings builder={builder} user={user} onUpdated={loadData} />
+            </TabsContent>
+
+            <TabsContent value="docs">
+              <ChipSubmissionDocs />
             </TabsContent>
           </Tabs>
         </Card>
