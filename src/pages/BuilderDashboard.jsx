@@ -4,10 +4,11 @@ import { createPageUrl } from '@/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { DollarSign, Package, Plus, TrendingUp, Users, AlertCircle, Loader2 } from 'lucide-react';
+import { DollarSign, Package, Plus, TrendingUp, Users, AlertCircle, Loader2, BookOpen } from 'lucide-react';
 import SubmissionManager from '@/components/builders/SubmissionManager.jsx';
 import AnalyticsDashboard from '@/components/builders/AnalyticsDashboard.jsx';
 import ProfileSettings from '@/components/builders/ProfileSettings.jsx';
+import ChipSubmissionDocs from '@/components/builders/ChipSubmissionDocs.jsx';
 
 export default function BuilderDashboardPage() {
   const [user, setUser] = useState(null);
