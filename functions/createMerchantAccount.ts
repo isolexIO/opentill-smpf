@@ -17,7 +17,8 @@ Deno.serve(async (req) => {
             pin,
             temp_password,
             activate,
-            referral_code
+            referral_code,
+            wallet_address
         } = body;
 
         const base44 = createClientFromRequest(req);
