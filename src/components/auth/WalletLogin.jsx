@@ -71,8 +71,19 @@ function WalletLoginContent({ onSuccess, merchantId }) {
         }
       }
     } catch (err) {
-      if (!err.message?.includes('User rejected') && !err.message?.includes('User cancelled')) {
-        setError(err.message || 'Failed to authenticate wallet');
+      const msg = err.message || '';
+      const isIgnorable =
+        msg.includes('User rejected') ||
+        msg.includes('User cancelled') ||
+        msg.includes('MWA') ||
+        msg.includes('Mobile Wallet Adapter') ||
+        msg.includes('compatible app') ||
+        msg.includes('not found') ||
+        msg.includes('not installed') ||
+        msg.includes('WalletNotFound') ||
+        msg.includes('WalletNotReady');
+      if (!isIgnorable) {
+        setError(msg || 'Failed to authenticate wallet');
       }
     } finally {
       setAuthenticating(false);
