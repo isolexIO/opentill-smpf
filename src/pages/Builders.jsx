@@ -64,6 +64,51 @@ export default function BuildersPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+      {/* Header Nav */}
+      <nav className="bg-gray-900 border-b border-white/10 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <a href={createPageUrl('Home')} className="flex items-center gap-2">
+              <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6970e2871534100b4ebb8d45/8e45f76fe_DUC3.png" alt="openTILL" className="w-8 h-8" />
+              <span className="text-xl font-bold text-white">openTILL <span className="text-blue-400">Builders</span></span>
+            </a>
+            <div className="hidden md:flex items-center gap-6">
+              <a href={createPageUrl('Home')} className="text-gray-300 hover:text-white text-sm transition-colors">Home</a>
+              <a href={createPageUrl('Marketplace')} className="text-gray-300 hover:text-white text-sm transition-colors">Marketplace</a>
+              <a href={s.hero_docs_url} target="_blank" rel="noreferrer" className="text-gray-300 hover:text-white text-sm transition-colors">Docs</a>
+              <Button
+                size="sm"
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+                onClick={() => window.location.href = createPageUrl('BuilderOnboarding')}
+              >
+                Start Building
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="border-white/20 text-white hover:bg-white/10"
+                onClick={() => window.location.href = createPageUrl('EmailLogin')}
+              >
+                Sign In
+              </Button>
+            </div>
+            <button className="md:hidden text-white p-2" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
+        </div>
+        {mobileMenuOpen && (
+          <div className="md:hidden bg-gray-900 border-t border-white/10 px-6 py-4 space-y-3">
+            <a href={createPageUrl('Home')} className="block text-gray-300 hover:text-white py-2 text-sm">Home</a>
+            <a href={createPageUrl('Marketplace')} className="block text-gray-300 hover:text-white py-2 text-sm">Marketplace</a>
+            <a href={s.hero_docs_url} target="_blank" rel="noreferrer" className="block text-gray-300 hover:text-white py-2 text-sm">Docs</a>
+            <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-2" onClick={() => window.location.href = createPageUrl('BuilderOnboarding')}>
+              Start Building
+            </Button>
+          </div>
+        )}
+      </nav>
+
       {/* Hero */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
         <div className="grid md:grid-cols-2 gap-12 items-center">
