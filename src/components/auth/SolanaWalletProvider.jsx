@@ -14,24 +14,27 @@ function buildWallets() {
     new SolflareWalletAdapter(),
   ];
 
-  // Always include SolanaMobileWalletAdapter; it handles its own compatibility checks internally
-  try {
-    const mobileAdapter = new SolanaMobileWalletAdapter({
-      addressSelector: createDefaultAddressSelector(),
-      appIdentity: {
-        name: 'openTILL',
-        uri: 'https://opentill-pos.com',
-        icon: '/favicon.ico',
-      },
-      authorizationResultCache: createDefaultAuthorizationResultCache(),
-      cluster: 'mainnet-beta',
-      onWalletNotFound: async (mobileWalletAdapter) => {
-        console.log('Solana Mobile Wallet not found on device');
-      },
-    });
-    adapters.unshift(mobileAdapter);
-  } catch (e) {
-    console.warn('SolanaMobileWalletAdapter failed to initialize:', e);
+  // Only include SolanaMobileWalletAdapter on Android devices (Saga/Seeker)
+  const isAndroid = typeof window !== 'undefined' && /Android/i.test(navigator.userAgent);
+  if (isAndroid) {
+    try {
+      const mobileAdapter = new SolanaMobileWalletAdapter({
+        addressSelector: createDefaultAddressSelector(),
+        appIdentity: {
+          name: 'openTILL',
+          uri: 'https://opentill-pos.com',
+          icon: '/favicon.ico',
+        },
+        authorizationResultCache: createDefaultAuthorizationResultCache(),
+        cluster: 'mainnet-beta',
+        onWalletNotFound: async () => {
+          console.log('Solana Mobile Wallet not found on device');
+        },
+      });
+      adapters.unshift(mobileAdapter);
+    } catch (e) {
+      // Silently skip if MWA fails to initialize
+    }
   }
 
   return adapters;
