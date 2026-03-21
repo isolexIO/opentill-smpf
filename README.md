@@ -1,4 +1,4 @@
-# openTILL SMPF POS
+# openTILL SMPF
 
 ### Structured Merchant Participation Framework • Powered by $DUC
 
