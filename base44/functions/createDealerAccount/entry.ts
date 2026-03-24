@@ -191,6 +191,10 @@ Deno.serve(async (req) => {
                 full_name: user.full_name,
                 role: user.role
             },
+            credentials: {
+                pin: pin,
+                email: owner_email.toLowerCase().trim(),
+            },
             message: 'Dealer account created successfully! Check your email for login credentials.'
         });
 
