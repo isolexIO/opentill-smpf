@@ -76,6 +76,7 @@ export default function BuildersPage() {
               <a href={createPageUrl('Home')} className="text-gray-300 hover:text-white text-sm transition-colors">Home</a>
               <a href={createPageUrl('Marketplace')} className="text-gray-300 hover:text-white text-sm transition-colors">Marketplace</a>
               <a href={s.hero_docs_url} target="_blank" rel="noreferrer" className="text-gray-300 hover:text-white text-sm transition-colors">Docs</a>
+              <a href="https://cmd.opentill.io" target="_blank" rel="noreferrer" className="text-gray-300 hover:text-white text-sm transition-colors">Whitepaper</a>
               <Button
                 size="sm"
                 className="bg-blue-600 hover:bg-blue-700 text-white"
