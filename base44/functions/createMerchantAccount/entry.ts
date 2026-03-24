@@ -109,11 +109,20 @@ Deno.serve(async (req) => {
             });
         }
 
-        // Send confirmation email if SMTP is configured
+        // Invite the merchant owner via base44 so they get a login email with Google/email sign-in
+        try {
+            await base44.asServiceRole.users.inviteUser(owner_email.toLowerCase().trim(), 'user');
+            console.log('Invitation sent to merchant owner:', owner_email);
+        } catch (inviteError) {
+            console.error('Failed to send invitation (user may already exist):', inviteError);
+        }
+
+        // Also send a confirmation email with context via SMTP if configured
         const smtpHost = Deno.env.get('SMTP_HOST');
         if (smtpHost) {
            try {
-               const transporter = nodemailer.createTransport({
+               const nodemailer = await import('npm:nodemailer@6.9.7');
+               const transporter = nodemailer.default.createTransport({
                    host: smtpHost,
                    port: parseInt(Deno.env.get('SMTP_PORT') || '587'),
                    secure: Deno.env.get('SMTP_PORT') === '465',
@@ -126,26 +135,23 @@ Deno.serve(async (req) => {
                await transporter.sendMail({
                    from: `"openTILL" <${Deno.env.get('SMTP_USER')}>`,
                    to: owner_email.toLowerCase().trim(),
-                   subject: 'Welcome to openTILL - Registration Received',
+                   subject: 'Welcome to openTILL - Check Your Email to Log In',
                    html: `
                        <h2>Welcome to openTILL, ${owner_name}!</h2>
-                       <p>Your merchant registration has been received successfully.</p>
-
-                       <h3>What's Next?</h3>
+                       <p>Your merchant registration for <strong>${business_name}</strong> has been received.</p>
+                       <h3>How to Log In</h3>
+                       <p>You should receive a separate email invitation to create your account. You can log in with:</p>
+                       <ul>
+                           <li><strong>Google Sign-In</strong> using this email address, or</li>
+                           <li><strong>Magic link</strong> sent to ${owner_email.toLowerCase().trim()}</li>
+                       </ul>
+                       <p>Visit: <a href="https://chainlinkpos.isolex.io">chainlinkpos.isolex.io</a></p>
                        <p>Our team will review your application and activate your account within 24 hours.</p>
-                       <p>You will receive an email with your login credentials once your account is ready.</p>
-
-                       <h3>Your Registration Details:</h3>
-                       <p><strong>Business Name:</strong> ${business_name}</p>
-                       <p><strong>Email:</strong> ${owner_email.toLowerCase().trim()}</p>
-
                        <p>Thank you for choosing openTILL!</p>
                    `,
-                   text: `Welcome to openTILL, ${owner_name}!\n\nYour merchant registration has been received successfully.\n\nWhat's Next?\nOur team will review your application and activate your account within 24 hours.\nYou will receive an email with your login credentials once your account is ready.\n\nYour Registration Details:\nBusiness Name: ${business_name}\nEmail: ${owner_email.toLowerCase().trim()}\n\nThank you for choosing openTILL!`
                });
            } catch (emailError) {
                console.error('Failed to send confirmation email:', emailError);
-               // Don't fail registration if email fails
            }
         }
 
