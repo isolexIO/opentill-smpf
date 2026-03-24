@@ -108,50 +108,22 @@ Deno.serve(async (req) => {
             });
         }
 
-        // Invite the merchant owner via base44 so they get a login email with Google/email sign-in
+        // Invite the merchant owner via base44 platform invitation
         try {
-            await base44.asServiceRole.users.inviteUser(owner_email.toLowerCase().trim(), 'user');
-            console.log('Invitation sent to merchant owner:', owner_email);
-        } catch (inviteError) {
-            console.error('Failed to send invitation (user may already exist):', inviteError);
-        }
-
-        // Also send a confirmation email with context via SMTP if configured
-        const smtpHost = Deno.env.get('SMTP_HOST');
-        if (smtpHost) {
-           try {
-               const nodemailer = await import('npm:nodemailer@6.9.7');
-               const transporter = nodemailer.default.createTransport({
-                   host: smtpHost,
-                   port: parseInt(Deno.env.get('SMTP_PORT') || '587'),
-                   secure: Deno.env.get('SMTP_PORT') === '465',
-                   auth: {
-                       user: Deno.env.get('SMTP_USER'),
-                       pass: Deno.env.get('SMTP_PASS')
-                   }
-               });
-
-               await transporter.sendMail({
-                   from: `"openTILL" <${Deno.env.get('SMTP_USER')}>`,
-                   to: owner_email.toLowerCase().trim(),
-                   subject: 'Welcome to openTILL - Check Your Email to Log In',
-                   html: `
-                       <h2>Welcome to openTILL, ${owner_name}!</h2>
-                       <p>Your merchant registration for <strong>${business_name}</strong> has been received.</p>
-                       <h3>How to Log In</h3>
-                       <p>You should receive a separate email invitation to create your account. You can log in with:</p>
-                       <ul>
-                           <li><strong>Google Sign-In</strong> using this email address, or</li>
-                           <li><strong>Magic link</strong> sent to ${owner_email.toLowerCase().trim()}</li>
-                       </ul>
-                       <p>Visit: <a href="https://chainlinkpos.isolex.io">chainlinkpos.isolex.io</a></p>
-                       <p>Our team will review your application and activate your account within 24 hours.</p>
-                       <p>Thank you for choosing openTILL!</p>
-                   `,
-               });
-           } catch (emailError) {
-               console.error('Failed to send confirmation email:', emailError);
-           }
+            await base44.asServiceRole.integrations.Core.SendEmail({
+                to: owner_email.toLowerCase().trim(),
+                subject: 'Welcome to openTILL — Application Received',
+                body: `
+                    <h2>Welcome to openTILL, ${owner_name}!</h2>
+                    <p>Your merchant application for <strong>${business_name}</strong> has been received successfully.</p>
+                    <p>Our team will review your application and activate your account within 24 hours. You will receive a follow-up email once your account is active.</p>
+                    <p>Once activated, you can log in at: <a href="https://chainlinkpos.isolex.io">chainlinkpos.isolex.io</a></p>
+                    <p>Thank you for choosing openTILL!</p>
+                `
+            });
+            console.log('Welcome email sent to merchant owner:', owner_email);
+        } catch (emailError) {
+            console.error('Failed to send welcome email:', emailError);
         }
 
         return Response.json({
