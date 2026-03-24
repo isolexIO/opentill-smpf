@@ -88,7 +88,7 @@ export default function DealerOnboarding() {
             <div className="space-y-2">
               <h4 className="text-white font-semibold text-sm text-left">Next Steps:</h4>
               <ol className="text-left space-y-1 text-white/50 text-sm">
-                {['Log in and complete your branding', 'Set up Stripe Connect for payouts', 'Customize your landing page', 'Start inviting merchants!'].map((s, i) => (
+                {['Check email & log in with Google or magic link', 'Complete your branding setup', 'Set up Stripe Connect for payouts', 'Start inviting merchants!'].map((s, i) => (
                   <li key={i} className="flex items-center gap-2"><span className="text-emerald-400 font-bold">{i + 1}.</span> {s}</li>
                 ))}
               </ol>
