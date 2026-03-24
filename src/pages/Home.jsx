@@ -899,7 +899,7 @@ export default function HomePage() {
                   </a>
                 </li>
                 <li>
-                  <a href="/Builders" className="text-gray-300 hover:text-white text-sm transition-colors">
+                  <a href="/builders" className="text-gray-300 hover:text-white text-sm transition-colors">
                     Build with Us
                   </a>
                 </li>
