@@ -103,6 +103,7 @@ export default function BuildersPage() {
             <a href={createPageUrl('Home')} className="block text-gray-300 hover:text-white py-2 text-sm">Home</a>
             <a href={createPageUrl('Marketplace')} className="block text-gray-300 hover:text-white py-2 text-sm">Marketplace</a>
             <a href={s.hero_docs_url} target="_blank" rel="noreferrer" className="block text-gray-300 hover:text-white py-2 text-sm">Docs</a>
+            <a href="https://cmd.opentill.io" target="_blank" rel="noreferrer" className="block text-gray-300 hover:text-white py-2 text-sm">Whitepaper</a>
             <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-2" onClick={() => window.location.href = createPageUrl('BuilderOnboarding')}>
               Start Building
             </Button>
