@@ -60,6 +60,11 @@ const AuthenticatedApp = () => {
           }
         />
       ))}
+      <Route path="/builders" element={
+        <LayoutWrapper currentPageName="Builders">
+          <Pages.Builders />
+        </LayoutWrapper>
+      } />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
