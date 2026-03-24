@@ -73,8 +73,7 @@ export default function DealerOnboarding() {
             <div className="space-y-3 text-left">
               {[
                 { label: 'Email', value: credentials.email },
-                { label: '6-Digit PIN', value: credentials.pin },
-                { label: 'Temp Password', value: credentials.temp_password },
+                { label: '6-Digit POS PIN', value: credentials.pin },
                 { label: 'Your Portal URL', value: `https://${credentials.slug}.chainlinkpos.isolex.io` },
               ].map((item, i) => (
                 <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-3">
@@ -83,8 +82,8 @@ export default function DealerOnboarding() {
                 </div>
               ))}
             </div>
-            <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-3 text-yellow-200 text-xs text-left">
-              <strong>Important:</strong> Save these credentials and check your email for setup instructions.
+            <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3 text-blue-200 text-xs text-left">
+              <strong>Check your email!</strong> You'll receive an invitation to set up your account. Log in with Google or the magic link — no password needed.
             </div>
             <div className="space-y-2">
               <h4 className="text-white font-semibold text-sm text-left">Next Steps:</h4>
