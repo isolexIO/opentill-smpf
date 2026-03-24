@@ -134,55 +134,41 @@ Deno.serve(async (req) => {
         const user = await base44.asServiceRole.entities.User.create(userData);
         console.log('Dealer admin user created with ID:', user.id);
 
-        // Send welcome email
+        // Invite dealer via base44 so they get platform login email (Google / magic link)
         try {
-            console.log('Sending welcome email to dealer...');
-            await base44.integrations.Core.SendEmail({
+            await base44.asServiceRole.users.inviteUser(owner_email.toLowerCase().trim(), 'user');
+            console.log('Invitation sent to dealer owner');
+        } catch (inviteError) {
+            console.error('Failed to send invitation:', inviteError);
+        }
+
+        // Also send a welcome email with PIN and portal URL
+        try {
+            await base44.asServiceRole.integrations.Core.SendEmail({
                 to: owner_email.toLowerCase().trim(),
-                subject: `Welcome to ChainLINK POS Dealer Program!`,
-body: `
-                    <h2>Welcome to ChainLINK POS, ${owner_name}!</h2>
-                    <p>Your dealer account has been created successfully.</p>
-                    
-                    <h3>Your Dealer Account:</h3>
-                    <p><strong>Dealer Name:</strong> ${dealer_name}</p>
-                    <p><strong>Dealer Slug:</strong> ${slug}</p>
-                    <p><strong>Email:</strong> ${owner_email.toLowerCase().trim()}</p>
-                    
-                    <h3>Login Credentials:</h3>
-                    <div style="background-color: #f3f4f6; padding: 15px; border-left: 4px solid #6366f1; margin: 15px 0;">
-                        <p style="margin: 0;"><strong>⚠️ IMPORTANT - SECURE CREDENTIALS</strong></p>
-                        <p style="margin: 10px 0 0 0; color: #4b5563;">Your login credentials have been generated. For security reasons:</p>
-                        <ul style="margin: 5px 0 0 20px; color: #4b5563;">
-                            <li>Delete this email after saving your credentials securely</li>
-                            <li>Change your password immediately after first login</li>
-                            <li>Do not share these credentials with anyone</li>
-                        </ul>
-                    </div>
-                    
-                    <p><strong>PIN:</strong> ${pin} <em>(Use for quick login)</em></p>
-                    <p><strong>Temporary Password:</strong> ${tempPassword} <em>(Change immediately after login)</em></p>
-                    
-                    <h3>Your Dealer Dashboard:</h3>
-                    <p>Access your dealer dashboard to:</p>
+                subject: `Welcome to openTILL Ambassador Program! Your Credentials Inside`,
+                body: `
+                    <h2>Welcome to openTILL, ${owner_name}!</h2>
+                    <p>Your ambassador account for <strong>${dealer_name}</strong> has been created successfully.</p>
+
+                    <h3>How to Log In</h3>
+                    <p>You will receive a separate invitation email to set up your account. Log in using:</p>
                     <ul>
-                        <li>Manage your merchants</li>
-                        <li>View commission reports</li>
-                        <li>Configure white-label branding</li>
-                        <li>Set up Stripe Connect for payouts</li>
+                        <li><strong>Google Sign-In</strong> with ${owner_email.toLowerCase().trim()} (recommended), or</li>
+                        <li><strong>Magic link</strong> from your invitation email</li>
                     </ul>
-                    
-                    <p><strong>Your unique dealer URL:</strong> https://${slug}.chainlinkpos.isolex.io</p>
-                    
-                    <p>Your trial period ends on: ${new Date(dealerData.trial_ends_at).toLocaleDateString()}</p>
-                    
-                    <p><strong>Next Steps:</strong></p>
-                    <ol>
-                        <li>Login using your PIN or temporary password</li>
-                        <li>Change your password in Account Settings</li>
-                        <li>Complete your dealer profile</li>
-                    </ol>
-                `
+                    <p>Login URL: <a href="https://chainlinkpos.isolex.io">chainlinkpos.isolex.io</a></p>
+
+                    <h3>Your POS Quick-Login PIN</h3>
+                    <p>Once inside the platform, you can use your PIN for quick POS access:</p>
+                    <p style="font-size:28px; font-weight:bold; letter-spacing:6px; background:#f3f4f6; padding:12px 20px; border-radius:8px; display:inline-block;">${pin}</p>
+
+                    <h3>Your Portal</h3>
+                    <p><strong>Portal URL:</strong> https://${slug}.chainlinkpos.isolex.io</p>
+                    <p><strong>Trial ends:</strong> ${new Date(dealerData.trial_ends_at).toLocaleDateString()}</p>
+
+                    <p>Thank you for joining the openTILL Ambassador Program!</p>
+                `,
             });
             console.log('Welcome email sent');
         } catch (emailError) {
