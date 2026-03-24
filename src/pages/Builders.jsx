@@ -239,6 +239,13 @@ export default function BuildersPage() {
               >
                 Join Discord Community
               </Button>
+              <Button
+                variant="outline"
+                className="px-8 h-12 text-base"
+                onClick={() => window.open('https://cmd.opentill.io', '_blank')}
+              >
+                Read Whitepaper
+              </Button>
             </div>
           </CardContent>
         </Card>
