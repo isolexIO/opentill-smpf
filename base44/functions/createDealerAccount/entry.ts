@@ -110,7 +110,6 @@ Deno.serve(async (req) => {
             dealer_id: dealer.id,
             merchant_id: null,
             pin: pin,
-            password_hash: hashedPassword,
             employee_id: `DEALER-${Date.now()}`,
             is_active: true,
             permissions: [
