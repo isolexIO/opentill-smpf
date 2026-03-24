@@ -60,30 +60,17 @@ Deno.serve(async (req) => {
 
         while (!pinIsUnique && attempts < maxAttempts) {
             pin = Math.floor(100000 + Math.random() * 900000).toString();
-            console.log(`Generated PIN attempt ${attempts + 1}`);
-            
             const existingPinUsers = await base44.asServiceRole.entities.User.filter({ pin: pin });
-            
             if (!existingPinUsers || existingPinUsers.length === 0) {
                 pinIsUnique = true;
-                console.log('PIN is unique');
             } else {
                 attempts++;
             }
         }
 
         if (!pinIsUnique) {
-            console.error('Failed to generate unique PIN');
-            return Response.json({
-                success: false,
-                error: 'Failed to generate unique PIN. Please try again.'
-            }, { status: 500 });
+            return Response.json({ success: false, error: 'Failed to generate unique PIN. Please try again.' }, { status: 500 });
         }
-
-        // Generate temporary password and hash it
-        const tempPassword = Math.random().toString(36).slice(-12) + Math.random().toString(36).slice(-12).toUpperCase();
-        const hashedPassword = await bcrypt.hash(tempPassword, 10);
-        console.log('Generated and hashed temporary password');
 
         // Create dealer
         const dealerData = {
