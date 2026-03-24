@@ -53,6 +53,29 @@ Deno.serve(async (req) => {
       status: 'pending',
     });
 
+    // Send confirmation email
+    try {
+      await base44.asServiceRole.integrations.Core.SendEmail({
+        to: user_email,
+        subject: 'Welcome to the openTILL Builder Program!',
+        body: `
+          <h2>Welcome to the openTILL Builder Program, ${full_name}!</h2>
+          <p>Your builder profile for <strong>${company_name}</strong> has been submitted and is under review.</p>
+          <h3>How to Log In</h3>
+          <p>Use the same account you signed up with to access your Builder Dashboard:</p>
+          <ul>
+            <li><strong>Google Sign-In</strong> (recommended), or</li>
+            <li><strong>Email magic link</strong> sent to ${user_email}</li>
+          </ul>
+          <p>Visit: <a href="https://chainlinkpos.isolex.io/builder-dashboard">Your Builder Dashboard</a></p>
+          <p>Our team will review your application and you'll be notified once verified.</p>
+          <p>Thank you for building with openTILL!</p>
+        `,
+      });
+    } catch (emailError) {
+      console.error('Failed to send builder welcome email:', emailError);
+    }
+
     return Response.json({
       success: true,
       builder,
