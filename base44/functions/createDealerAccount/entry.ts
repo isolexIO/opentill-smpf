@@ -136,7 +136,7 @@ Deno.serve(async (req) => {
 
         // Invite dealer via base44 so they get platform login email (Google / magic link)
         try {
-            await base44.asServiceRole.users.inviteUser(owner_email.toLowerCase().trim(), 'user');
+            await base44.users.inviteUser(owner_email.toLowerCase().trim(), 'user');
             console.log('Invitation sent to dealer owner');
         } catch (inviteError) {
             console.error('Failed to send invitation:', inviteError);
