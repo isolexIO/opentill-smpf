@@ -9,6 +9,7 @@ import { base44 } from '@/api/base44Client';
 import { Mail, Phone, MapPin, CreditCard, Package } from 'lucide-react';
 import SubscriptionManagementSection from './SubscriptionManagementSection';
 import StatusManagementSection from './StatusManagementSection';
+import MerchantFeatureToggles from '../superadmin/MerchantFeatureToggles';
 
 export default function MerchantDetailsModal({ merchant, open, onOpenChange, onUpdate }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -194,6 +195,14 @@ export default function MerchantDetailsModal({ merchant, open, onOpenChange, onU
               merchant={merchant} 
               isAdmin={true}
               onUpdate={onUpdate}
+            />
+          )}
+
+          {/* Admin-only: Feature Toggles */}
+          {user?.role === 'admin' && (
+            <MerchantFeatureToggles
+              merchant={merchant}
+              onMerchantUpdate={(updated) => onUpdate?.()}
             />
           )}
 
