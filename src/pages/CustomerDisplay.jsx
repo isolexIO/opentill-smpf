@@ -93,7 +93,12 @@ export default function CustomerDisplayPage() {
       }
 
       // Load merchant data
-      const merchantData = await base44.entities.Merchant.get(merchantId);
+      const merchantResults = await base44.entities.Merchant.filter({ id: merchantId });
+      if (!merchantResults || merchantResults.length === 0) {
+        setError('Merchant not found. Please check your configuration.');
+        return;
+      }
+      const merchantData = merchantResults[0];
       console.log('CustomerDisplay: Loaded merchant:', merchantData.business_name);
       setMerchant(merchantData);
 
