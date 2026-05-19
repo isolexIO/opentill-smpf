@@ -30,7 +30,7 @@ export default function PriceTicker() {
 
   const fetchLivePrice = async (mint) => {
     try {
-      const response = await fetch(`https://price.jup.ag/v4/price?ids=${mint}`);
+      const response = await fetch(`https://price.jup.ag/v6/price?ids=${mint}`);
       if (!response.ok) throw new Error(`API returned ${response.status}`);
       const data = await response.json();
       if (data?.data?.[mint]) {

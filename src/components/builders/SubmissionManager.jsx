@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
+import { base44 } from '@/api/base44Client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit2, Trash2, Eye, EyeOff } from 'lucide-react';
+import { Edit2, Trash2, Eye } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 
 const STATUS_COLORS = {
@@ -28,6 +29,7 @@ const CATEGORY_COLORS = {
 
 export default function SubmissionManager({ submissions, builder, onRefresh }) {
   const [selectedId, setSelectedId] = useState(null);
+  const [deleting, setDeleting] = useState(null);
 
   if (submissions.length === 0) {
     return (
@@ -137,13 +139,15 @@ export default function SubmissionManager({ submissions, builder, onRefresh }) {
                       variant="ghost"
                       size="sm"
                       className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      onClick={() => {
-                        if (
-                          confirm('Are you sure? This action cannot be undone.')
-                        ) {
-                          // Delete chip
+                      onClick={async () => {
+                        if (confirm('Are you sure? This action cannot be undone.')) {
+                          setDeleting(chip.id);
+                          await base44.entities.ChipSubmission.delete(chip.id);
+                          if (onRefresh) onRefresh();
+                          setDeleting(null);
                         }
                       }}
+                      disabled={deleting === chip.id}
                       title="Delete"
                     >
                       <Trash2 className="w-4 h-4" />

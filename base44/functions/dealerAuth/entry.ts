@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 import * as bcrypt from 'https://deno.land/x/bcrypt@v0.4.1/mod.ts';
 import { create, verify } from 'https://deno.land/x/djwt@v2.8/mod.ts';
 
@@ -169,7 +169,7 @@ Deno.serve(async (req) => {
         owner_name: name,
         owner_email: email.toLowerCase(),
         contact_email: email.toLowerCase(),
-        password_hash: passwordHash
+        password_hash: passwordHash,
         status: 'trial',
         trial_ends_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
         primary_color: '#7B2FD6',
