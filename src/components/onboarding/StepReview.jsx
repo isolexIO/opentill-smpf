@@ -3,12 +3,24 @@ import { Button } from '@/components/ui/button';
 import { Loader2, Building2, Mail, Phone, MapPin, Wallet, Tag, CheckCircle } from 'lucide-react';
 
 export default function StepReview({ formData, onSubmit, onBack, loading, error }) {
+  const paymentLabels = [
+    formData.accept_cash && 'Cash',
+    formData.accept_card && 'Card',
+    formData.accept_ebt && 'EBT',
+    formData.accept_crypto && 'Crypto',
+  ].filter(Boolean).join(', ');
+
   const rows = [
     { icon: <Building2 className="w-4 h-4" />, label: 'Business', value: formData.business_name },
     { icon: <Mail className="w-4 h-4" />, label: 'Email', value: formData.owner_email },
     { icon: <span className="w-4 h-4 text-xs font-bold flex items-center justify-center">👤</span>, label: 'Owner', value: `${formData.owner_first_name} ${formData.owner_last_name}`.trim() },
     formData.phone && { icon: <Phone className="w-4 h-4" />, label: 'Phone', value: formData.phone },
     formData.address && { icon: <MapPin className="w-4 h-4" />, label: 'Address', value: formData.address },
+    formData.gov_id_url && { icon: <span className="w-4 h-4">🪪</span>, label: 'Gov ID', value: 'Uploaded ✓' },
+    formData.business_license_url && { icon: <span className="w-4 h-4">📄</span>, label: 'License', value: 'Uploaded ✓' },
+    formData.void_check_url && { icon: <span className="w-4 h-4">🏦</span>, label: 'Bank Doc', value: 'Uploaded ✓' },
+    paymentLabels && { icon: <span className="w-4 h-4">💳</span>, label: 'Payments', value: paymentLabels },
+    formData.pricing_mode && { icon: <span className="w-4 h-4">💱</span>, label: 'Pricing', value: formData.pricing_mode === 'surcharge' ? 'Card Surcharge' : 'Cash Discount' },
     formData.wallet_address && { icon: <Wallet className="w-4 h-4" />, label: 'Wallet', value: formData.wallet_address.slice(0, 6) + '...' + formData.wallet_address.slice(-4) },
     formData.referral_code && { icon: <Tag className="w-4 h-4" />, label: 'Referral', value: formData.referral_code },
   ].filter(Boolean);

@@ -95,13 +95,13 @@ export default function OnlineOrdersPage() {
 
       // Filter orders by merchant_id
       if (currentUser?.merchant_id) {
-        const orderList = await OnlineOrder.filter({ 
+        const orderList = await base44.entities.OnlineOrder.filter({ 
           merchant_id: currentUser.merchant_id 
         }, "-created_date");
         setOrders(orderList);
       } else {
         // Admin/super_admin can see all orders
-        const orderList = await OnlineOrder.list("-created_date");
+        const orderList = await base44.entities.OnlineOrder.list("-created_date");
         setOrders(orderList);
       }
     } catch (error) {

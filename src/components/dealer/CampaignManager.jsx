@@ -111,7 +111,7 @@ Return as JSON array.`;
     }
   };
 
-  const useSuggestion = (suggestion) => {
+  const handleUseSuggestion = (suggestion) => {
     setNewCampaign({
       campaign_name: suggestion.campaign_name,
       campaign_type: suggestion.campaign_type,
@@ -250,7 +250,7 @@ Return as JSON array.`;
                         <Badge variant="outline">{suggestion.campaign_type}</Badge>
                       </div>
                     </div>
-                    <Button size="sm" onClick={() => useSuggestion(suggestion)}>
+                    <Button size="sm" onClick={() => handleUseSuggestion(suggestion)}>
                       Use This
                     </Button>
                   </div>

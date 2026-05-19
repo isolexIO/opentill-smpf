@@ -153,9 +153,9 @@ export default function DUCVault() {
       const provider = window.solana || window.phantom?.solana;
       if (!provider) throw new Error('Wallet not detected. Please ensure your wallet extension is active.');
 
-      const txBuffer = Buffer.from(prepData.transaction, 'base64');
+      const txBuffer = Uint8Array.from(atob(prepData.transaction), c => c.charCodeAt(0));
       const signedTx = await provider.signTransaction(txBuffer);
-      const signedTxBase64 = Buffer.from(signedTx.serialize()).toString('base64');
+      const signedTxBase64 = btoa(String.fromCharCode(...signedTx.serialize()));
 
       const { data: verifyData } = await base44.functions.invoke('stakeCLINK', {
         merchant_id: merchantId, amount: parseFloat(stakeAmount), action: 'verify', signed_transaction: signedTxBase64
@@ -202,11 +202,11 @@ export default function DUCVault() {
       const provider = window.solana || window.phantom?.solana;
       if (!provider) throw new Error('Wallet not detected. Please ensure your wallet extension is active.');
 
-      const txBuffer = Buffer.from(prepData.transaction, 'base64');
+      const txBuffer = Uint8Array.from(atob(prepData.transaction), c => c.charCodeAt(0));
       const { VersionedTransaction } = await import('@solana/web3.js');
       const versionedTx = VersionedTransaction.deserialize(txBuffer);
       const signedTx = await provider.signTransaction(versionedTx);
-      const signedTxBase64 = Buffer.from(signedTx.serialize()).toString('base64');
+      const signedTxBase64 = btoa(String.fromCharCode(...signedTx.serialize()));
 
       const { data: verifyData } = await base44.functions.invoke('swapCLINKViaJupiter', {
         merchant_id: merchantId, action: 'verify', signed_transaction: signedTxBase64

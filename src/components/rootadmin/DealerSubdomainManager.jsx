@@ -14,7 +14,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Link2, CheckCircle, Clock, XCircle, RefreshCw, Globe } from 'lucide-react';
+import { Link2, CheckCircle, Clock, XCircle, RefreshCw, Globe, Plus } from 'lucide-react';
 
 export default function DealerSubdomainManager({ dealer, onUpdate }) {
   const [loading, setLoading] = useState(false);

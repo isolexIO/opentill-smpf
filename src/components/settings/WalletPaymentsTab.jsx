@@ -178,7 +178,7 @@ export default function WalletPaymentsTab({ merchant, onSave }) {
     }
   };
 
-  const useConnectedAsRewards = (walletType) => {
+  const handleUseConnectedAsRewards = (walletType) => {
     const addr = connectedWallets[walletType];
     if (addr) {
       setPrimaryWallet(addr);
@@ -305,7 +305,7 @@ export default function WalletPaymentsTab({ merchant, onSave }) {
                 {Object.entries(connectedWallets).map(([type, addr]) => (
                   <button
                     key={type}
-                    onClick={() => useConnectedAsRewards(type)}
+                    onClick={() => handleUseConnectedAsRewards(type)}
                     className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${
                       primaryWallet === addr
                         ? 'bg-purple-100 border-purple-400 text-purple-700 dark:bg-purple-900/30 dark:border-purple-600 dark:text-purple-300'

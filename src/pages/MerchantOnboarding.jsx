@@ -7,6 +7,8 @@ import { Link2, Twitter, Github, Terminal, CheckCircle } from 'lucide-react';
 import StepIndicator from '@/components/onboarding/StepIndicator';
 import StepReferral from '@/components/onboarding/StepReferral';
 import StepBusiness from '@/components/onboarding/StepBusiness';
+import StepDocuments from '@/components/onboarding/StepDocuments';
+import StepPaymentPrefs from '@/components/onboarding/StepPaymentPrefs';
 import StepWallet from '@/components/onboarding/StepWallet';
 import StepReview from '@/components/onboarding/StepReview';
 import SolanaWalletProvider from '@/components/auth/SolanaWalletProvider';
@@ -20,6 +22,16 @@ const INITIAL = {
   address: '',
   referral_code: '',
   wallet_address: '',
+  // Documents
+  gov_id_url: '',
+  business_license_url: '',
+  void_check_url: '',
+  // Payment prefs
+  accept_cash: true,
+  accept_card: true,
+  accept_ebt: false,
+  accept_crypto: false,
+  pricing_mode: 'surcharge',
 };
 
 export default function MerchantOnboarding() {
@@ -54,6 +66,18 @@ export default function MerchantOnboarding() {
         referral_code: formData.referral_code || null,
         wallet_address: formData.wallet_address || null,
         setup_demo_data: true,
+        // Documents
+        gov_id_url: formData.gov_id_url || null,
+        business_license_url: formData.business_license_url || null,
+        void_check_url: formData.void_check_url || null,
+        // Payment preferences
+        payment_prefs: {
+          accept_cash: formData.accept_cash,
+          accept_card: formData.accept_card,
+          accept_ebt: formData.accept_ebt,
+          accept_crypto: formData.accept_crypto,
+          pricing_mode: formData.pricing_mode,
+        },
       });
 
       if (!res.data?.success) {
@@ -152,7 +176,7 @@ export default function MerchantOnboarding() {
               />
             )}
             {step === 3 && (
-              <StepWallet
+              <StepDocuments
                 formData={formData}
                 onChange={onChange}
                 onNext={() => setStep(4)}
@@ -160,10 +184,26 @@ export default function MerchantOnboarding() {
               />
             )}
             {step === 4 && (
+              <StepPaymentPrefs
+                formData={formData}
+                onChange={onChange}
+                onNext={() => setStep(5)}
+                onBack={() => setStep(3)}
+              />
+            )}
+            {step === 5 && (
+              <StepWallet
+                formData={formData}
+                onChange={onChange}
+                onNext={() => setStep(6)}
+                onBack={() => setStep(4)}
+              />
+            )}
+            {step === 6 && (
               <StepReview
                 formData={formData}
                 onSubmit={handleSubmit}
-                onBack={() => setStep(3)}
+                onBack={() => setStep(5)}
                 loading={loading}
                 error={error}
               />
