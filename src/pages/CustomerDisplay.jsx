@@ -229,7 +229,13 @@ export default function CustomerDisplayPage() {
       // --- Part 2: If we have a current order, check for status updates ---
       if (currentOrder?.id) {
         try {
-          const updatedOrder = await base44.entities.Order.get(currentOrder.id);
+          const orderResults = await base44.entities.Order.filter({ id: currentOrder.id });
+          if (!orderResults || orderResults.length === 0) {
+            console.log('CustomerDisplay: Current order not found, returning to welcome.');
+            returnToWelcome();
+            return;
+          }
+          const updatedOrder = orderResults[0];
           
           console.log('CustomerDisplay: Status check:', {
             orderNumber: updatedOrder.order_number,
@@ -280,12 +286,7 @@ export default function CustomerDisplayPage() {
             }
           }
         } catch (orderError) {
-          if (orderError.message && (orderError.message.includes('not found') || orderError.message.includes('Object not found'))) {
-            console.log('CustomerDisplay: Current order not found (deleted or completed externally), returning to welcome.');
-            returnToWelcome();
-          } else {
-            console.error('CustomerDisplay: Error fetching current order:', orderError);
-          }
+          console.error('CustomerDisplay: Error fetching current order:', orderError);
         }
       } else if (!currentOrder && currentScreen !== 'welcome') {
         // If no current order is active and we're not on the welcome screen,
