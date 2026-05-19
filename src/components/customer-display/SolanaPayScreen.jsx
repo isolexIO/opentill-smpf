@@ -147,7 +147,11 @@ export default function SolanaPayScreen({ order, settings, onPaymentComplete }) 
         setTimeout(() => {
           console.log('SolanaPay: Calling onPaymentComplete callback');
           if (onPaymentComplete) {
-            onPaymentComplete(result.data.signature);
+            onPaymentComplete(true, {
+              payment_method: 'solana_pay',
+              signature: result.data.signature,
+              timestamp: new Date().toISOString()
+            });
           }
         }, 2000);
       }

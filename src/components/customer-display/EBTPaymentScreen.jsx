@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, CreditCard, AlertCircle } from 'lucide-react';
 
-export default function EBTPaymentScreen({ order, settings, onPaymentSuccess }) {
+export default function EBTPaymentScreen({ order, settings, onComplete, onPaymentSuccess }) {
+  // Support both prop names
+  const handleComplete = onComplete || onPaymentSuccess;
   const [status, setStatus] = useState('waiting'); // waiting, success, error
 
   const ebtEligibleTotal = (order?.ebt_eligible_total || 0) + (order?.tip_amount || 0);
@@ -12,7 +14,7 @@ export default function EBTPaymentScreen({ order, settings, onPaymentSuccess }) 
     setStatus('success');
     
     setTimeout(() => {
-      onPaymentSuccess && onPaymentSuccess({
+      if (handleComplete) handleComplete(true, {
         payment_method: 'ebt',
         ebt_amount: ebtEligibleTotal,
         approved: true,

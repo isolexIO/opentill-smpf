@@ -3,7 +3,9 @@ import { motion } from 'framer-motion';
 import { Loader, CreditCard, ShieldCheck, AlertTriangle } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
-export default function CardPaymentStatusScreen({ order, settings, onPaymentSuccess }) {
+export default function CardPaymentStatusScreen({ order, settings, onComplete, onPaymentSuccess }) {
+  // Support both prop names
+  const handleComplete = onComplete || onPaymentSuccess;
   const [status, setStatus] = useState('processing'); // processing, succeeded, failed
   const [pollingCount, setPollingCount] = useState(0);
 
@@ -15,25 +17,24 @@ export default function CardPaymentStatusScreen({ order, settings, onPaymentSucc
       setPollingCount(prev => prev + 1);
 
       try {
-        const updatedOrder = await base44.entities.Order.get(order.id);
+        const updatedOrders = await base44.entities.Order.filter({ id: order.id });
+        const updatedOrder = updatedOrders[0];
         
         if (updatedOrder.status === 'completed') {
-          setStatus('succeeded');
-          clearInterval(pollInterval);
-          
-          // Call success handler after showing success for 2 seconds
-          setTimeout(() => {
-            if (onPaymentSuccess) {
-              onPaymentSuccess({
-                payment_method: 'card',
-                timestamp: new Date().toISOString()
-              });
-            }
-          }, 2000);
-        } else if (updatedOrder.status === 'ready_for_payment' && updatedOrder.payment_method === 'pending') {
-          // Payment was declined or cancelled
-          setStatus('failed');
-          clearInterval(pollInterval);
+        setStatus('succeeded');
+        clearInterval(pollInterval);
+        setTimeout(() => {
+          if (handleComplete) {
+            handleComplete(true, { payment_method: 'card', timestamp: new Date().toISOString() });
+          }
+        }, 2000);
+        } else if (updatedOrder.status === 'cancelled' || 
+                 (updatedOrder.status === 'ready_for_payment' && updatedOrder.payment_method === 'pending')) {
+        setStatus('failed');
+        clearInterval(pollInterval);
+        setTimeout(() => {
+          if (handleComplete) handleComplete(false, {});
+        }, 3000);
         }
       } catch (error) {
         console.error('Error polling order status:', error);

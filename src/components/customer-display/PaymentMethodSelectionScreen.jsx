@@ -1,10 +1,11 @@
-
 import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 // Removed: Card, Button components as per new design
 import { CreditCard, Banknote, Loader2, AlertCircle } from 'lucide-react'; // Removed Coins icon, replaced by img
 
-export default function PaymentMethodSelectionScreen({ order, settings, onPaymentMethodSelected }) {
+export default function PaymentMethodSelectionScreen({ order, settings, onMethodSelected, onPaymentMethodSelected }) {
+  // Support both prop names
+  const handleMethodSelected = onMethodSelected || onPaymentMethodSelected;
   const [selecting, setSelecting] = useState(false);
   const [error, setError] = useState(null);
 
@@ -45,8 +46,8 @@ export default function PaymentMethodSelectionScreen({ order, settings, onPaymen
       console.log('Customer Display: Payment method updated successfully');
 
       // Notify parent component
-      if (onPaymentMethodSelected) {
-        onPaymentMethodSelected(method);
+      if (handleMethodSelected) {
+        handleMethodSelected(method);
       }
     } catch (error) {
       console.error('Error selecting payment method:', error);
