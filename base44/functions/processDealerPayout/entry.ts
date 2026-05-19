@@ -1,8 +1,6 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 import Stripe from 'npm:stripe@17.4.0';
-import { Connection, PublicKey, Transaction, SystemProgram, Keypair, LAMPORTS_PER_SOL } from 'npm:@solana/web3.js@1.91.4';
-
-const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));
+import { PublicKey } from 'npm:@solana/web3.js@1.91.4';
 
 /**
  * Process a single dealer payout
@@ -10,6 +8,8 @@ const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));
  */
 
 Deno.serve(async (req) => {
+  // Init Stripe inside handler so missing key doesn't crash boot
+  const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '');
   try {
     const base44 = createClientFromRequest(req);
     
