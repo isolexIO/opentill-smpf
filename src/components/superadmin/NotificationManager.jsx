@@ -52,12 +52,15 @@ export default function NotificationManager() {
   const [editingNotification, setEditingNotification] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
 
+  const [dealers, setDealers] = useState([]);
   const [formData, setFormData] = useState({
     title: '',
     message: '',
     type: 'info',
     priority: 'normal',
+    target_scope: 'all',
     target_merchants: [],
+    target_dealer_ids: [],
     is_active: true,
     is_dismissible: true,
     expires_at: '',
@@ -75,13 +78,15 @@ export default function NotificationManager() {
       const user = await base44.auth.me();
       setCurrentUser(user);
 
-      const [notificationsList, merchantsList] = await Promise.all([
+      const [notificationsList, merchantsList, dealersList] = await Promise.all([
         base44.entities.MerchantNotification.list('-created_date'),
-        base44.entities.Merchant.list('business_name')
+        base44.entities.Merchant.list('business_name'),
+        base44.entities.Dealer.list('name')
       ]);
 
       setNotifications(notificationsList);
       setMerchants(merchantsList);
+      setDealers(dealersList);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -99,7 +104,17 @@ export default function NotificationManager() {
 
     try {
       const notificationData = {
-        ...formData,
+        title: formData.title,
+        message: formData.message,
+        type: formData.type,
+        priority: formData.priority,
+        target_merchants: formData.target_scope === 'merchants' ? formData.target_merchants : [],
+        target_dealer_ids: formData.target_scope === 'dealers' ? formData.target_dealer_ids : [],
+        is_active: formData.is_active,
+        is_dismissible: formData.is_dismissible,
+        expires_at: formData.expires_at,
+        action_url: formData.action_url,
+        action_text: formData.action_text,
         created_by: currentUser.id,
         created_by_email: currentUser.email
       };
@@ -120,12 +135,16 @@ export default function NotificationManager() {
 
   const handleEdit = (notification) => {
     setEditingNotification(notification);
+    const scope = (notification.target_dealer_ids?.length > 0) ? 'dealers'
+      : (notification.target_merchants?.length > 0) ? 'merchants' : 'all';
     setFormData({
       title: notification.title,
       message: notification.message,
       type: notification.type,
       priority: notification.priority,
+      target_scope: scope,
       target_merchants: notification.target_merchants || [],
+      target_dealer_ids: notification.target_dealer_ids || [],
       is_active: notification.is_active,
       is_dismissible: notification.is_dismissible,
       expires_at: notification.expires_at || '',
@@ -155,7 +174,9 @@ export default function NotificationManager() {
       message: '',
       type: 'info',
       priority: 'normal',
+      target_scope: 'all',
       target_merchants: [],
+      target_dealer_ids: [],
       is_active: true,
       is_dismissible: true,
       expires_at: '',
@@ -261,9 +282,11 @@ export default function NotificationManager() {
                     <TableCell>{getTypeBadge(notification.type)}</TableCell>
                     <TableCell>{getPriorityBadge(notification.priority)}</TableCell>
                     <TableCell>
-                      {!notification.target_merchants || notification.target_merchants.length === 0 
-                        ? 'All Merchants' 
-                        : `${notification.target_merchants.length} merchants`}
+                     {notification.target_dealer_ids?.length > 0
+                       ? `${notification.target_dealer_ids.length} dealer(s)`
+                       : notification.target_merchants?.length > 0
+                         ? `${notification.target_merchants.length} merchant(s)`
+                         : 'All'}
                     </TableCell>
                     <TableCell>
                       <Badge variant={notification.is_active ? 'default' : 'secondary'}>
@@ -374,6 +397,72 @@ export default function NotificationManager() {
                 </Select>
               </div>
             </div>
+
+            {/* Target Scope */}
+            <div>
+              <Label>Target Audience</Label>
+              <Select
+                value={formData.target_scope}
+                onValueChange={(value) => setFormData({ ...formData, target_scope: value, target_merchants: [], target_dealer_ids: [] })}
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Merchants (Broadcast)</SelectItem>
+                  <SelectItem value="dealers">Specific Dealers</SelectItem>
+                  <SelectItem value="merchants">Specific Merchants</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {formData.target_scope === 'dealers' && (
+              <div>
+                <Label>Select Dealers</Label>
+                <div className="mt-1 border rounded-md max-h-40 overflow-y-auto p-2 space-y-1">
+                  {dealers.map(d => (
+                    <label key={d.id} className="flex items-center gap-2 text-sm cursor-pointer hover:bg-gray-50 px-1 py-0.5 rounded">
+                      <input
+                        type="checkbox"
+                        checked={formData.target_dealer_ids.includes(d.id)}
+                        onChange={(e) => {
+                          const updated = e.target.checked
+                            ? [...formData.target_dealer_ids, d.id]
+                            : formData.target_dealer_ids.filter(id => id !== d.id);
+                          setFormData({ ...formData, target_dealer_ids: updated });
+                        }}
+                      />
+                      {d.name}
+                    </label>
+                  ))}
+                  {dealers.length === 0 && <p className="text-sm text-gray-400">No dealers found</p>}
+                </div>
+              </div>
+            )}
+
+            {formData.target_scope === 'merchants' && (
+              <div>
+                <Label>Select Merchants</Label>
+                <div className="mt-1 border rounded-md max-h-40 overflow-y-auto p-2 space-y-1">
+                  {merchants.map(m => (
+                    <label key={m.id} className="flex items-center gap-2 text-sm cursor-pointer hover:bg-gray-50 px-1 py-0.5 rounded">
+                      <input
+                        type="checkbox"
+                        checked={formData.target_merchants.includes(m.id)}
+                        onChange={(e) => {
+                          const updated = e.target.checked
+                            ? [...formData.target_merchants, m.id]
+                            : formData.target_merchants.filter(id => id !== m.id);
+                          setFormData({ ...formData, target_merchants: updated });
+                        }}
+                      />
+                      {m.business_name}
+                    </label>
+                  ))}
+                  {merchants.length === 0 && <p className="text-sm text-gray-400">No merchants found</p>}
+                </div>
+              </div>
+            )}
 
             <div>
               <Label htmlFor="expires_at">Expiration Date (Optional)</Label>

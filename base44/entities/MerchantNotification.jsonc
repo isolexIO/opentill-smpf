@@ -1,0 +1,151 @@
+{
+  "name": "MerchantNotification",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Notification title"
+    },
+    "message": {
+      "type": "string",
+      "description": "Notification message content"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "info",
+        "warning",
+        "success",
+        "error",
+        "announcement"
+      ],
+      "default": "info",
+      "description": "Notification type"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "normal",
+        "high",
+        "urgent"
+      ],
+      "default": "normal",
+      "description": "Priority level"
+    },
+    "target_merchants": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of merchant IDs (empty = broadcast to all merchants)"
+    },
+    "target_dealer_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of dealer IDs to target (empty = all dealers)"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether notification is currently active"
+    },
+    "is_dismissible": {
+      "type": "boolean",
+      "default": true,
+      "description": "Can users dismiss this notification"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When notification expires (optional)"
+    },
+    "action_url": {
+      "type": "string",
+      "description": "Optional URL for call-to-action button"
+    },
+    "action_text": {
+      "type": "string",
+      "description": "Text for action button"
+    },
+    "created_by": {
+      "type": "string",
+      "description": "Super admin user who created it"
+    },
+    "created_by_email": {
+      "type": "string",
+      "description": "Email of creator"
+    },
+    "read_by": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Array of user IDs who have read this"
+    },
+    "dismissed_by": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Array of user IDs who dismissed this"
+    },
+    "view_count": {
+      "type": "number",
+      "default": 0,
+      "description": "How many times it's been viewed"
+    }
+  },
+  "required": [
+    "title",
+    "message",
+    "type"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "target_merchants": {
+            "$in": [
+              "{{user.merchant_id}}"
+            ]
+          }
+        },
+        {
+          "target_dealer_ids": {
+            "$in": [
+              "{{user.dealer_id}}"
+            ]
+          }
+        },
+        {
+          "target_merchants": []
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
