@@ -235,7 +235,7 @@ export default function PaymentMethodSelectionScreen({ order, settings, onMethod
         {/* Secure payment footer */}
         <div className="mt-12 text-center">
           <p className="text-white/80 text-lg">
-            Secure payment powered by ChainLINK POS
+            Secure payment powered by openTILL
           </p>
         </div>
       </div> {/* End of w-full max-w-4xl */}
