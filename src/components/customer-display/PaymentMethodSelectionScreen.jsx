@@ -9,6 +9,26 @@ export default function PaymentMethodSelectionScreen({ order, settings, onMethod
   const [selecting, setSelecting] = useState(false);
   const [error, setError] = useState(null);
 
+  // Dual pricing / surcharge settings
+  const pricingSettings = settings?.pricing_and_surcharge || {};
+  const dualPricingEnabled = pricingSettings.enable_dual_pricing || pricingSettings.show_dual_prices;
+  const surchargePercent = pricingSettings.cc_surcharge_percent || 0;
+  const flatFee = pricingSettings.flat_fee_amount || 0;
+  const pricingMode = pricingSettings.pricing_mode || 'surcharge'; // 'surcharge' or 'cash_discount'
+
+  // Calculate cash price (no surcharge) and card price (with surcharge)
+  const baseTotal = order?.total || 0;
+  let cashPrice, cardPrice;
+  if (pricingMode === 'cash_discount') {
+    // Base price is already the card price, cash gets a discount
+    cardPrice = baseTotal;
+    cashPrice = baseTotal - (baseTotal * (surchargePercent / 100)) - flatFee;
+  } else {
+    // Base price is cash price, card adds surcharge
+    cashPrice = baseTotal;
+    cardPrice = baseTotal + (baseTotal * (surchargePercent / 100)) + flatFee;
+  }
+
   // Check which payment methods are available
   const isSolanaPayEnabled = settings?.solana_pay?.enabled && 
                               settings?.solana_pay?.wallet_address &&
@@ -185,11 +205,29 @@ export default function PaymentMethodSelectionScreen({ order, settings, onMethod
           </div> {/* End of grid */}
 
           {/* Total display */}
-          <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700 text-center">
-            <p className="text-gray-600 dark:text-gray-400 text-lg mb-2">Order Total</p>
-            <p className="text-4xl font-extrabold text-gray-900 dark:text-white">
-              ${(order.total || 0).toFixed(2)}
-            </p>
+          <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+            {dualPricingEnabled && surchargePercent > 0 ? (
+              <div className="flex justify-around items-center">
+                <div className="text-center">
+                  <p className="text-gray-500 text-sm font-medium uppercase tracking-wide mb-1">Cash Price</p>
+                  <p className="text-4xl font-extrabold text-green-600">${cashPrice.toFixed(2)}</p>
+                </div>
+                <div className="text-gray-300 text-3xl font-light">|</div>
+                <div className="text-center">
+                  <p className="text-gray-500 text-sm font-medium uppercase tracking-wide mb-1">
+                    Card Price {surchargePercent > 0 && <span className="text-xs text-gray-400">(+{surchargePercent}%)</span>}
+                  </p>
+                  <p className="text-4xl font-extrabold text-blue-600">${cardPrice.toFixed(2)}</p>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center">
+                <p className="text-gray-600 dark:text-gray-400 text-lg mb-2">Order Total</p>
+                <p className="text-4xl font-extrabold text-gray-900 dark:text-white">
+                  ${(order.total || 0).toFixed(2)}
+                </p>
+              </div>
+            )}
           </div>
 
         </div> {/* End of bg-white card */}

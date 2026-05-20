@@ -3,8 +3,24 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, Clock, ShoppingBag } from 'lucide-react';
 
-export default function ApprovalScreen({ order, onApprove }) {
+export default function ApprovalScreen({ order, settings, onApprove }) {
   const [approving, setApproving] = useState(false);
+
+  // Dual pricing
+  const pricingSettings = settings?.pricing_and_surcharge || {};
+  const dualPricingEnabled = pricingSettings.enable_dual_pricing || pricingSettings.show_dual_prices;
+  const surchargePercent = pricingSettings.cc_surcharge_percent || 0;
+  const flatFee = pricingSettings.flat_fee_amount || 0;
+  const pricingMode = pricingSettings.pricing_mode || 'surcharge';
+  const baseTotal = order?.total || 0;
+  let cashPrice, cardPrice;
+  if (pricingMode === 'cash_discount') {
+    cardPrice = baseTotal;
+    cashPrice = baseTotal - (baseTotal * (surchargePercent / 100)) - flatFee;
+  } else {
+    cashPrice = baseTotal;
+    cardPrice = baseTotal + (baseTotal * (surchargePercent / 100)) + flatFee;
+  }
 
   const handleApprove = async () => {
     try {
@@ -96,10 +112,23 @@ export default function ApprovalScreen({ order, onApprove }) {
                 <span className="font-semibold">${order.surcharge_amount.toFixed(2)}</span>
               </div>
             )}
-            <div className="flex justify-between text-2xl font-bold text-gray-800 pt-3 border-t-2 border-gray-300">
-              <span>Total:</span>
-              <span>${order?.total?.toFixed(2) || '0.00'}</span>
-            </div>
+            {dualPricingEnabled && surchargePercent > 0 ? (
+              <div className="pt-3 border-t-2 border-gray-300">
+                <div className="flex justify-between text-xl font-bold text-gray-800 mb-1">
+                  <span>Total (Cash):</span>
+                  <span className="text-green-600">${cashPrice.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-xl font-bold text-gray-800">
+                  <span>Total (Card <span className="font-normal text-base text-gray-500">+{surchargePercent}%</span>):</span>
+                  <span className="text-blue-600">${cardPrice.toFixed(2)}</span>
+                </div>
+              </div>
+            ) : (
+              <div className="flex justify-between text-2xl font-bold text-gray-800 pt-3 border-t-2 border-gray-300">
+                <span>Total:</span>
+                <span>${order?.total?.toFixed(2) || '0.00'}</span>
+              </div>
+            )}
           </div>
         </div>
 
