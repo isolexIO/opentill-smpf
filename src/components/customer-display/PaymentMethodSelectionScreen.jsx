@@ -34,9 +34,15 @@ export default function PaymentMethodSelectionScreen({ order, settings, onMethod
                               settings?.solana_pay?.wallet_address &&
                               settings?.solana_pay?.display_in_customer_terminal !== false;
   
-  const isCardEnabled = settings?.payment_gateways?.stripe?.enabled || 
+  // Show card if any gateway is configured, OR always show it by default
+  // (the cashier already chose "Customer Terminal" which implies card payment is available)
+  const hasAnyGateway = settings?.payment_gateways?.stripe?.enabled || 
                         settings?.payment_gateways?.square?.enabled ||
-                        settings?.payment_gateways?.non_integrated?.enabled;
+                        settings?.payment_gateways?.shift4?.enabled ||
+                        settings?.payment_gateways?.non_integrated?.enabled ||
+                        settings?.payment_gateways?.pax?.enabled ||
+                        settings?.payment_gateways?.verifone?.enabled;
+  const isCardEnabled = true; // Always show card — cashier already routed to customer terminal
   const isEbtEnabled = settings?.payment_gateways?.ebt?.enabled;
   
   // Check if there are EBT-eligible items in the order
