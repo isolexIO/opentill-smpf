@@ -31,8 +31,7 @@ export default function PaymentMethodSelectionScreen({ order, settings, onMethod
 
   // Check which payment methods are available
   const isSolanaPayEnabled = settings?.solana_pay?.enabled && 
-                              settings?.solana_pay?.wallet_address &&
-                              settings?.solana_pay?.display_in_customer_terminal !== false;
+                              settings?.solana_pay?.wallet_address;
   
   // Show card if any gateway is configured, OR always show it by default
   // (the cashier already chose "Customer Terminal" which implies card payment is available)
