@@ -21,6 +21,33 @@ Deno.serve(async (req) => {
       );
     }
 
+    // SECURITY: Prevent signature replay. The signed message must contain a
+    // fresh timestamp (within 5 minutes of server time) and bind to the
+    // claimed wallet, so a captured signature cannot be reused indefinitely.
+    const FRESHNESS_WINDOW_MS = 5 * 60 * 1000;
+    const tsMatch = typeof signature_data.message === 'string'
+      && signature_data.message.match(/Timestamp:\s*(\d+)/);
+    if (!tsMatch) {
+      return Response.json(
+        { error: 'Missing timestamp in signed message' },
+        { status: 401 }
+      );
+    }
+    const msgTime = parseInt(tsMatch[1], 10);
+    if (!Number.isFinite(msgTime) || Math.abs(Date.now() - msgTime) > FRESHNESS_WINDOW_MS) {
+      return Response.json(
+        { error: 'Signature timestamp expired or invalid' },
+        { status: 401 }
+      );
+    }
+    const walletMatch = signature_data.message.match(/Wallet:\s*([A-Za-z0-9]+)/);
+    if (walletMatch && walletMatch[1].toLowerCase() !== wallet_address.toLowerCase()) {
+      return Response.json(
+        { error: 'Signed message does not bind to this wallet' },
+        { status: 401 }
+      );
+    }
+
     // Verify Solana signature using nacl
     try {
       const { PublicKey } = await import('npm:@solana/web3.js@1.87.6');

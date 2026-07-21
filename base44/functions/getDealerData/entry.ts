@@ -45,24 +45,21 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    // Verify user has access to this dealer
-    const isRootAdmin = user.role === 'root_admin';
+    // SECURITY: Restrict the dealer dashboard to administrative roles only.
+    // A plain member of a merchant under the dealer (cashier/staff) must NOT
+    // be able to fetch the full dealer directory and merchant financials.
+    const isRootAdmin = user.role === 'root_admin' || user.role === 'admin';
     const isDealerAdmin = user.role === 'dealer_admin' && user.dealer_id === dealer_id;
-    const ownDealer = user.dealer_id === dealer_id;
 
     console.log('Access check:', {
       isRootAdmin,
       isDealerAdmin,
-      ownDealer,
       requestedDealerId: dealer_id,
-      userDealerId: user.dealer_id
+      userDealerId: user.dealer_id,
+      userRole: user.role
     });
 
-    // Allow access if:
-    // 1. User is root_admin (can access any dealer)
-    // 2. User is dealer_admin for this dealer
-    // 3. User's dealer_id matches the requested dealer
-    if (!isRootAdmin && !isDealerAdmin && !ownDealer) {
+    if (!isRootAdmin && !isDealerAdmin) {
       console.error('Access denied:', {
         user_role: user.role,
         user_dealer_id: user.dealer_id,

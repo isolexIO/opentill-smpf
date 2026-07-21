@@ -21,6 +21,41 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
+    // SECURITY: Prevent signature replay. The signed message must contain a
+    // fresh timestamp (within 5 minutes of server time) and, when a "Wallet:"
+    // field is present, bind to the claimed wallet address. This stops an
+    // attacker from replaying a previously captured valid signature.
+    if (!signature_data || !signature_data.message) {
+      return Response.json({
+        success: false,
+        error: 'signature_data with message is required'
+      }, { status: 400 });
+    }
+    const FRESHNESS_WINDOW_MS = 5 * 60 * 1000;
+    const tsMatch = typeof signature_data.message === 'string'
+      && signature_data.message.match(/Timestamp:\s*(\d+)/);
+    if (!tsMatch) {
+      return Response.json({
+        success: false,
+        error: 'Missing timestamp in signed message'
+      }, { status: 401 });
+    }
+    const msgTime = parseInt(tsMatch[1], 10);
+    if (!Number.isFinite(msgTime) || Math.abs(Date.now() - msgTime) > FRESHNESS_WINDOW_MS) {
+      return Response.json({
+        success: false,
+        error: 'Signature timestamp expired or invalid'
+      }, { status: 401 });
+    }
+    const walletMatch = typeof signature_data.message === 'string'
+      && signature_data.message.match(/Wallet:\s*([A-Za-z0-9]+)/);
+    if (walletMatch && walletMatch[1].toLowerCase() !== wallet_address.toLowerCase()) {
+      return Response.json({
+        success: false,
+        error: 'Signed message does not bind to this wallet'
+      }, { status: 401 });
+    }
+
     // Verify signature based on wallet type
     let signatureValid = false;
 

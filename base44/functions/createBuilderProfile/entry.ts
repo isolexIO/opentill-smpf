@@ -21,7 +21,16 @@ Deno.serve(async (req) => {
       support_email,
     } = body;
 
-    if (!user_email || !full_name || !company_name) {
+    // SECURITY: A builder profile may only be created for the authenticated
+    // caller's own email, preventing identity spoofing / profile squatting.
+    if (!user_email || user.email.toLowerCase() !== user_email.toLowerCase()) {
+      return Response.json(
+        { success: false, error: 'Forbidden: builder email must match your authenticated account' },
+        { status: 403 }
+      );
+    }
+
+    if (!full_name || !company_name) {
       return Response.json(
         { success: false, error: 'Missing required fields' },
         { status: 400 }
