@@ -39,65 +39,22 @@ export default function MerchantOnboarding() {
   const [formData, setFormData] = useState(INITIAL);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [fieldErrors, setFieldErrors] = useState({});
   const [success, setSuccess] = useState(false);
-  const [referralLocked, setReferralLocked] = useState(false);
 
-  // Pre-fill and lock referral code from URL on mount (?ref= / ?referral= / ?code=)
+  // Pre-fill referral code from URL on mount
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const ref = params.get('ref') || params.get('referral') || params.get('code');
     if (ref) {
-      const code = ref.toUpperCase().replace(/[^A-Z0-9]/g, '');
-      setFormData((f) => ({ ...f, referral_code: code }));
-      setReferralLocked(true);
+      setFormData((f) => ({ ...f, referral_code: ref.toUpperCase() }));
     }
   }, []);
 
   const onChange = (key, value) => setFormData((f) => ({ ...f, [key]: value }));
 
-  // Client-side validation: returns a list of human-readable field issues
-  const validateForm = () => {
-    const errs = {};
-    if (!formData.business_name?.trim()) errs.business_name = 'Business name is required';
-    if (!formData.owner_first_name?.trim()) errs.owner_first_name = 'Owner first name is required';
-    if (!formData.owner_last_name?.trim()) errs.owner_last_name = 'Owner last name is required';
-    if (!formData.owner_email?.trim()) {
-      errs.owner_email = 'Owner email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.owner_email.trim())) {
-      errs.owner_email = 'Enter a valid email address';
-    }
-    return errs;
-  };
-
-  // Translate backend error strings into clear, field-specific messages
-  const parseBackendError = (msg) => {
-    const m = (msg || '').toLowerCase();
-    if (m.includes('already exists')) {
-      return { message: 'An account with this email already exists. Please sign in or use a different email.', fields: { owner_email: 'Email already registered' } };
-    }
-    if (m.includes('business name') || m.includes('owner name') || m.includes('email are required')) {
-      return {
-        message: 'Missing required fields: business name, owner name, and email are required to submit.',
-        fields: { business_name: 'Required', owner_first_name: 'Required', owner_last_name: 'Required', owner_email: 'Required' },
-      };
-    }
-    return { message: msg || 'Registration failed. Please try again.', fields: {} };
-  };
-
   const handleSubmit = async () => {
-    setError(null);
-    setFieldErrors({});
-    const errs = validateForm();
-    if (Object.keys(errs).length) {
-      setError(`Please fix the following before submitting: ${Object.values(errs).join('; ')}.`);
-      setFieldErrors(errs);
-      // Jump to the first step containing an error so the applicant can fix it
-      if (errs.business_name) setStep(2);
-      else if (errs.owner_email || errs.owner_first_name || errs.owner_last_name) setStep(2);
-      return;
-    }
     setLoading(true);
+    setError(null);
     try {
       const owner_name = `${formData.owner_first_name} ${formData.owner_last_name}`.trim();
       const res = await base44.functions.invoke('createMerchantAccount', {
@@ -124,12 +81,7 @@ export default function MerchantOnboarding() {
       });
 
       if (!res.data?.success) {
-        const parsed = parseBackendError(res.data?.error);
-        setError(parsed.message);
-        setFieldErrors(parsed.fields);
-        setLoading(false);
-        setStep(2);
-        return;
+        throw new Error(res.data?.error || 'Registration failed.');
       }
       setSuccess(true);
     } catch (err) {
@@ -213,7 +165,6 @@ export default function MerchantOnboarding() {
                 formData={formData}
                 onChange={onChange}
                 onNext={() => setStep(2)}
-                locked={referralLocked}
               />
             )}
             {step === 2 && (
@@ -222,7 +173,6 @@ export default function MerchantOnboarding() {
                 onChange={onChange}
                 onNext={() => setStep(3)}
                 onBack={() => setStep(1)}
-                fieldErrors={fieldErrors}
               />
             )}
             {step === 3 && (
