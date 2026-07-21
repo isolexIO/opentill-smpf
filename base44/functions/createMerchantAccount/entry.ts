@@ -21,23 +21,38 @@ Deno.serve(async (req) => {
         } = body;
 
         const base44 = createClientFromRequest(req);
-        
-        // If merchant_id is provided, activate existing merchant
-         if (merchant_id) {
-             // Update merchant status to trial and set activated_at
-             if (activate) {
-                 await base44.asServiceRole.entities.Merchant.update(merchant_id, {
-                     status: 'trial',
-                     activated_at: new Date().toISOString(),
-                     trial_ends_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-                 });
-             }
 
-             return Response.json({
-                 success: true,
-                 merchant_id: merchant_id
-             });
-         }
+        // SECURITY: The activation path is admin-only. Public self-registration
+        // must never be able to activate an arbitrary existing merchant_id,
+        // which would bypass admin approval controls. Use /functions/activateMerchant
+        // for activations.
+        if (merchant_id) {
+            let currentUser = null;
+            try {
+                currentUser = await base44.auth.me();
+            } catch (e) {
+                currentUser = null;
+            }
+            if (!currentUser || currentUser.role !== 'admin') {
+                return Response.json({
+                    success: false,
+                    error: 'Forbidden: activation requires administrator access'
+                }, { status: 403 });
+            }
+
+            if (activate) {
+                await base44.asServiceRole.entities.Merchant.update(merchant_id, {
+                    status: 'trial',
+                    activated_at: new Date().toISOString(),
+                    trial_ends_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+                });
+            }
+
+            return Response.json({
+                success: true,
+                merchant_id: merchant_id
+            });
+        }
 
         // Otherwise, create new merchant (original flow)
         if (!business_name || !owner_name || !owner_email) {

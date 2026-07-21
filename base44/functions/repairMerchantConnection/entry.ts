@@ -41,12 +41,22 @@ Deno.serve(async (req) => {
 
     // Get current user
     const currentUser = await base44.auth.me();
-    
+
     if (!currentUser) {
       return Response.json({
         success: false,
         error: 'User not authenticated'
       }, { status: 401 });
+    }
+
+    // SECURITY: The caller may only repair their own merchant connection.
+    // Without this check, any authenticated user could pass another user's
+    // email and hijack that merchant's session.
+    if (user_email.toLowerCase() !== currentUser.email.toLowerCase()) {
+      return Response.json({
+        success: false,
+        error: 'Forbidden: you can only repair your own merchant connection'
+      }, { status: 403 });
     }
 
     console.log('repairMerchantConnection: Current user:', currentUser.email, 'current merchant_id:', currentUser.merchant_id);
