@@ -37,8 +37,13 @@ Deno.serve(async (req) => {
 
         const user = users[0];
 
-        // Generate a temporary password
-        const tempPassword = Math.random().toString(36).slice(-12);
+        // Generate a cryptographically secure temporary password
+        const charset = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+        const randomBytes = crypto.getRandomValues(new Uint8Array(16));
+        let tempPassword = '';
+        for (let i = 0; i < 16; i++) {
+            tempPassword += charset[randomBytes[i] % charset.length];
+        }
         const passwordHash = await bcrypt.hash(tempPassword, 10);
 
         // Update user with new password

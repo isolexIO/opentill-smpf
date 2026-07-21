@@ -59,7 +59,9 @@ Deno.serve(async (req) => {
         const maxAttempts = 10;
 
         while (!pinIsUnique && attempts < maxAttempts) {
-            pin = Math.floor(100000 + Math.random() * 900000).toString();
+            // Use a cryptographically secure PRNG for the 6-digit PIN
+            const randomBytes = crypto.getRandomValues(new Uint32Array(1));
+            pin = (100000 + (randomBytes[0] % 900000)).toString();
             const existingPinUsers = await base44.asServiceRole.entities.User.filter({ pin: pin });
             if (!existingPinUsers || existingPinUsers.length === 0) {
                 pinIsUnique = true;
