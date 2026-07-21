@@ -85,28 +85,13 @@
       }
     },
     "read": {
-      "$or": [
-        {
-          "target_merchants": {
-            "$in": [
-              null,
-              [],
-              "{{user.merchant_id}}"
-            ]
-          }
-        },
-        {
-          "merchant_id": "{{user.merchant_id}}"
-        },
-        {
-          "dealer_id": "{{user.dealer_id}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
+      "data.is_active": {
+        "$in": [
+          true,
+          false,
+          null
+        ]
+      }
     },
     "update": {
       "user_condition": {

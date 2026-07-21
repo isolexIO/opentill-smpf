@@ -191,16 +191,9 @@
       ]
     },
     "delete": {
-      "$or": [
-        {
-          "data.merchant_id": "{{user.data.merchant_id}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
+      "user_condition": {
+        "role": "admin"
+      }
     }
   }
 }

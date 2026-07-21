@@ -301,7 +301,18 @@
     "owner_email"
   ],
   "rls": {
-    "create": null,
+    "create": {
+      "$or": [
+        {
+          "data.dealer_id": "{{user.data.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
     "read": {
       "$or": [
         {
@@ -321,6 +332,9 @@
       "$or": [
         {
           "id": "{{user.data.merchant_id}}"
+        },
+        {
+          "data.dealer_id": "{{user.data.dealer_id}}"
         },
         {
           "user_condition": {

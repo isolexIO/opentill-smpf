@@ -182,16 +182,9 @@
       ]
     },
     "delete": {
-      "$or": [
-        {
-          "data.dealer_id": "{{user.data.dealer_id}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
+      "user_condition": {
+        "role": "admin"
+      }
     }
   }
 }
