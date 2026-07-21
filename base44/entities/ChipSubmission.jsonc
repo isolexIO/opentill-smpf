@@ -165,7 +165,7 @@
     "create": {
       "$or": [
         {
-          "builder_email": "{{user.email}}"
+          "data.builder_email": "{{user.email}}"
         },
         {
           "user_condition": {
@@ -177,10 +177,10 @@
     "read": {
       "$or": [
         {
-          "builder_email": "{{user.email}}"
+          "data.builder_email": "{{user.email}}"
         },
         {
-          "status": "published"
+          "data.status": "published"
         },
         {
           "user_condition": {
@@ -192,7 +192,7 @@
     "update": {
       "$or": [
         {
-          "builder_email": "{{user.email}}"
+          "data.builder_email": "{{user.email}}"
         },
         {
           "user_condition": {
@@ -204,7 +204,7 @@
     "delete": {
       "$or": [
         {
-          "builder_email": "{{user.email}}"
+          "data.builder_email": "{{user.email}}"
         },
         {
           "user_condition": {

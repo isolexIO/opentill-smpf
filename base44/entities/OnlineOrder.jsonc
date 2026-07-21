@@ -176,14 +176,11 @@
     "total"
   ],
   "rls": {
-    "create": {},
+    "create": null,
     "read": {
       "$or": [
         {
-          "data.merchant_id": "{{user.merchant_id}}"
-        },
-        {
-          "data.dealer_id": "{{user.dealer_id}}"
+          "data.merchant_id": "{{user.data.merchant_id}}"
         },
         {
           "created_by_id": "{{user.id}}"
@@ -198,7 +195,7 @@
     "update": {
       "$or": [
         {
-          "data.merchant_id": "{{user.merchant_id}}"
+          "data.merchant_id": "{{user.data.merchant_id}}"
         },
         {
           "user_condition": {
@@ -210,7 +207,7 @@
     "delete": {
       "$or": [
         {
-          "data.merchant_id": "{{user.merchant_id}}"
+          "data.merchant_id": "{{user.data.merchant_id}}"
         },
         {
           "user_condition": {

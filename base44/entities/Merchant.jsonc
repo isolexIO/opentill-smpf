@@ -301,14 +301,14 @@
     "owner_email"
   ],
   "rls": {
-    "create": {},
+    "create": null,
     "read": {
       "$or": [
         {
-          "id": "{{user.merchant_id}}"
+          "id": "{{user.data.merchant_id}}"
         },
         {
-          "data.dealer_id": "{{user.dealer_id}}"
+          "data.dealer_id": "{{user.data.dealer_id}}"
         },
         {
           "user_condition": {
@@ -320,7 +320,7 @@
     "update": {
       "$or": [
         {
-          "id": "{{user.merchant_id}}"
+          "id": "{{user.data.merchant_id}}"
         },
         {
           "user_condition": {

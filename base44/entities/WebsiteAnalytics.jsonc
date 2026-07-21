@@ -82,14 +82,11 @@
     "event_type"
   ],
   "rls": {
-    "create": {},
+    "create": null,
     "read": {
       "$or": [
         {
-          "merchant_id": "{{user.merchant_id}}"
-        },
-        {
-          "dealer_id": "{{user.dealer_id}}"
+          "data.merchant_id": "{{user.data.merchant_id}}"
         },
         {
           "user_condition": {

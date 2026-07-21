@@ -119,21 +119,21 @@
           }
         },
         {
-          "target_merchants": {
+          "data.target_merchants": {
             "$in": [
-              "{{user.merchant_id}}"
+              "{{user.data.merchant_id}}"
             ]
           }
         },
         {
-          "target_dealer_ids": {
+          "data.target_dealer_ids": {
             "$in": [
-              "{{user.dealer_id}}"
+              "{{user.data.dealer_id}}"
             ]
           }
         },
         {
-          "target_merchants": []
+          "data.target_merchants": []
         }
       ]
     },

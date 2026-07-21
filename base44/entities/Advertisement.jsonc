@@ -80,19 +80,9 @@
   ],
   "rls": {
     "create": {
-      "$or": [
-        {
-          "merchant_id": "{{user.merchant_id}}"
-        },
-        {
-          "dealer_id": "{{user.dealer_id}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
+      "user_condition": {
+        "role": "admin"
+      }
     },
     "read": {
       "$or": [
@@ -119,34 +109,14 @@
       ]
     },
     "update": {
-      "$or": [
-        {
-          "merchant_id": "{{user.merchant_id}}"
-        },
-        {
-          "dealer_id": "{{user.dealer_id}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
+      "user_condition": {
+        "role": "admin"
+      }
     },
     "delete": {
-      "$or": [
-        {
-          "merchant_id": "{{user.merchant_id}}"
-        },
-        {
-          "dealer_id": "{{user.dealer_id}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
+      "user_condition": {
+        "role": "admin"
+      }
     }
   }
 }

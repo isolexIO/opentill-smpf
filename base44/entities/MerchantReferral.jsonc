@@ -57,10 +57,10 @@
     "create": {
       "$or": [
         {
-          "referrer_merchant_id": "{{user.merchant_id}}"
+          "data.referrer_merchant_id": "{{user.data.merchant_id}}"
         },
         {
-          "referred_merchant_id": "{{user.merchant_id}}"
+          "data.referred_merchant_id": "{{user.data.merchant_id}}"
         },
         {
           "user_condition": {
@@ -72,10 +72,10 @@
     "read": {
       "$or": [
         {
-          "referrer_merchant_id": "{{user.merchant_id}}"
+          "data.referrer_merchant_id": "{{user.data.merchant_id}}"
         },
         {
-          "referred_merchant_id": "{{user.merchant_id}}"
+          "data.referred_merchant_id": "{{user.data.merchant_id}}"
         },
         {
           "user_condition": {

@@ -83,10 +83,10 @@
     "create": {
       "$or": [
         {
-          "data.owner_id": "{{user.merchant_id}}"
+          "data.owner_id": "{{user.data.merchant_id}}"
         },
         {
-          "data.owner_id": "{{user.ambassador_id}}"
+          "data.owner_id": "{{user.data.dealer_id}}"
         },
         {
           "user_condition": {
@@ -98,10 +98,10 @@
     "read": {
       "$or": [
         {
-          "data.owner_id": "{{user.merchant_id}}"
+          "data.owner_id": "{{user.data.merchant_id}}"
         },
         {
-          "data.owner_id": "{{user.ambassador_id}}"
+          "data.owner_id": "{{user.data.dealer_id}}"
         },
         {
           "user_condition": {
@@ -113,10 +113,10 @@
     "update": {
       "$or": [
         {
-          "data.owner_id": "{{user.merchant_id}}"
+          "data.owner_id": "{{user.data.merchant_id}}"
         },
         {
-          "data.owner_id": "{{user.ambassador_id}}"
+          "data.owner_id": "{{user.data.dealer_id}}"
         },
         {
           "user_condition": {

@@ -76,7 +76,7 @@
     "create": {
       "$or": [
         {
-          "data.merchant_id": "{{user.merchant_id}}"
+          "data.merchant_id": "{{user.data.merchant_id}}"
         },
         {
           "user_condition": {
@@ -88,7 +88,7 @@
     "read": {
       "$or": [
         {
-          "data.merchant_id": "{{user.merchant_id}}"
+          "data.merchant_id": "{{user.data.merchant_id}}"
         },
         {
           "user_condition": {
@@ -100,7 +100,7 @@
     "update": {
       "$or": [
         {
-          "data.merchant_id": "{{user.merchant_id}}"
+          "data.merchant_id": "{{user.data.merchant_id}}"
         },
         {
           "user_condition": {
@@ -110,9 +110,16 @@
       ]
     },
     "delete": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "$or": [
+        {
+          "data.merchant_id": "{{user.data.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
     }
   }
 }

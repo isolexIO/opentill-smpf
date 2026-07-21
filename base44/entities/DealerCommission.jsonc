@@ -87,7 +87,7 @@
     "read": {
       "$or": [
         {
-          "dealer_id": "{{user.dealer_id}}"
+          "data.dealer_id": "{{user.data.dealer_id}}"
         },
         {
           "user_condition": {

@@ -154,7 +154,7 @@
     "create": {
       "$or": [
         {
-          "dealer_id": "{{user.dealer_id}}"
+          "data.dealer_id": "{{user.data.dealer_id}}"
         },
         {
           "user_condition": {
@@ -166,10 +166,10 @@
     "read": {
       "$or": [
         {
-          "dealer_id": "{{user.dealer_id}}"
+          "data.dealer_id": "{{user.data.dealer_id}}"
         },
         {
-          "merchant_id": "{{user.merchant_id}}"
+          "data.merchant_id": "{{user.data.merchant_id}}"
         },
         {
           "user_condition": {
@@ -181,7 +181,7 @@
     "update": {
       "$or": [
         {
-          "dealer_id": "{{user.dealer_id}}"
+          "data.dealer_id": "{{user.data.dealer_id}}"
         },
         {
           "user_condition": {
@@ -193,7 +193,7 @@
     "delete": {
       "$or": [
         {
-          "dealer_id": "{{user.dealer_id}}"
+          "data.dealer_id": "{{user.data.dealer_id}}"
         },
         {
           "user_condition": {

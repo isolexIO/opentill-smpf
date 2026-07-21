@@ -54,10 +54,10 @@
     "read": {
       "$or": [
         {
-          "merchant_id": "{{user.merchant_id}}"
+          "data.merchant_id": "{{user.data.merchant_id}}"
         },
         {
-          "merchant_id": null
+          "data.merchant_id": null
         },
         {
           "user_condition": {

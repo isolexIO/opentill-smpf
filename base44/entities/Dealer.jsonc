@@ -246,7 +246,7 @@
     "read": {
       "$or": [
         {
-          "id": "{{user.dealer_id}}"
+          "id": "{{user.data.dealer_id}}"
         },
         {
           "user_condition": {
@@ -258,7 +258,7 @@
     "update": {
       "$or": [
         {
-          "id": "{{user.dealer_id}}"
+          "id": "{{user.data.dealer_id}}"
         },
         {
           "user_condition": {

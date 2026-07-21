@@ -51,10 +51,7 @@
           "data.user_id": "{{user.id}}"
         },
         {
-          "data.merchant_id": "{{user.merchant_id}}"
-        },
-        {
-          "data.ambassador_id": "{{user.ambassador_id}}"
+          "data.merchant_id": "{{user.data.merchant_id}}"
         },
         {
           "user_condition": {
@@ -69,10 +66,7 @@
           "data.user_id": "{{user.id}}"
         },
         {
-          "data.merchant_id": "{{user.merchant_id}}"
-        },
-        {
-          "data.ambassador_id": "{{user.ambassador_id}}"
+          "data.merchant_id": "{{user.data.merchant_id}}"
         },
         {
           "user_condition": {
