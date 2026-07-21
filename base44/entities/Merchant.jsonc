@@ -301,27 +301,14 @@
     "owner_email"
   ],
   "rls": {
-    "create": {
-      "$or": [
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "dealer_admin"
-          }
-        }
-      ]
-    },
+    "create": {},
     "read": {
       "$or": [
         {
           "id": "{{user.merchant_id}}"
         },
         {
-          "dealer_id": "{{user.dealer_id}}"
+          "data.dealer_id": "{{user.dealer_id}}"
         },
         {
           "user_condition": {

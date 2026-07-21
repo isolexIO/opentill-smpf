@@ -98,14 +98,16 @@
     "full_name"
   ],
   "rls": {
-    "create": {},
+    "create": {
+      "user_email": "{{user.email}}"
+    },
     "read": {
       "$or": [
         {
           "user_email": "{{user.email}}"
         },
         {
-          "status": "verified"
+          "data.status": "verified"
         },
         {
           "user_condition": {

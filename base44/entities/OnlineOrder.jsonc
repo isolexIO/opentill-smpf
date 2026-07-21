@@ -180,10 +180,10 @@
     "read": {
       "$or": [
         {
-          "merchant_id": "{{user.merchant_id}}"
+          "data.merchant_id": "{{user.merchant_id}}"
         },
         {
-          "dealer_id": "{{user.dealer_id}}"
+          "data.dealer_id": "{{user.dealer_id}}"
         },
         {
           "created_by_id": "{{user.id}}"
@@ -198,7 +198,7 @@
     "update": {
       "$or": [
         {
-          "merchant_id": "{{user.merchant_id}}"
+          "data.merchant_id": "{{user.merchant_id}}"
         },
         {
           "user_condition": {
@@ -210,7 +210,7 @@
     "delete": {
       "$or": [
         {
-          "merchant_id": "{{user.merchant_id}}"
+          "data.merchant_id": "{{user.merchant_id}}"
         },
         {
           "user_condition": {

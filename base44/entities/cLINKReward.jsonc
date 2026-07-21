@@ -74,14 +74,21 @@
   ],
   "rls": {
     "create": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "$or": [
+        {
+          "data.merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
     },
     "read": {
       "$or": [
         {
-          "merchant_id": "{{user.merchant_id}}"
+          "data.merchant_id": "{{user.merchant_id}}"
         },
         {
           "user_condition": {
@@ -91,9 +98,16 @@
       ]
     },
     "update": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "$or": [
+        {
+          "data.merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
     },
     "delete": {
       "user_condition": {

@@ -39,14 +39,13 @@
     "wallet_address"
   ],
   "rls": {
-    "create": {},
-    "read": {
+    "create": {
       "$or": [
         {
-          "owner_id": "{{user.merchant_id}}"
+          "data.owner_id": "{{user.merchant_id}}"
         },
         {
-          "owner_id": "{{user.ambassador_id}}"
+          "data.owner_id": "{{user.ambassador_id}}"
         },
         {
           "user_condition": {
@@ -55,7 +54,36 @@
         }
       ]
     },
-    "update": {},
+    "read": {
+      "$or": [
+        {
+          "data.owner_id": "{{user.merchant_id}}"
+        },
+        {
+          "data.owner_id": "{{user.ambassador_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.owner_id": "{{user.merchant_id}}"
+        },
+        {
+          "data.owner_id": "{{user.ambassador_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
     "delete": {
       "user_condition": {
         "role": "admin"

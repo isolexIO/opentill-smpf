@@ -45,17 +45,34 @@
     "tx_signature"
   ],
   "rls": {
-    "create": {},
+    "create": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "data.merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "data.ambassador_id": "{{user.ambassador_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
     "read": {
       "$or": [
         {
-          "user_id": "{{user.id}}"
+          "data.user_id": "{{user.id}}"
         },
         {
-          "merchant_id": "{{user.merchant_id}}"
+          "data.merchant_id": "{{user.merchant_id}}"
         },
         {
-          "ambassador_id": "{{user.ambassador_id}}"
+          "data.ambassador_id": "{{user.ambassador_id}}"
         },
         {
           "user_condition": {
