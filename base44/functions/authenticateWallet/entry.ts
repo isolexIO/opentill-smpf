@@ -59,9 +59,12 @@ Deno.serve(async (req) => {
         signatureValid = false;
       }
     } else {
-      // For other wallet types, verify they at least provided signature data
-      signatureValid = signature_data && signature_data.signature && signature_data.signature.length > 0;
-      console.log('Generic wallet signature present:', signatureValid);
+      // Reject unsupported wallet types — never allow skipping cryptographic verification
+      console.warn('Unsupported wallet type rejected:', wallet_type);
+      return Response.json({
+        success: false,
+        error: `Unsupported wallet type: ${wallet_type}. Only phantom, solflare, ethereum, and metamask are supported.`
+      }, { status: 400 });
     }
 
     if (!signatureValid) {

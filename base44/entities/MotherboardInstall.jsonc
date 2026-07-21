@@ -39,43 +39,14 @@
     "wallet_address"
   ],
   "rls": {
-    "create": {
-      "$or": [
-        {
-          "data.owner_id": "{{user.data.merchant_id}}"
-        },
-        {
-          "data.owner_id": "{{user.data.dealer_id}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
-    },
+    "create": {},
     "read": {
       "$or": [
         {
-          "data.owner_id": "{{user.data.merchant_id}}"
+          "owner_id": "{{user.merchant_id}}"
         },
         {
-          "data.owner_id": "{{user.data.dealer_id}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
-    },
-    "update": {
-      "$or": [
-        {
-          "data.owner_id": "{{user.data.merchant_id}}"
-        },
-        {
-          "data.owner_id": "{{user.data.dealer_id}}"
+          "owner_id": "{{user.ambassador_id}}"
         },
         {
           "user_condition": {
@@ -84,10 +55,7 @@
         }
       ]
     },
-    "delete": {
-      "user_condition": {
-        "role": "admin"
-      }
-    }
+    "update": {},
+    "delete": {}
   }
 }

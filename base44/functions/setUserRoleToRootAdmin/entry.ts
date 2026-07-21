@@ -16,7 +16,18 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
-    console.log('Setting user role to root_admin:', user.email);
+    // Privilege check: only existing platform admins may perform elevation.
+    // Regular users cannot escalate themselves to root_admin.
+    if (user.role !== 'admin' && user.role !== 'root_admin') {
+      console.warn('Unauthorized role elevation attempt by:', user.email, 'role:', user.role);
+      return Response.json({ 
+        error: 'Forbidden: only existing administrators may perform this action' 
+      }, { status: 403 });
+    }
+
+    // Prevent self-elevation redundancy and prevent demoting other admins unintentionally:
+    // only allow elevating the caller themselves (no target user parameter accepted).
+    console.log('Admin authorizing role elevation for:', user.email);
 
     // Use service role to update the user's role
     await base44.asServiceRole.entities.User.update(user.id, {
