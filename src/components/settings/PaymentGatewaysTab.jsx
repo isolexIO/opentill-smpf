@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Save, AlertTriangle, CreditCard, ShieldCheck, AlertCircle, Terminal } from 'lucide-react';
+import StripeTerminalCard from '@/components/settings/StripeTerminalCard';
 
 export default function PaymentGatewaysTab({ gateways, onUpdateGateways }) {
   const { toast } = useToast();
@@ -245,6 +246,9 @@ export default function PaymentGatewaysTab({ gateways, onUpdateGateways }) {
           </CardContent>
         )}
       </Card>
+
+      {/* Stripe Terminal Provisioning - only relevant when Stripe is enabled */}
+      {localGateways.stripe?.enabled && <StripeTerminalCard />}
 
       {/* Shift4 Configuration Card */}
       <Card>
