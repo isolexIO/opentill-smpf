@@ -82,9 +82,7 @@
     "event_type"
   ],
   "rls": {
-    "create": {
-      "merchant_id": "{{user.merchant_id}}"
-    },
+    "create": {},
     "read": {
       "$or": [
         {

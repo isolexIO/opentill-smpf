@@ -45,6 +45,19 @@ Deno.serve(async (req) => {
             }, { status: 403 });
         }
 
+        // SECURITY: For unauthenticated display-device requests, verify the
+        // target merchant actually exists so an attacker cannot register fake
+        // sessions for arbitrary/non-existent merchant IDs.
+        if (!user) {
+            const merchants = await base44.asServiceRole.entities.Merchant.filter({ id: merchant_id });
+            if (!merchants || merchants.length === 0) {
+                return Response.json({
+                    success: false,
+                    error: 'Forbidden: merchant not found for unauthenticated session'
+                }, { status: 403 });
+            }
+        }
+
         // Generate unique session ID
         const session_id = `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
 

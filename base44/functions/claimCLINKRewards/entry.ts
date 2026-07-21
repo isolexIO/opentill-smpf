@@ -11,6 +11,12 @@ Deno.serve(async (req) => {
 
     const { merchant_id, amount } = await req.json();
 
+    // SECURITY: Prevent cross-tenant IDOR — callers may only claim rewards
+    // for their own merchant. Admins are exempt.
+    if (user.role !== 'admin' && user.merchant_id !== merchant_id) {
+      return Response.json({ error: 'Forbidden: cannot claim rewards for another merchant' }, { status: 403 });
+    }
+
     if (!user.wallet_address) {
       return Response.json({ 
         success: false, 

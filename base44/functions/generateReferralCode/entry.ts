@@ -16,6 +16,12 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'merchant_id required' }, { status: 400 });
     }
 
+    // SECURITY: Prevent IDOR — callers may only generate/modify a referral
+    // code for their own merchant. Admins are exempt.
+    if (user.role !== 'admin' && user.merchant_id !== targetMerchantId) {
+      return Response.json({ error: 'Unauthorized: cannot modify another merchant' }, { status: 403 });
+    }
+
     // Get merchant
     let merchants = await base44.asServiceRole.entities.Merchant.filter({ id: targetMerchantId });
     

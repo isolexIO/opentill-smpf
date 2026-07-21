@@ -56,7 +56,17 @@ Deno.serve(async (req) => {
         const session = sessions[0];
         
         // Verify user has access to this session (except for display devices and admins)
-        if (user && user.role !== 'admin' && session.device_type !== 'customer_display' && session.device_type !== 'kitchen_display') {
+        if (!user) {
+            // SECURITY: Unauthenticated callers may only heartbeat display device
+            // sessions (customer_display / kitchen_display). This prevents an
+            // unauthenticated attacker from modifying cashier/POS device sessions.
+            if (session.device_type !== 'customer_display' && session.device_type !== 'kitchen_display') {
+                return Response.json({
+                    success: false,
+                    error: 'Forbidden: Authentication required to update this device session'
+                }, { status: 401 });
+            }
+        } else if (user.role !== 'admin' && session.device_type !== 'customer_display' && session.device_type !== 'kitchen_display') {
             if (user.merchant_id !== session.merchant_id) {
                 return Response.json({
                     success: false,
