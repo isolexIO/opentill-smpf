@@ -24,20 +24,36 @@ Deno.serve(async (req) => {
 
         const base44 = createClientFromRequest(req);
 
+        // SECURITY: Require an authenticated session so anonymous attackers
+        // cannot forge audit-log entries. The actor identity is taken from the
+        // verified session (not the client-supplied body) to prevent spoofing.
+        let user;
+        try {
+            user = await base44.auth.me();
+        } catch (e) {
+            user = null;
+        }
+        if (!user) {
+            return Response.json({
+                error: 'Unauthorized: authentication required to write audit logs'
+            }, { status: 401 });
+        }
+
         // Get request metadata
         const ipAddress = req.headers.get('x-forwarded-for') || 
                          req.headers.get('x-real-ip') || 
                          'Unknown';
         const userAgent = req.headers.get('user-agent') || 'Unknown';
 
-        // Create audit log entry
+        // Create audit log entry. Actor identity is sourced from the verified
+        // session to prevent clients from spoofing another user/admin action.
         const logData = {
-            merchant_id: merchant_id || null,
+            merchant_id: merchant_id || user.merchant_id || null,
             action_type: action_type,
             severity: severity,
-            actor_id: actor_id,
-            actor_email: actor_email,
-            actor_role: actor_role,
+            actor_id: user.id,
+            actor_email: user.email,
+            actor_role: user.role,
             target_entity: target_entity || null,
             description: description,
             ip_address: ipAddress,

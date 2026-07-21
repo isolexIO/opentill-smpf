@@ -27,9 +27,22 @@ Deno.serve(async (req) => {
       });
 
       if (users && users.length > 0) {
+        const u = users[0];
+        // SECURITY: Never return the raw user record — it contains the hashed
+        // password, PIN, and 2FA secret. Expose only non-sensitive fields
+        // needed by the mobile login flow.
         return Response.json({
           authenticated: true,
-          user: users[0]
+          user: {
+            id: u.id,
+            email: u.email,
+            full_name: u.full_name,
+            role: u.role,
+            merchant_id: u.merchant_id,
+            dealer_id: u.dealer_id,
+            is_active: u.is_active,
+            pos_settings: u.pos_settings || {}
+          }
         });
       }
     }
