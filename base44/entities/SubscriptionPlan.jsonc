@@ -1,0 +1,108 @@
+{
+  "name": "SubscriptionPlan",
+  "type": "object",
+  "properties": {
+    "plan_id": {
+      "type": "string",
+      "description": "Unique plan identifier (e.g., 'free', 'basic', 'pro')"
+    },
+    "name": {
+      "type": "string",
+      "description": "Plan display name"
+    },
+    "description": {
+      "type": "string",
+      "description": "Plan description"
+    },
+    "price_monthly": {
+      "type": "number",
+      "description": "Monthly price in USD"
+    },
+    "price_yearly": {
+      "type": "number",
+      "description": "Yearly price in USD (with discount)"
+    },
+    "features": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "included": {
+            "type": "boolean"
+          }
+        }
+      },
+      "description": "List of features"
+    },
+    "limits": {
+      "type": "object",
+      "properties": {
+        "pos_terminals": {
+          "type": "number",
+          "description": "Max POS terminals (-1 for unlimited)"
+        },
+        "monthly_orders": {
+          "type": "number",
+          "description": "Max orders per month (-1 for unlimited)"
+        },
+        "users": {
+          "type": "number",
+          "description": "Max user accounts (-1 for unlimited)"
+        },
+        "locations": {
+          "type": "number",
+          "description": "Max business locations (-1 for unlimited)"
+        }
+      }
+    },
+    "stripe_price_id_monthly": {
+      "type": "string",
+      "description": "Stripe Price ID for monthly billing"
+    },
+    "stripe_price_id_yearly": {
+      "type": "string",
+      "description": "Stripe Price ID for yearly billing"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether plan is available for signup"
+    },
+    "is_featured": {
+      "type": "boolean",
+      "default": false,
+      "description": "Show as recommended plan"
+    },
+    "sort_order": {
+      "type": "number",
+      "default": 0,
+      "description": "Display order"
+    }
+  },
+  "required": [
+    "plan_id",
+    "name",
+    "price_monthly"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,127 @@
+{
+  "name": "StockAlert",
+  "type": "object",
+  "properties": {
+    "merchant_id": {
+      "type": "string",
+      "description": "Related merchant (null for device shop)"
+    },
+    "alert_type": {
+      "type": "string",
+      "enum": [
+        "low_merchant_inventory",
+        "low_device_shop_inventory"
+      ],
+      "description": "Type of alert"
+    },
+    "inventory_item_id": {
+      "type": "string",
+      "description": "Reference to inventory item"
+    },
+    "item_name": {
+      "type": "string",
+      "description": "Item name"
+    },
+    "current_quantity": {
+      "type": "number",
+      "description": "Current stock level"
+    },
+    "reorder_threshold": {
+      "type": "number",
+      "description": "Threshold that triggered alert"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "acknowledged",
+        "resolved"
+      ],
+      "default": "active",
+      "description": "Alert status"
+    },
+    "acknowledged_by": {
+      "type": "string",
+      "description": "User who acknowledged"
+    },
+    "acknowledged_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When acknowledged"
+    },
+    "resolved_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When resolved (restocked)"
+    },
+    "email_sent": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether email notification sent"
+    },
+    "email_sent_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When email was sent"
+    }
+  },
+  "required": [
+    "alert_type",
+    "item_name",
+    "current_quantity",
+    "reorder_threshold"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "dealer_id": "{{user.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

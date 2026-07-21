@@ -1,0 +1,93 @@
+{
+  "name": "MotherboardInstall",
+  "type": "object",
+  "properties": {
+    "owner_type": {
+      "type": "string",
+      "enum": [
+        "merchant",
+        "ambassador"
+      ],
+      "description": "Who owns this install"
+    },
+    "owner_id": {
+      "type": "string",
+      "description": "Merchant or Ambassador ID"
+    },
+    "chip_id": {
+      "type": "string",
+      "description": "Reference to Chip"
+    },
+    "wallet_address": {
+      "type": "string",
+      "description": "Wallet that owns the chip/sub"
+    },
+    "installed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether installed and active"
+    }
+  },
+  "required": [
+    "owner_type",
+    "owner_id",
+    "chip_id",
+    "wallet_address"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.owner_id": "{{user.data.merchant_id}}"
+        },
+        {
+          "data.owner_id": "{{user.data.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.owner_id": "{{user.data.merchant_id}}"
+        },
+        {
+          "data.owner_id": "{{user.data.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.owner_id": "{{user.data.merchant_id}}"
+        },
+        {
+          "data.owner_id": "{{user.data.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

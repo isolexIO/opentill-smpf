@@ -1,0 +1,199 @@
+{
+  "name": "SupportTicket",
+  "type": "object",
+  "properties": {
+    "dealer_id": {
+      "type": "string",
+      "description": "Dealer ID (if ticket is dealer-level)"
+    },
+    "ticket_number": {
+      "type": "string",
+      "description": "Unique ticket identifier"
+    },
+    "merchant_id": {
+      "type": "string",
+      "description": "Merchant who submitted ticket (null for dealer/super admin internal tickets)"
+    },
+    "merchant_name": {
+      "type": "string",
+      "description": "Merchant business name"
+    },
+    "submitted_by": {
+      "type": "string",
+      "description": "User ID who submitted"
+    },
+    "submitted_by_email": {
+      "type": "string",
+      "description": "Email of submitter"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "billing",
+        "devices",
+        "technical",
+        "account",
+        "marketplace",
+        "feature_request",
+        "bug_report",
+        "other"
+      ],
+      "description": "Ticket category"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "urgent"
+      ],
+      "default": "medium",
+      "description": "Ticket priority"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "in_progress",
+        "waiting_on_merchant",
+        "resolved",
+        "closed"
+      ],
+      "default": "open",
+      "description": "Ticket status"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Ticket subject/title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed description"
+    },
+    "attachments": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of file URLs"
+    },
+    "assigned_to": {
+      "type": "string",
+      "description": "Support agent assigned (super admin or dealer admin user ID)"
+    },
+    "assigned_to_name": {
+      "type": "string",
+      "description": "Support agent name"
+    },
+    "responses": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string"
+          },
+          "user_name": {
+            "type": "string"
+          },
+          "user_role": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "attachments": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "default": [],
+      "description": "Conversation thread"
+    },
+    "resolved_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When ticket was resolved"
+    },
+    "resolved_by": {
+      "type": "string",
+      "description": "Who resolved the ticket"
+    },
+    "resolution_notes": {
+      "type": "string",
+      "description": "Resolution summary"
+    },
+    "last_response_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last response timestamp"
+    },
+    "last_response_by": {
+      "type": "string",
+      "description": "Who sent last response"
+    }
+  },
+  "required": [
+    "ticket_number",
+    "category",
+    "subject",
+    "description"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "dealer_id": "{{user.dealer_id}}"
+        },
+        {
+          "submitted_by": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

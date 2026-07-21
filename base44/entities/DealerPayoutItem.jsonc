@@ -1,0 +1,79 @@
+{
+  "name": "DealerPayoutItem",
+  "type": "object",
+  "properties": {
+    "payout_id": {
+      "type": "string",
+      "description": "Reference to parent DealerPayout"
+    },
+    "merchant_id": {
+      "type": "string",
+      "description": "Merchant that contributed to this payout"
+    },
+    "merchant_name": {
+      "type": "string",
+      "description": "Merchant business name"
+    },
+    "subscription_id": {
+      "type": "string",
+      "description": "Reference to subscription"
+    },
+    "invoice_id": {
+      "type": "string",
+      "description": "Optional invoice reference"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Amount contributed to dealer commission"
+    },
+    "commission_percent": {
+      "type": "number",
+      "description": "Commission rate applied"
+    },
+    "billing_period_start": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "billing_period_end": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "payout_id",
+    "merchant_id",
+    "amount"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "dealer_id": "{{user.dealer_id}}"
+        },
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

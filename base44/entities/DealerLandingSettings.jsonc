@@ -1,0 +1,154 @@
+{
+  "name": "DealerLandingSettings",
+  "type": "object",
+  "properties": {
+    "hero": {
+      "type": "object",
+      "properties": {
+        "headline": {
+          "type": "string",
+          "default": "Welcome to ChainLINK Dealer Portal"
+        },
+        "subheadline": {
+          "type": "string",
+          "default": "Manage your white-label network, merchants, and commissions from one powerful dashboard."
+        },
+        "badge_text": {
+          "type": "string",
+          "default": "White-Label POS Platform"
+        }
+      }
+    },
+    "feature_boxes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "icon": {
+            "type": "string",
+            "enum": [
+              "CheckCircle",
+              "DollarSign",
+              "Users",
+              "Globe",
+              "Shield",
+              "Zap",
+              "TrendingUp",
+              "Building2"
+            ],
+            "description": "Icon name"
+          },
+          "icon_color": {
+            "type": "string",
+            "default": "#10b981",
+            "description": "Icon color"
+          },
+          "title": {
+            "type": "string",
+            "description": "Feature title"
+          },
+          "description": {
+            "type": "string",
+            "description": "Feature description"
+          }
+        }
+      },
+      "default": [
+        {
+          "icon": "CheckCircle",
+          "icon_color": "#10b981",
+          "title": "Full White Label",
+          "description": "Custom branding, domain, and logo"
+        },
+        {
+          "icon": "DollarSign",
+          "icon_color": "#10b981",
+          "title": "Earn Commissions",
+          "description": "10-30% recurring revenue"
+        },
+        {
+          "icon": "Users",
+          "icon_color": "#10b981",
+          "title": "Merchant Portal",
+          "description": "Your merchants, your brand"
+        },
+        {
+          "icon": "Globe",
+          "icon_color": "#10b981",
+          "title": "Custom Domain",
+          "description": "yourcompany.com/pos"
+        }
+      ]
+    },
+    "bottom_features": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "icon": {
+            "type": "string",
+            "enum": [
+              "CheckCircle",
+              "DollarSign",
+              "Users",
+              "Globe",
+              "Shield",
+              "Zap",
+              "TrendingUp",
+              "Building2"
+            ]
+          },
+          "icon_color": {
+            "type": "string",
+            "default": "#10b981"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "default": [
+        {
+          "icon": "Zap",
+          "icon_color": "#facc15",
+          "title": "Quick Setup",
+          "description": "Launch your branded POS platform in minutes. No coding required."
+        },
+        {
+          "icon": "Shield",
+          "icon_color": "#3b82f6",
+          "title": "Secure & Compliant",
+          "description": "PCI-DSS Level 1, SOC 2 Type II, and full EBT/SNAP compliance."
+        },
+        {
+          "icon": "TrendingUp",
+          "icon_color": "#10b981",
+          "title": "Recurring Revenue",
+          "description": "Earn 10-30% commission on every merchant subscription, monthly."
+        }
+      ]
+    }
+  },
+  "required": [],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": null,
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

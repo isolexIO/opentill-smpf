@@ -1,0 +1,135 @@
+{
+  "name": "Ambassador",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Ambassador business name"
+    },
+    "slug": {
+      "type": "string",
+      "description": "URL-safe identifier"
+    },
+    "logo_url": {
+      "type": "string"
+    },
+    "favicon_url": {
+      "type": "string"
+    },
+    "primary_color": {
+      "type": "string",
+      "default": "#42A5F5"
+    },
+    "secondary_color": {
+      "type": "string",
+      "default": "#C6EF50"
+    },
+    "domain": {
+      "type": "string"
+    },
+    "contact_email": {
+      "type": "string",
+      "format": "email"
+    },
+    "contact_phone": {
+      "type": "string"
+    },
+    "owner_name": {
+      "type": "string"
+    },
+    "owner_email": {
+      "type": "string",
+      "format": "email"
+    },
+    "stripe_connected": {
+      "type": "boolean",
+      "default": false
+    },
+    "stripe_account_id": {
+      "type": "string"
+    },
+    "solana_wallet_address": {
+      "type": "string"
+    },
+    "commission_percent": {
+      "type": "number",
+      "default": 0
+    },
+    "payout_method": {
+      "type": "string",
+      "enum": [
+        "stripe_connect",
+        "solana",
+        "manual"
+      ],
+      "default": "stripe_connect"
+    },
+    "payout_minimum": {
+      "type": "number",
+      "default": 20
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "suspended",
+        "trial",
+        "cancelled"
+      ],
+      "default": "trial"
+    },
+    "total_merchants": {
+      "type": "number",
+      "default": 0
+    },
+    "commission_earned": {
+      "type": "number",
+      "default": 0
+    },
+    "commission_pending": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "name",
+    "owner_email",
+    "contact_email"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "id": "{{user.ambassador_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "id": "{{user.ambassador_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

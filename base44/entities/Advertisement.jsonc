@@ -1,0 +1,152 @@
+{
+  "name": "Advertisement",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Ad title/name for admin reference"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "image",
+        "video",
+        "html"
+      ],
+      "description": "Type of ad content"
+    },
+    "content_url": {
+      "type": "string",
+      "description": "URL to image/video, or HTML content"
+    },
+    "link_url": {
+      "type": "string",
+      "description": "Click destination URL (optional)"
+    },
+    "duration_seconds": {
+      "type": "number",
+      "default": 10,
+      "description": "How long to display this ad in rotation"
+    },
+    "display_order": {
+      "type": "number",
+      "default": 0,
+      "description": "Order in rotation (lower = first)"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether ad is currently active"
+    },
+    "target_location": {
+      "type": "string",
+      "enum": [
+        "system_menu",
+        "customer_display",
+        "both"
+      ],
+      "default": "system_menu",
+      "description": "Where this ad should appear"
+    },
+    "schedule_start": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When to start showing this ad (optional)"
+    },
+    "schedule_end": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When to stop showing this ad (optional)"
+    },
+    "click_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of times ad was clicked"
+    },
+    "view_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of times ad was viewed"
+    },
+    "created_by": {
+      "type": "string",
+      "description": "Admin user who created the ad"
+    }
+  },
+  "required": [
+    "title",
+    "type",
+    "content_url"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "dealer_id": "{{user.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "target_merchants": {
+            "$in": [
+              null,
+              [],
+              "{{user.merchant_id}}"
+            ]
+          }
+        },
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "dealer_id": "{{user.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "dealer_id": "{{user.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "dealer_id": "{{user.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

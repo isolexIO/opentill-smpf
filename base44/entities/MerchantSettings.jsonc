@@ -1,0 +1,378 @@
+{
+  "name": "MerchantSettings",
+  "type": "object",
+  "properties": {
+    "merchant_id": {
+      "type": "string",
+      "description": "Unique merchant identifier"
+    },
+    "business_name": {
+      "type": "string",
+      "description": "Business name"
+    },
+    "payment_gateways": {
+      "type": "object",
+      "properties": {
+        "stripe": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "api_key": {
+              "type": "string"
+            },
+            "test_mode": {
+              "type": "boolean",
+              "default": true
+            },
+            "last_tested": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        },
+        "square": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "access_token": {
+              "type": "string"
+            },
+            "location_id": {
+              "type": "string"
+            },
+            "test_mode": {
+              "type": "boolean",
+              "default": true
+            },
+            "last_tested": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        },
+        "paypal": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "client_id": {
+              "type": "string"
+            },
+            "client_secret": {
+              "type": "string"
+            },
+            "test_mode": {
+              "type": "boolean",
+              "default": true
+            },
+            "last_tested": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        },
+        "crypto": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "btc_address": {
+              "type": "string"
+            },
+            "eth_address": {
+              "type": "string"
+            },
+            "sol_address": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "marketplace_integrations": {
+      "type": "object",
+      "properties": {
+        "doordash": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "api_key": {
+              "type": "string"
+            },
+            "store_id": {
+              "type": "string"
+            },
+            "auto_accept": {
+              "type": "boolean",
+              "default": false
+            },
+            "last_synced": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        },
+        "grubhub": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "api_key": {
+              "type": "string"
+            },
+            "restaurant_id": {
+              "type": "string"
+            },
+            "auto_accept": {
+              "type": "boolean",
+              "default": false
+            },
+            "last_synced": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        },
+        "uber_eats": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "client_id": {
+              "type": "string"
+            },
+            "client_secret": {
+              "type": "string"
+            },
+            "store_id": {
+              "type": "string"
+            },
+            "auto_accept": {
+              "type": "boolean",
+              "default": false
+            },
+            "last_synced": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        },
+        "takeout7": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "api_key": {
+              "type": "string"
+            },
+            "store_id": {
+              "type": "string"
+            },
+            "auto_accept": {
+              "type": "boolean",
+              "default": false
+            },
+            "last_synced": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        }
+      }
+    },
+    "hardware_devices": {
+      "type": "object",
+      "properties": {
+        "card_readers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "verifone",
+                  "clover",
+                  "pax",
+                  "ellipal",
+                  "square"
+                ]
+              },
+              "connection_type": {
+                "type": "string",
+                "enum": [
+                  "usb",
+                  "bluetooth",
+                  "ethernet",
+                  "wifi"
+                ]
+              },
+              "ip_address": {
+                "type": "string"
+              },
+              "port": {
+                "type": "number"
+              },
+              "is_connected": {
+                "type": "boolean",
+                "default": false
+              },
+              "last_tested": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        },
+        "printers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "receipt",
+                  "kitchen",
+                  "bar"
+                ]
+              },
+              "connection_type": {
+                "type": "string",
+                "enum": [
+                  "usb",
+                  "ethernet",
+                  "wifi"
+                ]
+              },
+              "ip_address": {
+                "type": "string"
+              },
+              "port": {
+                "type": "number"
+              },
+              "is_connected": {
+                "type": "boolean",
+                "default": false
+              }
+            }
+          }
+        },
+        "barcode_scanners": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "usb",
+                  "bluetooth",
+                  "camera"
+                ]
+              },
+              "is_connected": {
+                "type": "boolean",
+                "default": false
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "merchant_id",
+    "business_name"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "dealer_id": "{{user.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,196 @@
+{
+  "name": "Product",
+  "type": "object",
+  "properties": {
+    "dealer_id": {
+      "type": "string",
+      "description": "Dealer ID for multi-tenant isolation"
+    },
+    "merchant_id": {
+      "type": "string",
+      "description": "Merchant ID for data isolation - REQUIRED"
+    },
+    "name": {
+      "type": "string",
+      "description": "Product name"
+    },
+    "sku": {
+      "type": "string",
+      "description": "Stock keeping unit"
+    },
+    "barcode": {
+      "type": "string",
+      "description": "Barcode for scanning"
+    },
+    "price": {
+      "type": "number",
+      "description": "Base price"
+    },
+    "department": {
+      "type": "string",
+      "description": "Department this product belongs to"
+    },
+    "description": {
+      "type": "string",
+      "description": "Product description"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Product image URL"
+    },
+    "stock_quantity": {
+      "type": "number",
+      "default": 0,
+      "description": "Current stock level"
+    },
+    "low_stock_alert": {
+      "type": "number",
+      "default": 10,
+      "description": "Low stock threshold"
+    },
+    "tax_rate": {
+      "type": "number",
+      "default": 0.08,
+      "description": "Tax rate for this product"
+    },
+    "modifiers": {
+      "type": "array",
+      "description": "Available modifiers",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "price_adjustment": {
+            "type": "number"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "add",
+              "remove",
+              "substitute"
+            ]
+          },
+          "group": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "pos_mode": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "restaurant",
+          "retail",
+          "quick_service",
+          "food_truck"
+        ]
+      }
+    },
+    "ebt_eligible": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this item can be purchased with EBT/SNAP benefits"
+    },
+    "tippable": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether tips can be added for this item"
+    },
+    "age_restricted": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this item requires age verification"
+    },
+    "minimum_age": {
+      "type": "number",
+      "default": 21,
+      "description": "Minimum age required to purchase"
+    },
+    "restriction_type": {
+      "type": "string",
+      "enum": [
+        "alcohol",
+        "tobacco",
+        "vape",
+        "other"
+      ],
+      "description": "Type of age restriction"
+    },
+    "lookup_source": {
+      "type": "string",
+      "description": "Source of product data (e.g., 'Open Food Facts', 'UPC Item DB')"
+    },
+    "lookup_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When product was looked up from external database"
+    }
+  },
+  "required": [
+    "merchant_id",
+    "name",
+    "price"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "dealer_id": "{{user.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

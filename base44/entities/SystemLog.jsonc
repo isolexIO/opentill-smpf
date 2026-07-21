@@ -1,0 +1,114 @@
+{
+  "name": "SystemLog",
+  "type": "object",
+  "properties": {
+    "merchant_id": {
+      "type": "string",
+      "description": "Related merchant (null for global logs)"
+    },
+    "log_type": {
+      "type": "string",
+      "enum": [
+        "super_admin_action",
+        "merchant_action",
+        "payment_event",
+        "integration_event",
+        "device_event",
+        "error",
+        "security",
+        "subscription_event"
+      ],
+      "description": "Type of log entry"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "info",
+        "warning",
+        "error",
+        "critical"
+      ],
+      "default": "info",
+      "description": "Log severity"
+    },
+    "action": {
+      "type": "string",
+      "description": "Action performed (e.g., 'User PIN Login', 'Merchant Impersonation Started')"
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed description of the event"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "User who performed action"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "User email address"
+    },
+    "user_role": {
+      "type": "string",
+      "description": "User role at time of action"
+    },
+    "ip_address": {
+      "type": "string",
+      "description": "IP address of the client performing the action"
+    },
+    "user_agent": {
+      "type": "string",
+      "description": "Browser/device info of the client"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional structured context data (e.g., { orderId: '123', refundAmount: 50.00 })"
+    },
+    "error_stack": {
+      "type": "string",
+      "description": "Error stack trace if the log type is 'error'"
+    }
+  },
+  "required": [
+    "log_type",
+    "action"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "dealer_id": "{{user.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

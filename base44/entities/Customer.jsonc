@@ -1,0 +1,122 @@
+{
+  "name": "Customer",
+  "type": "object",
+  "properties": {
+    "dealer_id": {
+      "type": "string",
+      "description": "Dealer ID for multi-tenant isolation"
+    },
+    "merchant_id": {
+      "type": "string",
+      "description": "Merchant ID for data isolation - REQUIRED"
+    },
+    "name": {
+      "type": "string",
+      "description": "Customer full name"
+    },
+    "email": {
+      "type": "string",
+      "description": "Customer email"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Customer phone number"
+    },
+    "loyalty_points": {
+      "type": "number",
+      "default": 0,
+      "description": "Current loyalty points balance"
+    },
+    "duc_balance": {
+      "type": "number",
+      "default": 0,
+      "description": "$DUC token balance earned via merchant loyalty rewards"
+    },
+    "duc_lifetime_earned": {
+      "type": "number",
+      "default": 0,
+      "description": "Total $DUC ever earned by this customer from this merchant"
+    },
+    "total_spent": {
+      "type": "number",
+      "default": 0,
+      "description": "Lifetime total spent"
+    },
+    "visit_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of visits"
+    },
+    "preferred_payment": {
+      "type": "string",
+      "enum": [
+        "cash",
+        "card",
+        "crypto",
+        "mobile"
+      ],
+      "description": "Preferred payment method"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Customer notes or preferences"
+    }
+  },
+  "required": [
+    "merchant_id",
+    "name"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "dealer_id": "{{user.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,105 @@
+{
+  "name": "BuilderSplashSettings",
+  "type": "object",
+  "properties": {
+    "hero_headline": {
+      "type": "string",
+      "description": "Main hero headline"
+    },
+    "hero_subheadline": {
+      "type": "string",
+      "description": "Hero subheadline/description"
+    },
+    "hero_cta_text": {
+      "type": "string",
+      "description": "Primary CTA button text",
+      "default": "Start Building"
+    },
+    "hero_docs_text": {
+      "type": "string",
+      "description": "Docs button text",
+      "default": "View Docs"
+    },
+    "hero_docs_url": {
+      "type": "string",
+      "description": "Docs link URL",
+      "default": "https://docs.opentill.io/chips"
+    },
+    "revenue_share": {
+      "type": "string",
+      "description": "Revenue share percentage",
+      "default": "70%"
+    },
+    "features": {
+      "type": "array",
+      "description": "Feature highlights",
+      "items": {
+        "type": "object",
+        "properties": {
+          "icon": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "how_it_works": {
+      "type": "array",
+      "description": "Steps for how it works section",
+      "items": {
+        "type": "object",
+        "properties": {
+          "num": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "desc": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "cta_headline": {
+      "type": "string",
+      "description": "Bottom CTA headline"
+    },
+    "cta_subheadline": {
+      "type": "string",
+      "description": "Bottom CTA subheadline"
+    },
+    "contact_email": {
+      "type": "string",
+      "description": "Contact email shown in footer"
+    },
+    "discord_url": {
+      "type": "string",
+      "description": "Discord community link"
+    }
+  },
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "required": []
+}

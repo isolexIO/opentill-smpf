@@ -1,0 +1,167 @@
+{
+  "name": "Subscription",
+  "type": "object",
+  "properties": {
+    "merchant_id": {
+      "type": "string",
+      "description": "Reference to merchant"
+    },
+    "plan_name": {
+      "type": "string",
+      "enum": [
+        "free",
+        "basic",
+        "pro",
+        "enterprise"
+      ],
+      "description": "Subscription plan"
+    },
+    "price": {
+      "type": "number",
+      "description": "Monthly price in dollars"
+    },
+    "billing_cycle": {
+      "type": "string",
+      "enum": [
+        "monthly",
+        "yearly"
+      ],
+      "default": "monthly",
+      "description": "Billing frequency"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "past_due",
+        "cancelled",
+        "trial"
+      ],
+      "default": "trial",
+      "description": "Subscription status"
+    },
+    "current_period_start": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Current billing period start"
+    },
+    "current_period_end": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Current billing period end"
+    },
+    "next_billing_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Next charge date"
+    },
+    "last_payment_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last successful payment"
+    },
+    "last_payment_amount": {
+      "type": "number",
+      "description": "Last payment amount"
+    },
+    "payment_gateway": {
+      "type": "string",
+      "enum": [
+        "stripe",
+        "paypal",
+        "ach",
+        "manual"
+      ],
+      "description": "Payment method used"
+    },
+    "stripe_subscription_id": {
+      "type": "string",
+      "description": "Stripe subscription ID"
+    },
+    "stripe_customer_id": {
+      "type": "string",
+      "description": "Stripe customer ID"
+    },
+    "payment_failed_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Failed payment attempts"
+    },
+    "grace_period_ends": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When grace period expires"
+    },
+    "cancelled_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Cancellation date"
+    },
+    "cancellation_reason": {
+      "type": "string",
+      "description": "Why subscription was cancelled"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Admin notes"
+    }
+  },
+  "required": [
+    "merchant_id",
+    "plan_name",
+    "price"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "dealer_id": "{{user.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,121 @@
+{
+  "name": "AuditLog",
+  "type": "object",
+  "properties": {
+    "merchant_id": {
+      "type": "string",
+      "description": "Related merchant (null for super admin actions)"
+    },
+    "action_type": {
+      "type": "string",
+      "enum": [
+        "login",
+        "logout",
+        "payment_confirmed",
+        "refund_issued",
+        "order_modified",
+        "settings_changed",
+        "user_created",
+        "user_modified",
+        "impersonation_started",
+        "impersonation_ended",
+        "gateway_configured",
+        "device_registered",
+        "manual_payment",
+        "ebt_payment",
+        "age_verification",
+        "data_export"
+      ],
+      "description": "Type of action"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "info",
+        "warning",
+        "critical"
+      ],
+      "default": "info"
+    },
+    "actor_id": {
+      "type": "string",
+      "description": "User ID who performed the action"
+    },
+    "actor_email": {
+      "type": "string",
+      "description": "Email of actor"
+    },
+    "actor_role": {
+      "type": "string",
+      "description": "Role of actor"
+    },
+    "target_entity": {
+      "type": "string",
+      "description": "Entity affected (order_id, user_id, etc.)"
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable description"
+    },
+    "ip_address": {
+      "type": "string"
+    },
+    "user_agent": {
+      "type": "string"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Additional context data"
+    },
+    "pci_relevant": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this action is PCI-DSS relevant"
+    }
+  },
+  "required": [
+    "action_type",
+    "actor_id",
+    "description"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "dealer_id": "{{user.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

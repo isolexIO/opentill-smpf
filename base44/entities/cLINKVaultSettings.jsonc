@@ -1,0 +1,81 @@
+{
+  "name": "cLINKVaultSettings",
+  "type": "object",
+  "properties": {
+    "merchant_id": {
+      "type": "string",
+      "description": "Merchant ID (null for global settings)"
+    },
+    "vault_enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether vault is enabled for this merchant"
+    },
+    "reward_percentage": {
+      "type": "number",
+      "default": 0.5,
+      "description": "Reward percentage (0.5 = 0.5%)"
+    },
+    "minimum_claim_threshold": {
+      "type": "number",
+      "default": 10,
+      "description": "Minimum $DUC required to claim"
+    },
+    "staking_apy": {
+      "type": "number",
+      "default": 12,
+      "description": "Default staking APY percentage"
+    },
+    "staking_lockup_days": {
+      "type": "number",
+      "default": 90,
+      "description": "Default lockup period in days"
+    },
+    "jupiter_referral_code": {
+      "type": "string",
+      "description": "Jupiter swap referral code"
+    },
+    "duc_mint_address": {
+      "type": "string",
+      "description": "Solana token mint address for $DUC"
+    },
+    "auto_calculate_rewards": {
+      "type": "boolean",
+      "default": true,
+      "description": "Automatically calculate monthly rewards"
+    }
+  },
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "merchant_id": null
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "required": []
+}

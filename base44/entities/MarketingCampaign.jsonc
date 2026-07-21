@@ -1,0 +1,197 @@
+{
+  "name": "MarketingCampaign",
+  "type": "object",
+  "properties": {
+    "dealer_id": {
+      "type": "string",
+      "description": "Dealer who created the campaign"
+    },
+    "merchant_id": {
+      "type": "string",
+      "description": "Target merchant (null for multi-merchant campaigns)"
+    },
+    "campaign_name": {
+      "type": "string",
+      "description": "Campaign name"
+    },
+    "campaign_type": {
+      "type": "string",
+      "enum": [
+        "social_media",
+        "email",
+        "sms",
+        "multi_channel"
+      ],
+      "description": "Type of marketing campaign"
+    },
+    "target_segment": {
+      "type": "string",
+      "enum": [
+        "all",
+        "high_performers",
+        "new_merchants",
+        "struggling",
+        "seasonal",
+        "custom"
+      ],
+      "description": "Target merchant segment"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "scheduled",
+        "active",
+        "completed",
+        "paused"
+      ],
+      "default": "draft",
+      "description": "Campaign status"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Campaign start date"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Campaign end date"
+    },
+    "content_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "content_id": {
+            "type": "string"
+          },
+          "content_type": {
+            "type": "string"
+          },
+          "scheduled_date": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "description": "Associated marketing content"
+    },
+    "target_merchants": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of merchant IDs to target"
+    },
+    "performance_metrics": {
+      "type": "object",
+      "properties": {
+        "impressions": {
+          "type": "number",
+          "default": 0
+        },
+        "clicks": {
+          "type": "number",
+          "default": 0
+        },
+        "conversions": {
+          "type": "number",
+          "default": 0
+        },
+        "engagement_rate": {
+          "type": "number",
+          "default": 0
+        },
+        "revenue_generated": {
+          "type": "number",
+          "default": 0
+        }
+      }
+    },
+    "ai_recommendations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "recommendation": {
+            "type": "string"
+          },
+          "confidence": {
+            "type": "number"
+          },
+          "implemented": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "description": "AI-generated optimization recommendations"
+    },
+    "budget": {
+      "type": "number",
+      "description": "Campaign budget"
+    },
+    "actual_spend": {
+      "type": "number",
+      "default": 0,
+      "description": "Actual campaign spend"
+    }
+  },
+  "required": [
+    "dealer_id",
+    "campaign_name",
+    "campaign_type",
+    "target_segment"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "dealer_id": "{{user.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "dealer_id": "{{user.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "dealer_id": "{{user.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "dealer_id": "{{user.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

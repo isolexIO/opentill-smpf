@@ -1,0 +1,134 @@
+{
+  "name": "ChipSubscription",
+  "type": "object",
+  "properties": {
+    "chip_id": {
+      "type": "string",
+      "description": "Reference to Chip"
+    },
+    "owner_type": {
+      "type": "string",
+      "enum": [
+        "merchant",
+        "ambassador"
+      ],
+      "description": "Subscriber type"
+    },
+    "owner_id": {
+      "type": "string",
+      "description": "Merchant or Ambassador ID"
+    },
+    "wallet_address": {
+      "type": "string",
+      "description": "Wallet paying subscription"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ACTIVE",
+        "PAST_DUE",
+        "CANCELED"
+      ],
+      "default": "ACTIVE"
+    },
+    "recurring_price_duc": {
+      "type": "number",
+      "description": "Price per billing cycle"
+    },
+    "interval": {
+      "type": "string",
+      "enum": [
+        "MONTHLY",
+        "YEARLY"
+      ]
+    },
+    "current_period_start": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "current_period_end": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "next_billing_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "grace_period_days": {
+      "type": "number",
+      "default": 3
+    },
+    "last_payment_tx_sig": {
+      "type": "string",
+      "description": "Last successful payment tx"
+    },
+    "last_payment_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "canceled_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "chip_id",
+    "owner_type",
+    "owner_id",
+    "wallet_address",
+    "recurring_price_duc",
+    "interval"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.owner_id": "{{user.data.merchant_id}}"
+        },
+        {
+          "data.owner_id": "{{user.data.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.owner_id": "{{user.data.merchant_id}}"
+        },
+        {
+          "data.owner_id": "{{user.data.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.owner_id": "{{user.data.merchant_id}}"
+        },
+        {
+          "data.owner_id": "{{user.data.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

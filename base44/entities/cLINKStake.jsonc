@@ -1,0 +1,96 @@
+{
+  "name": "cLINKStake",
+  "type": "object",
+  "properties": {
+    "merchant_id": {
+      "type": "string",
+      "description": "Merchant who staked"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Amount of $DUC staked"
+    },
+    "apy": {
+      "type": "number",
+      "description": "Annual percentage yield"
+    },
+    "lockup_period_days": {
+      "type": "number",
+      "description": "Lockup period in days"
+    },
+    "staked_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When tokens were staked"
+    },
+    "unlocks_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When tokens can be unstaked"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "unlocked",
+        "withdrawn"
+      ],
+      "default": "active",
+      "description": "Stake status"
+    },
+    "earned_rewards": {
+      "type": "number",
+      "default": 0,
+      "description": "Rewards earned from this stake"
+    },
+    "transaction_signature": {
+      "type": "string",
+      "description": "On-chain stake transaction"
+    },
+    "wallet_address": {
+      "type": "string",
+      "description": "Wallet address"
+    }
+  },
+  "required": [
+    "merchant_id",
+    "amount",
+    "apy"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

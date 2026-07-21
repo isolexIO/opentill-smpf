@@ -1,0 +1,110 @@
+{
+  "name": "DealerCommission",
+  "type": "object",
+  "properties": {
+    "dealer_id": {
+      "type": "string",
+      "description": "Reference to dealer"
+    },
+    "merchant_id": {
+      "type": "string",
+      "description": "Merchant that generated this commission"
+    },
+    "merchant_name": {
+      "type": "string",
+      "description": "Merchant business name"
+    },
+    "billing_period_start": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Start of billing period"
+    },
+    "billing_period_end": {
+      "type": "string",
+      "format": "date-time",
+      "description": "End of billing period"
+    },
+    "merchant_subscription_amount": {
+      "type": "number",
+      "description": "Merchant's subscription fee for the period"
+    },
+    "commission_percent": {
+      "type": "number",
+      "description": "Commission rate applied"
+    },
+    "commission_amount": {
+      "type": "number",
+      "description": "Commission earned by dealer"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "paid",
+        "cancelled"
+      ],
+      "default": "pending",
+      "description": "Commission status"
+    },
+    "paid_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When commission was paid out"
+    },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "stripe",
+        "solana",
+        "ach",
+        "manual"
+      ],
+      "description": "How commission was paid"
+    },
+    "transaction_id": {
+      "type": "string",
+      "description": "Payment transaction ID"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Admin notes"
+    }
+  },
+  "required": [
+    "dealer_id",
+    "merchant_id",
+    "billing_period_start",
+    "billing_period_end",
+    "commission_amount"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "dealer_id": "{{user.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

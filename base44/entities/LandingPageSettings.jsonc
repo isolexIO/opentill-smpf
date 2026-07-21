@@ -1,0 +1,166 @@
+{
+  "name": "LandingPageSettings",
+  "type": "object",
+  "properties": {
+    "hero": {
+      "type": "object",
+      "properties": {
+        "badge_text": {
+          "type": "string",
+          "default": "Now Available"
+        },
+        "badge_status": {
+          "type": "string",
+          "enum": [
+            "now_available",
+            "coming_soon"
+          ],
+          "default": "now_available"
+        },
+        "headline": {
+          "type": "string",
+          "default": "The Future of Point of Sale"
+        },
+        "subheadline": {
+          "type": "string",
+          "default": "Accept cash, card, crypto, and EBT with ChainLINK's dual-pricing compliant POS system"
+        },
+        "cta_primary_text": {
+          "type": "string",
+          "default": "Start Free Trial"
+        },
+        "cta_secondary_text": {
+          "type": "string",
+          "default": "Watch Demo"
+        },
+        "background_gradient_start": {
+          "type": "string",
+          "default": "#7B2FD6"
+        },
+        "background_gradient_end": {
+          "type": "string",
+          "default": "#0FD17A"
+        }
+      }
+    },
+    "stats": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        }
+      },
+      "default": [
+        {
+          "value": "10,000+",
+          "label": "Active Merchants"
+        },
+        {
+          "value": "99.9%",
+          "label": "Uptime"
+        },
+        {
+          "value": "$500M+",
+          "label": "Processed Annually"
+        },
+        {
+          "value": "24/7",
+          "label": "Support"
+        }
+      ]
+    },
+    "features_section": {
+      "type": "object",
+      "properties": {
+        "headline": {
+          "type": "string",
+          "default": "Everything You Need to Run Your Business"
+        },
+        "subheadline": {
+          "type": "string",
+          "default": "Powerful features built for modern commerce"
+        }
+      }
+    },
+    "testimonials": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "business": {
+            "type": "string"
+          },
+          "image": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "rating": {
+            "type": "number",
+            "default": 5
+          }
+        }
+      },
+      "default": []
+    },
+    "cta_section": {
+      "type": "object",
+      "properties": {
+        "headline": {
+          "type": "string",
+          "default": "Ready to Transform Your Business?"
+        },
+        "subheadline": {
+          "type": "string",
+          "default": "Join thousands of merchants already using ChainLINK POS"
+        },
+        "cta_text": {
+          "type": "string",
+          "default": "Get Started Today"
+        }
+      }
+    },
+    "company_info": {
+      "type": "object",
+      "properties": {
+        "copyright_text": {
+          "type": "string",
+          "default": "\u00a9 2024 Isolex Corporation. All rights reserved."
+        },
+        "tagline": {
+          "type": "string",
+          "default": "The next-generation point of sale system for modern businesses."
+        }
+      }
+    }
+  },
+  "required": [],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

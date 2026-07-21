@@ -1,0 +1,61 @@
+{
+  "name": "PlatformSettings",
+  "type": "object",
+  "properties": {
+    "setting_key": {
+      "type": "string",
+      "description": "Unique setting identifier (e.g., 'payment_gateways', 'device_shop_settings')"
+    },
+    "setting_value": {
+      "type": "object",
+      "description": "JSON object containing the settings"
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable description"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "payment",
+        "device_shop",
+        "subscription",
+        "general",
+        "email",
+        "security"
+      ],
+      "description": "Setting category"
+    },
+    "is_encrypted": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether setting contains sensitive data"
+    }
+  },
+  "required": [
+    "setting_key",
+    "setting_value"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

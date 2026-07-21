@@ -1,0 +1,110 @@
+{
+  "name": "CustomerRedemption",
+  "type": "object",
+  "properties": {
+    "merchant_id": {
+      "type": "string",
+      "description": "Merchant ID for data isolation"
+    },
+    "customer_id": {
+      "type": "string",
+      "description": "Customer ID"
+    },
+    "customer_phone": {
+      "type": "string",
+      "description": "Customer phone number"
+    },
+    "reward_id": {
+      "type": "string",
+      "description": "Reward that was redeemed"
+    },
+    "reward_name": {
+      "type": "string",
+      "description": "Name of the reward"
+    },
+    "points_spent": {
+      "type": "number",
+      "description": "Points deducted for this redemption"
+    },
+    "discount_amount": {
+      "type": "number",
+      "description": "Dollar amount saved"
+    },
+    "order_id": {
+      "type": "string",
+      "description": "Associated order ID"
+    },
+    "order_number": {
+      "type": "string",
+      "description": "Associated order number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "used",
+        "expired",
+        "cancelled"
+      ],
+      "default": "used",
+      "description": "Redemption status"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this redemption expires"
+    }
+  },
+  "required": [
+    "merchant_id",
+    "customer_phone",
+    "reward_id",
+    "points_spent"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "dealer_id": "{{user.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

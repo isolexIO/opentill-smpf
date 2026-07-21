@@ -1,0 +1,206 @@
+{
+  "name": "MarketingContent",
+  "type": "object",
+  "properties": {
+    "dealer_id": {
+      "type": "string",
+      "description": "Dealer who created the content"
+    },
+    "merchant_id": {
+      "type": "string",
+      "description": "Associated merchant"
+    },
+    "campaign_id": {
+      "type": "string",
+      "description": "Associated campaign"
+    },
+    "content_type": {
+      "type": "string",
+      "enum": [
+        "social_post",
+        "email_newsletter",
+        "sms",
+        "blog_post",
+        "ad_copy"
+      ],
+      "description": "Type of content"
+    },
+    "platform": {
+      "type": "string",
+      "enum": [
+        "facebook",
+        "instagram",
+        "twitter",
+        "linkedin",
+        "email",
+        "sms",
+        "multiple"
+      ],
+      "description": "Target platform"
+    },
+    "title": {
+      "type": "string",
+      "description": "Content title/subject"
+    },
+    "body": {
+      "type": "string",
+      "description": "Main content body"
+    },
+    "media_urls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Associated media (images, videos)"
+    },
+    "hashtags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Suggested hashtags"
+    },
+    "call_to_action": {
+      "type": "string",
+      "description": "CTA text"
+    },
+    "ai_generated": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether content was AI-generated"
+    },
+    "generation_prompt": {
+      "type": "string",
+      "description": "Prompt used to generate content"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "approved",
+        "scheduled",
+        "published",
+        "archived"
+      ],
+      "default": "draft",
+      "description": "Content status"
+    },
+    "scheduled_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When to publish"
+    },
+    "published_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When it was published"
+    },
+    "performance": {
+      "type": "object",
+      "properties": {
+        "views": {
+          "type": "number",
+          "default": 0
+        },
+        "likes": {
+          "type": "number",
+          "default": 0
+        },
+        "shares": {
+          "type": "number",
+          "default": 0
+        },
+        "comments": {
+          "type": "number",
+          "default": 0
+        },
+        "clicks": {
+          "type": "number",
+          "default": 0
+        },
+        "conversions": {
+          "type": "number",
+          "default": 0
+        }
+      }
+    },
+    "variations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "performance_score": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "A/B test variations"
+    }
+  },
+  "required": [
+    "dealer_id",
+    "merchant_id",
+    "content_type",
+    "platform",
+    "body"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "dealer_id": "{{user.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "dealer_id": "{{user.dealer_id}}"
+        },
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "dealer_id": "{{user.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "dealer_id": "{{user.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

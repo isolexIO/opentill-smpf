@@ -1,0 +1,126 @@
+{
+  "name": "Reward",
+  "type": "object",
+  "properties": {
+    "merchant_id": {
+      "type": "string",
+      "description": "Merchant ID for data isolation - REQUIRED"
+    },
+    "name": {
+      "type": "string",
+      "description": "Reward name (e.g., '$5 Off', 'Free Drink')"
+    },
+    "description": {
+      "type": "string",
+      "description": "Reward description"
+    },
+    "reward_type": {
+      "type": "string",
+      "enum": [
+        "percentage_discount",
+        "fixed_discount",
+        "free_item",
+        "buy_x_get_y"
+      ],
+      "description": "Type of reward"
+    },
+    "points_required": {
+      "type": "number",
+      "description": "Points needed to redeem this reward"
+    },
+    "discount_value": {
+      "type": "number",
+      "description": "Dollar amount or percentage off"
+    },
+    "free_product_id": {
+      "type": "string",
+      "description": "Product ID for free item rewards"
+    },
+    "min_purchase_amount": {
+      "type": "number",
+      "default": 0,
+      "description": "Minimum purchase required to use reward"
+    },
+    "max_discount_amount": {
+      "type": "number",
+      "description": "Maximum discount amount (for percentage discounts)"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether reward is currently available"
+    },
+    "expiry_days": {
+      "type": "number",
+      "description": "Days until reward expires after redemption"
+    },
+    "usage_limit_per_customer": {
+      "type": "number",
+      "description": "Max times a customer can redeem this reward"
+    },
+    "total_redemptions": {
+      "type": "number",
+      "default": 0,
+      "description": "Total times this reward has been redeemed"
+    }
+  },
+  "required": [
+    "merchant_id",
+    "name",
+    "reward_type",
+    "points_required"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "dealer_id": "{{user.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

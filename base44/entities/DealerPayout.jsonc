@@ -1,0 +1,131 @@
+{
+  "name": "DealerPayout",
+  "type": "object",
+  "properties": {
+    "dealer_id": {
+      "type": "string",
+      "description": "Reference to dealer receiving payout"
+    },
+    "period_start": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Billing period start date"
+    },
+    "period_end": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Billing period end date"
+    },
+    "gross_amount": {
+      "type": "number",
+      "description": "Total merchant fees for period"
+    },
+    "commission_amount": {
+      "type": "number",
+      "description": "Dealer commission (dealer's cut)"
+    },
+    "root_share": {
+      "type": "number",
+      "description": "Platform's share of revenue"
+    },
+    "fees": {
+      "type": "number",
+      "default": 0,
+      "description": "Processing fees (Stripe/Solana)"
+    },
+    "payout_method": {
+      "type": "string",
+      "enum": [
+        "stripe_connect",
+        "solana",
+        "manual"
+      ],
+      "description": "Method used for payout"
+    },
+    "payout_destination": {
+      "type": "object",
+      "description": "Destination details (stripe_account_id, stripe_transfer_id, solana_wallet, tx_signature)",
+      "additionalProperties": true
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "scheduled",
+        "processing",
+        "completed",
+        "failed",
+        "canceled",
+        "on_hold",
+        "manual_review"
+      ],
+      "default": "pending",
+      "description": "Payout status"
+    },
+    "scheduled_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When payout is scheduled to execute"
+    },
+    "processed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When payout was actually processed"
+    },
+    "attempt_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of processing attempts"
+    },
+    "error_message": {
+      "type": "string",
+      "description": "Error details if failed"
+    },
+    "carryover_amount": {
+      "type": "number",
+      "default": 0,
+      "description": "Amount carried over from previous period if below minimum"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Admin notes or additional context"
+    }
+  },
+  "required": [
+    "dealer_id",
+    "period_start",
+    "period_end",
+    "gross_amount",
+    "commission_amount",
+    "root_share"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "dealer_id": "{{user.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

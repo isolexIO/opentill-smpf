@@ -1,0 +1,275 @@
+{
+  "name": "Order",
+  "type": "object",
+  "properties": {
+    "dealer_id": {
+      "type": "string",
+      "description": "Dealer ID for multi-tenant isolation"
+    },
+    "merchant_id": {
+      "type": "string",
+      "description": "Merchant ID for data isolation - REQUIRED"
+    },
+    "order_number": {
+      "type": "string"
+    },
+    "station_id": {
+      "type": "string"
+    },
+    "station_name": {
+      "type": "string"
+    },
+    "customer_id": {
+      "type": "string"
+    },
+    "customer_name": {
+      "type": "string"
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "product_id": {
+            "type": "string"
+          },
+          "product_name": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "unit_price": {
+            "type": "number"
+          },
+          "modifiers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "item_total": {
+            "type": "number"
+          },
+          "is_open_item": {
+            "type": "boolean",
+            "default": false
+          },
+          "ebt_eligible": {
+            "type": "boolean",
+            "default": false
+          },
+          "age_restricted": {
+            "type": "boolean",
+            "default": false
+          },
+          "minimum_age": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "subtotal": {
+      "type": "number"
+    },
+    "tax_amount": {
+      "type": "number"
+    },
+    "discount_amount": {
+      "type": "number",
+      "default": 0
+    },
+    "surcharge_amount": {
+      "type": "number",
+      "default": 0
+    },
+    "surcharge_label": {
+      "type": "string"
+    },
+    "tip_amount": {
+      "type": "number",
+      "default": 0
+    },
+    "total": {
+      "type": "number"
+    },
+    "ebt_amount": {
+      "type": "number",
+      "default": 0,
+      "description": "Amount paid with EBT"
+    },
+    "ebt_eligible_total": {
+      "type": "number",
+      "default": 0,
+      "description": "Total amount of EBT-eligible items"
+    },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "cash",
+        "card",
+        "ebt",
+        "solana_pay",
+        "opentill",
+        "split",
+        "pending"
+      ]
+    },
+    "payment_details": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Includes EBT approval codes, split payment details, blockchain tx signatures, etc."
+    },
+    "age_verification": {
+      "type": "object",
+      "properties": {
+        "verified": {
+          "type": "boolean"
+        },
+        "verification_method": {
+          "type": "string",
+          "enum": [
+            "id_scan",
+            "manual_entry",
+            "visual_check"
+          ]
+        },
+        "verified_age": {
+          "type": "number"
+        },
+        "verified_by_user_id": {
+          "type": "string"
+        },
+        "verified_by_user_name": {
+          "type": "string"
+        },
+        "verified_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "id_last_4": {
+          "type": "string",
+          "description": "Last 4 digits of ID for audit trail"
+        }
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "preview",
+        "tip_selection",
+        "approval",
+        "ready_for_payment",
+        "payment_in_progress",
+        "pending",
+        "processing",
+        "completed",
+        "refunded",
+        "cancelled"
+      ],
+      "default": "preview"
+    },
+    "pos_mode": {
+      "type": "string"
+    },
+    "table_number": {
+      "type": "string"
+    },
+    "location": {
+      "type": "string"
+    },
+    "sent_to_kitchen": {
+      "type": "boolean",
+      "default": false
+    },
+    "sent_to_customer_display": {
+      "type": "boolean",
+      "default": false
+    },
+    "online_order_id": {
+      "type": "string"
+    },
+    "fulfillment_type": {
+      "type": "string",
+      "enum": [
+        "pickup",
+        "delivery"
+      ]
+    },
+    "delivery_address": {
+      "type": "string"
+    },
+    "special_instructions": {
+      "type": "string"
+    },
+    "requested_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "merchant_id",
+    "order_number",
+    "items",
+    "subtotal",
+    "tax_amount",
+    "total"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "dealer_id": "{{user.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

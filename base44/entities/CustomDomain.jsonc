@@ -1,0 +1,188 @@
+{
+  "name": "CustomDomain",
+  "type": "object",
+  "properties": {
+    "dealer_id": {
+      "type": "string",
+      "description": "Owner dealer ID"
+    },
+    "merchant_id": {
+      "type": "string",
+      "description": "Owner merchant ID (if merchant-specific)"
+    },
+    "domain": {
+      "type": "string",
+      "description": "Custom domain (e.g., pos.mystore.com)"
+    },
+    "domain_type": {
+      "type": "string",
+      "enum": [
+        "pos",
+        "online_ordering",
+        "both"
+      ],
+      "description": "What this domain is used for"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "dns_pending",
+        "verifying",
+        "provisioning_ssl",
+        "active",
+        "failed"
+      ],
+      "default": "pending",
+      "description": "Domain verification and activation status"
+    },
+    "verification_method": {
+      "type": "string",
+      "enum": [
+        "dns_txt",
+        "dns_cname",
+        "file_upload"
+      ],
+      "default": "dns_cname",
+      "description": "How domain ownership is verified"
+    },
+    "verification_token": {
+      "type": "string",
+      "description": "Unique token for domain verification"
+    },
+    "verified_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When domain was verified"
+    },
+    "ssl_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "provisioning",
+        "active",
+        "failed",
+        "expired"
+      ],
+      "default": "pending",
+      "description": "SSL certificate status"
+    },
+    "ssl_issued_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When SSL cert was issued"
+    },
+    "ssl_expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When SSL cert expires"
+    },
+    "dns_records": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "A",
+              "CNAME",
+              "TXT"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "verified": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "description": "Required DNS records for domain setup"
+    },
+    "force_https": {
+      "type": "boolean",
+      "default": true,
+      "description": "Enforce HTTPS redirect"
+    },
+    "last_checked": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last time domain/SSL was checked"
+    },
+    "error_message": {
+      "type": "string",
+      "description": "Error details if setup failed"
+    }
+  },
+  "required": [
+    "domain",
+    "domain_type"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "dealer_id": "{{user.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "dealer_id": "{{user.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "dealer_id": "{{user.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "dealer_id": "{{user.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

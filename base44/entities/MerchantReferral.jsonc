@@ -1,0 +1,98 @@
+{
+  "name": "MerchantReferral",
+  "type": "object",
+  "properties": {
+    "referrer_merchant_id": {
+      "type": "string",
+      "description": "Merchant who referred (the one who gets rewards)"
+    },
+    "referrer_name": {
+      "type": "string",
+      "description": "Business name of referrer"
+    },
+    "referred_merchant_id": {
+      "type": "string",
+      "description": "Merchant who was referred (the new merchant)"
+    },
+    "referred_name": {
+      "type": "string",
+      "description": "Business name of referred merchant"
+    },
+    "referral_code": {
+      "type": "string",
+      "description": "Referral code used"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "active",
+        "inactive"
+      ],
+      "default": "pending",
+      "description": "Referral status (active when referred merchant is active)"
+    },
+    "total_rewards_earned": {
+      "type": "number",
+      "default": 0,
+      "description": "Total $DUC earned from this referral"
+    },
+    "referred_merchant_lifetime_volume": {
+      "type": "number",
+      "default": 0,
+      "description": "Referred merchant's total CC volume"
+    },
+    "activated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When referred merchant became active"
+    }
+  },
+  "required": [
+    "referrer_merchant_id",
+    "referred_merchant_id",
+    "referral_code"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "referrer_merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "referred_merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "referrer_merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "referred_merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

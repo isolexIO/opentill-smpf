@@ -1,0 +1,171 @@
+{
+  "name": "MerchantInventory",
+  "type": "object",
+  "properties": {
+    "dealer_id": {
+      "type": "string",
+      "description": "Dealer ID for multi-tenant isolation"
+    },
+    "merchant_id": {
+      "type": "string",
+      "description": "Owning merchant"
+    },
+    "name": {
+      "type": "string",
+      "description": "Item name"
+    },
+    "sku": {
+      "type": "string",
+      "description": "Stock keeping unit"
+    },
+    "barcode": {
+      "type": "string",
+      "description": "Barcode for scanning"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "food",
+        "beverage",
+        "supplies",
+        "packaging",
+        "cleaning",
+        "other"
+      ],
+      "description": "Item category"
+    },
+    "quantity": {
+      "type": "number",
+      "default": 0,
+      "description": "Current stock level"
+    },
+    "unit_of_measure": {
+      "type": "string",
+      "default": "unit",
+      "description": "each, box, case, lb, kg, etc."
+    },
+    "reorder_threshold": {
+      "type": "number",
+      "default": 10,
+      "description": "Alert when below this"
+    },
+    "cost_per_unit": {
+      "type": "number",
+      "description": "Cost to merchant"
+    },
+    "selling_price": {
+      "type": "number",
+      "description": "Retail price if applicable"
+    },
+    "supplier_name": {
+      "type": "string",
+      "description": "Supplier/vendor name"
+    },
+    "supplier_contact": {
+      "type": "string",
+      "description": "Supplier phone/email"
+    },
+    "supplier_url": {
+      "type": "string",
+      "description": "Reorder link"
+    },
+    "last_restock_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last restocked"
+    },
+    "last_restock_quantity": {
+      "type": "number",
+      "description": "Amount added in last restock"
+    },
+    "last_sold_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last time used/sold"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "in_stock",
+        "low_stock",
+        "out_of_stock",
+        "discontinued"
+      ],
+      "default": "in_stock",
+      "description": "Stock status"
+    },
+    "alert_enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Send low stock alerts"
+    },
+    "hide_when_empty": {
+      "type": "boolean",
+      "default": false,
+      "description": "Hide from POS when out of stock"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    }
+  },
+  "required": [
+    "merchant_id",
+    "name",
+    "quantity",
+    "reorder_threshold"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "dealer_id": "{{user.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,124 @@
+{
+  "name": "DeviceShopProduct",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Product name"
+    },
+    "sku": {
+      "type": "string",
+      "description": "Stock keeping unit"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "terminals",
+        "card_readers",
+        "printers",
+        "scanners",
+        "displays",
+        "tablets",
+        "accessories",
+        "supplies"
+      ],
+      "description": "Product category"
+    },
+    "description": {
+      "type": "string",
+      "description": "Product description"
+    },
+    "long_description": {
+      "type": "string",
+      "description": "Detailed product info"
+    },
+    "price": {
+      "type": "number",
+      "description": "Retail price"
+    },
+    "cost": {
+      "type": "number",
+      "description": "Cost to admin (wholesale)"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Product image URL"
+    },
+    "images": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Additional product images"
+    },
+    "stock_quantity": {
+      "type": "number",
+      "default": 0,
+      "description": "Current inventory"
+    },
+    "reorder_level": {
+      "type": "number",
+      "default": 10,
+      "description": "Reorder alert threshold"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Product active status"
+    },
+    "is_featured": {
+      "type": "boolean",
+      "default": false,
+      "description": "Show on homepage"
+    },
+    "specifications": {
+      "type": "object",
+      "description": "Technical specs"
+    },
+    "compatible_with": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Compatible systems/devices"
+    },
+    "warranty_months": {
+      "type": "number",
+      "default": 12,
+      "description": "Warranty period"
+    },
+    "shipping_weight_lbs": {
+      "type": "number",
+      "description": "Shipping weight"
+    },
+    "total_sold": {
+      "type": "number",
+      "default": 0,
+      "description": "Total units sold"
+    }
+  },
+  "required": [
+    "name",
+    "sku",
+    "category",
+    "price"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

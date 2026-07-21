@@ -1,0 +1,78 @@
+{
+  "name": "ChipMint",
+  "type": "object",
+  "properties": {
+    "chip_id": {
+      "type": "string",
+      "description": "Reference to Chip"
+    },
+    "wallet_address": {
+      "type": "string",
+      "description": "Wallet that minted"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "User ID"
+    },
+    "merchant_id": {
+      "type": "string",
+      "description": "Merchant ID if applicable"
+    },
+    "ambassador_id": {
+      "type": "string",
+      "description": "Ambassador ID if applicable"
+    },
+    "tx_signature": {
+      "type": "string",
+      "description": "Solana transaction signature"
+    },
+    "nft_mint_address": {
+      "type": "string",
+      "description": "Minted NFT address"
+    },
+    "price_paid_duc": {
+      "type": "number",
+      "description": "Amount paid in $DUC"
+    },
+    "minted_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "chip_id",
+    "wallet_address",
+    "tx_signature"
+  ],
+  "rls": {
+    "create": {},
+    "read": {
+      "$or": [
+        {
+          "user_id": "{{user.id}}"
+        },
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "ambassador_id": "{{user.ambassador_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

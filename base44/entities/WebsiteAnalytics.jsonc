@@ -1,0 +1,114 @@
+{
+  "name": "WebsiteAnalytics",
+  "type": "object",
+  "properties": {
+    "merchant_id": {
+      "type": "string",
+      "description": "Merchant who owns the website"
+    },
+    "website_id": {
+      "type": "string",
+      "description": "Unique identifier for the generated website"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "page_view",
+        "unique_visitor",
+        "button_click",
+        "form_submission",
+        "link_click"
+      ],
+      "description": "Type of analytics event"
+    },
+    "page_path": {
+      "type": "string",
+      "description": "Page URL or path"
+    },
+    "visitor_id": {
+      "type": "string",
+      "description": "Anonymous visitor identifier"
+    },
+    "session_id": {
+      "type": "string",
+      "description": "Session identifier"
+    },
+    "referrer": {
+      "type": "string",
+      "description": "Traffic source/referrer URL"
+    },
+    "user_agent": {
+      "type": "string",
+      "description": "Browser user agent"
+    },
+    "device_type": {
+      "type": "string",
+      "enum": [
+        "desktop",
+        "mobile",
+        "tablet"
+      ],
+      "description": "Device category"
+    },
+    "element_id": {
+      "type": "string",
+      "description": "Element ID for click events"
+    },
+    "element_text": {
+      "type": "string",
+      "description": "Button/link text for click events"
+    },
+    "form_data": {
+      "type": "object",
+      "description": "Form submission data (sanitized)"
+    },
+    "ip_address": {
+      "type": "string",
+      "description": "Visitor IP (hashed for privacy)"
+    },
+    "country": {
+      "type": "string",
+      "description": "Visitor country"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Event timestamp"
+    }
+  },
+  "required": [
+    "merchant_id",
+    "website_id",
+    "event_type"
+  ],
+  "rls": {
+    "create": {
+      "merchant_id": "{{user.merchant_id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "dealer_id": "{{user.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

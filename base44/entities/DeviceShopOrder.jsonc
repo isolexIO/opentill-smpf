@@ -1,0 +1,202 @@
+{
+  "name": "DeviceShopOrder",
+  "type": "object",
+  "properties": {
+    "order_number": {
+      "type": "string",
+      "description": "Unique order number"
+    },
+    "merchant_id": {
+      "type": "string",
+      "description": "Purchasing merchant"
+    },
+    "merchant_name": {
+      "type": "string",
+      "description": "Merchant business name"
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "product_id": {
+            "type": "string"
+          },
+          "product_name": {
+            "type": "string"
+          },
+          "sku": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "unit_price": {
+            "type": "number"
+          },
+          "total": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Order items"
+    },
+    "subtotal": {
+      "type": "number",
+      "description": "Before shipping/tax"
+    },
+    "shipping_cost": {
+      "type": "number",
+      "default": 0,
+      "description": "Shipping fee"
+    },
+    "tax_amount": {
+      "type": "number",
+      "default": 0,
+      "description": "Sales tax"
+    },
+    "total": {
+      "type": "number",
+      "description": "Final total"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "paid",
+        "processing",
+        "shipped",
+        "delivered",
+        "cancelled"
+      ],
+      "default": "pending",
+      "description": "Order status"
+    },
+    "payment_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "paid",
+        "failed",
+        "refunded"
+      ],
+      "default": "pending",
+      "description": "Payment status"
+    },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "stripe",
+        "paypal",
+        "ach"
+      ],
+      "description": "How payment was made"
+    },
+    "stripe_payment_intent": {
+      "type": "string",
+      "description": "Stripe payment ID"
+    },
+    "shipping_address": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "address1": {
+          "type": "string"
+        },
+        "address2": {
+          "type": "string"
+        },
+        "city": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string"
+        },
+        "zip": {
+          "type": "string"
+        },
+        "country": {
+          "type": "string",
+          "default": "US"
+        }
+      }
+    },
+    "tracking_number": {
+      "type": "string",
+      "description": "Shipping tracking"
+    },
+    "carrier": {
+      "type": "string",
+      "description": "Shipping carrier"
+    },
+    "shipped_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Ship date"
+    },
+    "delivered_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Delivery date"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Order notes"
+    }
+  },
+  "required": [
+    "order_number",
+    "merchant_id",
+    "items",
+    "subtotal",
+    "total"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "dealer_id": "{{user.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

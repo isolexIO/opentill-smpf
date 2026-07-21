@@ -1,0 +1,351 @@
+{
+  "name": "Merchant",
+  "type": "object",
+  "properties": {
+    "dealer_id": {
+      "type": "string",
+      "description": "Parent dealer/reseller ID - REQUIRED for multi-tenant isolation"
+    },
+    "business_name": {
+      "type": "string"
+    },
+    "display_name": {
+      "type": "string"
+    },
+    "owner_email": {
+      "type": "string",
+      "format": "email"
+    },
+    "owner_name": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "address": {
+      "type": "string"
+    },
+    "tax_id": {
+      "type": "string"
+    },
+    "referral_code": {
+      "type": "string",
+      "description": "Unique referral code for this merchant"
+    },
+    "referred_by_code": {
+      "type": "string",
+      "description": "Referral code that was used when signing up"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "inactive",
+        "active",
+        "suspended",
+        "trial",
+        "cancelled"
+      ],
+      "default": "inactive"
+    },
+    "is_demo": {
+      "type": "boolean",
+      "default": false,
+      "description": "Demo accounts have full access with no fees"
+    },
+    "duc_stake_required": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this merchant is required to stake $DUC to use the platform"
+    },
+    "duc_stake_amount": {
+      "type": "number",
+      "default": 50000,
+      "description": "Required $DUC stake amount for this merchant"
+    },
+    "trial_ends_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "activated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "suspended_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "suspension_reason": {
+      "type": "string"
+    },
+    "total_revenue": {
+      "type": "number",
+      "default": 0
+    },
+    "total_orders": {
+      "type": "number",
+      "default": 0
+    },
+    "onboarding_completed": {
+      "type": "boolean",
+      "default": false
+    },
+    "features_enabled": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [
+        "pos",
+        "inventory",
+        "reports"
+      ]
+    },
+    "opentill_subdomain": {
+      "type": "string",
+      "description": "Unique .opentill-pos.sol subdomain"
+    },
+    "subdomain_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "active",
+        "disabled"
+      ],
+      "default": "pending",
+      "description": "Subdomain activation status"
+    },
+    "subdomain_requested_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When subdomain was requested"
+    },
+    "subdomain_approved_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When subdomain was approved"
+    },
+    "subdomain_wallet": {
+      "type": "string",
+      "description": "Wallet address linked to subdomain"
+    },
+    "settings": {
+      "type": "object",
+      "properties": {
+        "timezone": {
+          "type": "string",
+          "default": "America/New_York"
+        },
+        "currency": {
+          "type": "string",
+          "default": "USD"
+        },
+        "tax_rate": {
+          "type": "number",
+          "default": 0.08
+        },
+        "enable_opentill_payments": {
+          "type": "boolean",
+          "default": false
+        },
+        "pricing_and_surcharge": {
+          "type": "object",
+          "properties": {
+            "enable_dual_pricing": {
+              "type": "boolean",
+              "default": false
+            },
+            "cc_surcharge_percent": {
+              "type": "number",
+              "default": 3.5
+            },
+            "flat_fee_amount": {
+              "type": "number",
+              "default": 0
+            },
+            "apply_flat_fee_to_all": {
+              "type": "boolean",
+              "default": false
+            },
+            "show_dual_prices": {
+              "type": "boolean",
+              "default": true
+            },
+            "region": {
+              "type": "string",
+              "enum": [
+                "US",
+                "CA",
+                "Other"
+              ],
+              "default": "US"
+            },
+            "pricing_mode": {
+              "type": "string",
+              "enum": [
+                "surcharge",
+                "cash_discount"
+              ],
+              "default": "surcharge"
+            }
+          }
+        },
+        "payment_gateways": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "solana_pay": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "network": {
+              "type": "string",
+              "enum": [
+                "mainnet",
+                "devnet"
+              ],
+              "default": "mainnet"
+            },
+            "wallet_address": {
+              "type": "string"
+            },
+            "accepted_token": {
+              "type": "string",
+              "default": "USDC"
+            },
+            "custom_token_mint": {
+              "type": "string"
+            },
+            "custom_token_symbol": {
+              "type": "string"
+            },
+            "custom_token_decimals": {
+              "type": "number",
+              "default": 6
+            },
+            "display_in_customer_terminal": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        },
+        "customer_display": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "age_verification": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "kitchen_display": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "auto_print": {
+              "type": "boolean",
+              "default": false
+            },
+            "group_by_station": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        },
+        "online_ordering": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "allow_cash_payment": {
+              "type": "boolean",
+              "default": true
+            },
+            "allow_pickup": {
+              "type": "boolean",
+              "default": true
+            },
+            "allow_delivery": {
+              "type": "boolean",
+              "default": true
+            },
+            "min_order_amount": {
+              "type": "number",
+              "default": 0
+            },
+            "delivery_fee": {
+              "type": "number",
+              "default": 0
+            },
+            "delivery_radius_miles": {
+              "type": "number",
+              "default": 10
+            }
+          }
+        },
+        "hardware": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    }
+  },
+  "required": [
+    "business_name",
+    "owner_email"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "dealer_admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "id": "{{user.merchant_id}}"
+        },
+        {
+          "dealer_id": "{{user.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,135 @@
+{
+  "name": "Builder",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Developer's email"
+    },
+    "full_name": {
+      "type": "string",
+      "description": "Developer's full name"
+    },
+    "company_name": {
+      "type": "string",
+      "description": "Company or solo developer name"
+    },
+    "bio": {
+      "type": "string",
+      "description": "Developer bio/description"
+    },
+    "profile_image_url": {
+      "type": "string",
+      "description": "Profile picture URL"
+    },
+    "website": {
+      "type": "string",
+      "description": "Developer/company website"
+    },
+    "github_url": {
+      "type": "string",
+      "description": "GitHub profile URL"
+    },
+    "twitter_url": {
+      "type": "string",
+      "description": "Twitter/X profile URL"
+    },
+    "support_email": {
+      "type": "string",
+      "description": "Support contact email"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "verified",
+        "suspended"
+      ],
+      "default": "pending",
+      "description": "Verification status"
+    },
+    "verified_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When developer was verified"
+    },
+    "stripe_connect_id": {
+      "type": "string",
+      "description": "Stripe Connect account ID"
+    },
+    "stripe_connected": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether Stripe Connect is set up"
+    },
+    "payout_enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether payouts are enabled"
+    },
+    "total_earnings": {
+      "type": "number",
+      "default": 0,
+      "description": "Total lifetime earnings"
+    },
+    "last_payout": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date of last payout"
+    },
+    "total_chips": {
+      "type": "number",
+      "default": 0,
+      "description": "Total chips submitted"
+    },
+    "total_sales": {
+      "type": "number",
+      "default": 0,
+      "description": "Total chips sold"
+    },
+    "total_installs": {
+      "type": "number",
+      "default": 0,
+      "description": "Total chip installations"
+    }
+  },
+  "required": [
+    "user_email",
+    "full_name"
+  ],
+  "rls": {
+    "create": {},
+    "read": {
+      "$or": [
+        {
+          "user_email": "{{user.email}}"
+        },
+        {
+          "status": "verified"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,130 @@
+{
+  "name": "TimeEntry",
+  "type": "object",
+  "properties": {
+    "merchant_id": {
+      "type": "string",
+      "description": "Merchant ID for data isolation - REQUIRED"
+    },
+    "dealer_id": {
+      "type": "string",
+      "description": "Dealer ID for multi-tenant isolation"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "Employee user ID"
+    },
+    "user_name": {
+      "type": "string",
+      "description": "Employee name"
+    },
+    "clock_in": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Clock in timestamp"
+    },
+    "clock_out": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Clock out timestamp"
+    },
+    "hours_worked": {
+      "type": "number",
+      "description": "Total hours worked"
+    },
+    "break_duration": {
+      "type": "number",
+      "default": 0,
+      "description": "Break time in minutes"
+    },
+    "station_id": {
+      "type": "string",
+      "description": "Station where employee clocked in"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "clocked_in",
+        "on_break",
+        "clocked_out"
+      ],
+      "default": "clocked_in",
+      "description": "Current status"
+    },
+    "ip_address": {
+      "type": "string",
+      "description": "IP address of clock in/out"
+    }
+  },
+  "required": [
+    "merchant_id",
+    "user_id",
+    "clock_in"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_id": "{{user.id}}"
+        },
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "user_id": "{{user.id}}"
+        },
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "dealer_id": "{{user.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_id": "{{user.id}}"
+        },
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

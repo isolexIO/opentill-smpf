@@ -1,0 +1,217 @@
+{
+  "name": "ChipSubmission",
+  "type": "object",
+  "properties": {
+    "builder_id": {
+      "type": "string",
+      "description": "Reference to Builder - REQUIRED"
+    },
+    "builder_email": {
+      "type": "string",
+      "description": "Builder's email for quick reference"
+    },
+    "name": {
+      "type": "string",
+      "description": "Chip name"
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed description"
+    },
+    "short_description": {
+      "type": "string",
+      "description": "One-line description"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "payment",
+        "inventory",
+        "reporting",
+        "integration",
+        "productivity",
+        "security",
+        "customization",
+        "other"
+      ],
+      "description": "Chip category"
+    },
+    "version": {
+      "type": "string",
+      "default": "1.0.0",
+      "description": "Current version"
+    },
+    "repository_url": {
+      "type": "string",
+      "description": "GitHub/Git repository URL"
+    },
+    "documentation_url": {
+      "type": "string",
+      "description": "Documentation link"
+    },
+    "demo_url": {
+      "type": "string",
+      "description": "Live demo link (optional)"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "Chip logo/icon URL"
+    },
+    "screenshots": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of screenshot URLs"
+    },
+    "pricing_model": {
+      "type": "string",
+      "enum": [
+        "free",
+        "one-time",
+        "subscription",
+        "freemium"
+      ],
+      "description": "Pricing model"
+    },
+    "price": {
+      "type": "number",
+      "description": "Price in USD (if one-time or subscription)"
+    },
+    "billing_period": {
+      "type": "string",
+      "enum": [
+        "monthly",
+        "yearly",
+        "one-time"
+      ],
+      "default": "monthly",
+      "description": "For subscription pricing"
+    },
+    "revenue_share": {
+      "type": "number",
+      "default": 70,
+      "description": "Developer's percentage (default 70%)"
+    },
+    "keywords": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Search keywords"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "submitted",
+        "reviewing",
+        "approved",
+        "rejected",
+        "published",
+        "archived"
+      ],
+      "default": "draft",
+      "description": "Submission status"
+    },
+    "review_notes": {
+      "type": "string",
+      "description": "Admin review feedback"
+    },
+    "published_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When chip was published"
+    },
+    "total_sales": {
+      "type": "number",
+      "default": 0,
+      "description": "Total sales count"
+    },
+    "total_revenue": {
+      "type": "number",
+      "default": 0,
+      "description": "Total revenue generated"
+    },
+    "total_installs": {
+      "type": "number",
+      "default": 0,
+      "description": "Total installations"
+    },
+    "rating": {
+      "type": "number",
+      "default": 0,
+      "description": "Average rating (0-5)"
+    },
+    "review_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of reviews"
+    },
+    "featured": {
+      "type": "boolean",
+      "default": false,
+      "description": "Is chip featured"
+    }
+  },
+  "required": [
+    "builder_id",
+    "name",
+    "description",
+    "category",
+    "repository_url"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "builder_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "builder_email": "{{user.email}}"
+        },
+        {
+          "status": "published"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "builder_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "builder_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

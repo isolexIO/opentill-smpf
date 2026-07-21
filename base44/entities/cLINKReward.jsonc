@@ -1,0 +1,104 @@
+{
+  "name": "cLINKReward",
+  "type": "object",
+  "properties": {
+    "merchant_id": {
+      "type": "string",
+      "description": "Merchant receiving rewards"
+    },
+    "reward_type": {
+      "type": "string",
+      "enum": [
+        "processing_volume",
+        "bonus",
+        "referral",
+        "staking_yield"
+      ],
+      "description": "Type of reward"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Amount of $DUC earned"
+    },
+    "processing_volume": {
+      "type": "number",
+      "description": "CC processing volume that generated this reward"
+    },
+    "reward_percentage": {
+      "type": "number",
+      "description": "Percentage used for calculation"
+    },
+    "period_start": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Start of reward period"
+    },
+    "period_end": {
+      "type": "string",
+      "format": "date-time",
+      "description": "End of reward period"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "available",
+        "claimed",
+        "staked"
+      ],
+      "default": "pending",
+      "description": "Reward status"
+    },
+    "claimed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When reward was claimed"
+    },
+    "claimed_by": {
+      "type": "string",
+      "description": "User who claimed"
+    },
+    "transaction_signature": {
+      "type": "string",
+      "description": "On-chain transaction signature"
+    },
+    "wallet_address": {
+      "type": "string",
+      "description": "Wallet that received the reward"
+    }
+  },
+  "required": [
+    "merchant_id",
+    "amount",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "merchant_id": "{{user.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
