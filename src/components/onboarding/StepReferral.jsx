@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 import { CheckCircle, Loader2, Tag, Gift } from 'lucide-react';
 
-export default function StepReferral({ formData, onChange, onNext }) {
+export default function StepReferral({ formData, onChange, onNext, locked }) {
   const [checking, setChecking] = useState(false);
   const [referrerInfo, setReferrerInfo] = useState(null);
   const [codeError, setCodeError] = useState(null);
@@ -37,6 +37,7 @@ export default function StepReferral({ formData, onChange, onNext }) {
   };
 
   const handleChange = (val) => {
+    if (locked) return; // Referral code applied via URL link cannot be modified
     onChange('referral_code', val.toUpperCase().replace(/[^A-Z0-9]/g, ''));
     setReferrerInfo(null);
     setCodeError(null);
@@ -64,19 +65,30 @@ export default function StepReferral({ formData, onChange, onNext }) {
             placeholder="e.g. BESTBIZ1234"
             value={formData.referral_code}
             onChange={(e) => handleChange(e.target.value)}
-            className="font-mono tracking-widest text-center text-lg border-cyan-200 focus:border-cyan-500"
+            readOnly={locked}
+            disabled={locked}
+            className="font-mono tracking-widest text-center text-lg border-cyan-200 focus:border-cyan-500 disabled:bg-cyan-50 disabled:text-cyan-800 disabled:cursor-not-allowed"
             maxLength={20}
           />
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => handleCheckCode(formData.referral_code)}
-            disabled={checking || !formData.referral_code}
-            className="shrink-0 border-cyan-300 text-cyan-700"
-          >
-            {checking ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Verify'}
-          </Button>
+          {!locked && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => handleCheckCode(formData.referral_code)}
+              disabled={checking || !formData.referral_code}
+              className="shrink-0 border-cyan-300 text-cyan-700"
+            >
+              {checking ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Verify'}
+            </Button>
+          )}
         </div>
+
+        {locked && (
+          <div className="flex items-center gap-2 bg-cyan-50 border border-cyan-200 rounded-lg px-3 py-2 text-xs text-cyan-700">
+            <CheckCircle className="w-4 h-4 shrink-0" />
+            Referral code applied via your invitation link and locked.
+          </div>
+        )}
 
         {referrerInfo && (
           <div className="flex items-center gap-3 bg-cyan-50 border border-cyan-200 rounded-xl p-3">
