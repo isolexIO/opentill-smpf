@@ -14,6 +14,12 @@ Deno.serve(async (req) => {
 
     const { dealer_id, account_id } = await req.json();
 
+    // SECURITY: Prevent IDOR — only the dealer's own admin (or a platform
+    // admin) may update a dealer's Stripe connection state.
+    if (user.role !== 'admin' && user.dealer_id !== dealer_id) {
+      return Response.json({ error: 'Forbidden: cannot modify another dealer' }, { status: 403 });
+    }
+
     // Retrieve account from Stripe
     const account = await stripe.accounts.retrieve(account_id);
 

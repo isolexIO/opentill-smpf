@@ -16,6 +16,12 @@ Deno.serve(async (req) => {
         return new Response(JSON.stringify({ error: "Authentication required" }), { status: 401 });
     }
 
+    // SECURITY: Prevent cross-tenant IDOR — a merchant user may only create
+    // ChainLink orders for their own merchant. Admins are exempt.
+    if (user.role !== 'admin' && user.merchant_id !== merchantId) {
+        return new Response(JSON.stringify({ error: "Forbidden: cannot create order for another merchant" }), { status: 403 });
+    }
+
     const orderNumber = `CL-${nanoid(8)}`;
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // 24 hours expiry
 

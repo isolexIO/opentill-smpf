@@ -11,6 +11,12 @@ Deno.serve(async (req) => {
 
     const { dealer_id, domain } = await req.json();
 
+    // SECURITY: Prevent IDOR — a dealer_admin may only set up custom domains
+    // for their own dealer. Admins are exempt.
+    if (user.role !== 'admin' && user.dealer_id !== dealer_id) {
+      return Response.json({ error: 'Forbidden: cannot configure domains for another dealer' }, { status: 403 });
+    }
+
     if (!domain) {
       return Response.json({ error: 'Domain is required' }, { status: 400 });
     }

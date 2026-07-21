@@ -14,6 +14,12 @@ Deno.serve(async (req) => {
 
     const { dealer_id, business_name, business_email, return_url, refresh_url } = await req.json();
 
+    // SECURITY: Prevent IDOR — a dealer_admin may only create a Stripe Connect
+    // account for their own dealer. Admins are exempt.
+    if (user.role !== 'admin' && user.dealer_id !== dealer_id) {
+      return Response.json({ error: 'Forbidden: cannot create Stripe account for another dealer' }, { status: 403 });
+    }
+
     // Create Stripe Connect account
     const account = await stripe.accounts.create({
       type: 'express',

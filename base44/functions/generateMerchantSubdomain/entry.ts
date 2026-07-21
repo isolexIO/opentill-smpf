@@ -17,6 +17,13 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Admin access required' }, { status: 403 });
     }
 
+    // SECURITY: Prevent cross-tenant IDOR — a merchant_admin may only act on
+    // their own merchant's subdomain. Admins (who already passed the admin-only
+    // gate above for admin actions) are exempt.
+    if (user.role !== 'admin' && user.merchant_id !== merchant_id) {
+      return Response.json({ error: 'Forbidden: cannot modify another merchant' }, { status: 403 });
+    }
+
     // Get merchant
     const merchants = await base44.asServiceRole.entities.Merchant.filter({
       id: merchant_id
