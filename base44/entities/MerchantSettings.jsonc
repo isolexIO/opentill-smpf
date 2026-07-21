@@ -56,29 +56,6 @@
             }
           }
         },
-        "paypal": {
-          "type": "object",
-          "properties": {
-            "enabled": {
-              "type": "boolean",
-              "default": false
-            },
-            "client_id": {
-              "type": "string"
-            },
-            "client_secret": {
-              "type": "string"
-            },
-            "test_mode": {
-              "type": "boolean",
-              "default": true
-            },
-            "last_tested": {
-              "type": "string",
-              "format": "date-time"
-            }
-          }
-        },
         "crypto": {
           "type": "object",
           "properties": {
