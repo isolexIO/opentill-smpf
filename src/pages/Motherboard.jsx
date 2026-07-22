@@ -131,24 +131,25 @@ export default function Motherboard() {
     .flatMap(chip => chip.feature_flags || []);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-cyan-600 to-blue-600 rounded-lg flex items-center justify-center">
+            <div className="w-12 h-12 bg-gradient-to-br from-cyan-600 to-blue-600 rounded-lg flex items-center justify-center shrink-0">
               <Cpu className="w-7 h-7 text-white" />
             </div>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Motherboard</h1>
-              <p className="text-gray-500 dark:text-gray-400">Install and manage your feature chips</p>
+            <div className="min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Motherboard</h1>
+              <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">Install and manage your feature chips</p>
             </div>
           </div>
 
           <Button
             variant="outline"
+            className="w-full sm:w-auto whitespace-normal"
             onClick={() => window.location.href = createPageUrl('Marketplace')}
           >
-            <ExternalLink className="w-4 h-4 mr-2" />
+            <ExternalLink className="w-4 h-4 mr-2 shrink-0" />
             Browse Marketplace
           </Button>
         </div>

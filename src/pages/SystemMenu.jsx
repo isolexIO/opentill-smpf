@@ -483,17 +483,17 @@ export default function SystemMenu() {
               <Link2 className="w-14 h-14 text-white" />
             </div>
           </div>
-          <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-2">
+          <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white mb-2">
             openTILL
           </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-400 mb-4">
+          <p className="text-base sm:text-xl text-gray-600 dark:text-gray-400 mb-4">
             Next-Generation Point of Sale System
           </p>
           <CommunityLinks />
         </motion.div>
 
         {user?.merchant_id && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
             <Card className="bg-white dark:bg-gray-800">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
@@ -548,7 +548,7 @@ export default function SystemMenu() {
           <AdvertisingTile />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6 mb-8">
           {visibleItems.map((item) => {
             // Determine if this item is locked by feature gate
             const requiredFlag = FEATURE_REQUIREMENTS[item.id];
@@ -564,11 +564,11 @@ export default function SystemMenu() {
                 className={`group hover:shadow-xl hover:scale-105 transition-all cursor-pointer dark:bg-gray-800 bg-white`}
                 onClick={() => handleNavigate(item.path)}
               >
-                <CardHeader className="p-6">
-                  <div className={`w-12 h-12 rounded-lg bg-gradient-to-r ${item.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                <CardHeader className="p-4 sm:p-6">
+                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-gradient-to-r ${item.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
                     {item.icon}
                   </div>
-                  <CardTitle className="font-semibold text-lg text-gray-900 dark:text-white mb-1">
+                  <CardTitle className="font-semibold text-base sm:text-lg text-gray-900 dark:text-white mb-1">
                     {item.title}
                   </CardTitle>
                   <CardDescription className="text-sm text-gray-500 dark:text-gray-400">
@@ -583,7 +583,7 @@ export default function SystemMenu() {
             className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 hover:border-purple-400 dark:bg-gray-800 bg-white"
             onClick={() => window.open('https://071be2.c.myucm.cloud/liveChat?liveChatAccess=MF83MDA2N2YzNDg5OTQ0OWI0OTdiMzhlMWQyNDhkNTg5Ml8wMDBiODIwNzFiZTImNmI3ODBlYzM4ZThmMWQyYjNiNDcwMTliMWM1OWM2MzA=', '_blank')}
           >
-            <CardHeader className="p-6">
+            <CardHeader className="p-4 sm:p-6">
               <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                 <MessageCircle className="w-6 h-6 text-white" />
               </div>

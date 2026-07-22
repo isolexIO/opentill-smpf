@@ -64,13 +64,13 @@ export default function Marketplace() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
       {/* Header Navigation */}
       <nav className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
+          <div className="flex flex-col sm:flex-row items-center sm:justify-between gap-3">
             <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.location.href = createPageUrl('Home')}>
-              <Sparkles className="w-8 h-8 text-cyan-600" />
-              <span className="text-2xl font-bold text-gray-900 dark:text-white">openTILL Marketplace</span>
+              <Sparkles className="w-7 h-7 sm:w-8 sm:h-8 text-cyan-600 shrink-0" />
+              <span className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">openTILL Marketplace</span>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4">
               <Button variant="ghost" onClick={() => window.location.href = createPageUrl('Home')}>
                 Home
               </Button>
@@ -89,10 +89,10 @@ export default function Marketplace() {
             <Sparkles className="w-4 h-4" />
             CHIP MARKETPLACE
           </div>
-          <h1 className="text-5xl font-black tracking-tight text-slate-900 dark:text-white">
+          <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-slate-900 dark:text-white">
             Unlock Premium Features
           </h1>
-          <p className="text-xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
+          <p className="text-base sm:text-xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
             Purchase Chips with $DUC to unlock advanced POS capabilities
           </p>
         </div>

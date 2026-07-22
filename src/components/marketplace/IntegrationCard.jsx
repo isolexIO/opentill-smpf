@@ -127,7 +127,7 @@ export default function IntegrationCard({ app, onUpdate }) {
         </CardHeader>
         <CardContent className="flex-1 flex flex-col justify-between">
           <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{description}</p>
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center gap-2 flex-wrap">
             <Badge variant={initialStatus === 'Installed' ? 'default' : 'outline'}>{initialStatus}</Badge>
             <Button 
               variant={initialStatus === 'Installed' ? 'secondary' : 'default'}
