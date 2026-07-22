@@ -144,10 +144,12 @@ Deno.serve(async (req) => {
           status = 'on_hold';
           notes = `Below minimum payout threshold of $${dealer.payout_minimum}. Amount will carry over to next period.`;
         } else {
-          // Calculate scheduled date (period_end + hold_days)
+          // Calculate scheduled date (period_end + hold_days). Created as
+          // 'pending' so the daily schedulePayouts job picks it up when due
+          // and triggers processing — 'scheduled' is set by that job.
           scheduledAt = new Date(periodEnd);
           scheduledAt.setDate(scheduledAt.getDate() + (dealer.payout_hold_days || 7));
-          status = 'scheduled';
+          status = 'pending';
         }
 
         // Create payout record
@@ -164,9 +166,23 @@ Deno.serve(async (req) => {
           scheduled_at: scheduledAt ? scheduledAt.toISOString() : null,
           carryover_amount: status === 'on_hold' ? totalCommission : 0,
           bonus_amount: bonusAmount,
-          notes: bonusAmount > 0 ? `${notes ? notes + ' ' : ''}Includes $${bonusAmount.toFixed(2)} ambassador bonus.` : notes,
-          merchant_names: payoutItems.map(item => item.merchant_name)
+          notes: bonusAmount > 0 ? `${notes ? notes + ' ' : ''}Includes $${bonusAmount.toFixed(2)} ambassador bonus.` : notes
         });
+
+        // Mark carried-over on_hold payouts as canceled so their amounts
+        // aren't double-counted in future cycles.
+        for (const prev of previousPayouts) {
+          if ((prev.carryover_amount || 0) > 0) {
+            try {
+              await base44.asServiceRole.entities.DealerPayout.update(prev.id, {
+                status: 'canceled',
+                notes: `${prev.notes || ''}\nCarried over $${prev.carryover_amount} to payout ${payout.id}.`.trim()
+              });
+            } catch (e) {
+              console.warn(`Failed to cancel carried-over payout ${prev.id}:`, e);
+            }
+          }
+        }
 
         // Create payout items
         for (const item of payoutItems) {
@@ -182,8 +198,8 @@ Deno.serve(async (req) => {
           next_payout_date: scheduledAt ? scheduledAt.toISOString() : null
         });
 
-        // Send scheduled payout notification if status is scheduled
-        if (status === 'scheduled') {
+        // Send scheduled payout notification if a payout date is set
+        if (scheduledAt) {
           try {
             await base44.asServiceRole.functions.invoke('sendPayoutNotification', {
               ambassador_id: dealer.id,

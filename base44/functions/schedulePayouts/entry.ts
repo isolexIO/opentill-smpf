@@ -58,9 +58,11 @@ Deno.serve(async (req) => {
           const minimumPayout = dealer.payout_minimum || 20.0;
           
           if (payout.commission_amount < minimumPayout) {
-            // Carryover to next period
+            // Carryover to next period — preserve the amount so the next
+            // calculateDealerPayouts run includes it.
             await base44.asServiceRole.entities.DealerPayout.update(payout.id, {
               status: 'on_hold',
+              carryover_amount: payout.commission_amount,
               notes: `Below minimum payout threshold of $${minimumPayout}. Amount will carry over to next period.`
             });
             continue;
