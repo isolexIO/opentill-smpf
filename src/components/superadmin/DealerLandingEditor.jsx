@@ -99,7 +99,8 @@ export default function DealerLandingEditor() {
               title: "Recurring Revenue",
               description: "Earn 10-30% commission on every merchant subscription, monthly."
             }
-          ]
+          ],
+          success_stories: []
         };
         
         const created = await base44.entities.DealerLandingSettings.create(defaultSettings);
@@ -116,7 +117,7 @@ export default function DealerLandingEditor() {
     setSaving(true);
     try {
       await base44.entities.DealerLandingSettings.update(settings.id, settings);
-      alert('Dealer landing page settings saved successfully!');
+      alert('Ambassador Hub settings saved successfully!');
     } catch (error) {
       console.error('Error saving settings:', error);
       alert('Failed to save settings: ' + error.message);
@@ -205,12 +206,33 @@ export default function DealerLandingEditor() {
     });
   };
 
+  const updateSuccessStory = (index, field, value) => {
+    const stories = [...(settings.success_stories || [])];
+    stories[index] = { ...stories[index], [field]: value };
+    setSettings({ ...settings, success_stories: stories });
+  };
+
+  const addSuccessStory = () => {
+    setSettings({
+      ...settings,
+      success_stories: [
+        ...(settings.success_stories || []),
+        { name: '', role: '', quote: '', stars: 5, image: '', hidden: false }
+      ]
+    });
+  };
+
+  const removeSuccessStory = (index) => {
+    const stories = (settings.success_stories || []).filter((_, i) => i !== index);
+    setSettings({ ...settings, success_stories: stories });
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center p-12">
         <div className="text-center">
           <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-blue-600" />
-          <p className="text-gray-500">Loading dealer landing settings...</p>
+          <p className="text-gray-500">Loading Ambassador Hub settings...</p>
         </div>
       </div>
     );
@@ -233,8 +255,8 @@ export default function DealerLandingEditor() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold">Dealer Landing Page Editor</h2>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">Customize the dealer landing page content</p>
+          <h2 className="text-3xl font-bold">Ambassador Hub Editor</h2>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">Customize the Ambassador Hub landing page content</p>
         </div>
         <div className="flex gap-3">
           <Button variant="outline" onClick={() => window.open(createPageUrl('DealerLanding'), '_blank')}>
@@ -262,6 +284,7 @@ export default function DealerLandingEditor() {
           <TabsTrigger value="hero">Hero Section</TabsTrigger>
           <TabsTrigger value="top_features">Top Features (4 boxes)</TabsTrigger>
           <TabsTrigger value="bottom_features">Bottom Features (3 cards)</TabsTrigger>
+          <TabsTrigger value="success_stories">Success Stories</TabsTrigger>
         </TabsList>
 
         {/* Hero Section */}
@@ -507,6 +530,103 @@ export default function DealerLandingEditor() {
                       placeholder="Launch your branded POS platform in minutes..."
                     />
                   </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Success Stories */}
+        <TabsContent value="success_stories">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Success Stories</CardTitle>
+                  <CardDescription>Testimonials shown on the Ambassador Hub. When none are added, built-in defaults are shown.</CardDescription>
+                </div>
+                <Button onClick={addSuccessStory} size="sm">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Story
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {(settings.success_stories || []).length === 0 && (
+                <p className="text-sm text-gray-500">No success stories yet. The Ambassador Hub will show built-in defaults.</p>
+              )}
+              {(settings.success_stories || []).map((story, index) => (
+                <div key={index} className="p-4 border rounded-lg space-y-4 bg-gray-50 dark:bg-gray-800">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-semibold">Story {index + 1}</h4>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeSuccessStory(index)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Name</Label>
+                      <Input
+                        value={story.name || ''}
+                        onChange={(e) => updateSuccessStory(index, 'name', e.target.value)}
+                        placeholder="Marcus T."
+                      />
+                    </div>
+                    <div>
+                      <Label>Role / Location</Label>
+                      <Input
+                        value={story.role || ''}
+                        onChange={(e) => updateSuccessStory(index, 'role', e.target.value)}
+                        placeholder="Tech Reseller, Miami"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label>Quote</Label>
+                    <Textarea
+                      value={story.quote || ''}
+                      onChange={(e) => updateSuccessStory(index, 'quote', e.target.value)}
+                      rows={3}
+                      placeholder="Went from 0 to 22 merchants in 4 months..."
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Stars (1-5)</Label>
+                      <Input
+                        type="number"
+                        min={1}
+                        max={5}
+                        value={story.stars ?? 5}
+                        onChange={(e) => updateSuccessStory(index, 'stars', Math.max(1, Math.min(5, parseInt(e.target.value) || 5)))}
+                      />
+                    </div>
+                    <div>
+                      <Label>Image URL (optional)</Label>
+                      <Input
+                        value={story.image || ''}
+                        onChange={(e) => updateSuccessStory(index, 'image', e.target.value)}
+                        placeholder="https://..."
+                      />
+                    </div>
+                  </div>
+
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={!!story.hidden}
+                      onChange={(e) => updateSuccessStory(index, 'hidden', e.target.checked)}
+                    />
+                    Hide this story from the public page
+                  </label>
                 </div>
               ))}
             </CardContent>

@@ -132,11 +132,15 @@ export default function DealerLanding() {
     { icon: Shield, title: 'PCI Compliant', desc: 'SOC 2 Type II, EBT/SNAP ready' },
   ];
 
-  const testimonials = [
+  const defaultTestimonials = [
     { name: 'Marcus T.', role: 'Tech Reseller, Miami', quote: 'Went from 0 to 22 merchants in 4 months. Getting set up took under an hour.', stars: 5 },
     { name: 'Sandra K.', role: 'POS Consultant, Chicago', quote: 'My commission checks have replaced my old salary. The dashboard makes everything easy.', stars: 5 },
     { name: 'Derek A.', role: 'MSP Owner, Atlanta', quote: "openTILL's crypto payments and AI tools are a huge selling point for my clients.", stars: 5 },
   ];
+  const adminStories = Array.isArray(landingSettings?.success_stories) ? landingSettings.success_stories : [];
+  const testimonials = (adminStories.length > 0 ? adminStories : defaultTestimonials)
+    .filter(t => !t.hidden)
+    .map(t => ({ ...t, stars: t.stars || 5 }));
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900">
@@ -405,6 +409,7 @@ export default function DealerLanding() {
         </div>
 
         {/* Testimonials */}
+        {testimonials.length > 0 && (
         <div id="testimonials" className="mt-24 space-y-10">
           <h2 className="text-4xl font-black text-white text-center">Ambassador Success Stories</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -414,14 +419,18 @@ export default function DealerLanding() {
                   {Array(t.stars).fill(0).map((_, j) => <Star key={j} className="w-4 h-4 text-yellow-400 fill-yellow-400" />)}
                 </div>
                 <p className="text-white/70 text-sm leading-relaxed mb-4">"{t.quote}"</p>
-                <div>
-                  <div className="text-white font-semibold text-sm">{t.name}</div>
-                  <div className="text-white/40 text-xs">{t.role}</div>
+                <div className="flex items-center gap-3">
+                  {t.image && <img src={t.image} alt={t.name} className="w-10 h-10 rounded-full object-cover" />}
+                  <div>
+                    <div className="text-white font-semibold text-sm">{t.name}</div>
+                    <div className="text-white/40 text-xs">{t.role}</div>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         </div>
+        )}
 
         {/* CTA */}
         <div className="mt-24 text-center bg-gradient-to-r from-emerald-900/40 to-purple-900/40 border border-white/10 rounded-3xl p-12">
