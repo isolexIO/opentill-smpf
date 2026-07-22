@@ -67,6 +67,20 @@
       "default": false,
       "description": "Whether payouts are enabled"
     },
+    "payout_method": {
+      "type": "string",
+      "enum": [
+        "stripe_connect",
+        "solana",
+        "manual"
+      ],
+      "default": "stripe_connect",
+      "description": "How the builder receives payouts"
+    },
+    "solana_wallet_address": {
+      "type": "string",
+      "description": "Solana wallet address for $DUC payouts"
+    },
     "total_earnings": {
       "type": "number",
       "default": 0,

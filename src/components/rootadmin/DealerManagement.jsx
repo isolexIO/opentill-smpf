@@ -43,6 +43,7 @@ import {
 } from 'lucide-react';
 import DealerSubdomainManager from './DealerSubdomainManager';
 import PayoutControl from '../superadmin/PayoutControl';
+import SolanaWalletInput from '@/components/shared/SolanaWalletInput';
 import { createPageUrl } from '@/utils';
 
 export default function DealerManagement() {
@@ -659,10 +660,10 @@ export default function DealerManagement() {
 
                 <div>
                   <Label>Solana Wallet Address</Label>
-                  <Input
+                  <SolanaWalletInput
                     value={editDialog.dealer.solana_wallet_address || ''}
-                    onChange={(e) => updateDealer('solana_wallet_address', e.target.value)}
-                    placeholder="For crypto payments and payouts"
+                    onChange={(v) => updateDealer('solana_wallet_address', v)}
+                    placeholder="For $DUC payouts"
                   />
                 </div>
               </TabsContent>
@@ -733,7 +734,7 @@ export default function DealerManagement() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="stripe_connect">Stripe Connect</SelectItem>
-                        <SelectItem value="solana">Solana</SelectItem>
+                        <SelectItem value="solana">$DUC (Solana)</SelectItem>
                         <SelectItem value="manual">Manual</SelectItem>
                       </SelectContent>
                     </Select>

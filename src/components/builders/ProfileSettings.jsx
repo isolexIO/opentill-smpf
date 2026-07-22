@@ -13,6 +13,14 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { AlertCircle, CheckCircle, Loader2, Trash2 } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import SolanaWalletInput from '@/components/shared/SolanaWalletInput';
 
 export default function ProfileSettings({ builder, user, onUpdated }) {
   const [editing, setEditing] = useState(false);
@@ -64,6 +72,34 @@ export default function ProfileSettings({ builder, user, onUpdated }) {
     }
   };
 
+  const [savingPayout, setSavingPayout] = useState(false);
+
+  const handleSavePayout = async () => {
+    if (formData.payout_method === 'solana' && !formData.solana_wallet_address?.trim()) {
+      setError('Please connect or enter a Solana wallet address to receive $DUC payouts.');
+      return;
+    }
+    setSavingPayout(true);
+    setError('');
+    setSuccess('');
+    try {
+      const res = await base44.functions.invoke('updateBuilderProfile', {
+        builder_id: builder.id,
+        payout_method: formData.payout_method,
+        solana_wallet_address: formData.solana_wallet_address,
+      });
+      if (!res.data?.success) {
+        throw new Error(res.data?.error || 'Failed to save payout settings');
+      }
+      setSuccess('Payout settings saved');
+      setTimeout(() => onUpdated(), 1200);
+    } catch (err) {
+      setError(err.message || 'Failed to save payout settings');
+    } finally {
+      setSavingPayout(false);
+    }
+  };
+
   const [formData, setFormData] = useState({
     full_name: builder.full_name || '',
     company_name: builder.company_name || '',
@@ -72,6 +108,8 @@ export default function ProfileSettings({ builder, user, onUpdated }) {
     github_url: builder.github_url || '',
     twitter_url: builder.twitter_url || '',
     support_email: builder.support_email || '',
+    payout_method: builder.payout_method || 'stripe_connect',
+    solana_wallet_address: builder.solana_wallet_address || '',
   });
 
   const handleSave = async () => {
@@ -312,45 +350,104 @@ export default function ProfileSettings({ builder, user, onUpdated }) {
         )}
       </div>
 
-      {/* Stripe Status */}
+      {/* Payment Information */}
        <div className="border-t border-gray-200 pt-6">
          <h4 className="font-bold text-gray-900 mb-4">Payment Information</h4>
-         {builder.stripe_connected && builder.payout_enabled ? (
-           <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-             <p className="text-green-800 font-medium">✓ Stripe Connected</p>
-             <p className="text-sm text-green-700 mt-1">
-               Payouts are enabled. Stripe ID: {builder.stripe_connect_id}
+
+         <div className="space-y-2 mb-4">
+           <label className="block text-sm font-medium text-gray-700">Payout Method</label>
+           <Select
+             value={formData.payout_method}
+             onValueChange={(v) => setFormData((prev) => ({ ...prev, payout_method: v }))}
+             disabled={savingPayout}
+           >
+             <SelectTrigger>
+               <SelectValue />
+             </SelectTrigger>
+             <SelectContent>
+               <SelectItem value="stripe_connect">Stripe Connect</SelectItem>
+               <SelectItem value="solana">$DUC (Solana)</SelectItem>
+               <SelectItem value="manual">Manual</SelectItem>
+             </SelectContent>
+           </Select>
+           <p className="text-xs text-gray-500">
+             Choose how you want to receive payouts for chip sales.
+           </p>
+         </div>
+
+         {formData.payout_method === 'solana' && (
+           <div className="space-y-2 mb-4">
+             <label className="block text-sm font-medium text-gray-700">
+               Solana Wallet Address
+             </label>
+             <SolanaWalletInput
+               value={formData.solana_wallet_address}
+               onChange={(v) => setFormData((prev) => ({ ...prev, solana_wallet_address: v }))}
+               disabled={savingPayout}
+               placeholder="Solana wallet address for $DUC payouts"
+             />
+             <p className="text-xs text-gray-500">
+               $DUC payouts will be sent to this Solana wallet.
              </p>
-           </div>
-         ) : (
-           <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg space-y-3">
-             <p className="text-yellow-800 font-medium">
-               {builder.stripe_connect_id ? 'Stripe Onboarding Incomplete' : 'Stripe Not Connected'}
-             </p>
-             <p className="text-sm text-yellow-700">
-               {builder.stripe_connect_id
-                 ? 'Finish your Stripe onboarding to enable payouts.'
-                 : 'Connect your Stripe account to receive payouts for chip sales.'}
-             </p>
-             <Button
-               size="sm"
-               className="bg-yellow-600 hover:bg-yellow-700"
-               onClick={handleConnectStripe}
-               disabled={connecting}
-             >
-               {connecting ? (
-                 <>
-                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                   Connecting...
-                 </>
-               ) : builder.stripe_connect_id ? (
-                 'Complete Stripe Setup'
-               ) : (
-                 'Connect Stripe'
-               )}
-             </Button>
            </div>
          )}
+
+         {formData.payout_method === 'stripe_connect' && (
+           builder.stripe_connected && builder.payout_enabled ? (
+             <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+               <p className="text-green-800 font-medium">✓ Stripe Connected</p>
+               <p className="text-sm text-green-700 mt-1">
+                 Payouts are enabled. Stripe ID: {builder.stripe_connect_id}
+               </p>
+             </div>
+           ) : (
+             <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg space-y-3">
+               <p className="text-yellow-800 font-medium">
+                 {builder.stripe_connect_id ? 'Stripe Onboarding Incomplete' : 'Stripe Not Connected'}
+               </p>
+               <p className="text-sm text-yellow-700">
+                 {builder.stripe_connect_id
+                   ? 'Finish your Stripe onboarding to enable payouts.'
+                   : 'Connect your Stripe account to receive payouts for chip sales.'}
+               </p>
+               <Button
+                 size="sm"
+                 className="bg-yellow-600 hover:bg-yellow-700"
+                 onClick={handleConnectStripe}
+                 disabled={connecting}
+               >
+                 {connecting ? (
+                   <>
+                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                     Connecting...
+                   </>
+                 ) : builder.stripe_connect_id ? (
+                   'Complete Stripe Setup'
+                 ) : (
+                   'Connect Stripe'
+                 )}
+               </Button>
+             </div>
+           )
+         )}
+
+         <div className="mt-4">
+           <Button
+             size="sm"
+             onClick={handleSavePayout}
+             disabled={savingPayout}
+             className="bg-blue-600 hover:bg-blue-700"
+           >
+             {savingPayout ? (
+               <>
+                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                 Saving...
+               </>
+             ) : (
+               'Save Payout Settings'
+             )}
+           </Button>
+         </div>
        </div>
 
        {/* Delete Account Section */}
