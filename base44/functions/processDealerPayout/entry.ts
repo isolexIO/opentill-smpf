@@ -4,8 +4,12 @@ import { Connection, PublicKey, Keypair } from 'npm:@solana/web3.js@1.95.8';
 import { getOrCreateAssociatedTokenAccount, getAssociatedTokenAddress, transfer } from 'npm:@solana/spl-token@0.3.9';
 
 /**
- * Process a single dealer payout
- * Called by scheduler or manual trigger
+ * Process a single dealer (ambassador) payout.
+ * Supports three structures chosen by the super admin:
+ *   - full_stripe : entire commission via Stripe Connect transfer
+ *   - full_solana : entire commission as $DUC (Solana) token transfer
+ *   - combo       : split between Stripe and $DUC (stripe_amount + duc_amount)
+ * Called by the scheduler or manual trigger.
  */
 
 Deno.serve(async (req) => {
@@ -13,7 +17,7 @@ Deno.serve(async (req) => {
   const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '');
   try {
     const base44 = createClientFromRequest(req);
-    
+
     // Dual-mode: allow platform automation (no authenticated user) OR platform admin.
     // Ambassadors never process their own payouts.
     let user = null;
@@ -30,179 +34,225 @@ Deno.serve(async (req) => {
 
     // Load payout
     const payouts = await base44.asServiceRole.entities.DealerPayout.filter({ id: payout_id });
-    
     if (!payouts || payouts.length === 0) {
       return Response.json({ error: 'Payout not found' }, { status: 404 });
     }
-
     const payout = payouts[0];
 
     // Verify payout is in a processable state
     if (!['scheduled', 'failed'].includes(payout.status)) {
-      return Response.json({ 
-        error: `Payout cannot be processed in status: ${payout.status}` 
+      return Response.json({
+        error: `Payout cannot be processed in status: ${payout.status}`
       }, { status: 400 });
     }
 
-    // Load dealer
+    // Load dealer (ambassador)
     const dealers = await base44.asServiceRole.entities.Ambassador.filter({ legacy_dealer_id: payout.dealer_id });
     if (!dealers || dealers.length === 0) {
       throw new Error('Dealer not found');
     }
     const dealer = dealers[0];
 
-    // Check if dealer has payout destination configured
-    if (!dealer.payout_destination || Object.keys(dealer.payout_destination).length === 0) {
+    // Resolve the payout structure chosen by the super admin.
+    // Falls back to the legacy payout_method when no split_method was set.
+    const splitMethod = payout.split_method
+      || (payout.payout_method === 'solana' ? 'full_solana'
+        : payout.payout_method === 'manual' ? 'manual'
+        : 'full_stripe');
+
+    let stripeAmount = 0;
+    let ducAmount = 0;
+
+    if (splitMethod === 'manual') {
       await base44.asServiceRole.entities.DealerPayout.update(payout_id, {
         status: 'on_hold',
-        error_message: 'Payout destination not configured',
-        notes: 'Dealer must configure payout method and destination before processing'
+        error_message: 'Manual payout requires admin action',
+        notes: 'Manual payout method selected — admin must arrange payment manually'
       });
-
-      return Response.json({
-        success: false,
-        message: 'Payout destination not configured'
-      });
-    }
-
-    // Update status to processing
-    await base44.asServiceRole.entities.DealerPayout.update(payout_id, {
-      status: 'processing',
-      attempt_count: (payout.attempt_count || 0) + 1
-    });
-
-    let result;
-
-    try {
-      // Process based on payout method
-      switch (payout.payout_method) {
-        case 'stripe_connect':
-          result = await processStripeConnect(dealer, payout);
-          break;
-        
-        case 'solana':
-          result = await processSolana(base44, dealer, payout);
-          break;
-        
-        case 'manual':
-          result = {
-            success: false,
-            message: 'Manual payout requires admin action'
-          };
-          break;
-        
-        default:
-          throw new Error(`Unsupported payout method: ${payout.payout_method}`);
-      }
-
-      if (result.success) {
-        // Payout successful
+      return Response.json({ success: false, message: 'Manual payout requires admin action' });
+    } else if (splitMethod === 'full_stripe') {
+      stripeAmount = payout.commission_amount;
+    } else if (splitMethod === 'full_solana') {
+      ducAmount = payout.commission_amount;
+    } else if (splitMethod === 'combo') {
+      stripeAmount = payout.stripe_amount || 0;
+      ducAmount = payout.duc_amount || 0;
+      const sum = stripeAmount + ducAmount;
+      if (Math.abs(sum - payout.commission_amount) > 0.01) {
         await base44.asServiceRole.entities.DealerPayout.update(payout_id, {
-          status: 'completed',
-          processed_at: new Date().toISOString(),
-          payout_destination: result.destination,
-          fees: result.fees || 0,
-          error_message: null
+          status: 'failed',
+          error_message: `Combo split (${sum}) does not match payout amount (${payout.commission_amount})`
         });
-
-        // Update dealer totals
-        await base44.asServiceRole.entities.Ambassador.update(dealer.id, {
-          commission_paid_out: (dealer.commission_paid_out || 0) + payout.commission_amount,
-          commission_pending: Math.max(0, (dealer.commission_pending || 0) - payout.commission_amount),
-          last_payout_date: new Date().toISOString()
-        });
-
-        // Log success
-        await base44.asServiceRole.entities.SystemLog.create({
-          log_type: 'super_admin_action',
-          action: 'Dealer Payout Processed',
-          description: `Payout of $${payout.commission_amount} processed for dealer ${dealer.name}`,
-          user_email: user?.email || 'automation',
-          user_role: user?.role || 'system',
-          severity: 'info',
-          metadata: { payout_id, dealer_id: dealer.id, method: payout.payout_method }
-        });
-
-        // Send notification to ambassador
-        try {
-          await base44.asServiceRole.functions.invoke('sendPayoutNotification', {
-            ambassador_id: dealer.id,
-            type: 'processed',
-            amount: payout.commission_amount,
-            merchant_names: payout.merchant_names || [],
-            details: { transaction_id: result.destination?.stripe_transfer_id }
-          });
-        } catch (notifyError) {
-          console.error('Notification sending failed:', notifyError);
-        }
-        
-        return Response.json({
-          success: true,
-          message: 'Payout processed successfully',
-          payout_id,
-          amount: payout.commission_amount,
-          method: payout.payout_method
-        });
-
-      } else {
-        // Payout failed
-        const attemptCount = payout.attempt_count + 1;
-        const maxAttempts = 5;
-        
-        const newStatus = attemptCount >= maxAttempts ? 'manual_review' : 'failed';
-        
-        await base44.asServiceRole.entities.DealerPayout.update(payout_id, {
-          status: newStatus,
-          error_message: result.error || 'Unknown error',
-          attempt_count: attemptCount
-        });
-
-        // Log failure
-        await base44.asServiceRole.entities.SystemLog.create({
-          log_type: 'super_admin_action',
-          action: 'Dealer Payout Failed',
-          description: `Payout failed for dealer ${dealer.name}: ${result.error}`,
-          user_email: user?.email || 'automation',
-          user_role: user?.role || 'system',
-          severity: 'warning',
-          metadata: { payout_id, dealer_id: dealer.id, attempt_count: attemptCount, error: result.error }
-        });
-
-        // Send failure notification
-        try {
-          await base44.asServiceRole.functions.invoke('sendPayoutNotification', {
-            ambassador_id: dealer.id,
-            type: 'failed',
-            amount: payout.commission_amount,
-            merchant_names: payout.merchant_names || [],
-            error_message: result.error || 'Unknown error'
-          });
-        } catch (notifyError) {
-          console.error('Notification sending failed:', notifyError);
-        }
-
         return Response.json({
           success: false,
-          message: result.error || 'Payout processing failed',
-          attempt_count: attemptCount,
-          status: newStatus
+          error: `Combo split (${sum}) does not match payout amount (${payout.commission_amount})`
         });
       }
+    } else {
+      return Response.json({ success: false, error: `Unsupported split method: ${splitMethod}` });
+    }
+
+    // Validate each portion has the required destination configured
+    if (stripeAmount > 0 && !dealer.stripe_account_id) {
+      await base44.asServiceRole.entities.DealerPayout.update(payout_id, {
+        status: 'on_hold',
+        error_message: 'Stripe account not connected for ambassador'
+      });
+      return Response.json({ success: false, message: 'Stripe account not connected for ambassador' });
+    }
+    if (ducAmount > 0 && !dealer.solana_wallet_address) {
+      await base44.asServiceRole.entities.DealerPayout.update(payout_id, {
+        status: 'on_hold',
+        error_message: 'Solana wallet address not configured for ambassador'
+      });
+      return Response.json({ success: false, message: 'Solana wallet address not configured for ambassador' });
+    }
+
+    // Update status to processing and persist the resolved structure
+    await base44.asServiceRole.entities.DealerPayout.update(payout_id, {
+      status: 'processing',
+      attempt_count: (payout.attempt_count || 0) + 1,
+      split_method: splitMethod,
+      stripe_amount: stripeAmount,
+      duc_amount: ducAmount
+    });
+
+    const destination = {};
+    let totalFees = 0;
+
+    try {
+      if (stripeAmount > 0) {
+        const stripeRes = await processStripeConnect(dealer, payout, stripeAmount);
+        if (!stripeRes.success) {
+          throw new Error(`Stripe: ${stripeRes.error}`);
+        }
+        destination.stripe = stripeRes.destination;
+        totalFees += stripeRes.fees || 0;
+      }
+      if (ducAmount > 0) {
+        const solanaRes = await processSolana(base44, dealer, payout, ducAmount);
+        if (!solanaRes.success) {
+          throw new Error(`$DUC: ${solanaRes.error}`);
+        }
+        destination.solana = solanaRes.destination;
+        totalFees += solanaRes.fees || 0;
+      }
+
+      // Payout successful
+      await base44.asServiceRole.entities.DealerPayout.update(payout_id, {
+        status: 'completed',
+        processed_at: new Date().toISOString(),
+        payout_destination: destination,
+        fees: totalFees,
+        error_message: null
+      });
+
+      // Update ambassador totals (always by the full commission amount)
+      await base44.asServiceRole.entities.Ambassador.update(dealer.id, {
+        commission_paid_out: (dealer.commission_paid_out || 0) + payout.commission_amount,
+        commission_pending: Math.max(0, (dealer.commission_pending || 0) - payout.commission_amount),
+        last_payout_date: new Date().toISOString()
+      });
+
+      await base44.asServiceRole.entities.SystemLog.create({
+        log_type: 'super_admin_action',
+        action: 'Dealer Payout Processed',
+        description: `Payout of $${payout.commission_amount} (${splitMethod}) processed for dealer ${dealer.name}`,
+        user_email: user?.email || 'automation',
+        user_role: user?.role || 'system',
+        severity: 'info',
+        metadata: {
+          payout_id,
+          dealer_id: dealer.id,
+          method: splitMethod,
+          stripe_amount: stripeAmount,
+          duc_amount: ducAmount
+        }
+      });
+
+      // Send notification to ambassador
+      try {
+        await base44.asServiceRole.functions.invoke('sendPayoutNotification', {
+          ambassador_id: dealer.id,
+          type: 'processed',
+          amount: payout.commission_amount,
+          merchant_names: payout.merchant_names || [],
+          details: {
+            transaction_id: destination.stripe?.stripe_transfer_id || destination.solana?.tx_signature,
+            split_method: splitMethod,
+            stripe_amount: stripeAmount,
+            duc_amount: ducAmount
+          }
+        });
+      } catch (notifyError) {
+        console.error('Notification sending failed:', notifyError);
+      }
+
+      return Response.json({
+        success: true,
+        message: 'Payout processed successfully',
+        payout_id,
+        amount: payout.commission_amount,
+        method: splitMethod,
+        destination,
+        stripe_amount: stripeAmount,
+        duc_amount: ducAmount
+      });
 
     } catch (processingError) {
-      // Handle processing errors
+      // A portion failed — record partial destination for audit and retry
       const attemptCount = (payout.attempt_count || 0) + 1;
       const maxAttempts = 5;
-      
       const newStatus = attemptCount >= maxAttempts ? 'manual_review' : 'failed';
-      
+
       await base44.asServiceRole.entities.DealerPayout.update(payout_id, {
         status: newStatus,
         error_message: processingError.message,
-        attempt_count: attemptCount
+        attempt_count: attemptCount,
+        payout_destination: destination
       });
 
-      throw processingError;
+      try {
+        await base44.asServiceRole.entities.SystemLog.create({
+          log_type: 'super_admin_action',
+          action: 'Dealer Payout Failed',
+          description: `Payout failed for dealer ${dealer.name}: ${processingError.message}`,
+          user_email: user?.email || 'automation',
+          user_role: user?.role || 'system',
+          severity: 'warning',
+          metadata: {
+            payout_id,
+            dealer_id: dealer.id,
+            attempt_count: attemptCount,
+            split_method: splitMethod,
+            stripe_amount: stripeAmount,
+            duc_amount: ducAmount,
+            error: processingError.message
+          }
+        });
+      } catch (logErr) {
+        console.error('Failed to log payout failure:', logErr);
+      }
+
+      try {
+        await base44.asServiceRole.functions.invoke('sendPayoutNotification', {
+          ambassador_id: dealer.id,
+          type: 'failed',
+          amount: payout.commission_amount,
+          merchant_names: payout.merchant_names || [],
+          error_message: processingError.message || 'Unknown error'
+        });
+      } catch (notifyError) {
+        console.error('Notification sending failed:', notifyError);
+      }
+
+      return Response.json({
+        success: false,
+        message: processingError.message || 'Payout processing failed',
+        attempt_count: attemptCount,
+        status: newStatus,
+        destination
+      });
     }
 
   } catch (error) {
@@ -214,19 +264,14 @@ Deno.serve(async (req) => {
   }
 });
 
-async function processStripeConnect(dealer, payout) {
+async function processStripeConnect(dealer, payout, amount) {
   try {
     if (!dealer.stripe_account_id) {
-      return {
-        success: false,
-        error: 'Stripe account not connected'
-      };
+      return { success: false, error: 'Stripe account not connected' };
     }
 
-    // Calculate amount in cents
-    const amountCents = Math.round(payout.commission_amount * 100);
+    const amountCents = Math.round(amount * 100);
 
-    // Create Stripe transfer
     const transfer = await stripe.transfers.create({
       amount: amountCents,
       currency: 'usd',
@@ -245,57 +290,40 @@ async function processStripeConnect(dealer, payout) {
       destination: {
         stripe_account_id: dealer.stripe_account_id,
         stripe_transfer_id: transfer.id,
-        transfer_status: transfer.status
+        transfer_status: transfer.status,
+        amount: amount
       },
-      fees: 0 // Stripe Connect transfers typically don't have fees for platform->connected account
+      fees: 0
     };
-
   } catch (error) {
     console.error('Stripe transfer error:', error);
-    return {
-      success: false,
-      error: error.message || 'Stripe transfer failed'
-    };
+    return { success: false, error: error.message || 'Stripe transfer failed' };
   }
 }
 
-async function processSolana(base44, dealer, payout) {
+async function processSolana(base44, dealer, payout, amount) {
   try {
     if (!dealer.solana_wallet_address) {
-      return {
-        success: false,
-        error: 'Solana wallet address not configured'
-      };
+      return { success: false, error: 'Solana wallet address not configured' };
     }
 
-    // Validate recipient address
     let recipientPubkey;
     try {
       recipientPubkey = new PublicKey(dealer.solana_wallet_address);
     } catch (e) {
-      return {
-        success: false,
-        error: 'Invalid Solana wallet address'
-      };
+      return { success: false, error: 'Invalid Solana wallet address' };
     }
 
     // Resolve $DUC mint address from global vault settings
     const vaultSettings = await base44.asServiceRole.entities.cLINKVaultSettings.filter({ merchant_id: null });
     const ducMintAddress = vaultSettings?.[0]?.duc_mint_address;
     if (!ducMintAddress) {
-      return {
-        success: false,
-        error: '$DUC mint address not configured in vault settings'
-      };
+      return { success: false, error: '$DUC mint address not configured in vault settings' };
     }
 
-    // Load platform authority wallet
     const authoritySecretKey = Deno.env.get('SOLANA_AUTHORITY_PRIVATE_KEY');
     if (!authoritySecretKey) {
-      return {
-        success: false,
-        error: 'Platform Solana wallet not configured'
-      };
+      return { success: false, error: 'Platform Solana wallet not configured' };
     }
 
     const network = Deno.env.get('SOLANA_NETWORK') || 'devnet';
@@ -308,20 +336,15 @@ async function processSolana(base44, dealer, payout) {
 
     // $DUC is treated 1:1 with USD for payout purposes (6 decimals)
     const decimals = 6;
-    const usdAmount = payout.commission_amount;
+    const usdAmount = amount;
     const ducAmountRaw = Math.floor(usdAmount * Math.pow(10, decimals));
 
     if (ducAmountRaw <= 0) {
-      return {
-        success: false,
-        error: 'Payout amount too small to transfer'
-      };
+      return { success: false, error: 'Payout amount too small to transfer' };
     }
 
-    // Authority source token account
     const sourceATA = await getAssociatedTokenAddress(mint, authorityKeypair.publicKey);
 
-    // Check treasury balance
     let sourceBalance = 0;
     try {
       const bal = await connection.getTokenAccountBalance(sourceATA);
@@ -336,7 +359,6 @@ async function processSolana(base44, dealer, payout) {
       };
     }
 
-    // Recipient token account (create if it doesn't exist, authority funds it)
     const destATA = await getOrCreateAssociatedTokenAccount(
       connection,
       authorityKeypair,
@@ -344,7 +366,6 @@ async function processSolana(base44, dealer, payout) {
       recipientPubkey
     );
 
-    // Transfer $DUC tokens
     const signature = await transfer(
       connection,
       authorityKeypair,
@@ -369,9 +390,6 @@ async function processSolana(base44, dealer, payout) {
     };
   } catch (error) {
     console.error('Solana transfer error:', error);
-    return {
-      success: false,
-      error: error.message || 'Solana transfer failed'
-    };
+    return { success: false, error: error.message || 'Solana transfer failed' };
   }
 }

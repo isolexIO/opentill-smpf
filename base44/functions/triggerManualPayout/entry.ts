@@ -14,7 +14,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { payout_id, bypass_minimum } = await req.json();
+    const { payout_id, bypass_minimum, split_method, stripe_amount, duc_amount } = await req.json();
 
     // Load payout
     const payout = await base44.asServiceRole.entities.DealerPayout.get(payout_id);
@@ -53,6 +53,31 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Apply super-admin payout structure (Stripe / $DUC / combo) before processing
+    if (split_method && ['full_stripe', 'full_solana', 'combo'].includes(split_method)) {
+      let sa = 0;
+      let da = 0;
+      if (split_method === 'full_stripe') {
+        sa = payout.commission_amount;
+      } else if (split_method === 'full_solana') {
+        da = payout.commission_amount;
+      } else if (split_method === 'combo') {
+        sa = Number(stripe_amount) || 0;
+        da = Number(duc_amount) || 0;
+        const sum = sa + da;
+        if (Math.abs(sum - payout.commission_amount) > 0.01) {
+          return Response.json({
+            error: `Combo split ($${sum.toFixed(2)}) must equal payout amount ($${payout.commission_amount})`
+          }, { status: 400 });
+        }
+      }
+      await base44.asServiceRole.entities.DealerPayout.update(payout_id, {
+        split_method,
+        stripe_amount: sa,
+        duc_amount: da,
+      });
+    }
+
     // Update to scheduled and trigger
     await base44.asServiceRole.entities.DealerPayout.update(payout_id, {
       status: 'scheduled',
@@ -77,7 +102,8 @@ Deno.serve(async (req) => {
         payout_id,
         dealer_id: dealer.legacy_dealer_id || dealer.id,
         amount: payout.commission_amount,
-        bypass_minimum
+        bypass_minimum,
+        split_method: split_method || null
       }
     });
 

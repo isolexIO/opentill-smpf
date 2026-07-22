@@ -81,6 +81,8 @@ export default function PayoutControl() {
   const [busy, setBusy] = useState(false);
   const [resultMsg, setResultMsg] = useState(null);
   const [details, setDetails] = useState(null);
+  const [structure, setStructure] = useState('full_stripe');
+  const [stripeSplitAmount, setStripeSplitAmount] = useState(0);
 
   useEffect(() => {
     loadAll();
@@ -125,6 +127,18 @@ export default function PayoutControl() {
   const openAction = (payout, action) => {
     setCancelReason('');
     setResultMsg(null);
+    if (action === 'trigger') {
+      const base = payout.split_method
+        || (payout.payout_method === 'solana' ? 'full_solana'
+          : payout.payout_method === 'manual' ? 'full_solana'
+          : 'full_stripe');
+      setStructure(base);
+      setStripeSplitAmount(
+        base === 'combo'
+          ? (payout.stripe_amount || (payout.commission_amount / 2))
+          : (base === 'full_stripe' ? payout.commission_amount : 0)
+      );
+    }
     setActionDialog({ open: true, payout, action });
   };
 
@@ -136,10 +150,17 @@ export default function PayoutControl() {
     try {
       let res;
       if (action === 'trigger') {
-        res = await base44.functions.invoke('triggerManualPayout', {
-          payout_id: payout.id,
-          bypass_minimum: true,
-        });
+        const payload = { payout_id: payout.id, bypass_minimum: true };
+        if (structure === 'full_stripe') {
+          payload.split_method = 'full_stripe';
+        } else if (structure === 'full_solana') {
+          payload.split_method = 'full_solana';
+        } else if (structure === 'combo') {
+          payload.split_method = 'combo';
+          payload.stripe_amount = stripeSplitAmount;
+          payload.duc_amount = Math.max(0, (payout.commission_amount || 0) - stripeSplitAmount);
+        }
+        res = await base44.functions.invoke('triggerManualPayout', payload);
       } else if (action === 'cancel') {
         res = await base44.functions.invoke('cancelDealerPayout', {
           payout_id: payout.id,
@@ -160,10 +181,11 @@ export default function PayoutControl() {
       } else {
         // trigger
         if (data.success && (!proc || proc.success !== false)) {
-          showResult(
-            'success',
-            `Payout processed via Stripe. Transfer ID: ${proc?.destination?.stripe_transfer_id || 'pending confirmation'}`
-          );
+          const dest = proc?.destination || {};
+          const ids = [];
+          if (dest.stripe?.stripe_transfer_id) ids.push(`Stripe: ${dest.stripe.stripe_transfer_id}`);
+          if (dest.solana?.tx_signature) ids.push(`$DUC: ${dest.solana.tx_signature}`);
+          showResult('success', `Payout processed. ${ids.join(' • ') || 'pending confirmation'}`);
           await loadAll();
           setActionDialog({ open: false, payout: null, action: null });
         } else {
@@ -268,7 +290,7 @@ export default function PayoutControl() {
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-sm text-gray-500">Paid Out (Stripe)</p>
+            <p className="text-sm text-gray-500">Paid Out</p>
             <p className="text-2xl font-bold text-green-600">${stats.paidOut.toFixed(2)}</p>
           </CardContent>
         </Card>
@@ -351,14 +373,21 @@ export default function PayoutControl() {
                       ${(payout.commission_amount || 0).toFixed(2)}
                     </TableCell>
                     <TableCell className="text-sm">
-                      {payout.payout_method === 'stripe_connect'
+                      {payout.split_method === 'combo'
+                        ? `Stripe $${(payout.stripe_amount || 0).toFixed(0)} + $DUC $${(payout.duc_amount || 0).toFixed(0)}`
+                        : payout.split_method === 'full_solana'
+                        ? '$DUC'
+                        : payout.split_method === 'full_stripe'
+                        ? 'Stripe'
+                        : payout.payout_method === 'stripe_connect'
                         ? 'Stripe'
                         : payout.payout_method === 'solana'
-                        ? 'Solana'
+                        ? '$DUC'
                         : payout.payout_method || '—'}
                     </TableCell>
                     <TableCell>
-                      {payout.payout_method === 'stripe_connect' ? (
+                      {(payout.split_method === 'full_stripe' || payout.split_method === 'combo' ||
+                        (!payout.split_method && payout.payout_method === 'stripe_connect')) ? (
                         stripeConnected(payout) ? (
                           <Badge className="bg-green-100 text-green-700">Connected</Badge>
                         ) : (
@@ -372,7 +401,10 @@ export default function PayoutControl() {
                       <StatusBadge status={payout.status} />
                     </TableCell>
                     <TableCell className="text-xs text-gray-500 font-mono">
-                      {payout.payout_destination?.stripe_transfer_id || '—'}
+                      {payout.payout_destination?.stripe?.stripe_transfer_id
+                        || payout.payout_destination?.stripe_transfer_id
+                        || payout.payout_destination?.solana?.tx_signature
+                        || '—'}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
@@ -458,9 +490,17 @@ export default function PayoutControl() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Stripe Transfer ID</p>
+                  <p className="text-sm text-gray-500">Stripe Transfer</p>
                   <p className="font-mono text-xs break-all">
-                    {details.payout_destination?.stripe_transfer_id || '—'}
+                    {details.payout_destination?.stripe?.stripe_transfer_id
+                      || details.payout_destination?.stripe_transfer_id
+                      || '—'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">$DUC Transaction</p>
+                  <p className="font-mono text-xs break-all">
+                    {details.payout_destination?.solana?.tx_signature || '—'}
                   </p>
                 </div>
                 {details.error_message && (
@@ -531,13 +571,51 @@ export default function PayoutControl() {
               </div>
 
               {actionDialog.action === 'trigger' && (
-                <Alert>
-                  <Zap className="h-4 w-4" />
-                  <AlertDescription>
-                    This will transfer funds from the platform Stripe account to the ambassador's connected
-                    Stripe account. The minimum payout threshold is bypassed for platform admins.
-                  </AlertDescription>
-                </Alert>
+                <div className="space-y-3">
+                  <div>
+                    <Label>Payout Structure</Label>
+                    <Select value={structure} onValueChange={setStructure}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="full_stripe">Stripe (full)</SelectItem>
+                        <SelectItem value="full_solana">$DUC (full)</SelectItem>
+                        <SelectItem value="combo">Combo (Stripe + $DUC)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {structure === 'combo' && actionDialog.payout && (
+                    <div className="space-y-2">
+                      <Label>Stripe Amount ($)</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        max={actionDialog.payout.commission_amount}
+                        step="0.01"
+                        value={stripeSplitAmount}
+                        onChange={(e) => setStripeSplitAmount(parseFloat(e.target.value) || 0)}
+                      />
+                      <p className="text-xs text-gray-500">
+                        Stripe: ${(stripeSplitAmount || 0).toFixed(2)} • $DUC: $
+                        {Math.max(0, (actionDialog.payout.commission_amount || 0) - (stripeSplitAmount || 0)).toFixed(2)}
+                        {' '}(total ${actionDialog.payout.commission_amount})
+                      </p>
+                    </div>
+                  )}
+
+                  <Alert>
+                    <Zap className="h-4 w-4" />
+                    <AlertDescription>
+                      {structure === 'full_solana'
+                        ? "Sends the full commission as $DUC tokens to the ambassador's Solana wallet. The minimum payout threshold is bypassed for platform admins."
+                        : structure === 'combo'
+                        ? 'Splits the commission between Stripe and $DUC — both legs are processed together. The minimum payout threshold is bypassed for platform admins.'
+                        : "Transfers funds from the platform Stripe account to the ambassador's connected Stripe account. The minimum payout threshold is bypassed for platform admins."}
+                    </AlertDescription>
+                  </Alert>
+                </div>
               )}
 
               {actionDialog.action === 'cancel' && (

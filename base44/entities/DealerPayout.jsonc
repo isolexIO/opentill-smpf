@@ -40,11 +40,31 @@
         "solana",
         "manual"
       ],
-      "description": "Method used for payout"
+      "description": "Original method recorded when payout was calculated"
+    },
+    "split_method": {
+      "type": "string",
+      "enum": [
+        "full_stripe",
+        "full_solana",
+        "combo",
+        "manual"
+      ],
+      "description": "How the super admin structured this payout: all Stripe, all $DUC, or a combo split"
+    },
+    "stripe_amount": {
+      "type": "number",
+      "default": 0,
+      "description": "Portion of the commission sent via Stripe"
+    },
+    "duc_amount": {
+      "type": "number",
+      "default": 0,
+      "description": "Portion of the commission sent as $DUC (Solana)"
     },
     "payout_destination": {
       "type": "object",
-      "description": "Destination details (stripe_account_id, stripe_transfer_id, solana_wallet, tx_signature)",
+      "description": "Destination details: { stripe: { stripe_account_id, stripe_transfer_id, transfer_status }, solana: { solana_wallet, tx_signature, duc_amount, duc_mint } }",
       "additionalProperties": true
     },
     "status": {
