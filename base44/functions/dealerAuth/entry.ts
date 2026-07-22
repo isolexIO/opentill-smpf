@@ -1,6 +1,8 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 import bcrypt from 'npm:bcryptjs@2.4.3';
 import { create, verify } from 'https://deno.land/x/djwt@v2.8/mod.ts';
+import { PublicKey } from 'npm:@solana/web3.js@1.95.8';
+import nacl from 'npm:tweetnacl@1.0.3';
 
 const JWT_SECRET = Deno.env.get('JWT_SECRET');
 
@@ -61,6 +63,90 @@ function publicAmbassador(record) {
   };
 }
 
+// Build a user-like object so the frontend (DealerDashboard) can treat the
+// ambassador session the same way it treats a platform User stored in
+// pinLoggedInUser. Role is 'ambassador' and dealer_id is bridged so the
+// dashboard can load the ambassador's record.
+function buildUser(ambassador) {
+  const dealerId = ambassador.legacy_dealer_id || ambassador.id;
+  return {
+    id: ambassador.id,
+    email: ambassador.owner_email,
+    full_name: ambassador.owner_name || ambassador.name,
+    role: 'ambassador',
+    dealer_id: dealerId
+  };
+}
+
+function makeSlug(seed) {
+  const base = (seed || 'ambassador')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+    .slice(0, 30) || 'ambassador';
+  return `${base}-${Date.now().toString(36)}`;
+}
+
+const DEFAULT_AMBASSADOR_FIELDS = {
+  status: 'trial',
+  trial_ends_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+  primary_color: '#7B2FD6',
+  secondary_color: '#0FD17A',
+  commission_percent: 15,
+  platform_fee_monthly: 0,
+  payout_method: 'stripe_connect',
+  payout_minimum: 20,
+  payout_cadence: 'monthly',
+  payout_hold_days: 7,
+  payout_enabled: false,
+  billing_mode: 'root_fallback',
+  stripe_connected: false,
+  total_merchants: 0,
+  total_revenue_generated: 0,
+  commission_earned: 0,
+  commission_paid_out: 0,
+  commission_pending: 0,
+  settings: {
+    hide_opentill_branding: false,
+    allow_merchant_self_signup: true,
+    default_merchant_plan: 'basic',
+    custom_pricing_enabled: false
+  }
+};
+
+async function verifySolanaSignature(walletAddress, signatureData) {
+  if (!signatureData || !signatureData.message) {
+    return { ok: false, error: 'signature_data with message is required' };
+  }
+  // Freshness / replay protection
+  const FRESHNESS_WINDOW_MS = 5 * 60 * 1000;
+  const tsMatch = typeof signatureData.message === 'string'
+    && signatureData.message.match(/Timestamp:\s*(\d+)/);
+  if (!tsMatch) {
+    return { ok: false, error: 'Missing timestamp in signed message' };
+  }
+  const msgTime = parseInt(tsMatch[1], 10);
+  if (!Number.isFinite(msgTime) || Math.abs(Date.now() - msgTime) > FRESHNESS_WINDOW_MS) {
+    return { ok: false, error: 'Signature timestamp expired or invalid' };
+  }
+  const walletMatch = typeof signatureData.message === 'string'
+    && signatureData.message.match(/Wallet:\s*([A-Za-z0-9]+)/);
+  if (walletMatch && walletMatch[1].toLowerCase() !== walletAddress.toLowerCase()) {
+    return { ok: false, error: 'Signed message does not bind to this wallet' };
+  }
+  try {
+    const publicKey = new PublicKey(walletAddress);
+    const messageBytes = new TextEncoder().encode(signatureData.message);
+    const signatureBytes = new Uint8Array(signatureData.signature);
+    const valid = nacl.sign.detached.verify(messageBytes, signatureBytes, publicKey.toBytes());
+    if (!valid) return { ok: false, error: 'Invalid wallet signature' };
+    return { ok: true };
+  } catch (e) {
+    console.error('Solana signature verification error:', e);
+    return { ok: false, error: 'Invalid wallet signature' };
+  }
+}
+
 Deno.serve(async (req) => {
   const base44 = createClientFromRequest(req);
 
@@ -102,7 +188,7 @@ Deno.serve(async (req) => {
       if (!ambassador.password_hash) {
         return Response.json({
           success: false,
-          error: 'Invalid credentials'
+          error: 'No password set for this account. Use Google or wallet sign-in, or ask an admin to set a password.'
         }, { status: 401 });
       }
 
@@ -121,7 +207,8 @@ Deno.serve(async (req) => {
       return Response.json({
         success: true,
         token,
-        dealer: publicAmbassador(ambassador)
+        dealer: publicAmbassador(ambassador),
+        user: buildUser(ambassador)
       });
     }
 
@@ -164,35 +251,13 @@ Deno.serve(async (req) => {
       const passwordHash = bcrypt.hashSync(password, 10);
 
       const ambassador = await base44.asServiceRole.entities.Ambassador.create({
+        ...DEFAULT_AMBASSADOR_FIELDS,
         name: company,
         slug: finalSlug,
         owner_name: name,
         owner_email: email.toLowerCase(),
         contact_email: email.toLowerCase(),
-        password_hash: passwordHash,
-        status: 'trial',
-        trial_ends_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        primary_color: '#7B2FD6',
-        secondary_color: '#0FD17A',
-        commission_percent: 15,
-        platform_fee_monthly: 99,
-        payout_method: 'stripe_connect',
-        payout_minimum: 20,
-        payout_cadence: 'monthly',
-        payout_enabled: false,
-        billing_mode: 'root_fallback',
-        stripe_connected: false,
-        total_merchants: 0,
-        total_revenue_generated: 0,
-        commission_earned: 0,
-        commission_paid_out: 0,
-        commission_pending: 0,
-        settings: {
-          hide_opentill_branding: false,
-          allow_merchant_self_signup: true,
-          default_merchant_plan: 'basic',
-          custom_pricing_enabled: false
-        }
+        password_hash: passwordHash
       });
 
       // Bridge legacy dealer_id foreign keys to this ambassador.
@@ -217,7 +282,156 @@ Deno.serve(async (req) => {
       return Response.json({
         success: true,
         token,
-        dealer: publicAmbassador(ambassador)
+        dealer: publicAmbassador(ambassador),
+        user: buildUser(ambassador)
+      });
+    }
+
+    // GOOGLE AUTH (sign-in or sign-up)
+    // Called after the platform Google OAuth flow completes; relies on
+    // base44.auth.me() to identify the Google user.
+    if (action === 'google_auth') {
+      let me;
+      try {
+        me = await base44.auth.me();
+      } catch {
+        me = null;
+      }
+      if (!me || !me.email) {
+        return Response.json({
+          success: false,
+          error: 'Google authentication required. Please sign in with Google first.'
+        }, { status: 401 });
+      }
+
+      const email = me.email.toLowerCase().trim();
+      const ambassadors = await base44.asServiceRole.entities.Ambassador.filter({
+        owner_email: email
+      });
+
+      let ambassador;
+      let isNew = false;
+
+      if (ambassadors.length > 0) {
+        ambassador = ambassadors[0];
+      } else {
+        // Sign-up via Google — create a new ambassador record
+        const company = me.full_name ? `${me.full_name}'s POS` : 'Ambassador';
+        const slug = makeSlug(company);
+        const existingSlugs = await base44.asServiceRole.entities.Ambassador.filter({ slug });
+        const finalSlug = existingSlugs.length > 0 ? `${slug}-${Date.now().toString(36)}` : slug;
+
+        ambassador = await base44.asServiceRole.entities.Ambassador.create({
+          ...DEFAULT_AMBASSADOR_FIELDS,
+          name: company,
+          slug: finalSlug,
+          owner_name: me.full_name || '',
+          owner_email: email,
+          contact_email: email
+        });
+        await base44.asServiceRole.entities.Ambassador.update(ambassador.id, {
+          legacy_dealer_id: ambassador.id
+        });
+        isNew = true;
+      }
+
+      if (ambassador.status !== 'active' && ambassador.status !== 'trial') {
+        return Response.json({
+          success: false,
+          error: 'Your ambassador account is not active. Please contact support.'
+        }, { status: 403 });
+      }
+
+      const dealerId = ambassador.legacy_dealer_id || ambassador.id;
+      const token = await generateToken(dealerId, ambassador.owner_email);
+
+      return Response.json({
+        success: true,
+        token,
+        dealer: publicAmbassador(ambassador),
+        user: buildUser(ambassador),
+        is_new_user: isNew
+      });
+    }
+
+    // SOLANA WALLET AUTH (sign-in or sign-up)
+    if (action === 'wallet_auth') {
+      const { wallet_address, wallet_type, signature_data } = body;
+
+      if (!wallet_address) {
+        return Response.json({
+          success: false,
+          error: 'wallet_address is required'
+        }, { status: 400 });
+      }
+
+      const verifyResult = await verifySolanaSignature(wallet_address, signature_data || {});
+      if (!verifyResult.ok) {
+        return Response.json({
+          success: false,
+          error: verifyResult.error
+        }, { status: 401 });
+      }
+
+      // Look up ambassador by linked Solana wallet
+      let ambassadors = await base44.asServiceRole.entities.Ambassador.filter({
+        solana_wallet_address: wallet_address
+      });
+
+      let ambassador;
+      let isNew = false;
+
+      if (ambassadors.length > 0) {
+        ambassador = ambassadors[0];
+      } else {
+        // Sign-up via wallet — create a new ambassador record linked to this wallet
+        const pseudoEmail = `${wallet_address.toLowerCase()}@solana.opentill`;
+        const byEmail = await base44.asServiceRole.entities.Ambassador.filter({
+          owner_email: pseudoEmail
+        });
+        if (byEmail.length > 0) {
+          ambassador = byEmail[0];
+          // ensure wallet is linked
+          if (!ambassador.solana_wallet_address) {
+            await base44.asServiceRole.entities.Ambassador.update(ambassador.id, {
+              solana_wallet_address: wallet_address
+            });
+            ambassador.solana_wallet_address = wallet_address;
+          }
+        } else {
+          const slug = makeSlug('solana-ambassador');
+          ambassador = await base44.asServiceRole.entities.Ambassador.create({
+            ...DEFAULT_AMBASSADOR_FIELDS,
+            name: 'Solana Ambassador',
+            slug,
+            owner_name: 'Solana Ambassador',
+            owner_email: pseudoEmail,
+            contact_email: pseudoEmail,
+            solana_wallet_address: wallet_address
+          });
+          await base44.asServiceRole.entities.Ambassador.update(ambassador.id, {
+            legacy_dealer_id: ambassador.id
+          });
+          isNew = true;
+        }
+      }
+
+      if (ambassador.status !== 'active' && ambassador.status !== 'trial') {
+        return Response.json({
+          success: false,
+          error: 'Your ambassador account is not active. Please contact support.'
+        }, { status: 403 });
+      }
+
+      const dealerId = ambassador.legacy_dealer_id || ambassador.id;
+      const token = await generateToken(dealerId, ambassador.owner_email);
+
+      return Response.json({
+        success: true,
+        token,
+        dealer: publicAmbassador(ambassador),
+        user: buildUser(ambassador),
+        is_new_user: isNew
       });
     }
 

@@ -9,9 +9,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Building2, CheckCircle, Zap, DollarSign, Users, Shield, Globe,
   TrendingUp, Loader2, AlertCircle, Star, ArrowRight, BarChart3,
-  Palette, Mail, Lock, Rocket, Award, ChevronRight, Phone
+  Palette, Mail, Lock, Rocket, Award, ChevronRight, Phone, Chrome, Wallet
 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
+import AmbassadorWalletLogin from '@/components/auth/AmbassadorWalletLogin';
 
 export default function DealerLanding() {
   const [isChecking, setIsChecking] = useState(true);
@@ -67,7 +68,39 @@ export default function DealerLanding() {
         localStorage.removeItem('dealerData');
       }
     } catch { localStorage.removeItem('dealerToken'); }
-    finally { setIsChecking(false); }
+
+    // Returning from Google OAuth: a platform session exists but no dealer token yet.
+    try {
+      const me = await base44.auth.me();
+      if (me && me.email) {
+        const { data } = await base44.functions.invoke('dealerAuth', { action: 'google_auth' });
+        if (data?.success) {
+          localStorage.setItem('dealerToken', data.token);
+          localStorage.setItem('dealerData', JSON.stringify(data.dealer));
+          if (data.user) localStorage.setItem('pinLoggedInUser', JSON.stringify(data.user));
+          window.location.href = createPageUrl('DealerDashboard');
+          return;
+        }
+      }
+    } catch { /* not authenticated via platform — continue to the auth card */ }
+
+    setIsChecking(false);
+  };
+
+  const handleGoogleAuth = async () => {
+    setLoading(true); setError(null);
+    try {
+      // Redirect to platform Google OAuth, returning here to finish ambassador sign-in/up.
+      await base44.auth.redirectToLogin(createPageUrl('DealerLanding'));
+    } catch {
+      setError('Failed to start Google sign-in');
+      setLoading(false);
+    }
+  };
+
+  const handleWalletDone = (data) => {
+    setSuccess('Account ready! Redirecting to your dashboard...');
+    setTimeout(() => { window.location.href = createPageUrl('DealerDashboard'); }, 800);
   };
 
   const handleLogin = async (e) => {
@@ -240,6 +273,34 @@ export default function DealerLanding() {
                         <AlertDescription className="text-emerald-200">{success}</AlertDescription>
                       </Alert>
                     )}
+
+                    {/* Social sign-in / sign-up — works for both tabs */}
+                    <div className="mb-5 space-y-3">
+                      <Button
+                        type="button"
+                        onClick={handleGoogleAuth}
+                        disabled={loading}
+                        className="w-full h-11 bg-white text-gray-800 hover:bg-gray-100 font-semibold"
+                      >
+                        {loading
+                          ? <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          : <Chrome className="w-4 h-4 mr-2" />}
+                        {loading ? 'Redirecting...' : 'Continue with Google'}
+                      </Button>
+                      <div className="relative flex items-center gap-2">
+                        <div className="flex-1 border-t border-white/10" />
+                        <span className="text-white/30 text-xs whitespace-nowrap flex items-center gap-1">
+                          <Wallet className="w-3 h-3" /> or Solana wallet
+                        </span>
+                        <div className="flex-1 border-t border-white/10" />
+                      </div>
+                      <AmbassadorWalletLogin onDone={handleWalletDone} />
+                      <div className="relative flex items-center gap-2 pt-1">
+                        <div className="flex-1 border-t border-white/10" />
+                        <span className="text-white/30 text-xs whitespace-nowrap">or email</span>
+                        <div className="flex-1 border-t border-white/10" />
+                      </div>
+                    </div>
 
                     {/* LOGIN */}
                     <TabsContent value="login" className="mt-0">
