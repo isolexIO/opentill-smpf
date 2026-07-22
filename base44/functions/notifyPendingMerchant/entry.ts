@@ -59,16 +59,29 @@ Deno.serve(async (req) => {
             return Response.json({ success: true });
         }
 
-        // Create notification for super admin
+        // Idempotency / trust boundary: an unauthenticated entity-automation
+        // payload (or a replayed direct call) must not be able to spam
+        // duplicate notifications or bloat the database. Tag the notification
+        // with the verified merchant id and skip if one already exists.
+        const dedupeUrl = `/SuperAdmin?tab=pending&merchant=${merchant.id}`;
+        const existing = await base44.asServiceRole.entities.MerchantNotification.filter({
+            action_url: dedupeUrl
+        });
+        if (existing && existing.length > 0) {
+            return Response.json({ success: true, message: 'Notification already exists for this merchant' });
+        }
+
+        // Create notification for super admin. All content is sourced from
+        // the DB-verified merchant record, never from the request payload.
         await base44.asServiceRole.entities.MerchantNotification.create({
             title: 'New Merchant Registration',
             message: `${merchant.business_name} (${merchant.owner_email}) has registered and is pending activation.`,
             type: 'info',
             priority: 'high',
-            target_merchants: [], // Empty array = all users can see (admins)
+            target_merchants: [], // Empty array = all admins can see
             is_active: true,
             is_dismissible: true,
-            action_url: '/SuperAdmin?tab=pending',
+            action_url: dedupeUrl,
             action_text: 'Review Application',
             created_by: 'system',
             created_by_email: 'system@chainlink.local'
