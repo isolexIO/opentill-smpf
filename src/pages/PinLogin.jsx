@@ -113,6 +113,8 @@ export default function PinLoginPage() {
         window.location.href = createPageUrl('SuperAdmin');
       } else if (['dealer_admin', 'ambassador'].includes(role)) {
         window.location.href = createPageUrl('DealerDashboard');
+      } else if (role === 'driver') {
+        window.location.href = createPageUrl('DriverDashboard');
       } else {
         window.location.href = createPageUrl('SystemMenu');
       }

@@ -9,6 +9,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
+import DriverDashboard from './pages/DriverDashboard';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -63,6 +64,11 @@ const AuthenticatedApp = () => {
       <Route path="/builders" element={
         <LayoutWrapper currentPageName="Builders">
           <Pages.Builders />
+        </LayoutWrapper>
+      } />
+      <Route path="/DriverDashboard" element={
+        <LayoutWrapper currentPageName="DriverDashboard">
+          <DriverDashboard />
         </LayoutWrapper>
       } />
       <Route path="*" element={<PageNotFound />} />
