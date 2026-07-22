@@ -134,17 +134,19 @@ export default function DealerManagement() {
         email,
         password: tempPassword
       });
-      if (res?.success) {
+      const result = res?.data || res;
+      if (result?.success) {
         setTempPasswordMsg({
           type: 'success',
           text: `Temporary password set for ${email}. It will be cleared after first login.`
         });
         setTempPassword('');
       } else {
-        setTempPasswordMsg({ type: 'error', text: res?.error || 'Failed to set password.' });
+        setTempPasswordMsg({ type: 'error', text: result?.error || 'Failed to set password.' });
       }
     } catch (e) {
-      setTempPasswordMsg({ type: 'error', text: e.message || 'Failed to set password.' });
+      const errBody = e?.response?.data;
+      setTempPasswordMsg({ type: 'error', text: errBody?.error || e.message || 'Failed to set password.' });
     } finally {
       setTempPasswordLoading(false);
     }
