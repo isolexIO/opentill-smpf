@@ -51,14 +51,16 @@ export default function StepReferral({ formData, onChange, onNext, locked, deale
     }
   }, [locked, dealerReferral, formData.referral_code]);
 
-  // Resolve an ambassador referral (ambassador id pre-filled from the invite link)
+  // Resolve an ambassador referral (ambassador or legacy dealer id pre-filled from the invite link).
+  // Uses a public backend function so logged-out visitors can see the trust card without
+  // exposing any sensitive dealer record fields.
   useEffect(() => {
     if (locked && dealerReferral && formData.referral_code && !dealerInfo) {
       (async () => {
         try {
-          const ambassadors = await base44.entities.Ambassador.filter({ id: formData.referral_code });
-          if (ambassadors && ambassadors.length > 0) {
-            setDealerInfo(ambassadors[0]);
+          const res = await base44.functions.invoke('getAmbassadorByReferral', { referral_id: formData.referral_code });
+          if (res.data?.success && res.data.ambassador) {
+            setDealerInfo(res.data.ambassador);
           }
         } catch (e) {
           // ignore — keep field locked regardless
