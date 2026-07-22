@@ -32,6 +32,32 @@ function parseMerchantAddress(raw) {
   return { ...fallback, line1: raw };
 }
 
+// Geolocate the requesting client by IP and return a US-formatted address.
+// Used so a Stripe Terminal location reflects the merchant's actual location
+// without requiring a structured address. Returns null on any failure.
+async function geolocateRequest(req, line1Fallback) {
+  const ip =
+    (req.headers.get('x-forwarded-for') || '').split(',')[0].trim() ||
+    req.headers.get('cf-connecting-ip') ||
+    req.headers.get('x-real-ip');
+  if (!ip || ip === '127.0.0.1') return null;
+  try {
+    const res = await fetch(`https://ipwho.is/${encodeURIComponent(ip)}`);
+    const data = await res.json();
+    if (!data || data.success === false) return null;
+    if (!data.city || !data.region_code || !data.postal) return null;
+    return {
+      line1: line1Fallback || `${data.city} Business Location`,
+      city: data.city,
+      state: data.region_code,
+      postal_code: String(data.postal),
+      country: (data.country_code || 'US').toUpperCase(),
+    };
+  } catch {
+    return null;
+  }
+}
+
 Deno.serve(async (req) => {
   try {
     const stripeKey = Deno.env.get('STRIPE_CONNECT_KEY') || Deno.env.get('STRIPE_SECRET_KEY');
@@ -92,7 +118,9 @@ Deno.serve(async (req) => {
     }
 
     if (!location) {
-      const address = parseMerchantAddress(merchant.address);
+      const address =
+        (await geolocateRequest(req, merchant.address)) ||
+        parseMerchantAddress(merchant.address);
       location = await stripe.terminal.locations.create({
         display_name: merchant.business_name || 'openTILL Terminal',
         address,
