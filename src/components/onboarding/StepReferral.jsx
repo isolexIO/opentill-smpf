@@ -51,14 +51,14 @@ export default function StepReferral({ formData, onChange, onNext, locked, deale
     }
   }, [locked, dealerReferral, formData.referral_code]);
 
-  // Resolve a dealer referral (dealer_id pre-filled from the invite link)
+  // Resolve an ambassador referral (ambassador id pre-filled from the invite link)
   useEffect(() => {
     if (locked && dealerReferral && formData.referral_code && !dealerInfo) {
       (async () => {
         try {
-          const dealers = await base44.entities.Dealer.filter({ id: formData.referral_code });
-          if (dealers && dealers.length > 0) {
-            setDealerInfo(dealers[0]);
+          const ambassadors = await base44.entities.Ambassador.filter({ id: formData.referral_code });
+          if (ambassadors && ambassadors.length > 0) {
+            setDealerInfo(ambassadors[0]);
           }
         } catch (e) {
           // ignore — keep field locked regardless
