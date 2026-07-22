@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
-import * as bcrypt from 'https://deno.land/x/bcrypt@v0.4.1/mod.ts';
+import bcrypt from 'npm:bcryptjs@2.4.3';
 import { create, verify } from 'https://deno.land/x/djwt@v2.8/mod.ts';
 
 const JWT_SECRET = Deno.env.get('JWT_SECRET');
@@ -106,7 +106,7 @@ Deno.serve(async (req) => {
         }, { status: 401 });
       }
 
-      const isValidPassword = await bcrypt.compare(password, ambassador.password_hash);
+      const isValidPassword = bcrypt.compareSync(password, ambassador.password_hash);
 
       if (!isValidPassword) {
         return Response.json({
@@ -161,7 +161,7 @@ Deno.serve(async (req) => {
       const existingSlugs = await base44.asServiceRole.entities.Ambassador.filter({ slug });
       const finalSlug = existingSlugs.length > 0 ? `${slug}-${Date.now()}` : slug;
 
-      const passwordHash = await bcrypt.hash(password, 10);
+      const passwordHash = bcrypt.hashSync(password, 10);
 
       const ambassador = await base44.asServiceRole.entities.Ambassador.create({
         name: company,
