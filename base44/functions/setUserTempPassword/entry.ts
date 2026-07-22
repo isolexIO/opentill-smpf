@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
-import * as bcrypt from 'https://deno.land/x/bcrypt@v0.4.1/mod.ts';
+import bcrypt from 'npm:bcryptjs@2.4.3';
 
 // Set a temporary password for an ambassador admin (super admin only). No email is sent.
 // Handles two auth paths:
@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
     // Path 2: self-registered ambassador (Ambassador Hub) — credentials on Ambassador entity
     const ambassadors = await base44.asServiceRole.entities.Ambassador.filter({ owner_email: emailLower });
     if (ambassadors && ambassadors.length > 0) {
-      const hash = await bcrypt.hash(password, 10);
+      const hash = bcrypt.hashSync(password, 10);
       await base44.asServiceRole.entities.Ambassador.update(ambassadors[0].id, {
         password_hash: hash
       });
