@@ -92,8 +92,8 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Platform Solana wallet not configured' }, { status: 500 });
     }
 
-    const network = Deno.env.get('SOLANA_NETWORK') || 'devnet';
-    const rpcUrl = network === 'mainnet'
+    const network = (Deno.env.get('SOLANA_NETWORK') || 'devnet').toLowerCase();
+    const rpcUrl = network.startsWith('mainnet')
       ? 'https://api.mainnet-beta.solana.com'
       : 'https://api.devnet.solana.com';
     const connection = new Connection(rpcUrl, 'confirmed');
