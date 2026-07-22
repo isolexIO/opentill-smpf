@@ -53,7 +53,7 @@ export default function EmailLoginPage() {
     try {
       const subdomain = window.location.hostname.split('.')[0];
       if (subdomain && !['localhost', 'opentill', 'www', ''].includes(subdomain.toLowerCase())) {
-        const dealers = await base44.entities.Dealer.filter({ slug: subdomain });
+        const dealers = await base44.entities.Ambassador.filter({ slug: subdomain });
         if (dealers?.length > 0) setDealer(dealers[0]);
       }
     } catch { /* silent */ }

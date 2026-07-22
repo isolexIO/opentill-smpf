@@ -74,7 +74,7 @@ export default function DealerOnboarding() {
               {[
                 { label: 'Email', value: credentials.email },
                 { label: '6-Digit POS PIN', value: credentials.pin },
-                { label: 'Your Portal URL', value: `https://${credentials.slug}.chainlinkpos.isolex.io` },
+                { label: 'Your Portal URL', value: `https://${credentials.slug}.opentillpos.isolex.io` },
               ].map((item, i) => (
                 <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-3">
                   <div className="text-white/40 text-xs uppercase tracking-wide mb-1">{item.label}</div>
@@ -205,7 +205,7 @@ export default function DealerOnboarding() {
                     className="bg-white/5 border-white/15 text-white placeholder:text-white/20 focus:border-emerald-500"
                   />
                   <p className="text-white/30 text-xs">
-                    Portal URL: https://<span className="text-emerald-400">{formData.slug || 'yourcompany'}</span>.chainlinkpos.isolex.io
+                    Portal URL: https://<span className="text-emerald-400">{formData.slug || 'yourcompany'}</span>.opentillpos.isolex.io
                   </p>
                 </div>
                 <div className="grid grid-cols-2 gap-3">

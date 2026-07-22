@@ -23,15 +23,15 @@ export default function DealerHomePage() {
       const subdomain = hostname.split('.')[0];
 
       let dealerData = null;
-      if (subdomain && !['localhost', 'chainlinkpos', 'www', ''].includes(subdomain.toLowerCase())) {
-        const dealers = await base44.entities.Dealer.filter({ slug: subdomain });
+      if (subdomain && !['localhost', 'opentill', 'www', ''].includes(subdomain.toLowerCase())) {
+        const dealers = await base44.entities.Ambassador.filter({ slug: subdomain });
         dealerData = dealers[0];
       }
 
       if (dealerData) {
         setDealer(dealerData);
         
-        const merchantList = await base44.entities.Merchant.filter({ dealer_id: dealerData.id });
+        const merchantList = await base44.entities.Merchant.filter({ dealer_id: dealerData.legacy_dealer_id || dealerData.id });
         setMerchants(merchantList || []);
         
         const activeMerchants = merchantList.filter(m => m.status === 'active').length;

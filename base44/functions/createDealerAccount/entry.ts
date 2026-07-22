@@ -161,14 +161,14 @@ Deno.serve(async (req) => {
                         <li><strong>Google Sign-In</strong> with ${owner_email.toLowerCase().trim()} (recommended), or</li>
                         <li><strong>Magic link</strong> from your invitation email</li>
                     </ul>
-                    <p>Login URL: <a href="https://chainlinkpos.isolex.io">chainlinkpos.isolex.io</a></p>
+                    <p>Login URL: <a href="https://opentillpos.isolex.io">opentillpos.isolex.io</a></p>
 
                     <h3>Your POS Quick-Login PIN</h3>
                     <p>Once inside the platform, you can use your PIN for quick POS access:</p>
                     <p style="font-size:28px; font-weight:bold; letter-spacing:6px; background:#f3f4f6; padding:12px 20px; border-radius:8px; display:inline-block;">${pin}</p>
 
                     <h3>Your Portal</h3>
-                    <p><strong>Portal URL:</strong> https://${slug}.chainlinkpos.isolex.io</p>
+                    <p><strong>Portal URL:</strong> https://${slug}.opentillpos.isolex.io</p>
                     <p><strong>Trial ends:</strong> ${new Date(dealerData.trial_ends_at).toLocaleDateString()}</p>
 
                     <p>Thank you for joining the openTILL Ambassador Program!</p>

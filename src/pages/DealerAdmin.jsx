@@ -40,7 +40,7 @@ export default function DealerAdminPage() {
       setCurrentUser(user);
 
       // Load dealer data
-      const dealers = await base44.entities.Dealer.filter({ id: user.dealer_id });
+      const dealers = await base44.entities.Ambassador.filter({ legacy_dealer_id: user.dealer_id });
       if (dealers.length === 0) throw new Error('Dealer not found');
       
       setDealer(dealers[0]);
@@ -116,23 +116,23 @@ export default function DealerAdminPage() {
           </TabsList>
 
           <TabsContent value="merchants">
-            <DealerMerchantManagement dealerId={dealer.id} />
+            <DealerMerchantManagement dealerId={dealer.legacy_dealer_id || dealer.id} />
           </TabsContent>
 
           <TabsContent value="staff">
-            <DealerStaffManagement dealerId={dealer.id} />
+            <DealerStaffManagement dealerId={dealer.legacy_dealer_id || dealer.id} />
           </TabsContent>
 
           <TabsContent value="analytics">
-            <DealerAnalytics dealerId={dealer.id} />
+            <DealerAnalytics dealerId={dealer.legacy_dealer_id || dealer.id} />
           </TabsContent>
 
           <TabsContent value="notifications">
-            <DealerNotifications dealerId={dealer.id} />
+            <DealerNotifications dealerId={dealer.legacy_dealer_id || dealer.id} />
           </TabsContent>
 
           <TabsContent value="payments">
-            <DealerPaymentSettings dealerId={dealer.id} />
+            <DealerPaymentSettings dealerId={dealer.legacy_dealer_id || dealer.id} />
           </TabsContent>
 
           <TabsContent value="settings">

@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
     // Check for collisions
     const checkCollision = async (slug) => {
       const existing = await base44.asServiceRole.entities.Merchant.filter({
-        chainlink_subdomain: slug
+        opentill_subdomain: slug
       });
       return existing.length > 0;
     };
@@ -68,7 +68,7 @@ Deno.serve(async (req) => {
     switch (action) {
       case 'request': {
         // Merchant requests subdomain
-        if (merchant.chainlink_subdomain && merchant.subdomain_status === 'active') {
+        if (merchant.opentill_subdomain && merchant.subdomain_status === 'active') {
           return Response.json({
             success: false,
             error: 'Subdomain already exists and is active'
@@ -79,7 +79,7 @@ Deno.serve(async (req) => {
         const uniqueSubdomain = await generateUniqueSubdomain(proposedSubdomain);
 
         await base44.asServiceRole.entities.Merchant.update(merchant_id, {
-          chainlink_subdomain: uniqueSubdomain,
+          opentill_subdomain: uniqueSubdomain,
           subdomain_status: 'pending',
           subdomain_requested_at: new Date().toISOString(),
           subdomain_wallet: user.wallet_address || null
@@ -89,21 +89,21 @@ Deno.serve(async (req) => {
           merchant_id: merchant_id,
           log_type: 'merchant_action',
           action: 'Subdomain Requested',
-          description: `Merchant requested subdomain: ${uniqueSubdomain}.chainlink-pos.sol`,
+          description: `Merchant requested subdomain: ${uniqueSubdomain}.opentill-pos.sol`,
           user_email: user.email,
           severity: 'info'
         });
 
         return Response.json({
           success: true,
-          subdomain: `${uniqueSubdomain}.chainlink-pos.sol`,
+          subdomain: `${uniqueSubdomain}.opentill-pos.sol`,
           status: 'pending'
         });
       }
 
       case 'approve': {
         // Super Admin approves subdomain
-        if (!merchant.chainlink_subdomain) {
+        if (!merchant.opentill_subdomain) {
           return Response.json({
             success: false,
             error: 'No subdomain to approve'
@@ -119,14 +119,14 @@ Deno.serve(async (req) => {
           merchant_id: merchant_id,
           log_type: 'super_admin_action',
           action: 'Subdomain Approved',
-          description: `Super Admin approved subdomain: ${merchant.chainlink_subdomain}.chainlink-pos.sol`,
+          description: `Super Admin approved subdomain: ${merchant.opentill_subdomain}.opentill-pos.sol`,
           user_email: user.email,
           severity: 'info'
         });
 
         return Response.json({
           success: true,
-          subdomain: `${merchant.chainlink_subdomain}.chainlink-pos.sol`,
+          subdomain: `${merchant.opentill_subdomain}.opentill-pos.sol`,
           status: 'active'
         });
       }
@@ -137,7 +137,7 @@ Deno.serve(async (req) => {
         const uniqueSubdomain = await generateUniqueSubdomain(proposedSubdomain);
 
         await base44.asServiceRole.entities.Merchant.update(merchant_id, {
-          chainlink_subdomain: uniqueSubdomain,
+          opentill_subdomain: uniqueSubdomain,
           subdomain_status: 'pending',
           subdomain_requested_at: new Date().toISOString(),
           subdomain_wallet: wallet_signature || merchant.subdomain_wallet
@@ -147,14 +147,14 @@ Deno.serve(async (req) => {
           merchant_id: merchant_id,
           log_type: 'super_admin_action',
           action: 'Subdomain Regenerated',
-          description: `Super Admin regenerated subdomain from ${merchant.chainlink_subdomain} to ${uniqueSubdomain}`,
+          description: `Super Admin regenerated subdomain from ${merchant.opentill_subdomain} to ${uniqueSubdomain}`,
           user_email: user.email,
           severity: 'info'
         });
 
         return Response.json({
           success: true,
-          subdomain: `${uniqueSubdomain}.chainlink-pos.sol`,
+          subdomain: `${uniqueSubdomain}.opentill-pos.sol`,
           status: 'pending'
         });
       }
@@ -169,7 +169,7 @@ Deno.serve(async (req) => {
           merchant_id: merchant_id,
           log_type: 'super_admin_action',
           action: 'Subdomain Disabled',
-          description: `Super Admin disabled subdomain: ${merchant.chainlink_subdomain}.chainlink-pos.sol`,
+          description: `Super Admin disabled subdomain: ${merchant.opentill_subdomain}.opentill-pos.sol`,
           user_email: user.email,
           severity: 'warning'
         });

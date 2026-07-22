@@ -23,7 +23,7 @@ export default function DealerSubdomainManager({ dealer, onUpdate }) {
   const [error, setError] = useState('');
 
   const getStatusBadge = () => {
-    if (!dealer.chainlink_subdomain) {
+    if (!dealer.opentill_subdomain) {
       return <Badge variant="outline">No Subdomain</Badge>;
     }
 
@@ -58,7 +58,7 @@ export default function DealerSubdomainManager({ dealer, onUpdate }) {
     setLoading(true);
     setError('');
     try {
-      await base44.entities.Dealer.update(dealer.id, {
+      await base44.entities.Ambassador.update(dealer.id, {
         subdomain_status: 'active',
         subdomain_approved_at: new Date().toISOString()
       });
@@ -66,11 +66,11 @@ export default function DealerSubdomainManager({ dealer, onUpdate }) {
       await base44.entities.SystemLog.create({
         log_type: 'super_admin_action',
         action: 'Dealer Subdomain Approved',
-        description: `Approved .chainlink-pos.sol subdomain "${dealer.chainlink_subdomain}" for dealer "${dealer.name}"`,
+        description: `Approved .opentill-pos.sol subdomain "${dealer.opentill_subdomain}" for dealer "${dealer.name}"`,
         user_email: (await base44.auth.me()).email,
         metadata: {
           dealer_id: dealer.id,
-          subdomain: dealer.chainlink_subdomain
+          subdomain: dealer.opentill_subdomain
         }
       });
 
@@ -95,8 +95,8 @@ export default function DealerSubdomainManager({ dealer, onUpdate }) {
     setLoading(true);
     setError('');
     try {
-      await base44.entities.Dealer.update(dealer.id, {
-        chainlink_subdomain: subdomainName,
+      await base44.entities.Ambassador.update(dealer.id, {
+        opentill_subdomain: subdomainName,
         subdomain_status: 'active',
         subdomain_requested_at: new Date().toISOString(),
         subdomain_approved_at: new Date().toISOString()
@@ -105,11 +105,11 @@ export default function DealerSubdomainManager({ dealer, onUpdate }) {
       await base44.entities.SystemLog.create({
         log_type: 'super_admin_action',
         action: 'Dealer Subdomain Regenerated',
-        description: `Regenerated subdomain for dealer "${dealer.name}" to "${subdomainName}.chainlink-pos.sol"`,
+        description: `Regenerated subdomain for dealer "${dealer.name}" to "${subdomainName}.opentill-pos.sol"`,
         user_email: (await base44.auth.me()).email,
         metadata: {
           dealer_id: dealer.id,
-          old_subdomain: dealer.chainlink_subdomain,
+          old_subdomain: dealer.opentill_subdomain,
           new_subdomain: subdomainName
         }
       });
@@ -134,18 +134,18 @@ export default function DealerSubdomainManager({ dealer, onUpdate }) {
     setLoading(true);
     setError('');
     try {
-      await base44.entities.Dealer.update(dealer.id, {
+      await base44.entities.Ambassador.update(dealer.id, {
         subdomain_status: 'disabled'
       });
 
       await base44.entities.SystemLog.create({
         log_type: 'super_admin_action',
         action: 'Dealer Subdomain Disabled',
-        description: `Disabled subdomain "${dealer.chainlink_subdomain}.chainlink-pos.sol" for dealer "${dealer.name}"`,
+        description: `Disabled subdomain "${dealer.opentill_subdomain}.opentill-pos.sol" for dealer "${dealer.name}"`,
         user_email: (await base44.auth.me()).email,
         metadata: {
           dealer_id: dealer.id,
-          subdomain: dealer.chainlink_subdomain
+          subdomain: dealer.opentill_subdomain
         }
       });
 
@@ -165,7 +165,7 @@ export default function DealerSubdomainManager({ dealer, onUpdate }) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Link2 className="w-5 h-5" />
-            Subdomain (.chainlink-pos.sol)
+            Subdomain (.opentill-pos.sol)
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -175,14 +175,14 @@ export default function DealerSubdomainManager({ dealer, onUpdate }) {
             </Alert>
           )}
 
-          {dealer.chainlink_subdomain ? (
+          {dealer.opentill_subdomain ? (
             <>
               <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <Globe className="w-4 h-4 text-gray-500" />
                     <span className="font-mono font-medium">
-                      {dealer.chainlink_subdomain}.chainlink-pos.sol
+                      {dealer.opentill_subdomain}.opentill-pos.sol
                     </span>
                   </div>
                   <p className="text-sm text-gray-500">
@@ -240,7 +240,7 @@ export default function DealerSubdomainManager({ dealer, onUpdate }) {
           <DialogHeader>
             <DialogTitle>Generate Subdomain</DialogTitle>
             <DialogDescription>
-              Create a unique .chainlink-pos.sol subdomain for this dealer
+              Create a unique .opentill-pos.sol subdomain for this dealer
             </DialogDescription>
           </DialogHeader>
 
@@ -259,7 +259,7 @@ export default function DealerSubdomainManager({ dealer, onUpdate }) {
                 placeholder="dealer-name"
               />
               <p className="text-sm text-gray-500 mt-1">
-                Will become: <span className="font-mono">{customName || 'dealer-name'}.chainlink-pos.sol</span>
+                Will become: <span className="font-mono">{customName || 'dealer-name'}.opentill-pos.sol</span>
               </p>
             </div>
           </div>
