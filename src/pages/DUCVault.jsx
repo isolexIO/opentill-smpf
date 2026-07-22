@@ -21,6 +21,7 @@ export default function DUCVault() {
   const [purchaseChipId, setPurchaseChipId] = useState(null);
   const [walletConnected, setWalletConnected] = useState(false);
   const [vaultEnabled, setVaultEnabled] = useState(false);
+  const [vaultSettings, setVaultSettings] = useState(null);
   
   // Balances
   const [totalEarned, setTotalEarned] = useState(0);
@@ -90,6 +91,8 @@ export default function DUCVault() {
       const merchantSettings = settings[0];
       const global = globalSettings[0];
       
+      const effectiveSettings = global || merchantSettings;
+      setVaultSettings(effectiveSettings);
       setVaultEnabled(merchantSettings?.vault_enabled ?? global?.vault_enabled ?? false);
 
       const rewards = await base44.entities.cLINKReward.filter({ merchant_id: merchantId });
@@ -322,6 +325,38 @@ export default function DUCVault() {
               </Card>
             </div>
 
+            {/* Reward Rates (from admin vault settings) */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><TrendingUp className="w-5 h-5 text-green-600" /> Your $DUC Reward Rates</CardTitle>
+                <CardDescription>Current rates configured by openTILL. Earnings are credited automatically as you process payments.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Card Processing Reward</p>
+                    <p className="text-2xl font-bold text-green-600">{((vaultSettings?.cc_reward_rate ?? 0.001) * 100).toFixed(2)}%</p>
+                    <p className="text-xs text-gray-500">of card volume earned as $DUC</p>
+                  </div>
+                  <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Referral Reward</p>
+                    <p className="text-2xl font-bold text-blue-600">{((vaultSettings?.referral_reward_rate ?? 0.1) * 100).toFixed(0)}%</p>
+                    <p className="text-xs text-gray-500">of referred merchants' rewards</p>
+                  </div>
+                  <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Staking APY</p>
+                    <p className="text-2xl font-bold text-purple-600">{vaultSettings?.staking_apy ?? 12}%</p>
+                    <p className="text-xs text-gray-500">{vaultSettings?.staking_lockup_days ?? 90}-day lockup</p>
+                  </div>
+                  <div className="p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Min. Claim Threshold</p>
+                    <p className="text-2xl font-bold text-orange-600">{vaultSettings?.minimum_claim_threshold ?? 10}</p>
+                    <p className="text-xs text-gray-500">$DUC minimum to claim</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
             <JupiterChart />
 
             <Tabs defaultValue="claim" className="space-y-4">
@@ -360,7 +395,7 @@ export default function DUCVault() {
                   <CardContent className="space-y-4">
                     <Alert>
                       <TrendingUp className="h-4 w-4" />
-                      <AlertDescription>Current APY: <strong>12%</strong> | Lockup: <strong>90 days</strong></AlertDescription>
+                      <AlertDescription>Current APY: <strong>{vaultSettings?.staking_apy ?? 12}%</strong> | Lockup: <strong>{vaultSettings?.staking_lockup_days ?? 90} days</strong></AlertDescription>
                     </Alert>
                     <div>
                       <Label>Amount to Stake</Label>
