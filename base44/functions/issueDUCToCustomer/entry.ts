@@ -42,6 +42,10 @@ Deno.serve(async (req) => {
       if (verifiedOrder.merchant_id !== merchant_id || verifiedOrder.status !== 'completed') {
         return Response.json({ success: true, message: 'Order not completed or merchant mismatch, skipped' });
       }
+      // Replay protection: never issue a loyalty reward twice for the same order.
+      if (verifiedOrder.loyalty_reward_issued === true) {
+        return Response.json({ success: true, message: 'Loyalty reward already issued for this order, skipped' });
+      }
       customer_id = verifiedOrder.customer_id || null;
       customer_phone = verifiedOrder.customer_phone || null;
       order_total = verifiedOrder.total || 0;
@@ -55,6 +59,20 @@ Deno.serve(async (req) => {
       }
       if (!user || (user.role !== 'admin' && user.merchant_id !== merchant_id)) {
         return Response.json({ success: false, error: 'Forbidden: not authorized for this merchant' }, { status: 403 });
+      }
+      // Replay protection for direct calls too: verify against the DB order.
+      let directOrder = null;
+      try {
+        const directOrders = await base44.asServiceRole.entities.Order.filter({ id: order_id });
+        if (directOrders && directOrders.length > 0) directOrder = directOrders[0];
+      } catch (lookupError) {
+        return Response.json({ success: true, message: 'Order lookup failed, skipped' });
+      }
+      if (directOrder && directOrder.loyalty_reward_issued === true) {
+        return Response.json({ success: true, message: 'Loyalty reward already issued for this order, skipped' });
+      }
+      if (directOrder && directOrder.merchant_id !== merchant_id) {
+        return Response.json({ success: false, error: 'Forbidden: order does not belong to this merchant' }, { status: 403 });
       }
     }
 
@@ -149,6 +167,13 @@ Deno.serve(async (req) => {
       duc_balance: Math.round(newBalance * 1e6) / 1e6,
       duc_lifetime_earned: Math.round(newLifetime * 1e6) / 1e6
     });
+
+    // Mark the order so the reward cannot be issued again (replay protection).
+    try {
+      await base44.asServiceRole.entities.Order.update(order_id, { loyalty_reward_issued: true });
+    } catch (markError) {
+      console.error('Failed to mark loyalty_reward_issued:', markError);
+    }
 
     // Log
     await base44.asServiceRole.entities.SystemLog.create({

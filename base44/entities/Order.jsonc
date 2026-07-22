@@ -209,6 +209,11 @@
     },
     "source": {
       "type": "string"
+    },
+    "loyalty_reward_issued": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the $DUC loyalty reward has already been issued for this order (replay protection)"
     }
   },
   "required": [

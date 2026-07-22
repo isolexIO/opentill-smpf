@@ -47,8 +47,16 @@ Deno.serve(async (req) => {
 
         // Create audit log entry. Actor identity is sourced from the verified
         // session to prevent clients from spoofing another user/admin action.
+        // SECURITY: enforce strict ownership mapping for merchant_id. A non-admin
+        // caller may only log against their own session merchant_id; any
+        // merchant_id supplied in the request body is ignored to prevent
+        // cross-tenant audit-log forgery. Only verified admins may attribute a
+        // log to an arbitrary merchant (or null for global/platform actions).
+        const resolvedMerchantId = user.role === 'admin'
+            ? (merchant_id || user.merchant_id || null)
+            : (user.merchant_id || null);
         const logData = {
-            merchant_id: merchant_id || user.merchant_id || null,
+            merchant_id: resolvedMerchantId,
             action_type: action_type,
             severity: severity,
             actor_id: user.id,
@@ -67,7 +75,7 @@ Deno.serve(async (req) => {
         console.log('Audit log created:', {
             id: auditLog.id,
             action_type: action_type,
-            actor: actor_email
+            actor: user.email
         });
 
         return Response.json({
