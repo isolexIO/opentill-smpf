@@ -3,7 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
-import { CheckCircle, Loader2, Tag, Gift, Lock } from 'lucide-react';
+import { CheckCircle, Loader2, Tag, Gift, Lock, Phone, Mail, Globe, Building2 } from 'lucide-react';
 
 export default function StepReferral({ formData, onChange, onNext, locked, dealerReferral }) {
   const [checking, setChecking] = useState(false);
@@ -117,11 +117,42 @@ export default function StepReferral({ formData, onChange, onNext, locked, deale
         )}
 
         {dealerReferral && dealerInfo && (
-          <div className="flex items-center gap-3 bg-cyan-50 border border-cyan-200 rounded-xl p-3">
-            <CheckCircle className="w-5 h-5 text-cyan-500 shrink-0" />
-            <div>
-              <p className="text-sm font-bold text-cyan-800">Ambassador referral applied!</p>
-              <p className="text-xs text-cyan-600">Referred by: <strong>{dealerInfo.name}</strong></p>
+          <div className="bg-cyan-50 border border-cyan-200 rounded-xl p-4 space-y-3">
+            <div className="flex items-center gap-3">
+              <CheckCircle className="w-5 h-5 text-cyan-500 shrink-0" />
+              <div>
+                <p className="text-sm font-bold text-cyan-800">Ambassador referral applied!</p>
+                <p className="text-xs text-cyan-600">You were invited by a verified openTILL Ambassador.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 bg-white/70 rounded-lg p-3">
+              {dealerInfo.logo_url ? (
+                <img src={dealerInfo.logo_url} alt={dealerInfo.name} className="w-12 h-12 rounded-lg object-cover border border-cyan-200 shrink-0" />
+              ) : (
+                <div className="w-12 h-12 rounded-lg bg-cyan-100 flex items-center justify-center shrink-0">
+                  <Building2 className="w-6 h-6 text-cyan-600" />
+                </div>
+              )}
+              <div className="min-w-0 space-y-1">
+                <p className="text-sm font-bold text-slate-900 truncate">{dealerInfo.name}</p>
+                <div className="space-y-1">
+                  {dealerInfo.contact_phone && (
+                    <a href={`tel:${dealerInfo.contact_phone}`} className="flex items-center gap-1.5 text-xs text-slate-600 hover:text-cyan-700">
+                      <Phone className="w-3.5 h-3.5 shrink-0" /> {dealerInfo.contact_phone}
+                    </a>
+                  )}
+                  {dealerInfo.contact_email && (
+                    <a href={`mailto:${dealerInfo.contact_email}`} className="flex items-center gap-1.5 text-xs text-slate-600 hover:text-cyan-700 truncate">
+                      <Mail className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">{dealerInfo.contact_email}</span>
+                    </a>
+                  )}
+                  {dealerInfo.domain && (
+                    <a href={dealerInfo.domain.startsWith('http') ? dealerInfo.domain : `https://${dealerInfo.domain}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs text-slate-600 hover:text-cyan-700 truncate">
+                      <Globe className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">{dealerInfo.domain.replace(/^https?:\/\//, '')}</span>
+                    </a>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         )}
