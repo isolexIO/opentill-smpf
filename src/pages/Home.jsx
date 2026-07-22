@@ -313,13 +313,16 @@ export default function HomePage() {
       : 'bg-green-500/10 text-green-600 border-green-500/20';
   };
 
-  // Preserve any referral code in the URL when sending users to onboarding
+  // Preserve any referral code / dealer id in the URL when sending users to onboarding
   const buildOnboardingUrl = () => {
     const params = new URLSearchParams(window.location.search);
     const ref = params.get('ref') || params.get('referral') || params.get('code');
-    return ref
-      ? `${createPageUrl('MerchantOnboarding')}?ref=${encodeURIComponent(ref)}`
-      : createPageUrl('MerchantOnboarding');
+    const dealerId = params.get('dealer_id') || params.get('dealerid') || params.get('dealer');
+    const qs = new URLSearchParams();
+    if (ref) qs.set('ref', ref);
+    if (dealerId) qs.set('dealer_id', dealerId);
+    const query = qs.toString();
+    return query ? `${createPageUrl('MerchantOnboarding')}?${query}` : createPageUrl('MerchantOnboarding');
   };
 
   if (loading && settings === null) {

@@ -5,9 +5,10 @@ import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 import { CheckCircle, Loader2, Tag, Gift, Lock } from 'lucide-react';
 
-export default function StepReferral({ formData, onChange, onNext, locked }) {
+export default function StepReferral({ formData, onChange, onNext, locked, dealerReferral }) {
   const [checking, setChecking] = useState(false);
   const [referrerInfo, setReferrerInfo] = useState(null);
+  const [dealerInfo, setDealerInfo] = useState(null);
   const [codeError, setCodeError] = useState(null);
 
   // Auto-check referral code from URL param on mount
@@ -45,10 +46,26 @@ export default function StepReferral({ formData, onChange, onNext, locked }) {
 
   // Auto-verify a referral code that was pre-filled from a referral link
   useEffect(() => {
-    if (locked && formData.referral_code && formData.referral_code.length >= 4 && !referrerInfo && !checking) {
+    if (locked && !dealerReferral && formData.referral_code && formData.referral_code.length >= 4 && !referrerInfo && !checking) {
       handleCheckCode(formData.referral_code);
     }
-  }, [locked, formData.referral_code]);
+  }, [locked, dealerReferral, formData.referral_code]);
+
+  // Resolve a dealer referral (dealer_id pre-filled from the invite link)
+  useEffect(() => {
+    if (locked && dealerReferral && formData.referral_code && !dealerInfo) {
+      (async () => {
+        try {
+          const dealers = await base44.entities.Dealer.filter({ id: formData.referral_code });
+          if (dealers && dealers.length > 0) {
+            setDealerInfo(dealers[0]);
+          }
+        } catch (e) {
+          // ignore — keep field locked regardless
+        }
+      })();
+    }
+  }, [locked, dealerReferral, formData.referral_code, dealerInfo]);
 
   return (
     <div className="space-y-6">
@@ -99,6 +116,16 @@ export default function StepReferral({ formData, onChange, onNext, locked }) {
           </div>
         )}
 
+        {dealerReferral && dealerInfo && (
+          <div className="flex items-center gap-3 bg-cyan-50 border border-cyan-200 rounded-xl p-3">
+            <CheckCircle className="w-5 h-5 text-cyan-500 shrink-0" />
+            <div>
+              <p className="text-sm font-bold text-cyan-800">Ambassador referral applied!</p>
+              <p className="text-xs text-cyan-600">Referred by: <strong>{dealerInfo.name}</strong></p>
+            </div>
+          </div>
+        )}
+
         {codeError && (
           <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">{codeError}</p>
         )}
@@ -115,7 +142,7 @@ export default function StepReferral({ formData, onChange, onNext, locked }) {
           onClick={onNext}
           className="w-full bg-cyan-600 hover:bg-cyan-700 text-white h-12 text-base font-bold rounded-xl"
         >
-          Continue {referrerInfo ? '— Referral Applied ✓' : ''}
+          Continue {(referrerInfo || dealerInfo) ? '— Referral Applied ✓' : ''}
         </Button>
         {!formData.referral_code && (
           <Button variant="ghost" onClick={onNext} className="text-slate-400 text-sm">

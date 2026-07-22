@@ -41,12 +41,20 @@ export default function MerchantOnboarding() {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [referralLocked, setReferralLocked] = useState(false);
+  const [dealerReferral, setDealerReferral] = useState(false);
+  const [dealerId, setDealerId] = useState(null);
 
   // Pre-fill referral code from URL on mount
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const ref = params.get('ref') || params.get('referral') || params.get('code');
-    if (ref) {
+    const dId = params.get('dealer_id') || params.get('dealerid') || params.get('dealer');
+    if (dId) {
+      setFormData((f) => ({ ...f, referral_code: dId }));
+      setReferralLocked(true);
+      setDealerReferral(true);
+      setDealerId(dId);
+    } else if (ref) {
       setFormData((f) => ({ ...f, referral_code: ref.toUpperCase() }));
       setReferralLocked(true);
     }
@@ -65,7 +73,8 @@ export default function MerchantOnboarding() {
         owner_email: formData.owner_email,
         phone: formData.phone,
         address: formData.address,
-        referral_code: formData.referral_code || null,
+        dealer_id: dealerId || null,
+        referral_code: dealerReferral ? null : (formData.referral_code || null),
         wallet_address: formData.wallet_address || null,
         setup_demo_data: true,
         // Documents
@@ -168,6 +177,7 @@ export default function MerchantOnboarding() {
                 onChange={onChange}
                 onNext={() => setStep(2)}
                 locked={referralLocked}
+                dealerReferral={dealerReferral}
               />
             )}
             {step === 2 && (
