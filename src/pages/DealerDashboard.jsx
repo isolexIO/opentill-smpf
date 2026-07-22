@@ -117,11 +117,19 @@ export default function DealerDashboardPage() {
     } finally { setLoading(false); }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     localStorage.removeItem('pinLoggedInUser');
     localStorage.removeItem('dealerToken');
     localStorage.removeItem('dealerData');
-    window.location.href = createPageUrl('DealerLanding');
+    try {
+      // End the platform session too — Google-authenticated ambassadors would
+      // otherwise bounce straight back into the dashboard via the landing
+      // page's checkExistingAuth, which re-issues a dealerToken from the live
+      // platform session.
+      await base44.auth.logout(createPageUrl('DealerLanding'));
+    } catch {
+      window.location.href = createPageUrl('DealerLanding');
+    }
   };
 
   if (loading) return (
