@@ -1,22 +1,49 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
 import Stripe from 'npm:stripe@17.4.0';
+import { verify as verifyJwt } from 'https://deno.land/x/djwt@v2.8/mod.ts';
 
+const JWT_SECRET = Deno.env.get('JWT_SECRET');
 const stripe = new Stripe(Deno.env.get('STRIPE_CONNECT_KEY') || Deno.env.get('STRIPE_SECRET_KEY'));
+
+async function verifyDealerToken(token) {
+  if (!token || !JWT_SECRET) return null;
+  try {
+    const key = await crypto.subtle.importKey(
+      'raw',
+      new TextEncoder().encode(JWT_SECRET),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['verify']
+    );
+    return await verifyJwt(token, key);
+  } catch {
+    return null;
+  }
+}
 
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
+    const { dealer_id, account_id, token } = await req.json();
 
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    // Authorization: Ambassador Hub dealerToken, or platform admin / matching
+    // dealer_admin via base44.auth.me(). Prevents IDOR on another dealer's
+    // Stripe connection state.
+    let authDealerId = null;
+    let isPlatformAdmin = false;
+
+    if (token) {
+      const payload = await verifyDealerToken(token);
+      if (!payload) return Response.json({ error: 'Invalid or expired session' }, { status: 401 });
+      authDealerId = payload.dealer_id;
+    } else {
+      const user = await base44.auth.me();
+      if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+      isPlatformAdmin = ['admin', 'super_admin', 'root_admin'].includes(user.role);
+      if (!isPlatformAdmin) authDealerId = user.dealer_id;
     }
 
-    const { dealer_id, account_id } = await req.json();
-
-    // SECURITY: Prevent IDOR — only the dealer's own admin (or a platform
-    // admin) may update a dealer's Stripe connection state.
-    if (user.role !== 'admin' && user.dealer_id !== dealer_id) {
+    if (!isPlatformAdmin && authDealerId !== dealer_id) {
       return Response.json({ error: 'Forbidden: cannot modify another dealer' }, { status: 403 });
     }
 

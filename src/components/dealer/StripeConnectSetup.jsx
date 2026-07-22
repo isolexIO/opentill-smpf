@@ -30,11 +30,14 @@ export default function StripeConnectSetup({ dealer, onUpdate }) {
     }
   }, [dealer]);
 
+  const dealerToken = typeof window !== 'undefined' ? localStorage.getItem('dealerToken') : null;
+
   const checkAccountStatus = async () => {
     try {
       const response = await base44.functions.invoke('checkStripeConnectStatus', {
         dealer_id: dealer.legacy_dealer_id || dealer.id,
-        account_id: dealer.stripe_account_id
+        account_id: dealer.stripe_account_id,
+        token: dealerToken
       });
 
       if (response.data.success) {
@@ -57,7 +60,8 @@ export default function StripeConnectSetup({ dealer, onUpdate }) {
       const response = await base44.functions.invoke('createAmbassadorStripeConnect', {
         dealer_id: dealer.legacy_dealer_id || dealer.id,
         return_url: window.location.href,
-        refresh_url: window.location.href
+        refresh_url: window.location.href,
+        token: dealerToken
       });
 
       if (response.data.success) {
@@ -77,7 +81,8 @@ export default function StripeConnectSetup({ dealer, onUpdate }) {
       
       const response = await base44.functions.invoke('refreshStripeConnectOnboarding', {
         dealer_id: dealer.legacy_dealer_id || dealer.id,
-        account_id: dealer.stripe_account_id
+        account_id: dealer.stripe_account_id,
+        token: dealerToken
       });
 
       if (response.data.success) {
