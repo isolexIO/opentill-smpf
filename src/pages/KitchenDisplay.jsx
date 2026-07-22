@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -39,18 +38,23 @@ export default function KitchenDisplay() {
 
     const registerSession = async () => {
       try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const stationId = urlParams.get('station_id');
+
         const { data } = await base44.functions.invoke('registerDeviceSession', {
+          merchant_id: merchantId,
           device_name: 'Kitchen Display',
           device_type: 'kitchen_display',
+          station_id: stationId || null,
           metadata: {
             browser: navigator.userAgent,
             screen_resolution: `${window.screen.width}x${window.screen.height}`
           }
         });
-        
-        if (data?.session?.session_id) {
-          currentSessionId = data.session.session_id; // Assign to local variable
-          setDeviceSessionId(currentSessionId); // Update state for potential re-renders or other uses
+
+        if (data?.session_id) {
+          currentSessionId = data.session_id;
+          setDeviceSessionId(currentSessionId);
           console.log('Kitchen Display: Device session registered:', currentSessionId);
         }
       } catch (error) {

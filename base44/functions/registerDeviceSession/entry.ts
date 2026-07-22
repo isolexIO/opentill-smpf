@@ -58,8 +58,46 @@ Deno.serve(async (req) => {
             }
         }
 
-        // Generate unique session ID
-        const session_id = `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+        // For station-attached display devices, reuse the existing session for
+        // that station so a browser refresh reattaches to the same endpoint
+        // instead of spawning a duplicate session every time.
+        const isDisplayDevice = device_type === 'customer_display' || device_type === 'kitchen_display';
+        if (isDisplayDevice && station_id) {
+            const existing = await base44.asServiceRole.entities.DeviceSession.filter(
+                { merchant_id, station_id, device_type },
+                '-created_date',
+                1
+            );
+            if (existing && existing.length > 0) {
+                const s = existing[0];
+                const nowIso = new Date().toISOString();
+                await base44.asServiceRole.entities.DeviceSession.update(s.id, {
+                    status: 'online',
+                    last_heartbeat: nowIso,
+                    connected_at: nowIso,
+                    forced_disconnect: false,
+                    error_message: null,
+                    ip_address: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || s.ip_address || 'unknown',
+                    user_agent: req.headers.get('user-agent') || s.user_agent || 'unknown',
+                    user_id: user_id || user?.id || s.user_id || null,
+                    user_name: user_name || user?.full_name || user?.email || s.user_name || 'Guest'
+                });
+                console.log('Reusing display session for station:', station_id);
+                return Response.json({
+                    success: true,
+                    session_id: s.session_id,
+                    device_id: s.id,
+                    reused: true
+                });
+            }
+        }
+
+        // Generate session ID — stable per station for display devices so the
+        // same endpoint survives refreshes; random for all other devices.
+        const sanitize = (v) => String(v || '').replace(/[^a-zA-Z0-9_-]/g, '_');
+        const session_id = (isDisplayDevice && station_id)
+            ? `disp_${sanitize(device_type)}_${sanitize(merchant_id)}_${sanitize(station_id)}`
+            : `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
 
         // Get IP and user agent
         const ip_address = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';

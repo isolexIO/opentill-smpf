@@ -1,6 +1,7 @@
-
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { createPageUrl } from '@/utils';
+import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -18,7 +19,11 @@ import {
   WifiOff,
   RefreshCw,
   Power,
-  Search
+  Search,
+  Copy,
+  ExternalLink,
+  Link2,
+  CheckCircle
 } from 'lucide-react';
 
 export default function DeviceMonitorPage() {
@@ -27,6 +32,8 @@ export default function DeviceMonitorPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [user, setUser] = useState(null);
+  const [stationId, setStationId] = useState('main');
+  const [copied, setCopied] = useState('');
 
   useEffect(() => {
     loadUser();
@@ -110,6 +117,16 @@ export default function DeviceMonitorPage() {
     }
   };
 
+  const copyLink = async (url, field) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(field);
+      setTimeout(() => setCopied(''), 2000);
+    } catch (e) {
+      alert('Could not copy link:\n' + url);
+    }
+  };
+
   const getDeviceIcon = (deviceType) => {
     const icons = {
       pos: Monitor,
@@ -164,6 +181,14 @@ export default function DeviceMonitorPage() {
     error: sessions.filter(s => s.status === 'error').length
   };
 
+  const origin = window.location.origin;
+  const customerDisplayUrl = user?.merchant_id
+    ? `${origin}${createPageUrl('CustomerDisplay')}?merchant_id=${user.merchant_id}&station_id=${encodeURIComponent(stationId)}`
+    : '';
+  const kitchenDisplayUrl = user?.merchant_id
+    ? `${origin}${createPageUrl('KitchenDisplay')}?merchant_id=${user.merchant_id}&station_id=${encodeURIComponent(stationId)}`
+    : '';
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -187,6 +212,53 @@ export default function DeviceMonitorPage() {
           Refresh
         </Button>
       </div>
+
+      {/* Public Display Links */}
+      {user?.merchant_id && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Link2 className="w-5 h-5 text-blue-600" />
+              Public Display Links
+            </CardTitle>
+            <CardDescription>
+              Copy these stable links to open the displays in a browser. Each station gets its own persistent endpoint — refreshing the page reattaches to the same session instead of creating a duplicate.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center gap-3 max-w-sm">
+              <Label className="text-xs text-gray-500 whitespace-nowrap">Station ID</Label>
+              <Input
+                value={stationId}
+                onChange={(e) => setStationId(e.target.value)}
+                placeholder="e.g. register-1, kitchen"
+                className="flex-1"
+              />
+            </div>
+            {[
+              { key: 'customer', label: 'Customer Display', url: customerDisplayUrl, Icon: MonitorPlay },
+              { key: 'kitchen', label: 'Kitchen Display', url: kitchenDisplayUrl, Icon: Utensils },
+            ].map(({ key, label, url, Icon }) => (
+              <div key={key} className="flex flex-col sm:flex-row sm:items-center gap-2">
+                <div className="flex items-center gap-2 w-40 shrink-0">
+                  <Icon className="w-4 h-4 text-gray-500" />
+                  <span className="text-sm font-medium">{label}</span>
+                </div>
+                <div className="flex flex-1 gap-2">
+                  <Input readOnly value={url} className="flex-1 font-mono text-xs" />
+                  <Button variant="outline" size="sm" onClick={() => copyLink(url, key)}>
+                    {copied === key ? <CheckCircle className="w-4 h-4 mr-1 text-green-600" /> : <Copy className="w-4 h-4 mr-1" />}
+                    {copied === key ? 'Copied' : 'Copy'}
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => window.open(url, '_blank')}>
+                    <ExternalLink className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
