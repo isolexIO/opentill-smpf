@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
 import { Loader2, MapPin, Cpu, Plus, RefreshCw, CheckCircle, AlertCircle, CreditCard } from 'lucide-react';
+import BluetoothReaderPairing from '@/components/settings/BluetoothReaderPairing';
 
 export default function StripeTerminalCard() {
   const { toast } = useToast();
@@ -205,6 +206,10 @@ export default function StripeTerminalCard() {
                 Register Reader
               </Button>
             </div>
+
+            {status.location_id && (
+              <BluetoothReaderPairing merchantId={merchantId} locationId={status.location_id} />
+            )}
           </>
         )}
       </CardContent>

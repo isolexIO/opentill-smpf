@@ -49,6 +49,7 @@ export default function PaymentSettingsManager() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
     loadSettings();
@@ -57,7 +58,14 @@ export default function PaymentSettingsManager() {
   const loadSettings = async () => {
     try {
       setLoading(true);
-      
+
+      try {
+        const me = await base44.auth.me();
+        setCurrentUser(me);
+      } catch (e) {
+        setCurrentUser(null);
+      }
+
       // Load subscription payment settings
       const subPaymentSettings = await base44.entities.PlatformSettings.filter({
         setting_key: 'subscription_payments'
@@ -185,6 +193,20 @@ export default function PaymentSettingsManager() {
     );
   }
 
+  if (!currentUser || currentUser.role !== 'admin') {
+    return (
+      <Card>
+        <CardContent className="py-12 text-center">
+          <AlertCircle className="w-8 h-8 mx-auto mb-4 text-red-500" />
+          <p className="text-gray-700 font-medium">Super Admins only</p>
+          <p className="text-sm text-gray-500 mt-1">
+            Platform payment configuration is restricted to Super Admin accounts.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <Card>
@@ -285,46 +307,6 @@ export default function PaymentSettingsManager() {
             </CardContent>
           </Card>
 
-          {/* PayPal */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">PayPal (Subscription Billing)</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <Label htmlFor="sub-paypal-enabled">Enable PayPal for Subscriptions</Label>
-                <Switch
-                  id="sub-paypal-enabled"
-                  checked={settings.subscription_payments.paypal_enabled}
-                  onCheckedChange={(checked) => updateSubscriptionSetting('paypal_enabled', checked)}
-                />
-              </div>
-
-              {settings.subscription_payments.paypal_enabled && (
-                <div className="space-y-3 pt-2">
-                  <div>
-                    <Label>Client ID</Label>
-                    <Input
-                      value={settings.subscription_payments.paypal_client_id}
-                      onChange={(e) => updateSubscriptionSetting('paypal_client_id', e.target.value)}
-                      placeholder="PayPal Client ID"
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Client Secret</Label>
-                    <Input
-                      type="password"
-                      value={settings.subscription_payments.paypal_client_secret}
-                      onChange={(e) => updateSubscriptionSetting('paypal_client_secret', e.target.value)}
-                      placeholder="PayPal Client Secret"
-                    />
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
           {/* Crypto */}
           <Card>
             <CardHeader>
@@ -416,85 +398,6 @@ export default function PaymentSettingsManager() {
             </CardContent>
           </Card>
 
-          {/* Square */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Square (Device Shop)</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <Label htmlFor="shop-square-enabled">Enable Square for Device Shop</Label>
-                <Switch
-                  id="shop-square-enabled"
-                  checked={settings.device_shop_payments.square_enabled}
-                  onCheckedChange={(checked) => updateDeviceShopSetting('square_enabled', checked)}
-                />
-              </div>
-
-              {settings.device_shop_payments.square_enabled && (
-                <div className="space-y-3 pt-2">
-                  <div>
-                    <Label>Access Token</Label>
-                    <Input
-                      type="password"
-                      value={settings.device_shop_payments.square_access_token}
-                      onChange={(e) => updateDeviceShopSetting('square_access_token', e.target.value)}
-                      placeholder="Square Access Token"
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Location ID</Label>
-                    <Input
-                      value={settings.device_shop_payments.square_location_id}
-                      onChange={(e) => updateDeviceShopSetting('square_location_id', e.target.value)}
-                      placeholder="Square Location ID"
-                    />
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* PayPal */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">PayPal (Device Shop)</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <Label htmlFor="shop-paypal-enabled">Enable PayPal for Device Shop</Label>
-                <Switch
-                  id="shop-paypal-enabled"
-                  checked={settings.device_shop_payments.paypal_enabled}
-                  onCheckedChange={(checked) => updateDeviceShopSetting('paypal_enabled', checked)}
-                />
-              </div>
-
-              {settings.device_shop_payments.paypal_enabled && (
-                <div className="space-y-3 pt-2">
-                  <div>
-                    <Label>Client ID</Label>
-                    <Input
-                      value={settings.device_shop_payments.paypal_client_id}
-                      onChange={(e) => updateDeviceShopSetting('paypal_client_id', e.target.value)}
-                      placeholder="PayPal Client ID"
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Client Secret</Label>
-                    <Input
-                      type="password"
-                      value={settings.device_shop_payments.paypal_client_secret}
-                      onChange={(e) => updateDeviceShopSetting('paypal_client_secret', e.target.value)}
-                      placeholder="PayPal Client Secret"
-                    />
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
         </TabsContent>
       </Tabs>
     </div>

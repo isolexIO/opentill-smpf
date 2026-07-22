@@ -50,8 +50,25 @@ export default function ChipPurchase({ chipId, onSuccess }) {
       });
 
       if (data.success) {
-        alert(`NFT minted successfully!\n\nMint Address: ${data.mint_address}\nTransaction: ${data.signature}`);
         if (onSuccess) onSuccess(data);
+        // Auto-start Stripe Connect onboarding for merchants after a Chip purchase.
+        if (user?.merchant_id) {
+          try {
+            const connectRes = await base44.functions.invoke('createMerchantStripeConnect', {
+              merchant_id: user.merchant_id,
+              return_url: window.location.href,
+              refresh_url: window.location.href,
+            });
+            if (connectRes.data?.onboarding_url) {
+              alert(`NFT minted successfully!\n\nMint Address: ${data.mint_address}\n\nYou will now be redirected to Stripe Connect to finish setting up card payments.`);
+              window.location.href = connectRes.data.onboarding_url;
+              return;
+            }
+          } catch (e) {
+            console.error('Stripe Connect start failed:', e);
+          }
+        }
+        alert(`NFT minted successfully!\n\nMint Address: ${data.mint_address}\nTransaction: ${data.signature}`);
       } else {
         setError(data.error || 'Minting failed');
       }

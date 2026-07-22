@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, CreditCard, AlertCircle } from 'lucide-react';
 
@@ -6,9 +6,21 @@ export default function EBTPaymentScreen({ order, settings, onComplete, onPaymen
   // Support both prop names
   const handleComplete = onComplete || onPaymentSuccess;
   const [status, setStatus] = useState('waiting'); // waiting, success, error
+  const [declineReason, setDeclineReason] = useState(null);
 
   const ebtEligibleTotal = (order?.ebt_eligible_total || 0) + (order?.tip_amount || 0);
   const totalAmount = (order?.total || 0) + (order?.tip_amount || 0);
+  const ebtSettings = settings?.payment_gateways?.ebt || {};
+  const maxAmount = parseFloat(ebtSettings.max_transaction_amount || 0);
+  const requirePin = ebtSettings.require_pin !== false; // default true
+
+  // Audit fix: reject transactions exceeding the configured maximum amount.
+  useEffect(() => {
+    if (maxAmount > 0 && ebtEligibleTotal > maxAmount) {
+      setDeclineReason(`This EBT purchase exceeds the maximum allowed transaction amount of $${maxAmount.toFixed(2)}.`);
+      setStatus('error');
+    }
+  }, []);
 
   const handleSuccess = () => {
     setStatus('success');
@@ -47,7 +59,7 @@ export default function EBTPaymentScreen({ order, settings, onComplete, onPaymen
         <div className="text-center max-w-md">
           <AlertCircle className="w-20 h-20 mx-auto mb-4 text-red-300" />
           <h2 className="text-3xl font-bold mb-4">Payment Declined</h2>
-          <p className="text-lg mb-6">Please use another payment method or contact the cashier.</p>
+          <p className="text-lg mb-6">{declineReason || 'Please use another payment method or contact the cashier.'}</p>
         </div>
       </div>
     );
@@ -76,8 +88,8 @@ export default function EBTPaymentScreen({ order, settings, onComplete, onPaymen
 
         <div className="space-y-4 text-lg opacity-90 mb-8">
           <p>1. Insert or swipe your EBT card at the terminal</p>
-          <p>2. Enter your PIN</p>
-          <p>3. Wait for approval</p>
+          {requirePin && <p>2. Enter your PIN</p>}
+          <p>{requirePin ? '3' : '2'}. Wait for approval</p>
         </div>
 
         <p className="text-sm opacity-60">
