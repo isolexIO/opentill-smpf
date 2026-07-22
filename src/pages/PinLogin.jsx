@@ -107,6 +107,13 @@ export default function PinLoginPage() {
       localStorage.setItem('pinLoggedInUser', JSON.stringify(user));
       if (user.merchant_id) localStorage.setItem('deviceMerchantId', user.merchant_id);
 
+      // Return to the station POS link if this login was triggered from one
+      const next = new URLSearchParams(window.location.search).get('next');
+      if (next) {
+        const [page, query] = next.split('?');
+        window.location.href = query ? `${createPageUrl(page)}?${query}` : createPageUrl(page);
+        return;
+      }
       // Redirect based on role and context
       const role = user.role;
       if (['admin', 'super_admin', 'root_admin'].includes(role)) {

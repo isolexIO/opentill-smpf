@@ -676,25 +676,22 @@ export default function POSPage() {
           if (pinUser && pinUser.id) {
             localStorage.setItem('pinLoggedInUser', JSON.stringify(pinUser));
           } else {
-            console.warn('POS: auth.me() returned no valid user. Entering demo mode.');
-            pinUser = {
-              id: 'demo',
-              email: 'demo@demo.com',
-              merchant_id: 'demo',
-              full_name: 'Demo User',
-              pos_settings: {}
-            };
+            console.warn('POS: auth.me() returned no valid user.');
+            const up = new URLSearchParams(window.location.search);
+            const mId = up.get('merchant_id') || localStorage.getItem('deviceMerchantId') || '';
+            const sId = up.get('station_id') || '';
+            const next = `POS?merchant_id=${encodeURIComponent(mId)}&station_id=${encodeURIComponent(sId)}`;
+            window.location.href = `${createPageUrl('PinLogin')}?merchant_id=${encodeURIComponent(mId)}&next=${encodeURIComponent(next)}`;
+            return;
           }
         } catch (e) {
           console.error('POS: Error getting user from auth.me():', e);
-          console.warn('POS: Entering demo mode due to auth error.');
-          pinUser = {
-            id: 'demo',
-            email: 'demo@demo.com',
-            full_name: 'Demo User',
-            merchant_id: 'demo',
-            pos_settings: {}
-          };
+          const up = new URLSearchParams(window.location.search);
+          const mId = up.get('merchant_id') || localStorage.getItem('deviceMerchantId') || '';
+          const sId = up.get('station_id') || '';
+          const next = `POS?merchant_id=${encodeURIComponent(mId)}&station_id=${encodeURIComponent(sId)}`;
+          window.location.href = `${createPageUrl('PinLogin')}?merchant_id=${encodeURIComponent(mId)}&next=${encodeURIComponent(next)}`;
+          return;
         }
       }
 
