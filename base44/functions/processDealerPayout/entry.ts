@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
     }
 
     // Load dealer
-    const dealers = await base44.asServiceRole.entities.Dealer.filter({ id: payout.dealer_id });
+    const dealers = await base44.asServiceRole.entities.Ambassador.filter({ legacy_dealer_id: payout.dealer_id });
     if (!dealers || dealers.length === 0) {
       throw new Error('Dealer not found');
     }
@@ -106,7 +106,7 @@ Deno.serve(async (req) => {
         });
 
         // Update dealer totals
-        await base44.asServiceRole.entities.Dealer.update(dealer.id, {
+        await base44.asServiceRole.entities.Ambassador.update(dealer.id, {
           commission_paid_out: (dealer.commission_paid_out || 0) + payout.commission_amount,
           commission_pending: Math.max(0, (dealer.commission_pending || 0) - payout.commission_amount),
           last_payout_date: new Date().toISOString()

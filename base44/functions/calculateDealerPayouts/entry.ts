@@ -19,8 +19,8 @@ Deno.serve(async (req) => {
     const { dealer_id, force_period_start, force_period_end } = await req.json() || {};
 
     // Get all active dealers (or specific dealer if provided)
-    const dealerFilter = dealer_id ? { id: dealer_id, status: 'active' } : { status: 'active' };
-    const dealers = await base44.asServiceRole.entities.Dealer.filter(dealerFilter);
+    const dealerFilter = dealer_id ? { legacy_dealer_id: dealer_id, status: 'active' } : { status: 'active' };
+    const dealers = await base44.asServiceRole.entities.Ambassador.filter(dealerFilter);
 
     const results = {
       processed: 0,
@@ -67,7 +67,7 @@ Deno.serve(async (req) => {
 
         // Check if payout already exists for this period
         const existingPayouts = await base44.asServiceRole.entities.DealerPayout.filter({
-          dealer_id: dealer.id,
+          dealer_id: dealer.legacy_dealer_id || dealer.id,
           period_start: periodStart.toISOString(),
           period_end: periodEnd.toISOString()
         });
@@ -79,7 +79,7 @@ Deno.serve(async (req) => {
 
         // Get all merchant subscriptions for this dealer in the period
         const merchants = await base44.asServiceRole.entities.Merchant.filter({
-          dealer_id: dealer.id
+          dealer_id: dealer.legacy_dealer_id || dealer.id
         });
 
         let grossAmount = 0;
@@ -119,7 +119,7 @@ Deno.serve(async (req) => {
 
         // Get carryover from previous period if any
         const previousPayouts = await base44.asServiceRole.entities.DealerPayout.filter({
-          dealer_id: dealer.id,
+          dealer_id: dealer.legacy_dealer_id || dealer.id,
           status: 'on_hold'
         });
 
@@ -143,7 +143,7 @@ Deno.serve(async (req) => {
 
         // Create payout record
         const payout = await base44.asServiceRole.entities.DealerPayout.create({
-          dealer_id: dealer.id,
+          dealer_id: dealer.legacy_dealer_id || dealer.id,
           period_start: periodStart.toISOString(),
           period_end: periodEnd.toISOString(),
           gross_amount: grossAmount,
@@ -167,7 +167,7 @@ Deno.serve(async (req) => {
         }
 
         // Update dealer pending commission
-        await base44.asServiceRole.entities.Dealer.update(dealer.id, {
+        await base44.asServiceRole.entities.Ambassador.update(dealer.id, {
           commission_pending: totalCommission,
           next_payout_date: scheduledAt ? scheduledAt.toISOString() : null
         });
@@ -189,7 +189,7 @@ Deno.serve(async (req) => {
 
         results.created++;
         results.payouts.push({
-          dealer_id: dealer.id,
+          dealer_id: dealer.legacy_dealer_id || dealer.id,
           dealer_name: dealer.name,
           payout_id: payout.id,
           amount: totalCommission,
@@ -199,7 +199,7 @@ Deno.serve(async (req) => {
       } catch (error) {
         console.error(`Error processing dealer ${dealer.id}:`, error);
         results.errors.push({
-          dealer_id: dealer.id,
+          dealer_id: dealer.legacy_dealer_id || dealer.id,
           dealer_name: dealer.name,
           error: error.message
         });

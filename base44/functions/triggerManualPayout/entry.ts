@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
     }
 
     // Load dealer
-    const dealers = await base44.asServiceRole.entities.Dealer.filter({ id: payout.dealer_id });
+    const dealers = await base44.asServiceRole.entities.Ambassador.filter({ legacy_dealer_id: payout.dealer_id });
     if (!dealers || dealers.length === 0) {
       return Response.json({ error: 'Dealer not found' }, { status: 404 });
     }
@@ -75,7 +75,7 @@ Deno.serve(async (req) => {
       description: `Manual payout triggered for dealer ${dealer.name}`,
       metadata: {
         payout_id,
-        dealer_id: dealer.id,
+        dealer_id: dealer.legacy_dealer_id || dealer.id,
         amount: payout.commission_amount,
         bypass_minimum
       }

@@ -21,55 +21,19 @@ Deno.serve(async (req) => {
       ambassador = await base44.asServiceRole.entities.Ambassador.get(ambassador_id);
       if (!ambassador) return Response.json({ error: 'Ambassador not found' }, { status: 404 });
     } else if (dealer_id) {
-      // Originated from the Dealer Dashboard — allow the owning dealer_admin or any platform admin.
+      // Originated from the Ambassador Dashboard — allow the owning dealer_admin or any platform admin.
       if (!isAdmin && user.dealer_id !== dealer_id) {
-        return Response.json({ error: 'Forbidden: cannot manage another dealer' }, { status: 403 });
+        return Response.json({ error: 'Forbidden: cannot manage another ambassador' }, { status: 403 });
       }
-      const dealers = await base44.asServiceRole.entities.Dealer.filter({ id: dealer_id });
-      const dealer = dealers && dealers[0];
-      if (!dealer) return Response.json({ error: 'Dealer not found' }, { status: 404 });
-
-      // Find-or-create the matching Ambassador by owner_email.
-      const existing = await base44.asServiceRole.entities.Ambassador.filter({ owner_email: dealer.owner_email });
-      ambassador = existing && existing[0];
-      if (!ambassador) {
-        ambassador = await base44.asServiceRole.entities.Ambassador.create({
-          name: dealer.name || 'openTILL Ambassador',
-          slug: dealer.slug,
-          owner_name: dealer.owner_name,
-          owner_email: dealer.owner_email,
-          contact_email: dealer.contact_email || dealer.owner_email,
-          contact_phone: dealer.contact_phone,
-          primary_color: dealer.primary_color,
-          secondary_color: dealer.secondary_color,
-          logo_url: dealer.logo_url,
-          domain: dealer.domain,
-          commission_percent: dealer.commission_percent || 0,
-          payout_method: dealer.payout_method || 'stripe_connect',
-          payout_minimum: dealer.payout_minimum || 20,
-          status: dealer.status || 'trial',
-        });
-      }
+      const ambassadors = await base44.asServiceRole.entities.Ambassador.filter({ legacy_dealer_id: dealer_id });
+      ambassador = ambassadors && ambassadors[0];
+      if (!ambassador) return Response.json({ error: 'Ambassador not found' }, { status: 404 });
     } else {
       return Response.json({ error: 'ambassador_id or dealer_id is required' }, { status: 400 });
     }
 
     // Reuse an existing connected account if one was already created.
     let accountId = ambassador.stripe_account_id;
-
-    // If the dealer already has a Stripe account but the Ambassador doesn't yet, reuse it.
-    if (!accountId && dealer_id) {
-      const dealers = await base44.asServiceRole.entities.Dealer.filter({ id: dealer_id });
-      const dealer = dealers && dealers[0];
-      if (dealer && dealer.stripe_account_id) {
-        accountId = dealer.stripe_account_id;
-        await base44.asServiceRole.entities.Ambassador.update(ambassador.id, {
-          stripe_account_id: accountId,
-          stripe_connected: dealer.stripe_connected || false,
-          payout_method: 'stripe_connect',
-        });
-      }
-    }
 
     if (!accountId) {
       const account = await stripe.accounts.create({
@@ -99,17 +63,6 @@ Deno.serve(async (req) => {
         payout_method: 'stripe_connect',
       });
 
-      // Mirror onto the Dealer record so existing payout/terminal flows keep working.
-      if (dealer_id) {
-        try {
-          await base44.asServiceRole.entities.Dealer.update(dealer_id, {
-            stripe_account_id: accountId,
-            stripe_connected: false,
-          });
-        } catch (e) {
-          console.warn('Mirror stripe account to Dealer failed:', e);
-        }
-      }
     }
 
     const redirectUrl = return_url || (typeof location !== 'undefined' ? location.href : '');

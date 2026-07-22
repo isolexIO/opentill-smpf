@@ -26,7 +26,7 @@ Deno.serve(async (req) => {
     }
 
     // Load dealer
-    const dealers = await base44.asServiceRole.entities.Dealer.filter({ id: dealer_id });
+    const dealers = await base44.asServiceRole.entities.Ambassador.filter({ legacy_dealer_id: dealer_id });
     if (!dealers || dealers.length === 0) {
       return Response.json({ error: 'Dealer not found' }, { status: 404 });
     }

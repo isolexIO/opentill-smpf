@@ -38,7 +38,7 @@ Deno.serve(async (req) => {
     for (const payout of pendingPayouts) {
       try {
         // Load dealer to check hold period
-        const dealers = await base44.asServiceRole.entities.Dealer.filter({ id: payout.dealer_id });
+        const dealers = await base44.asServiceRole.entities.Ambassador.filter({ legacy_dealer_id: payout.dealer_id });
         if (!dealers || dealers.length === 0) {
           console.log(`Dealer ${payout.dealer_id} not found for payout ${payout.id}`);
           continue;

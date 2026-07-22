@@ -19,7 +19,7 @@ Deno.serve(async (req) => {
     }
 
     // Get all active dealers
-    const dealers = await base44.asServiceRole.entities.Dealer.filter({ status: 'active' });
+    const dealers = await base44.asServiceRole.entities.Ambassador.filter({ status: 'active' });
     
     // Calculate billing period (last month)
     const now = new Date();
@@ -38,7 +38,7 @@ Deno.serve(async (req) => {
       try {
         // Get all active merchants for this dealer
         const merchants = await base44.asServiceRole.entities.Merchant.filter({
-          dealer_id: dealer.id,
+          dealer_id: dealer.legacy_dealer_id || dealer.id,
           status: 'active'
         });
 
@@ -54,7 +54,7 @@ Deno.serve(async (req) => {
             
             // Check if commission already exists for this period
             const existingCommissions = await base44.asServiceRole.entities.DealerCommission.filter({
-              dealer_id: dealer.id,
+              dealer_id: dealer.legacy_dealer_id || dealer.id,
               merchant_id: merchant.id,
               billing_period_start: periodStart.toISOString()
             });
@@ -69,7 +69,7 @@ Deno.serve(async (req) => {
 
             // Create commission record
             await base44.asServiceRole.entities.DealerCommission.create({
-              dealer_id: dealer.id,
+              dealer_id: dealer.legacy_dealer_id || dealer.id,
               merchant_id: merchant.id,
               merchant_name: merchant.business_name,
               billing_period_start: periodStart.toISOString(),
@@ -81,7 +81,7 @@ Deno.serve(async (req) => {
             });
 
             // Update dealer commission_earned
-            await base44.asServiceRole.entities.Dealer.update(dealer.id, {
+            await base44.asServiceRole.entities.Ambassador.update(dealer.id, {
               commission_earned: (dealer.commission_earned || 0) + commissionAmount
             });
 
@@ -94,7 +94,7 @@ Deno.serve(async (req) => {
       } catch (error) {
         console.error(`Error processing dealer ${dealer.id}:`, error);
         results.errors.push({
-          dealer_id: dealer.id,
+          dealer_id: dealer.legacy_dealer_id || dealer.id,
           dealer_name: dealer.name,
           error: error.message
         });
