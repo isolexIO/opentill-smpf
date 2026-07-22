@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,6 +21,48 @@ export default function ProfileSettings({ builder, user, onUpdated }) {
   const [success, setSuccess] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [connecting, setConnecting] = useState(false);
+
+  // After returning from Stripe onboarding, sync connection status
+  useEffect(() => {
+    if (builder.stripe_connect_id && !builder.stripe_connected) {
+      base44.functions
+        .invoke('createBuilderStripeConnect', {
+          return_url: window.location.href,
+          refresh_url: window.location.href,
+        })
+        .then((res) => {
+          if (res.data?.connected) onUpdated();
+        })
+        .catch(() => {});
+    }
+  }, [builder.id, builder.stripe_connect_id, builder.stripe_connected, onUpdated]);
+
+  const handleConnectStripe = async () => {
+    setConnecting(true);
+    setError('');
+    setSuccess('');
+    try {
+      const res = await base44.functions.invoke('createBuilderStripeConnect', {
+        return_url: window.location.href,
+        refresh_url: window.location.href,
+      });
+      const data = res.data;
+      if (!data?.success) {
+        throw new Error(data?.error || 'Failed to connect Stripe');
+      }
+      if (data.onboarding_url) {
+        window.location.href = data.onboarding_url;
+        return;
+      }
+      setSuccess('Stripe connected successfully!');
+      setTimeout(() => onUpdated(), 1200);
+    } catch (err) {
+      setError(err.message || 'Failed to connect Stripe');
+    } finally {
+      setConnecting(false);
+    }
+  };
 
   const [formData, setFormData] = useState({
     full_name: builder.full_name || '',
@@ -273,21 +315,39 @@ export default function ProfileSettings({ builder, user, onUpdated }) {
       {/* Stripe Status */}
        <div className="border-t border-gray-200 pt-6">
          <h4 className="font-bold text-gray-900 mb-4">Payment Information</h4>
-         {builder.stripe_connected ? (
+         {builder.stripe_connected && builder.payout_enabled ? (
            <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
              <p className="text-green-800 font-medium">✓ Stripe Connected</p>
              <p className="text-sm text-green-700 mt-1">
-               Stripe ID: {builder.stripe_connect_id}
+               Payouts are enabled. Stripe ID: {builder.stripe_connect_id}
              </p>
            </div>
          ) : (
            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg space-y-3">
-             <p className="text-yellow-800 font-medium">Stripe Not Connected</p>
-             <p className="text-sm text-yellow-700">
-               Connect your Stripe account to receive payouts
+             <p className="text-yellow-800 font-medium">
+               {builder.stripe_connect_id ? 'Stripe Onboarding Incomplete' : 'Stripe Not Connected'}
              </p>
-             <Button size="sm" className="bg-yellow-600 hover:bg-yellow-700">
-               Connect Stripe
+             <p className="text-sm text-yellow-700">
+               {builder.stripe_connect_id
+                 ? 'Finish your Stripe onboarding to enable payouts.'
+                 : 'Connect your Stripe account to receive payouts for chip sales.'}
+             </p>
+             <Button
+               size="sm"
+               className="bg-yellow-600 hover:bg-yellow-700"
+               onClick={handleConnectStripe}
+               disabled={connecting}
+             >
+               {connecting ? (
+                 <>
+                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                   Connecting...
+                 </>
+               ) : builder.stripe_connect_id ? (
+                 'Complete Stripe Setup'
+               ) : (
+                 'Connect Stripe'
+               )}
              </Button>
            </div>
          )}

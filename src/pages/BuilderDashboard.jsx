@@ -167,7 +167,7 @@ export default function BuilderDashboardPage() {
                 </p>
               </div>
               <Button
-                onClick={() => (window.location.href = createPageUrl('BuilderSettings'))}
+                onClick={() => setActiveTab('settings')}
                 variant="outline"
                 className="ml-4 shrink-0"
               >
