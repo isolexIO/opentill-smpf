@@ -16,6 +16,7 @@ export default function CustomerDisplayPage() {
   const [sessionId, setSessionId] = useState(null);
   const [error, setError] = useState(null);
   const [stationId, setStationId] = useState(null); // Added stationId state
+  const [stationInfo, setStationInfo] = useState(null);
 
   useEffect(() => {
     initializeDisplay();
@@ -105,6 +106,12 @@ export default function CustomerDisplayPage() {
       if (stationIdFromUrl) {
         setStationId(stationIdFromUrl);
         console.log('CustomerDisplay: Station ID from URL:', stationIdFromUrl);
+        try {
+          const stations = await base44.entities.Station.filter({ merchant_id: merchantId, station_id: stationIdFromUrl });
+          if (stations && stations.length > 0) setStationInfo(stations[0]);
+        } catch (e) {
+          console.warn('CustomerDisplay: Could not load station info', e);
+        }
       }
 
       // Register device session
@@ -419,6 +426,11 @@ export default function CustomerDisplayPage() {
 
   return (
     <div className="relative">
+      {stationInfo && (
+        <div className="fixed top-2 left-2 z-50 bg-black/60 text-white text-xs px-3 py-1 rounded-full">
+          {stationInfo.name} · {stationInfo.layout_type}
+        </div>
+      )}
       {/* Debug info */}
       {window.location.hostname === 'localhost' && (
         <div className="fixed top-2 right-2 bg-black/70 text-white text-xs p-2 rounded z-50 max-w-xs">

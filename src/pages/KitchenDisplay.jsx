@@ -10,6 +10,7 @@ export default function KitchenDisplay() {
   const [merchantId, setMerchantId] = useState(null);
   const [error, setError] = useState(null); // Added for error handling
   const [deviceSessionId, setDeviceSessionId] = useState(null);
+  const [stationInfo, setStationInfo] = useState(null);
   const audioRef = useRef(null);
 
   useEffect(() => {
@@ -146,6 +147,17 @@ export default function KitchenDisplay() {
         console.log('Kitchen Display - Using merchant_id:', foundMerchantId);
         setMerchantId(foundMerchantId);
         setError(null); // Clear any previous error
+
+        // Load station info if a station_id was provided in the URL
+        const stationIdFromUrl = new URLSearchParams(window.location.search).get('station_id');
+        if (stationIdFromUrl) {
+          try {
+            const stations = await base44.entities.Station.filter({ merchant_id: foundMerchantId, station_id: stationIdFromUrl });
+            if (stations && stations.length > 0) setStationInfo(stations[0]);
+          } catch (e) {
+            console.warn('Kitchen Display: Could not load station info', e);
+          }
+        }
       }
     } catch (error) {
       console.error('Error loading merchant ID:', error);
@@ -218,7 +230,9 @@ export default function KitchenDisplay() {
           <div className="flex items-center gap-3">
             <ChefHat className="w-8 h-8 text-white" />
             <div>
-              <h1 className="text-3xl font-bold text-white">Kitchen Display</h1>
+              <h1 className="text-3xl font-bold text-white">
+                Kitchen Display{stationInfo ? ` · ${stationInfo.name}` : ''}
+              </h1>
               <p className="text-gray-400">Active Orders: {orders.length}</p>
             </div>
           </div>

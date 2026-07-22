@@ -1,0 +1,84 @@
+{
+  "name": "Station",
+  "type": "object",
+  "properties": {
+    "merchant_id": {
+      "type": "string",
+      "description": "Merchant ID - REQUIRED"
+    },
+    "station_id": {
+      "type": "string",
+      "description": "URL-safe station slug used in display links (e.g. counter-1, bar, server-3)"
+    },
+    "name": {
+      "type": "string",
+      "description": "Display name (e.g. Counter 1, Bar, Server Station)"
+    },
+    "layout_type": {
+      "type": "string",
+      "enum": [
+        "counter",
+        "server",
+        "bar",
+        "kitchen",
+        "generic"
+      ],
+      "default": "generic",
+      "description": "Station layout/type"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this station is active"
+    },
+    "sort_order": {
+      "type": "number",
+      "default": 0,
+      "description": "Display order"
+    }
+  },
+  "required": [
+    "merchant_id",
+    "station_id",
+    "name"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.merchant_id": "{{user.data.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {},
+    "update": {
+      "$or": [
+        {
+          "data.merchant_id": "{{user.data.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.merchant_id": "{{user.data.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
