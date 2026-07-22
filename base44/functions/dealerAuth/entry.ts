@@ -474,6 +474,54 @@ Deno.serve(async (req) => {
       });
     }
 
+    // UPDATE PROFILE
+    // Token-authenticated, service-role update of the ambassador's own profile.
+    // Ambassador Hub sessions (email / Google / wallet) have no platform User,
+    // so they can't pass the Ambassador RLS update rule via the client. This
+    // action verifies the dealerToken and applies a whitelisted partial update.
+    if (action === 'update_profile') {
+      const token = body.token;
+      if (!token) {
+        return Response.json({ success: false, error: 'No token provided' }, { status: 401 });
+      }
+
+      const payload = await verifyToken(token);
+      if (!payload) {
+        return Response.json({ success: false, error: 'Invalid or expired token' }, { status: 401 });
+      }
+
+      let ambassadors = await base44.asServiceRole.entities.Ambassador.filter({ legacy_dealer_id: payload.dealer_id });
+      if (ambassadors.length === 0 && payload.email) {
+        ambassadors = await base44.asServiceRole.entities.Ambassador.filter({ owner_email: payload.email });
+      }
+      if (ambassadors.length === 0) {
+        return Response.json({ success: false, error: 'Ambassador not found' }, { status: 404 });
+      }
+
+      const ambassador = ambassadors[0];
+      const incoming = body.updates || {};
+      const allowed = new Set([
+        'logo_url', 'favicon_url', 'primary_color', 'secondary_color', 'domain',
+        'contact_phone', 'owner_name', 'settings',
+        'payout_method', 'payout_destination', 'payout_minimum', 'payout_cadence',
+        'payout_hold_days', 'payout_enabled', 'solana_wallet_address'
+      ]);
+
+      const updates = {};
+      for (const key of Object.keys(incoming)) {
+        if (!allowed.has(key)) continue;
+        if (key === 'settings' && typeof incoming.settings === 'object' && incoming.settings !== null) {
+          updates.settings = { ...(ambassador.settings || {}), ...incoming.settings };
+        } else {
+          updates[key] = incoming[key];
+        }
+      }
+
+      const updated = await base44.asServiceRole.entities.Ambassador.update(ambassador.id, updates);
+      const { password_hash, ...safeAmbassador } = updated;
+      return Response.json({ success: true, dealer: safeAmbassador });
+    }
+
     return Response.json({ success: false, error: 'Invalid action' }, { status: 400 });
 
   } catch (error) {
