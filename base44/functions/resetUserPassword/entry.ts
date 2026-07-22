@@ -71,10 +71,15 @@ Deno.serve(async (req) => {
 
             const nodemailer = await import('npm:nodemailer@6.9.7');
             
+            const smtpPortNum = parseInt(smtpPort);
             const transporter = nodemailer.default.createTransport({
                 host: smtpHost,
-                port: parseInt(smtpPort),
-                secure: true,
+                port: smtpPortNum,
+                secure: smtpPortNum === 465,
+                requireTLS: smtpPortNum !== 465,
+                connectionTimeout: 15000,
+                greetingTimeout: 15000,
+                socketTimeout: 15000,
                 auth: {
                     user: smtpUser,
                     pass: smtpPass
@@ -100,12 +105,12 @@ Please login and change your password immediately in Account Settings.
 If you did not request this password reset, please contact support immediately.
 
 Thank you,
-ChainLINK POS Team`;
+openTILL SMPF Team`;
 
             await transporter.sendMail({
-                from: `"ChainLINK POS" <${smtpUser}>`,
+                from: `"openTILL" <${smtpUser}>`,
                 to: user.email,
-                subject: 'Password Reset - ChainLINK POS',
+                subject: 'Password Reset - openTILL',
                 text: emailBody,
                 html: emailBody.replace(/\n/g, '<br>')
             });

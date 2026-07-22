@@ -146,37 +146,62 @@ Deno.serve(async (req) => {
             console.error('Failed to send invitation:', inviteError);
         }
 
-        // Also send a welcome email with PIN and portal URL
+        // Also send a welcome email with PIN and portal URL via direct SMTP.
+        // Core.SendEmail only reaches fully-registered users; a brand-new
+        // ambassador may not be registered yet, so we send via SMTP directly.
         try {
-            await base44.asServiceRole.integrations.Core.SendEmail({
-                to: owner_email.toLowerCase().trim(),
-                subject: `Welcome to openTILL Ambassador Program! Your Credentials Inside`,
-                body: `
+            const smtpHost = Deno.env.get('SMTP_HOST');
+            const smtpPort = Deno.env.get('SMTP_PORT');
+            const smtpUser = Deno.env.get('SMTP_USER');
+            const smtpPass = Deno.env.get('SMTP_PASS');
+
+            if (smtpHost && smtpUser && smtpPass) {
+                const nodemailer = await import('npm:nodemailer@6.9.7');
+                const smtpPortNum = parseInt(smtpPort || '465');
+                const transporter = nodemailer.default.createTransport({
+                    host: smtpHost,
+                    port: smtpPortNum,
+                    secure: smtpPortNum === 465,
+                    requireTLS: smtpPortNum !== 465,
+                    connectionTimeout: 15000,
+                    greetingTimeout: 15000,
+                    socketTimeout: 15000,
+                    auth: { user: smtpUser, pass: smtpPass }
+                });
+
+                const loginEmail = owner_email.toLowerCase().trim();
+                const portalUrl = `https://${slug}.opentillpos.isolex.io`;
+                const html = `
                     <h2>Welcome to openTILL, ${owner_name}!</h2>
                     <p>Your ambassador account for <strong>${dealer_name}</strong> has been created successfully.</p>
 
                     <h3>How to Log In</h3>
-                    <p>You will receive a separate invitation email to set up your account. Log in using:</p>
-                    <ul>
-                        <li><strong>Google Sign-In</strong> with ${owner_email.toLowerCase().trim()} (recommended), or</li>
-                        <li><strong>Magic link</strong> from your invitation email</li>
-                    </ul>
+                    <p>Use <strong>Google Sign-In</strong> with ${loginEmail} (recommended), or the magic-link invitation email from openTILL to set your password.</p>
                     <p>Login URL: <a href="https://opentillpos.isolex.io">opentillpos.isolex.io</a></p>
 
                     <h3>Your POS Quick-Login PIN</h3>
-                    <p>Once inside the platform, you can use your PIN for quick POS access:</p>
                     <p style="font-size:28px; font-weight:bold; letter-spacing:6px; background:#f3f4f6; padding:12px 20px; border-radius:8px; display:inline-block;">${pin}</p>
 
                     <h3>Your Portal</h3>
-                    <p><strong>Portal URL:</strong> https://${slug}.opentillpos.isolex.io</p>
+                    <p><strong>Portal URL:</strong> <a href="${portalUrl}">${portalUrl}</a></p>
                     <p><strong>Trial ends:</strong> ${new Date(dealerData.trial_ends_at).toLocaleDateString()}</p>
 
                     <p>Thank you for joining the openTILL Ambassador Program!</p>
-                `,
-            });
-            console.log('Welcome email sent');
+                `;
+
+                await transporter.sendMail({
+                    from: `"openTILL" <${smtpUser}>`,
+                    to: loginEmail,
+                    subject: 'Welcome to openTILL Ambassador Program! Your Credentials Inside',
+                    html,
+                    text: html.replace(/<[^>]+>/g, '')
+                });
+                console.log('Welcome email sent via SMTP to:', loginEmail);
+            } else {
+                console.error('Welcome email skipped: SMTP not configured');
+            }
         } catch (emailError) {
-            console.error('Failed to send welcome email:', emailError);
+            console.error('Failed to send welcome email:', emailError.message || emailError);
         }
 
         console.log('Dealer registration completed successfully');
