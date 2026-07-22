@@ -39,10 +39,52 @@
       "type": "string",
       "description": "Solana token mint address for $DUC"
     },
+    "token_symbol": {
+      "type": "string",
+      "default": "$DUC",
+      "description": "Display symbol for the vault token"
+    },
     "auto_calculate_rewards": {
       "type": "boolean",
       "default": true,
       "description": "Automatically calculate monthly rewards"
+    },
+    "cc_reward_rate": {
+      "type": "number",
+      "default": 0.001,
+      "description": "Rate of CC processing volume earned as $DUC (0.001 = 0.1%)"
+    },
+    "min_reward_amount": {
+      "type": "number",
+      "default": 0.01,
+      "description": "Minimum reward amount per transaction"
+    },
+    "staking_vault_address": {
+      "type": "string",
+      "description": "Solana wallet address holding staked tokens"
+    },
+    "central_vault_wallet": {
+      "type": "string",
+      "description": "Platform central vault wallet address"
+    },
+    "network": {
+      "type": "string",
+      "enum": [
+        "mainnet-beta",
+        "devnet"
+      ],
+      "default": "mainnet-beta",
+      "description": "Solana network used for vault operations"
+    },
+    "referral_reward_rate": {
+      "type": "number",
+      "default": 0.1,
+      "description": "Percentage of referred merchant rewards earned by referrer (0.1 = 10%)"
+    },
+    "min_referral_reward": {
+      "type": "number",
+      "default": 0.001,
+      "description": "Minimum referral reward amount per transaction"
     }
   },
   "rls": {
