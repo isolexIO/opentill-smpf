@@ -306,7 +306,7 @@ export default function DealerManagement() {
         {/* Ambassadors Tab */}
         <TabsContent value="ambassadors" className="space-y-6">
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -365,20 +365,20 @@ export default function DealerManagement() {
       {/* Ambassadors List */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <CardTitle>All Ambassadors</CardTitle>
-            <div className="flex gap-2">
-              <div className="relative">
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <div className="relative w-full sm:w-64">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
                   placeholder="Search ambassadors..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 w-64"
+                  className="pl-10 w-full"
                 />
               </div>
-              <Button onClick={handleCreateAmbassador}>
-                <Plus className="w-4 h-4 mr-2" />
+              <Button onClick={handleCreateAmbassador} className="w-full sm:w-auto whitespace-normal">
+                <Plus className="w-4 h-4 mr-2 shrink-0" />
                 Create Ambassador
               </Button>
             </div>
@@ -389,9 +389,9 @@ export default function DealerManagement() {
             {filteredAmbassadors.map((ambassador) => (
               <div
                 key={ambassador.id}
-                className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
               >
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 min-w-0">
                   {ambassador.logo_url ? (
                     <img src={ambassador.logo_url} alt={ambassador.name} className="h-12 w-12 rounded object-cover" />
                   ) : (
@@ -403,9 +403,9 @@ export default function DealerManagement() {
                     </div>
                   )}
                   <div>
-                    <h3 className="font-medium text-lg">{ambassador.name}</h3>
-                    <p className="text-sm text-gray-500">{ambassador.owner_email}</p>
-                    <div className="flex gap-2 mt-1">
+                    <h3 className="font-medium text-lg truncate">{ambassador.name}</h3>
+                    <p className="text-sm text-gray-500 truncate">{ambassador.owner_email}</p>
+                    <div className="flex gap-2 mt-1 flex-wrap">
                       <span className="text-xs text-gray-400">{ambassador.slug}.opentill.app</span>
                       {ambassador.domain && (
                         <span className="text-xs text-blue-600">• {ambassador.domain}</span>
@@ -414,8 +414,8 @@ export default function DealerManagement() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-6">
-                  <div className="text-right">
+                <div className="flex flex-wrap items-center justify-between sm:justify-end gap-3 sm:gap-6">
+                  <div className="text-left sm:text-right">
                     <p className="text-sm font-medium">{ambassador.total_merchants || 0} merchants</p>
                     <p className="text-xs text-gray-500">
                       {ambassador.commission_percent}% commission
@@ -494,34 +494,34 @@ export default function DealerManagement() {
             <Tabs value={editDialog.tab} onValueChange={(tab) => setEditDialog({...editDialog, tab})}>
               <TabsList className="grid w-full grid-cols-6">
                 <TabsTrigger value="basic">
-                  <Building2 className="w-4 h-4 mr-2" />
-                  Basic
+                  <Building2 className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Basic</span>
                 </TabsTrigger>
                 <TabsTrigger value="branding">
-                  <Palette className="w-4 h-4 mr-2" />
-                  Branding
+                  <Palette className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Branding</span>
                 </TabsTrigger>
                 <TabsTrigger value="subdomain">
-                  <Link2 className="w-4 h-4 mr-2" />
-                  Subdomain
+                  <Link2 className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Subdomain</span>
                 </TabsTrigger>
                 <TabsTrigger value="domain">
-                  <Globe className="w-4 h-4 mr-2" />
-                  Domain
+                  <Globe className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Domain</span>
                 </TabsTrigger>
                 <TabsTrigger value="billing">
-                  <DollarSign className="w-4 h-4 mr-2" />
-                  Billing
+                  <DollarSign className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Billing</span>
                 </TabsTrigger>
                 <TabsTrigger value="settings">
-                  <Settings className="w-4 h-4 mr-2" />
-                  Settings
+                  <Settings className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Settings</span>
                 </TabsTrigger>
               </TabsList>
 
               {/* Basic Info Tab */}
               <TabsContent value="basic" className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label>Business Name *</Label>
                     <Input
@@ -544,7 +544,7 @@ export default function DealerManagement() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label>Owner Name *</Label>
                     <Input
@@ -565,7 +565,7 @@ export default function DealerManagement() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label>Contact Email *</Label>
                     <Input
@@ -627,7 +627,7 @@ export default function DealerManagement() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label>Primary Color</Label>
                     <div className="flex gap-2">
@@ -731,7 +731,7 @@ export default function DealerManagement() {
                     <p className="text-xs text-gray-500">Ambassadors are not charged platform fees. Configure optional bonuses below.</p>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <Label>Signup Bonus per Merchant ($)</Label>
                       <Input
@@ -757,7 +757,7 @@ export default function DealerManagement() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <Label>Milestone Threshold (merchants)</Label>
                       <Input
@@ -805,7 +805,7 @@ export default function DealerManagement() {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
                     <Label>Payout Method</Label>
                     <Select
@@ -955,17 +955,19 @@ export default function DealerManagement() {
                         </AlertDescription>
                       </Alert>
                     )}
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <Input
                         type="text"
                         placeholder="New temp password (min 6 chars)"
                         value={tempPassword}
                         onChange={(e) => setTempPassword(e.target.value)}
                         disabled={tempPasswordLoading}
+                        className="flex-1"
                       />
                       <Button
                         onClick={handleSetTempPassword}
                         disabled={tempPasswordLoading || !tempPassword}
+                        className="w-full sm:w-auto whitespace-normal"
                       >
                         {tempPasswordLoading ? 'Setting...' : 'Set Password'}
                       </Button>
