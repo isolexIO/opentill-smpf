@@ -39,7 +39,8 @@ import {
   CreditCard,
   Link2,
   UserCheck,
-  UserPlus
+  UserPlus,
+  Key
 } from 'lucide-react';
 import DealerSubdomainManager from './DealerSubdomainManager';
 import PayoutControl from '../superadmin/PayoutControl';
@@ -52,6 +53,9 @@ export default function DealerManagement() {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('ambassadors');
   const [editDialog, setEditDialog] = useState({ open: false, ambassador: null, tab: 'basic' });
+  const [tempPassword, setTempPassword] = useState('');
+  const [tempPasswordMsg, setTempPasswordMsg] = useState(null);
+  const [tempPasswordLoading, setTempPasswordLoading] = useState(false);
 
   useEffect(() => {
     loadAmbassadors();
@@ -108,7 +112,42 @@ export default function DealerManagement() {
   };
 
   const handleEditAmbassador = (ambassador) => {
+    setTempPassword('');
+    setTempPasswordMsg(null);
     setEditDialog({ open: true, ambassador: { ...ambassador }, tab: 'basic' });
+  };
+
+  const handleSetTempPassword = async () => {
+    const email = editDialog.ambassador?.owner_email;
+    if (!email) {
+      setTempPasswordMsg({ type: 'error', text: 'This ambassador has no owner email.' });
+      return;
+    }
+    if (!tempPassword || tempPassword.length < 6) {
+      setTempPasswordMsg({ type: 'error', text: 'Password must be at least 6 characters.' });
+      return;
+    }
+    setTempPasswordLoading(true);
+    setTempPasswordMsg(null);
+    try {
+      const res = await base44.functions.invoke('setUserTempPassword', {
+        email,
+        password: tempPassword
+      });
+      if (res?.success) {
+        setTempPasswordMsg({
+          type: 'success',
+          text: `Temporary password set for ${email}. It will be cleared after first login.`
+        });
+        setTempPassword('');
+      } else {
+        setTempPasswordMsg({ type: 'error', text: res?.error || 'Failed to set password.' });
+      }
+    } catch (e) {
+      setTempPasswordMsg({ type: 'error', text: e.message || 'Failed to set password.' });
+    } finally {
+      setTempPasswordLoading(false);
+    }
   };
 
   const handleSaveAmbassador = async () => {
@@ -899,6 +938,40 @@ export default function DealerManagement() {
                     placeholder="https://support.yourcompany.com"
                   />
                 </div>
+
+                {editDialog.ambassador.id && (
+                  <div className="border rounded-lg p-4 space-y-3 bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800">
+                    <div className="flex items-center gap-2">
+                      <Key className="w-4 h-4 text-amber-600" />
+                      <Label>Set Temporary Password</Label>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      Set a temporary password for the ambassador admin user ({editDialog.ambassador.owner_email}). They can log in with it immediately; it is cleared after first login. No email is sent.
+                    </p>
+                    {tempPasswordMsg && (
+                      <Alert className={tempPasswordMsg.type === 'success' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}>
+                        <AlertDescription className={tempPasswordMsg.type === 'success' ? 'text-green-800' : 'text-red-800'}>
+                          {tempPasswordMsg.text}
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                    <div className="flex gap-2">
+                      <Input
+                        type="text"
+                        placeholder="New temp password (min 6 chars)"
+                        value={tempPassword}
+                        onChange={(e) => setTempPassword(e.target.value)}
+                        disabled={tempPasswordLoading}
+                      />
+                      <Button
+                        onClick={handleSetTempPassword}
+                        disabled={tempPasswordLoading || !tempPassword}
+                      >
+                        {tempPasswordLoading ? 'Setting...' : 'Set Password'}
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </TabsContent>
             </Tabs>
           )}

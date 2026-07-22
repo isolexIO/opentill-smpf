@@ -1,5 +1,4 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
-import bcrypt from 'npm:bcryptjs@2.4.3';
 
 Deno.serve(async (req) => {
     try {
@@ -44,17 +43,17 @@ Deno.serve(async (req) => {
         for (let i = 0; i < 16; i++) {
             tempPassword += charset[randomBytes[i] % charset.length];
         }
-        const passwordHash = await bcrypt.hash(tempPassword, 10);
 
-        // Update user with new password
+        // Store as temp_password (plaintext) — emailPasswordLogin validates this field
+        // and clears it automatically after the first successful login.
         try {
             await base44.asServiceRole.entities.User.update(user.id, {
-                password_hash: passwordHash
+                temp_password: tempPassword
             });
         } catch (e) {
             console.log('asServiceRole update failed, trying regular update:', e.message);
             await base44.entities.User.update(user.id, {
-                password_hash: passwordHash
+                temp_password: tempPassword
             });
         }
 
@@ -75,8 +74,7 @@ Deno.serve(async (req) => {
             const transporter = nodemailer.default.createTransport({
                 host: smtpHost,
                 port: smtpPortNum,
-                secure: smtpPortNum === 465,
-                requireTLS: smtpPortNum !== 465,
+                secure: true,
                 connectionTimeout: 15000,
                 greetingTimeout: 15000,
                 socketTimeout: 15000,
