@@ -257,7 +257,7 @@ export default function PaymentSettingsManager() {
           {/* Stripe */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Stripe (Subscription Billing)</CardTitle>
+              <CardTitle className="text-lg">openTILL Payments powered by Stripe (Subscription Billing)</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -361,7 +361,7 @@ export default function PaymentSettingsManager() {
           {/* Stripe */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Stripe (Device Shop)</CardTitle>
+              <CardTitle className="text-lg">openTILL Payments powered by Stripe (Device Shop)</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">

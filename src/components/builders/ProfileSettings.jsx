@@ -365,7 +365,7 @@ export default function ProfileSettings({ builder, user, onUpdated }) {
                <SelectValue />
              </SelectTrigger>
              <SelectContent>
-               <SelectItem value="stripe_connect">Stripe Connect</SelectItem>
+               <SelectItem value="stripe_connect">openTILL Payments</SelectItem>
                <SelectItem value="solana">$DUC (Solana)</SelectItem>
                <SelectItem value="manual">Manual</SelectItem>
              </SelectContent>
@@ -395,20 +395,20 @@ export default function ProfileSettings({ builder, user, onUpdated }) {
          {formData.payout_method === 'stripe_connect' && (
            builder.stripe_connected && builder.payout_enabled ? (
              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-               <p className="text-green-800 font-medium">✓ Stripe Connected</p>
+               <p className="text-green-800 font-medium">✓ openTILL Payments Connected</p>
                <p className="text-sm text-green-700 mt-1">
-                 Payouts are enabled. Stripe ID: {builder.stripe_connect_id}
+                 Payouts are enabled. openTILL Payments ID: {builder.stripe_connect_id}
                </p>
              </div>
            ) : (
              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg space-y-3">
                <p className="text-yellow-800 font-medium">
-                 {builder.stripe_connect_id ? 'Stripe Onboarding Incomplete' : 'Stripe Not Connected'}
-               </p>
-               <p className="text-sm text-yellow-700">
+                 {builder.stripe_connect_id ? 'openTILL Payments Onboarding Incomplete' : 'openTILL Payments Not Connected'}
+                 </p>
+                 <p className="text-sm text-yellow-700">
                  {builder.stripe_connect_id
-                   ? 'Finish your Stripe onboarding to enable payouts.'
-                   : 'Connect your Stripe account to receive payouts for chip sales.'}
+                   ? 'Finish your openTILL Payments onboarding to enable payouts.'
+                   : 'Connect your openTILL Payments account to receive payouts for chip sales.'}
                </p>
                <Button
                  size="sm"

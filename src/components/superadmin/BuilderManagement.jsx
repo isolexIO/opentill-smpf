@@ -292,7 +292,7 @@ export default function BuilderManagement() {
                     </Badge>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">Stripe Connected</p>
+                    <p className="text-sm text-gray-600">openTILL Payments Connected</p>
                     <p className="font-medium">
                       {selectedBuilder.stripe_connected ? '✓ Connected' : '✗ Not Connected'}
                     </p>

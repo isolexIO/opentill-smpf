@@ -68,10 +68,10 @@ export default function StripeConnectOnboarding() {
           <div>
             <CardTitle className="flex items-center gap-2">
               <CreditCard className="w-5 h-5 text-indigo-600" />
-              Stripe Connect
+              openTILL Payments powered by Stripe
             </CardTitle>
             <CardDescription>
-              Sign up for card payments through Stripe Terminal. Connect your account to accept credit and debit cards.
+              Sign up for card payments through openTILL Payments powered by Stripe. Connect your account to accept credit and debit cards.
             </CardDescription>
           </div>
         </div>
@@ -94,10 +94,10 @@ export default function StripeConnectOnboarding() {
           <div className="flex items-start gap-3 p-4 bg-green-50 rounded-lg">
             <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5" />
             <div className="flex-1 text-sm">
-              <p className="font-medium text-green-800">Stripe account connected</p>
+              <p className="font-medium text-green-800">openTILL Payments account connected</p>
               <p className="text-green-700 font-mono text-xs">{accountId}</p>
               <p className="text-xs text-green-600 mt-1">
-                Resume onboarding in Stripe to finish or update your details.
+                Resume onboarding in openTILL Payments powered by Stripe to finish or update your details.
               </p>
             </div>
           </div>
@@ -107,9 +107,9 @@ export default function StripeConnectOnboarding() {
           <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">
             <CreditCard className="w-5 h-5 text-gray-500 mt-0.5" />
             <div className="text-sm">
-              <p className="font-medium">No Stripe account connected yet</p>
+              <p className="font-medium">No openTILL Payments account connected yet</p>
               <p className="text-gray-500 text-xs mt-1">
-                Click below to sign up and connect your Stripe account. You'll be redirected to Stripe to complete onboarding.
+                Click below to sign up and connect your openTILL Payments account. You'll be redirected to Stripe to complete onboarding.
               </p>
             </div>
           </div>
@@ -118,7 +118,7 @@ export default function StripeConnectOnboarding() {
         {!loading && (
           <Button onClick={handleStart} disabled={starting || !merchantId} className="w-full">
             {starting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <ExternalLink className="w-4 h-4 mr-2" />}
-            {accountId ? 'Resume Stripe Onboarding' : 'Sign Up with Stripe'}
+            {accountId ? 'Resume openTILL Payments Onboarding' : 'Sign Up with openTILL Payments'}
           </Button>
         )}
       </CardContent>

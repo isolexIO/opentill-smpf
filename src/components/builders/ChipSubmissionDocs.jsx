@@ -116,11 +116,11 @@ const STEPS = [
           </div>
         </div>
         <ul className="space-y-1 text-sm">
-          <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Payouts via Stripe Connect</li>
+          <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Payouts via openTILL Payments powered by Stripe</li>
           <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Monthly automatic payouts</li>
           <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Real-time analytics in your dashboard</li>
         </ul>
-        <p className="text-xs text-gray-500">Make sure to connect your Stripe account in Settings to receive payouts.</p>
+        <p className="text-xs text-gray-500">Make sure to connect your openTILL Payments account in Settings to receive payouts.</p>
       </div>
     ),
   },

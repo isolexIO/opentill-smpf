@@ -19,7 +19,7 @@ const DEFAULT_SETTINGS = {
     { icon: 'Code2', title: 'Easy Integration', description: 'Build with our SDK and connect your Chip to the marketplace in minutes.' },
     { icon: 'TrendingUp', title: 'Earn Money', description: 'Set your own pricing and earn up to 70% revenue share on every sale.' },
     { icon: 'Users', title: 'Global Audience', description: 'Access thousands of merchants using openTILL across the world.' },
-    { icon: 'Shield', title: 'Secure & Verified', description: 'Verified developer badges and secure payment processing via Stripe.' },
+    { icon: 'Shield', title: 'Secure & Verified', description: 'Verified developer badges and secure payment processing via openTILL Payments powered by Stripe.' },
     { icon: 'Zap', title: 'Real-time Analytics', description: 'Track sales, installations, and earnings with detailed dashboards.' },
   ],
   how_it_works: [

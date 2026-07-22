@@ -127,10 +127,10 @@ export default function StripeConnectSetup({ dealer, onUpdate }) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <CreditCard className="w-5 h-5" />
-          Stripe Connect - Automated Payouts
+          openTILL Payments powered by Stripe - Automated Payouts
         </CardTitle>
         <CardDescription>
-          Connect your Stripe account to receive automated commission payouts
+          Connect your openTILL Payments account to receive automated commission payouts
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -139,13 +139,13 @@ export default function StripeConnectSetup({ dealer, onUpdate }) {
             <Alert>
               <DollarSign className="h-4 w-4" />
               <AlertDescription>
-                By connecting Stripe, you'll receive automated commission payouts directly to your bank account. 
+                By connecting openTILL Payments powered by Stripe, you'll receive automated commission payouts directly to your bank account. 
                 Payouts are processed monthly based on your merchant billing cycles.
               </AlertDescription>
             </Alert>
 
             <div className="space-y-3">
-              <h4 className="font-semibold">Benefits of Stripe Connect:</h4>
+              <h4 className="font-semibold">Benefits of openTILL Payments powered by Stripe:</h4>
               <ul className="space-y-2 text-sm text-gray-600">
                 <li className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-green-500" />
@@ -179,7 +179,7 @@ export default function StripeConnectSetup({ dealer, onUpdate }) {
               ) : (
                 <>
                   <CreditCard className="w-4 h-4 mr-2" />
-                  Connect Stripe Account
+                  Connect openTILL Payments Account
                 </>
               )}
             </Button>
@@ -191,7 +191,7 @@ export default function StripeConnectSetup({ dealer, onUpdate }) {
                 <CheckCircle className="w-6 h-6 text-green-600" />
                 <div>
                   <p className="font-semibold text-green-900 dark:text-green-100">
-                    Stripe Connected
+                    openTILL Payments Connected
                   </p>
                   <p className="text-sm text-green-700 dark:text-green-300">
                     Account ID: {status.accountId.substring(0, 20)}...

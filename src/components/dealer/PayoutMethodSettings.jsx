@@ -38,7 +38,7 @@ export default function PayoutMethodSettings({ dealer, onUpdate }) {
   });
 
   const methodTypes = {
-    stripe_connect: { label: 'Stripe Connect', icon: '💳' },
+    stripe_connect: { label: 'openTILL Payments', icon: '💳' },
     bank_transfer: { label: 'Bank Transfer (ACH)', icon: '🏦' },
     solana: { label: '$DUC (Solana)', icon: '◎' }
   };
@@ -213,7 +213,7 @@ export default function PayoutMethodSettings({ dealer, onUpdate }) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="stripe_connect">Stripe Connect (Credit)</SelectItem>
+                  <SelectItem value="stripe_connect">openTILL Payments (Credit)</SelectItem>
                   <SelectItem value="bank_transfer">Bank Transfer (ACH)</SelectItem>
                   <SelectItem value="solana">$DUC (Solana)</SelectItem>
                 </SelectContent>

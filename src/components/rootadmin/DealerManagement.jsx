@@ -717,7 +717,7 @@ export default function DealerManagement() {
                   </Select>
                   <p className="text-xs text-gray-500 mt-1">
                     {editDialog.dealer.billing_mode === 'dealer' 
-                      ? 'Dealer handles merchant billing through their own Stripe account' 
+                      ? 'Dealer handles merchant billing through their own openTILL Payments powered by Stripe account' 
                       : 'ChainLINK bills merchants and pays dealer commission'}
                   </p>
                 </div>
@@ -733,7 +733,7 @@ export default function DealerManagement() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="stripe_connect">Stripe Connect</SelectItem>
+                        <SelectItem value="stripe_connect">openTILL Payments</SelectItem>
                         <SelectItem value="solana">$DUC (Solana)</SelectItem>
                         <SelectItem value="manual">Manual</SelectItem>
                       </SelectContent>
@@ -773,7 +773,7 @@ export default function DealerManagement() {
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                     <div className="flex items-center gap-2 text-green-800">
                       <CreditCard className="w-5 h-5" />
-                      <span className="font-medium">Stripe Connected</span>
+                      <span className="font-medium">openTILL Payments Connected</span>
                     </div>
                     <p className="text-sm text-green-600 mt-1">
                       Account ID: {editDialog.dealer.stripe_account_id}
