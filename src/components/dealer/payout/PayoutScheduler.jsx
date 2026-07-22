@@ -28,7 +28,7 @@ export default function PayoutScheduler({ dealer, onUpdate }) {
     if (holdDays < 0 || holdDays > 30) { alert('Hold period must be 0–30 days'); return; }
     setLoading(true);
     try {
-      await base44.entities.Dealer.update(dealer.id, {
+      await base44.entities.Ambassador.update(dealer.id, {
         payout_minimum: parseFloat(threshold),
         payout_cadence: cadence,
         payout_hold_days: parseInt(holdDays),

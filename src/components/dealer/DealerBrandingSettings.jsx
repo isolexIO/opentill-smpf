@@ -15,7 +15,7 @@ export default function DealerBrandingSettings({ dealer, onUpdate }) {
     primary_color: dealer.primary_color || '#7B2FD6',
     secondary_color: dealer.secondary_color || '#0FD17A',
     domain: dealer.domain || '',
-    chainlink_subdomain: dealer.chainlink_subdomain || '',
+    opentill_subdomain: dealer.opentill_subdomain || '',
   });
 
   const [previews, setPreviews] = useState({
@@ -26,7 +26,7 @@ export default function DealerBrandingSettings({ dealer, onUpdate }) {
   const handleSave = async () => {
     try {
       setSaving(true);
-      await base44.entities.Dealer.update(dealer.id, formData);
+      await base44.entities.Ambassador.update(dealer.id, formData);
       onUpdate?.();
     } catch (error) {
       alert('Error updating branding: ' + error.message);
@@ -186,21 +186,21 @@ export default function DealerBrandingSettings({ dealer, onUpdate }) {
             </div>
 
             <div>
-              <label className="text-sm font-medium block mb-2">ChainLINK Subdomain</label>
+              <label className="text-sm font-medium block mb-2">openTILL Subdomain</label>
               <div className="flex gap-2 items-center">
                 <Input
-                  value={formData.chainlink_subdomain}
+                  value={formData.opentill_subdomain}
                   disabled
                   className="bg-gray-50"
                 />
-                <Badge variant="outline">{formData.chainlink_subdomain ? 'Active' : 'Not Set'}</Badge>
+                <Badge variant="outline">{formData.opentill_subdomain ? 'Active' : 'Not Set'}</Badge>
               </div>
               <p className="text-xs text-gray-500 mt-1">Your unique subdomain (e.g., yourdealer.chainlink-pos.sol)</p>
-              {formData.chainlink_subdomain && (
+              {formData.opentill_subdomain && (
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => copyToClipboard(`${formData.chainlink_subdomain}.chainlink-pos.sol`, 'subdomain')}
+                  onClick={() => copyToClipboard(`${formData.opentill_subdomain}.opentill-pos.sol`, 'subdomain')}
                   className="mt-2 text-xs"
                 >
                   {copiedField === 'subdomain' ? <Check className="w-3 h-3 mr-1" /> : <Copy className="w-3 h-3 mr-1" />}
@@ -214,7 +214,7 @@ export default function DealerBrandingSettings({ dealer, onUpdate }) {
             <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
             <div className="text-xs text-blue-900">
               <p className="font-medium mb-1">Domain Management</p>
-              <p>Custom domains require DNS configuration. ChainLINK subdomains are automatically configured.</p>
+              <p>Custom domains require DNS configuration. openTILL subdomains are automatically configured.</p>
             </div>
           </div>
         </CardContent>

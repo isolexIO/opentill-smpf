@@ -32,7 +32,7 @@ export default function CommissionBreakdown({ dealer }) {
 
       // Load merchant list to calculate contributions
       const merchantList = await base44.entities.Merchant.filter(
-        { dealer_id: dealer.id },
+        { dealer_id: dealer.legacy_dealer_id || dealer.id },
         '-total_revenue',
         100
       );

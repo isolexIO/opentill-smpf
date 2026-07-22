@@ -24,7 +24,7 @@ export default function MerchantPayoutControls({ dealer }) {
 
   const loadMerchants = async () => {
     setLoading(true);
-    const list = await base44.entities.Merchant.filter({ dealer_id: dealer.id });
+    const list = await base44.entities.Merchant.filter({ dealer_id: dealer.legacy_dealer_id || dealer.id });
     // Load subscription data for each merchant
     const enriched = await Promise.all(list.map(async (m) => {
       try {
@@ -52,7 +52,7 @@ export default function MerchantPayoutControls({ dealer }) {
     try {
       // Create a manual payout record then trigger it
       const payout = await base44.entities.DealerPayout.create({
-        dealer_id: dealer.id,
+        dealer_id: dealer.legacy_dealer_id || dealer.id,
         period_start: new Date(new Date().setDate(1)).toISOString(),
         period_end: new Date().toISOString(),
         gross_amount: parseFloat(amount),

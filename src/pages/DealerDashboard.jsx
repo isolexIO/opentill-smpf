@@ -115,8 +115,6 @@ export default function DealerDashboardPage() {
 
   const primaryColor = dealer.primary_color || '#10b981';
   const secondaryColor = dealer.secondary_color || '#7c3aed';
-  // Children join child entities (Merchant, payouts, etc.) by the legacy dealer_id foreign key.
-  const dealerView = { ...dealer, id: dealer.legacy_dealer_id || dealer.id, chainlink_subdomain: dealer.opentill_subdomain };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
@@ -211,19 +209,19 @@ export default function DealerDashboardPage() {
           </TabsList>
 
           <TabsContent value="merchants">
-            <MerchantManagement dealerId={dealerView.id} />
+            <MerchantManagement dealerId={dealer.legacy_dealer_id} />
           </TabsContent>
           <TabsContent value="analytics">
-            <MerchantAnalytics dealerId={dealerView.id} />
+            <MerchantAnalytics dealerId={dealer.legacy_dealer_id} />
           </TabsContent>
           <TabsContent value="marketing">
-            <AIMarketingTools dealerId={dealerView.id} />
+            <AIMarketingTools dealerId={dealer.legacy_dealer_id} />
           </TabsContent>
           <TabsContent value="payouts">
-            <PayoutDashboard dealer={dealerView} onUpdate={loadDealerData} />
+            <PayoutDashboard dealer={dealer} onUpdate={loadDealerData} />
           </TabsContent>
           <TabsContent value="staff">
-            <StaffManagement dealerId={dealerView.id} />
+            <StaffManagement dealerId={dealer.legacy_dealer_id} />
           </TabsContent>
           <TabsContent value="settings">
             <Tabs defaultValue="branding" className="space-y-4">
@@ -232,9 +230,9 @@ export default function DealerDashboardPage() {
                 <TabsTrigger value="payments">Payments</TabsTrigger>
                 <TabsTrigger value="domains">Domains</TabsTrigger>
               </TabsList>
-              <TabsContent value="branding"><DealerBrandingSettings dealer={dealerView} onUpdate={loadDealerData} /></TabsContent>
-              <TabsContent value="payments"><StripeConnectSetup dealer={dealerView} onUpdate={loadDealerData} /></TabsContent>
-              <TabsContent value="domains"><CustomDomainSSL dealer={dealerView} onUpdate={loadDealerData} /></TabsContent>
+              <TabsContent value="branding"><DealerBrandingSettings dealer={dealer} onUpdate={loadDealerData} /></TabsContent>
+              <TabsContent value="payments"><StripeConnectSetup dealer={dealer} onUpdate={loadDealerData} /></TabsContent>
+              <TabsContent value="domains"><CustomDomainSSL dealer={dealer} onUpdate={loadDealerData} /></TabsContent>
             </Tabs>
           </TabsContent>
         </Tabs>

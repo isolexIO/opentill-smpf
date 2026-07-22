@@ -29,7 +29,7 @@ export default function CustomDomainSSL({ dealer }) {
   const loadCustomDomain = async () => {
     try {
       const domains = await base44.entities.CustomDomain.filter({
-        dealer_id: dealer.id,
+        dealer_id: dealer.legacy_dealer_id || dealer.id,
         domain_type: 'pos'
       });
 
@@ -52,7 +52,7 @@ export default function CustomDomainSSL({ dealer }) {
       setLoading(true);
       
       const response = await base44.functions.invoke('setupCustomDomain', {
-        dealer_id: dealer.id,
+        dealer_id: dealer.legacy_dealer_id || dealer.id,
         domain: domain
       });
 

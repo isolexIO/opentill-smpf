@@ -89,7 +89,7 @@ export default function PayoutMethodSettings({ dealer, onUpdate }) {
         updatedMethods = updatedMethods.map(m => ({ ...m, is_primary: m.id === (formData.id || formData.id) }));
       }
 
-      await base44.entities.Dealer.update(dealer.id, {
+      await base44.entities.Ambassador.update(dealer.id, {
         payout_methods: updatedMethods
       });
 
@@ -109,7 +109,7 @@ export default function PayoutMethodSettings({ dealer, onUpdate }) {
 
     try {
       const updatedMethods = methods.filter(m => m.id !== methodId);
-      await base44.entities.Dealer.update(dealer.id, {
+      await base44.entities.Ambassador.update(dealer.id, {
         payout_methods: updatedMethods
       });
       setMethods(updatedMethods);

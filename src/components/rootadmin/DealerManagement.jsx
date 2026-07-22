@@ -59,7 +59,7 @@ export default function DealerManagement() {
 
   const loadDealers = async () => {
     try {
-      const dealerList = await base44.entities.Dealer.list('-created_date');
+      const dealerList = await base44.entities.Ambassador.list('-created_date');
       setDealers(dealerList);
     } catch (error) {
       console.error('Error loading dealers:', error);
@@ -91,7 +91,7 @@ export default function DealerManagement() {
         payout_cadence: 'monthly',
         billing_mode: 'root_fallback',
         settings: {
-          hide_chainlink_branding: false,
+          hide_opentill_branding: false,
           allow_merchant_self_signup: true,
           default_merchant_plan: 'basic',
           custom_pricing_enabled: false,
@@ -120,7 +120,7 @@ export default function DealerManagement() {
 
       if (dealer.id) {
         // Update existing dealer
-        await base44.entities.Dealer.update(dealer.id, dealer);
+        await base44.entities.Ambassador.update(dealer.id, dealer);
       } else {
         // Create new dealer through backend function (creates dealer + dealer admin user)
         const response = await base44.functions.invoke('createDealerAccount', {
@@ -152,7 +152,7 @@ export default function DealerManagement() {
     }
 
     try {
-      await base44.entities.Dealer.delete(dealerId);
+      await base44.entities.Ambassador.delete(dealerId);
       await loadDealers();
     } catch (error) {
       console.error('Error deleting dealer:', error);
@@ -166,7 +166,7 @@ export default function DealerManagement() {
 
       // Build a synthetic dealer session that matches what dealerAuth login produces
       const dealerData = {
-        id: dealer.id,
+        id: dealer.legacy_dealer_id || dealer.id,
         name: dealer.name,
         slug: dealer.slug,
         owner_email: dealer.owner_email,
@@ -179,11 +179,11 @@ export default function DealerManagement() {
       };
 
       const syntheticUser = {
-        id: dealer.id,
+        id: dealer.legacy_dealer_id || dealer.id,
         full_name: dealer.owner_name || dealer.name,
         email: dealer.owner_email,
         role: 'dealer_admin',
-        dealer_id: dealer.id,
+        dealer_id: dealer.legacy_dealer_id || dealer.id,
         is_impersonating: true,
         original_admin_email: currentUser.email
       };
@@ -205,7 +205,7 @@ export default function DealerManagement() {
 
     try {
       const response = await base44.functions.invoke('createDealerAdminUser', {
-        dealer_id: dealer.id,
+        dealer_id: dealer.legacy_dealer_id || dealer.id,
         email: email.toLowerCase().trim(),
         full_name: dealer.owner_name || 'Dealer Admin'
       });
@@ -787,12 +787,12 @@ export default function DealerManagement() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div>
-                      <Label>Hide ChainLINK Branding</Label>
-                      <p className="text-xs text-gray-500">Remove "Powered by ChainLINK" from merchant portals</p>
+                      <Label>Hide openTILL Branding</Label>
+                      <p className="text-xs text-gray-500">Remove "Powered by openTILL" from merchant portals</p>
                     </div>
                     <Switch
-                      checked={editDialog.dealer.settings?.hide_chainlink_branding || false}
-                      onCheckedChange={(checked) => updateSettings('hide_chainlink_branding', checked)}
+                      checked={editDialog.dealer.settings?.hide_opentill_branding || false}
+                      onCheckedChange={(checked) => updateSettings('hide_opentill_branding', checked)}
                     />
                   </div>
 

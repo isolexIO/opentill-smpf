@@ -32,7 +32,7 @@ export default function StripeConnectSetup({ dealer, onUpdate }) {
   const checkAccountStatus = async () => {
     try {
       const response = await base44.functions.invoke('checkStripeConnectStatus', {
-        dealer_id: dealer.id,
+        dealer_id: dealer.legacy_dealer_id || dealer.id,
         account_id: dealer.stripe_account_id
       });
 
@@ -54,7 +54,7 @@ export default function StripeConnectSetup({ dealer, onUpdate }) {
       setLoading(true);
       
       const response = await base44.functions.invoke('createAmbassadorStripeConnect', {
-        dealer_id: dealer.id,
+        dealer_id: dealer.legacy_dealer_id || dealer.id,
         return_url: window.location.href,
         refresh_url: window.location.href
       });
@@ -75,7 +75,7 @@ export default function StripeConnectSetup({ dealer, onUpdate }) {
       setLoading(true);
       
       const response = await base44.functions.invoke('refreshStripeConnectOnboarding', {
-        dealer_id: dealer.id,
+        dealer_id: dealer.legacy_dealer_id || dealer.id,
         account_id: dealer.stripe_account_id
       });
 
@@ -98,7 +98,7 @@ export default function StripeConnectSetup({ dealer, onUpdate }) {
     try {
       setLoading(true);
       
-      await base44.entities.Dealer.update(dealer.id, {
+      await base44.entities.Ambassador.update(dealer.id, {
         stripe_connected: false,
         stripe_account_id: '',
         billing_mode: 'root_fallback'

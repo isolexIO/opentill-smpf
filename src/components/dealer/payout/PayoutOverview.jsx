@@ -47,7 +47,7 @@ export default function PayoutOverview({ dealer, onUpdate }) {
   };
 
   const loadPayouts = async () => {
-    const list = await base44.entities.DealerPayout.filter({ dealer_id: dealer.id }, '-created_date', 50);
+    const list = await base44.entities.DealerPayout.filter({ dealer_id: dealer.legacy_dealer_id || dealer.id }, '-created_date', 50);
     setPayouts(list);
     const earned = list.filter(p => p.status === 'completed').reduce((s, p) => s + (p.commission_amount || 0), 0);
     const pending = list.filter(p => ['pending', 'scheduled', 'on_hold'].includes(p.status)).reduce((s, p) => s + (p.commission_amount || 0), 0);
@@ -58,7 +58,7 @@ export default function PayoutOverview({ dealer, onUpdate }) {
 
   const loadPreview = async () => {
     try {
-      const { data } = await base44.functions.invoke('previewDealerPayout', { dealer_id: dealer.id });
+      const { data } = await base44.functions.invoke('previewDealerPayout', { dealer_id: dealer.legacy_dealer_id || dealer.id });
       if (data?.success) setPreview(data.preview);
     } catch { /* silent */ }
   };

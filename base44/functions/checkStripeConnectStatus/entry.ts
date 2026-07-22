@@ -23,24 +23,18 @@ Deno.serve(async (req) => {
     // Retrieve account from Stripe
     const account = await stripe.accounts.retrieve(account_id);
 
-    // Update dealer if payouts are enabled
+    // Update ambassador if payouts are enabled
     if (account.payouts_enabled && account.charges_enabled) {
-      await base44.asServiceRole.entities.Dealer.update(dealer_id, {
-        stripe_connected: true,
-        billing_mode: 'dealer'
-      });
-      // Mirror connected state onto the linked Ambassador (matched by owner_email).
       try {
-        const dealers = await base44.asServiceRole.entities.Dealer.filter({ id: dealer_id });
-        const dealer = dealers && dealers[0];
-        if (dealer && dealer.owner_email) {
-          const ambassadors = await base44.asServiceRole.entities.Ambassador.filter({ owner_email: dealer.owner_email });
-          if (ambassadors && ambassadors[0]) {
-            await base44.asServiceRole.entities.Ambassador.update(ambassadors[0].id, { stripe_connected: true });
-          }
+        const ambassadors = await base44.asServiceRole.entities.Ambassador.filter({ legacy_dealer_id: dealer_id });
+        if (ambassadors && ambassadors[0]) {
+          await base44.asServiceRole.entities.Ambassador.update(ambassadors[0].id, {
+            stripe_connected: true,
+            billing_mode: 'dealer'
+          });
         }
       } catch (e) {
-        console.warn('Mirror stripe_connected to Ambassador failed:', e);
+        console.warn('Update ambassador stripe_connected failed:', e);
       }
     }
 
