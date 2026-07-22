@@ -435,28 +435,42 @@ Deno.serve(async (req) => {
     }
 
     // VERIFY TOKEN
+    // Loads the ambassador + their merchants via service role so the dashboard
+    // works for Ambassador Hub sessions (email / Google / wallet), which don't
+    // have a platform User session with dealer_id and therefore can't read
+    // these entities through the RLS-scoped client.
     if (action === 'verify') {
       const authHeader = req.headers.get('Authorization');
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      const token = body.token
+        || (authHeader && authHeader.startsWith('Bearer ') ? authHeader.replace('Bearer ', '') : null);
+
+      if (!token) {
         return Response.json({ success: false, error: 'No token provided' }, { status: 401 });
       }
 
-      const token = authHeader.replace('Bearer ', '');
       const payload = await verifyToken(token);
-
       if (!payload) {
         return Response.json({ success: false, error: 'Invalid or expired token' }, { status: 401 });
       }
 
-      const ambassadors = await base44.asServiceRole.entities.Ambassador.filter({ legacy_dealer_id: payload.dealer_id });
-
+      let ambassadors = await base44.asServiceRole.entities.Ambassador.filter({ legacy_dealer_id: payload.dealer_id });
+      if (ambassadors.length === 0 && payload.email) {
+        ambassadors = await base44.asServiceRole.entities.Ambassador.filter({ owner_email: payload.email });
+      }
       if (ambassadors.length === 0) {
         return Response.json({ success: false, error: 'Ambassador not found' }, { status: 404 });
       }
 
+      const ambassador = ambassadors[0];
+      const dealerId = ambassador.legacy_dealer_id || ambassador.id;
+      const merchants = await base44.asServiceRole.entities.Merchant.filter({ dealer_id: dealerId });
+
+      const { password_hash, ...safeAmbassador } = ambassador;
       return Response.json({
         success: true,
-        dealer: publicAmbassador(ambassadors[0])
+        dealer: safeAmbassador,
+        merchants: merchants || [],
+        user: buildUser(ambassador)
       });
     }
 

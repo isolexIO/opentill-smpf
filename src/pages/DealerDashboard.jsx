@@ -33,47 +33,81 @@ export default function DealerDashboardPage() {
       const pinUserJSON = localStorage.getItem('pinLoggedInUser');
       let user = null;
       if (pinUserJSON) { try { user = JSON.parse(pinUserJSON); } catch { } }
-      if (!user) {
-        try { user = await base44.auth.me(); } catch {
-          window.location.href = createPageUrl('EmailLogin'); return;
+
+      let dealerData;
+      let merchantList = [];
+
+      // Ambassador Hub session (email / Google / wallet sign-up): authenticate
+      // via the dealerToken JWT and load through the service role, because
+      // these sessions have no platform User with dealer_id and can't read
+      // Ambassador/Merchant records through the RLS-scoped client.
+      const token = localStorage.getItem('dealerToken');
+      if (token) {
+        try {
+          const { data } = await base44.functions.invoke('dealerAuth', { action: 'verify', token });
+          if (data?.success) {
+            dealerData = data.dealer;
+            merchantList = data.merchants || [];
+            if (data.user) user = data.user;
+          } else {
+            localStorage.removeItem('dealerToken');
+            localStorage.removeItem('dealerData');
+            localStorage.removeItem('pinLoggedInUser');
+            window.location.href = createPageUrl('DealerLanding');
+            return;
+          }
+        } catch {
+          localStorage.removeItem('dealerToken');
+          localStorage.removeItem('dealerData');
+          window.location.href = createPageUrl('DealerLanding');
+          return;
         }
       }
-      if (!user || !['dealer_admin', 'ambassador', 'root_admin', 'admin'].includes(user.role)) {
-        window.location.href = createPageUrl('EmailLogin'); return;
-      }
-      setCurrentUser(user);
 
-      // Check if impersonating - load dealer from stored dealerData first
-      const storedDealerData = localStorage.getItem('dealerData');
-      let dealerData;
+      // Platform-authenticated flow (root/admin impersonation or dealer_admin
+      // signed in via EmailLogin with a real platform session + dealer_id).
+      if (!dealerData) {
+        if (!user) {
+          try { user = await base44.auth.me(); } catch {
+            window.location.href = createPageUrl('EmailLogin'); return;
+          }
+        }
+        if (!user || !['dealer_admin', 'ambassador', 'root_admin', 'admin'].includes(user.role)) {
+          window.location.href = createPageUrl('EmailLogin'); return;
+        }
 
-      if (storedDealerData) {
-        try {
-          const parsed = JSON.parse(storedDealerData);
-          if (parsed.id) {
-            const dealers = await base44.entities.Ambassador.filter({ legacy_dealer_id: parsed.id });
+        const storedDealerData = localStorage.getItem('dealerData');
+        if (storedDealerData) {
+          try {
+            const parsed = JSON.parse(storedDealerData);
+            if (parsed.id) {
+              const dealers = await base44.entities.Ambassador.filter({ legacy_dealer_id: parsed.id });
+              dealerData = dealers[0];
+            }
+          } catch { /* fall through */ }
+        }
+
+        if (!dealerData) {
+          if (['root_admin', 'admin'].includes(user.role)) {
+            const dealerId = new URLSearchParams(window.location.search).get('dealer_id');
+            const dealers = dealerId
+              ? await base44.entities.Ambassador.filter({ legacy_dealer_id: dealerId })
+              : await base44.entities.Ambassador.list();
+            dealerData = dealers[0];
+          } else if (user.dealer_id) {
+            const dealers = await base44.entities.Ambassador.filter({ legacy_dealer_id: user.dealer_id });
             dealerData = dealers[0];
           }
-        } catch { /* fall through */ }
-      }
+        }
 
-      if (!dealerData) {
-        if (['root_admin', 'admin'].includes(user.role)) {
-          const dealerId = new URLSearchParams(window.location.search).get('dealer_id');
-          const dealers = dealerId
-            ? await base44.entities.Ambassador.filter({ legacy_dealer_id: dealerId })
-            : await base44.entities.Ambassador.list();
-          dealerData = dealers[0];
-        } else if (user.dealer_id) {
-          const dealers = await base44.entities.Ambassador.filter({ legacy_dealer_id: user.dealer_id });
-          dealerData = dealers[0];
+        if (dealerData) {
+          merchantList = await base44.entities.Merchant.filter({ dealer_id: dealerData.legacy_dealer_id });
         }
       }
 
       if (!dealerData) throw new Error('No dealer found');
+      setCurrentUser(user);
       setDealer(dealerData);
-
-      const merchantList = await base44.entities.Merchant.filter({ dealer_id: dealerData.legacy_dealer_id });
       setMerchants(merchantList);
       const activeMerchants = merchantList.filter(m => m.status === 'active').length;
       const monthlyRevenue = merchantList.reduce((s, m) => s + (m.total_revenue || 0), 0);
