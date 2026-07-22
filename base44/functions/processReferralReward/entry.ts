@@ -44,14 +44,15 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Create referral reward for the referrer
+    // Create referral reward for the referrer — referral bonuses are ALWAYS
+    // issued as $DUC vault rewards, regardless of the merchant's payout method.
     await base44.asServiceRole.entities.cLINKReward.create({
       merchant_id: referral.referrer_merchant_id,
       amount: referralRewardAmount,
       reward_type: 'referral_bonus',
       status: 'available',
       source_reference: data.id,
-      description: `Referral bonus from ${referral.referred_name}'s rewards`,
+      description: `$DUC referral bonus from ${referral.referred_name}'s rewards`,
       metadata: {
         referred_merchant_id: referral.referred_merchant_id,
         referred_merchant_name: referral.referred_name,
@@ -71,7 +72,7 @@ Deno.serve(async (req) => {
       merchant_id: referral.referrer_merchant_id,
       log_type: 'merchant_action',
       action: 'Referral Reward Earned',
-      description: `Earned ${referralRewardAmount.toFixed(4)} $cLINK from referring ${referral.referred_name}`,
+      description: `Earned ${referralRewardAmount.toFixed(4)} $DUC from referring ${referral.referred_name}`,
       severity: 'info',
       metadata: {
         referral_id: referral.id,

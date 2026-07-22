@@ -123,8 +123,8 @@ Deno.serve(async (req) => {
     await base44.asServiceRole.entities.SystemLog.create({
       merchant_id: order.merchant_id,
       log_type: 'merchant_action',
-      action: '$cLINK Reward Earned',
-      description: `Earned ${rewardAmount.toFixed(4)} $cLINK from CC processing`,
+      action: '$DUC Reward Earned',
+      description: `Earned ${rewardAmount.toFixed(4)} $DUC from CC processing`,
       severity: 'info',
       metadata: {
         order_id: order.id,
