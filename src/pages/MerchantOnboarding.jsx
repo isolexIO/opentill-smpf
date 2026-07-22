@@ -40,6 +40,7 @@ export default function MerchantOnboarding() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [referralLocked, setReferralLocked] = useState(false);
 
   // Pre-fill referral code from URL on mount
   useEffect(() => {
@@ -47,6 +48,7 @@ export default function MerchantOnboarding() {
     const ref = params.get('ref') || params.get('referral') || params.get('code');
     if (ref) {
       setFormData((f) => ({ ...f, referral_code: ref.toUpperCase() }));
+      setReferralLocked(true);
     }
   }, []);
 
@@ -165,6 +167,7 @@ export default function MerchantOnboarding() {
                 formData={formData}
                 onChange={onChange}
                 onNext={() => setStep(2)}
+                locked={referralLocked}
               />
             )}
             {step === 2 && (

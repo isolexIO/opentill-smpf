@@ -313,6 +313,15 @@ export default function HomePage() {
       : 'bg-green-500/10 text-green-600 border-green-500/20';
   };
 
+  // Preserve any referral code in the URL when sending users to onboarding
+  const buildOnboardingUrl = () => {
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get('ref') || params.get('referral') || params.get('code');
+    return ref
+      ? `${createPageUrl('MerchantOnboarding')}?ref=${encodeURIComponent(ref)}`
+      : createPageUrl('MerchantOnboarding');
+  };
+
   if (loading && settings === null) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-600 via-blue-800 to-cyan-900">
@@ -393,7 +402,7 @@ export default function HomePage() {
           <div className="pt-2 border-t border-white/10">
             <CommunityLinks variant="compact" className="[&_a]:text-gray-300 [&_a]:hover:text-white justify-start" />
           </div>
-          <Button onClick={() => window.location.href = createPageUrl('MerchantOnboarding')} className="w-full bg-white text-purple-700 hover:bg-gray-100 font-semibold mt-2">
+          <Button onClick={() => window.location.href = buildOnboardingUrl()} className="w-full bg-white text-purple-700 hover:bg-gray-100 font-semibold mt-2">
             Get Started Free
           </Button>
         </div>
@@ -444,7 +453,7 @@ export default function HomePage() {
               <Button
                 size="lg"
                 className="text-lg px-8 py-6 bg-white text-purple-600 hover:bg-gray-100 font-semibold shadow-2xl"
-                onClick={() => window.location.href = createPageUrl('MerchantOnboarding')}
+                onClick={() => window.location.href = buildOnboardingUrl()}
               >
                 {heroSettings.cta_primary_text || 'Start Free Trial'}
                 <ArrowRight className="ml-2 w-5 h-5" />
@@ -875,7 +884,7 @@ export default function HomePage() {
                   <Button
                     className="w-full mb-6 bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100"
                     size="lg"
-                    onClick={() => window.location.href = createPageUrl('MerchantOnboarding')}
+                    onClick={() => window.location.href = buildOnboardingUrl()}
                   >
                     Get Started Free
                   </Button>
@@ -938,7 +947,7 @@ export default function HomePage() {
                   <Button
                     className="w-full mb-6 bg-gradient-to-r from-purple-600 to-green-500 hover:from-purple-700 hover:to-green-600 text-white"
                     size="lg"
-                    onClick={() => window.location.href = createPageUrl('MerchantOnboarding')}
+                    onClick={() => window.location.href = buildOnboardingUrl()}
                   >
                     Explore Features
                   </Button>
@@ -999,7 +1008,7 @@ export default function HomePage() {
               <Button
                 size="lg"
                 className="bg-white text-blue-600 hover:bg-gray-100"
-                onClick={() => window.location.href = createPageUrl('MerchantOnboarding')}
+                onClick={() => window.location.href = buildOnboardingUrl()}
               >
                 {settings?.cta_section?.cta_text || 'Get Started Today'}
                 <ArrowRight className="ml-2 w-5 h-5" />

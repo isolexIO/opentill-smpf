@@ -3,9 +3,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
-import { CheckCircle, Loader2, Tag, Gift } from 'lucide-react';
+import { CheckCircle, Loader2, Tag, Gift, Lock } from 'lucide-react';
 
-export default function StepReferral({ formData, onChange, onNext }) {
+export default function StepReferral({ formData, onChange, onNext, locked }) {
   const [checking, setChecking] = useState(false);
   const [referrerInfo, setReferrerInfo] = useState(null);
   const [codeError, setCodeError] = useState(null);
@@ -37,10 +37,18 @@ export default function StepReferral({ formData, onChange, onNext }) {
   };
 
   const handleChange = (val) => {
+    if (locked) return;
     onChange('referral_code', val.toUpperCase().replace(/[^A-Z0-9]/g, ''));
     setReferrerInfo(null);
     setCodeError(null);
   };
+
+  // Auto-verify a referral code that was pre-filled from a referral link
+  useEffect(() => {
+    if (locked && formData.referral_code && formData.referral_code.length >= 4 && !referrerInfo && !checking) {
+      handleCheckCode(formData.referral_code);
+    }
+  }, [locked, formData.referral_code]);
 
   return (
     <div className="space-y-6">
@@ -64,18 +72,21 @@ export default function StepReferral({ formData, onChange, onNext }) {
             placeholder="e.g. BESTBIZ1234"
             value={formData.referral_code}
             onChange={(e) => handleChange(e.target.value)}
-            className="font-mono tracking-widest text-center text-lg border-cyan-200 focus:border-cyan-500"
+            readOnly={locked}
+            className={`font-mono tracking-widest text-center text-lg border-cyan-200 focus:border-cyan-500 ${locked ? 'bg-cyan-50 text-cyan-800 cursor-not-allowed' : ''}`}
             maxLength={20}
           />
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => handleCheckCode(formData.referral_code)}
-            disabled={checking || !formData.referral_code}
-            className="shrink-0 border-cyan-300 text-cyan-700"
-          >
-            {checking ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Verify'}
-          </Button>
+          {!locked && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => handleCheckCode(formData.referral_code)}
+              disabled={checking || !formData.referral_code}
+              className="shrink-0 border-cyan-300 text-cyan-700"
+            >
+              {checking ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Verify'}
+            </Button>
+          )}
         </div>
 
         {referrerInfo && (
@@ -90,6 +101,12 @@ export default function StepReferral({ formData, onChange, onNext }) {
 
         {codeError && (
           <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">{codeError}</p>
+        )}
+
+        {locked && formData.referral_code && (
+          <p className="text-xs text-cyan-700 bg-cyan-50 border border-cyan-200 rounded-lg px-3 py-2 flex items-center gap-1.5">
+            <Lock className="w-3 h-3 shrink-0" /> Referral code applied via your invite link and locked.
+          </p>
         )}
       </div>
 
