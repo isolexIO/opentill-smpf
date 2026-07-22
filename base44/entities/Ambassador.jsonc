@@ -162,14 +162,15 @@
       "enum": [
         "active",
         "suspended",
-        "trial",
         "cancelled"
       ],
-      "default": "trial"
+      "default": "active",
+      "description": "Ambassador account status. Participation is free \u2014 no trial period."
     },
     "trial_ends_at": {
       "type": "string",
-      "format": "date-time"
+      "format": "date-time",
+      "description": "Deprecated \u2014 ambassadors no longer have a trial period"
     },
     "total_merchants": {
       "type": "number",

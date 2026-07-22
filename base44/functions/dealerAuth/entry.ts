@@ -88,8 +88,7 @@ function makeSlug(seed) {
 }
 
 const DEFAULT_AMBASSADOR_FIELDS = {
-  status: 'trial',
-  trial_ends_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+  status: 'active',
   primary_color: '#7B2FD6',
   secondary_color: '#0FD17A',
   commission_percent: 15,

@@ -82,8 +82,7 @@ Deno.serve(async (req) => {
             owner_email: owner_email.toLowerCase().trim(),
             contact_email: owner_email.toLowerCase().trim(),
             contact_phone: contact_phone || '',
-            status: 'trial',
-            trial_ends_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            status: 'active',
             billing_mode: 'root_fallback',
             platform_fee_monthly: 0,
             commission_percent: 20,
@@ -184,7 +183,6 @@ Deno.serve(async (req) => {
 
                     <h3>Your Portal</h3>
                     <p><strong>Portal URL:</strong> <a href="${portalUrl}">${portalUrl}</a></p>
-                    <p><strong>Trial ends:</strong> ${new Date(dealerData.trial_ends_at).toLocaleDateString()}</p>
 
                     <p>Thank you for joining the openTILL Ambassador Program!</p>
                 `;
