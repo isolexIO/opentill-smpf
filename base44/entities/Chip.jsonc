@@ -119,7 +119,8 @@
           "inventory_forecasting",
           "employee_scheduling",
           "customer_messaging",
-          "premium_support"
+          "premium_support",
+          "non_integrated_terminal"
         ]
       },
       "description": "Features unlocked by this chip"

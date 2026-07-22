@@ -7,12 +7,28 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Save, AlertTriangle, ShieldCheck, AlertCircle, Terminal } from 'lucide-react';
+import { Save, AlertTriangle, ShieldCheck, AlertCircle, Terminal, Lock, Cpu } from 'lucide-react';
 import StripeTerminalCard from '@/components/settings/StripeTerminalCard';
 import StripeConnectOnboarding from '@/components/settings/StripeConnectOnboarding';
+import { useFeatureAccess } from '@/components/motherboard/useFeatureAccess';
+import { base44 } from '@/api/base44Client';
+import { createPageUrl } from '@/utils';
 
 export default function PaymentGatewaysTab({ gateways, onUpdateGateways }) {
   const { toast } = useToast();
+  const { hasAccess } = useFeatureAccess(['non_integrated_terminal']);
+  const [unlockChip, setUnlockChip] = useState(null);
+
+  useEffect(() => {
+    base44.entities.Chip.filter({ is_active: true })
+      .then((list) => {
+        const chip = (list || []).find(
+          (c) => Array.isArray(c.feature_flags) && c.feature_flags.includes('non_integrated_terminal')
+        );
+        setUnlockChip(chip || null);
+      })
+      .catch(() => setUnlockChip(null));
+  }, []);
 
   const [localGateways, setLocalGateways] = useState(() => ({
     stripe: { enabled: false, test_mode: true, secret_key: '', publishable_key: '', manual_entry_mode: false, ...gateways?.stripe },
@@ -110,13 +126,36 @@ export default function PaymentGatewaysTab({ gateways, onUpdateGateways }) {
                 Use a standalone card terminal with manual confirmation (e.g., Verifone, Ingenico, Clover)
               </CardDescription>
             </div>
-            <Switch
-              checked={localGateways.non_integrated?.enabled}
-              onCheckedChange={(checked) => handleNonIntegratedChange('enabled', checked)}
-            />
+            {hasAccess ? (
+              <Switch
+                checked={localGateways.non_integrated?.enabled}
+                onCheckedChange={(checked) => handleNonIntegratedChange('enabled', checked)}
+              />
+            ) : (
+              <Lock className="w-5 h-5 text-gray-400" />
+            )}
           </div>
         </CardHeader>
-        {localGateways.non_integrated?.enabled && (
+        {!hasAccess && (
+          <CardContent className="space-y-3">
+            <Alert>
+              <Lock className="h-4 w-4" />
+              <AlertDescription>
+                This feature is locked. A Super Admin can activate it manually, or unlock it by purchasing the
+                <strong> Non-Integrated Terminal</strong> Chip with $DUC.
+              </AlertDescription>
+            </Alert>
+            <Button
+              onClick={() => window.location.href = unlockChip
+                ? createPageUrl(`ChipDetail?id=${unlockChip.id}`)
+                : createPageUrl('Marketplace')}
+            >
+              <Cpu className="w-4 h-4 mr-2" />
+              {unlockChip ? `Unlock for ${unlockChip.price_duc} $DUC` : 'View Marketplace'}
+            </Button>
+          </CardContent>
+        )}
+        {localGateways.non_integrated?.enabled && hasAccess && (
           <CardContent className="space-y-4">
             <Alert>
               <AlertCircle className="h-4 w-4" />
