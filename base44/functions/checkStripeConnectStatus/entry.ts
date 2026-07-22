@@ -1,7 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
 import Stripe from 'npm:stripe@17.4.0';
 
-const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));
+const stripe = new Stripe(Deno.env.get('STRIPE_CONNECT_KEY') || Deno.env.get('STRIPE_SECRET_KEY'));
 
 Deno.serve(async (req) => {
   try {
@@ -29,6 +29,19 @@ Deno.serve(async (req) => {
         stripe_connected: true,
         billing_mode: 'dealer'
       });
+      // Mirror connected state onto the linked Ambassador (matched by owner_email).
+      try {
+        const dealers = await base44.asServiceRole.entities.Dealer.filter({ id: dealer_id });
+        const dealer = dealers && dealers[0];
+        if (dealer && dealer.owner_email) {
+          const ambassadors = await base44.asServiceRole.entities.Ambassador.filter({ owner_email: dealer.owner_email });
+          if (ambassadors && ambassadors[0]) {
+            await base44.asServiceRole.entities.Ambassador.update(ambassadors[0].id, { stripe_connected: true });
+          }
+        }
+      } catch (e) {
+        console.warn('Mirror stripe_connected to Ambassador failed:', e);
+      }
     }
 
     return Response.json({

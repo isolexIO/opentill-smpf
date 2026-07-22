@@ -53,10 +53,8 @@ export default function StripeConnectSetup({ dealer, onUpdate }) {
     try {
       setLoading(true);
       
-      const response = await base44.functions.invoke('createStripeConnectAccount', {
+      const response = await base44.functions.invoke('createAmbassadorStripeConnect', {
         dealer_id: dealer.id,
-        business_name: dealer.name,
-        business_email: dealer.contact_email,
         return_url: window.location.href,
         refresh_url: window.location.href
       });
