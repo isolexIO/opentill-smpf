@@ -20,7 +20,12 @@ import {
   Shield,
   Store,
   Users,
-  Activity
+  Activity,
+  ChefHat,
+  Monitor,
+  FileText,
+  Truck,
+  Terminal
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import PriceTicker from '@/components/vault/PriceTicker';
@@ -681,6 +686,109 @@ export default function HomePage() {
               <p className="text-gray-600 dark:text-gray-300">
                 Modular system where each "chip" represents a feature. Unlock what you need when you need it.
               </p>
+            </motion.div>
+
+            {/* Kitchen Display */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.9 }}
+              className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow border border-gray-200 dark:border-gray-700"
+            >
+              <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-600 rounded-lg flex items-center justify-center mb-4">
+                <ChefHat className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                Kitchen Display System
+              </h3>
+              <p className="text-gray-600 dark:text-gray-300">
+                Stream orders to the kitchen in real time. Stations track each ticket from New to In Progress to Complete.
+              </p>
+            </motion.div>
+
+            {/* Customer Display */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 1.0 }}
+              className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow border border-gray-200 dark:border-gray-700"
+            >
+              <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg flex items-center justify-center mb-4">
+                <Monitor className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                Customer Display
+              </h3>
+              <p className="text-gray-600 dark:text-gray-300">
+                Customer-facing screen for order approval, tipping, and payment method selection — synced live with the register.
+              </p>
+            </motion.div>
+
+            {/* Invoicing & Paylinks */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 1.1 }}
+              className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow border border-gray-200 dark:border-gray-700"
+            >
+              <div className="w-12 h-12 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-lg flex items-center justify-center mb-4">
+                <FileText className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                Invoicing & Paylinks
+              </h3>
+              <p className="text-gray-600 dark:text-gray-300">
+                Send branded invoices with secure paylinks. Customers pay online by card or crypto, with automatic status tracking.
+              </p>
+            </motion.div>
+
+            {/* Delivery Management */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 1.2 }}
+              className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow border border-gray-200 dark:border-gray-700"
+            >
+              <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-green-600 rounded-lg flex items-center justify-center mb-4">
+                <Truck className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                Delivery Management
+              </h3>
+              <p className="text-gray-600 dark:text-gray-300">
+                Dispatch delivery jobs, assign drivers, and track pickups and drop-offs from a live driver dashboard.
+              </p>
+            </motion.div>
+
+            {/* Non-Integrated Terminal */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 1.3 }}
+              className="bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow border-2 border-purple-200 dark:border-purple-700"
+            >
+              <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg flex items-center justify-center mb-4">
+                <Terminal className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                Non-Integrated Terminal
+              </h3>
+              <p className="text-gray-600 dark:text-gray-300">
+                Run card-present transactions on non-integrated terminals — access is gated by an NFT chip purchased with $DUC.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <span className="text-xs px-2 py-1 bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 rounded-full font-medium">
+                  💳 Card-Present
+                </span>
+                <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-full font-medium">
+                  🪙 NFT-Gated
+                </span>
+              </div>
             </motion.div>
           </div>
         </div>
