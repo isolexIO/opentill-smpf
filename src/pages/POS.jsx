@@ -1463,7 +1463,7 @@ export default function POSPage() {
         ebt_eligible_total: parseFloat(totals.ebtEligibleTotal), // Total items eligible for EBT
         payment_method: paymentData?.method || 'cash',
         payment_details: paymentData?.details || {}, // Store additional payment details (e.g., change due, card info)
-        status: "completed", // Mark as completed immediately
+        status: isKitchenDisplayEnabled ? "pending" : "completed",
         pos_mode: posMode,
         table_number: tableNumber || null,
         location: posMode === "food_truck" ? "Mobile Location" : "Main Store",

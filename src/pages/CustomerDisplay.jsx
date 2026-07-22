@@ -285,11 +285,11 @@ export default function CustomerDisplayPage() {
                 setCurrentScreen('ebt_payment');
               }
             } 
-            else if (updatedOrder.status === 'completed') {
+            else if (updatedOrder.status === 'completed' || (updatedOrder.status === 'pending' && updatedOrder.payment_method && updatedOrder.payment_method !== 'pending')) {
               console.log('CustomerDisplay: → Success screen');
               setCurrentScreen('success');
               setTimeout(() => returnToWelcome(), 5000);
-            } 
+            }
             else if (updatedOrder.status === 'cancelled') {
               console.log('CustomerDisplay: Order cancelled');
               returnToWelcome();
