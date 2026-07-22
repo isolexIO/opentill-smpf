@@ -132,13 +132,8 @@ export default function DealerLanding() {
     { icon: Shield, title: 'PCI Compliant', desc: 'SOC 2 Type II, EBT/SNAP ready' },
   ];
 
-  const defaultTestimonials = [
-    { name: 'Marcus T.', role: 'Tech Reseller, Miami', quote: 'Went from 0 to 22 merchants in 4 months. Getting set up took under an hour.', stars: 5 },
-    { name: 'Sandra K.', role: 'POS Consultant, Chicago', quote: 'My commission checks have replaced my old salary. The dashboard makes everything easy.', stars: 5 },
-    { name: 'Derek A.', role: 'MSP Owner, Atlanta', quote: "openTILL's crypto payments and AI tools are a huge selling point for my clients.", stars: 5 },
-  ];
   const adminStories = Array.isArray(landingSettings?.success_stories) ? landingSettings.success_stories : [];
-  const testimonials = (adminStories.length > 0 ? adminStories : defaultTestimonials)
+  const testimonials = adminStories
     .filter(t => !t.hidden)
     .map(t => ({ ...t, stars: t.stars || 5 }));
 
