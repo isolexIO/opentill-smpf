@@ -225,7 +225,7 @@ export default function DeviceShopPage() {
               </div>
             </div>
             <Badge className="bg-orange-500 text-white text-sm px-3 py-1">
-              Amazon Affiliate Store
+              Affiliate Store
             </Badge>
           </div>
         </div>
@@ -290,7 +290,7 @@ export default function DeviceShopPage() {
                       ${product.price.toFixed(2)}
                     </span>
                     <Badge variant="outline" className="text-blue-600">
-                      On Amazon
+                      Affiliate
                     </Badge>
                   </div>
 
@@ -299,7 +299,7 @@ export default function DeviceShopPage() {
                     onClick={() => handleBuyNow(product)}
                   >
                     <ShoppingCart className="w-4 h-4 mr-2" />
-                    Buy on Amazon
+                    Shop
                   </Button>
                 </div>
               </CardContent>

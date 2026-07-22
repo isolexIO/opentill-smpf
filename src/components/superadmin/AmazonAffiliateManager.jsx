@@ -92,9 +92,9 @@ export default function AmazonAffiliateManager() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Amazon Affiliate Products</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Affiliate Links</h2>
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            Manage products displayed in the Device Shop
+            Manage affiliate products displayed in the Device Shop
           </p>
         </div>
         <Button onClick={() => {
@@ -223,7 +223,7 @@ export default function AmazonAffiliateManager() {
             </div>
 
             <div>
-              <Label>Amazon Affiliate Link</Label>
+              <Label>Affiliate Link</Label>
               <Input
                 name="amazon_link"
                 type="url"

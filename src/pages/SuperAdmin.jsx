@@ -220,7 +220,7 @@ export default function SuperAdminPage() {
     { key: 'dealers', icon: Building2, label: 'Ambassadors' },
     { key: 'subscriptions', icon: CreditCard, label: 'Subscriptions' },
     { key: 'devices', icon: Package, label: 'Device Shop' },
-    { key: 'amazon', icon: Package, label: 'Amazon' },
+    { key: 'amazon', icon: Package, label: 'Affiliate Links' },
     { key: 'vault', icon: Vault, label: 'Vault' },
     { key: 'chips', icon: Cpu, label: 'Chips' },
     { key: 'builders', icon: Users, label: 'Builders' },
@@ -233,7 +233,7 @@ export default function SuperAdminPage() {
 
   const tabLabels = {
     pending: 'Pending Merchants', merchants: 'Merchant Management', dealers: 'Ambassador Management',
-    subscriptions: 'Subscription Management', devices: 'Device Shop', amazon: 'Amazon Affiliate',
+    subscriptions: 'Subscription Management', devices: 'Device Shop', amazon: 'Affiliate Links',
     vault: '$DUC Vault', chips: 'Chip Manager', builders: 'Builder Management', logs: 'System Logs',
     reports: 'Global Reports', ads: 'Advertising', notifications: 'Notifications', settings: 'Settings',
   };

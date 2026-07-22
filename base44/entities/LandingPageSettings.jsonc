@@ -88,6 +88,42 @@
         }
       }
     },
+    "features": {
+      "type": "array",
+      "description": "Feature tiles shown on the landing page. When empty, built-in default features are shown.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "icon": {
+            "type": "string",
+            "description": "Lucide icon name (e.g. DollarSign, Cpu, ChefHat)"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "accent": {
+            "type": "string",
+            "enum": [
+              "green",
+              "purple",
+              "blue",
+              "indigo",
+              "orange",
+              "emerald",
+              "pink",
+              "teal",
+              "cyan",
+              "amber"
+            ],
+            "default": "blue"
+          }
+        }
+      },
+      "default": []
+    },
     "testimonials": {
       "type": "array",
       "items": {

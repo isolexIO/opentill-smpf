@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
@@ -7,8 +6,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Home, TrendingUp, MessageSquare, ExternalLink, Plus, Trash2 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
+
+const FEATURE_ICON_OPTIONS = ['DollarSign', 'Wallet', 'CreditCard', 'Package', 'BarChart3', 'Cpu', 'Shield', 'ChefHat', 'Monitor', 'FileText', 'Truck', 'Terminal', 'Lock', 'Store', 'Users', 'Activity', 'Star'];
+const FEATURE_ACCENT_OPTIONS = ['green', 'purple', 'blue', 'indigo', 'orange', 'emerald', 'pink', 'teal', 'cyan', 'amber'];
 
 export default function LandingPageEditor() {
   const [settings, setSettings] = useState(null);
@@ -48,6 +51,7 @@ export default function LandingPageEditor() {
             headline: 'Everything You Need to Run Your Business',
             subheadline: 'Powerful features built for modern commerce'
           },
+          features: [],
           testimonials: [
             {
               name: 'Sarah Johnson',
@@ -139,6 +143,23 @@ export default function LandingPageEditor() {
         [field]: value
       }
     });
+  };
+
+  const addFeature = () => {
+    setSettings({
+      ...settings,
+      features: [...(settings.features || []), { icon: 'Cpu', title: 'New Feature', description: 'Describe this feature.', accent: 'blue' }]
+    });
+  };
+
+  const updateFeature = (index, field, value) => {
+    const features = [...(settings.features || [])];
+    features[index] = { ...features[index], [field]: value };
+    setSettings({ ...settings, features });
+  };
+
+  const removeFeature = (index) => {
+    setSettings({ ...settings, features: (settings.features || []).filter((_, i) => i !== index) });
   };
 
   const addTestimonial = () => {
@@ -435,13 +456,13 @@ export default function LandingPageEditor() {
           <Card>
             <CardHeader>
               <CardTitle>Features Section</CardTitle>
-              <CardDescription>Headlines for the features section</CardDescription>
+              <CardDescription>Headlines and feature tiles for the features section</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
                 <Label>Headline</Label>
                 <Input
-                  value={settings.features_section.headline}
+                  value={settings.features_section?.headline || ''}
                   onChange={(e) => updateFeaturesSection('headline', e.target.value)}
                 />
               </div>
@@ -449,10 +470,77 @@ export default function LandingPageEditor() {
               <div>
                 <Label>Subheadline</Label>
                 <Input
-                  value={settings.features_section.subheadline}
+                  value={settings.features_section?.subheadline || ''}
                   onChange={(e) => updateFeaturesSection('subheadline', e.target.value)}
                 />
               </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Feature Tiles</CardTitle>
+                  <CardDescription>The individual feature cards displayed in the grid. Leave empty to use the built-in defaults.</CardDescription>
+                </div>
+                <Button onClick={addFeature} size="sm">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Feature
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {(settings.features || []).length === 0 && (
+                <p className="text-sm text-gray-500">No custom feature tiles. The default built-in features will be shown.</p>
+              )}
+              {(settings.features || []).map((feat, index) => (
+                <div key={index} className="p-4 border rounded-lg space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-semibold">Feature {index + 1}</h4>
+                    <Button variant="ghost" size="sm" onClick={() => removeFeature(index)} className="text-red-600">
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Remove
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Icon</Label>
+                      <Select value={feat.icon} onValueChange={(v) => updateFeature(index, 'icon', v)}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {FEATURE_ICON_OPTIONS.map(ic => (
+                            <SelectItem key={ic} value={ic}>{ic}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Accent Color</Label>
+                      <Select value={feat.accent} onValueChange={(v) => updateFeature(index, 'accent', v)}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {FEATURE_ACCENT_OPTIONS.map(a => (
+                            <SelectItem key={a} value={a}>{a}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div>
+                    <Label>Title</Label>
+                    <Input value={feat.title} onChange={(e) => updateFeature(index, 'title', e.target.value)} />
+                  </div>
+                  <div>
+                    <Label>Description</Label>
+                    <Textarea value={feat.description} onChange={(e) => updateFeature(index, 'description', e.target.value)} rows={2} />
+                  </div>
+                </div>
+              ))}
             </CardContent>
           </Card>
         </TabsContent>

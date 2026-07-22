@@ -31,6 +31,24 @@ import { motion } from 'framer-motion';
 import PriceTicker from '@/components/vault/PriceTicker';
 import CommunityLinks from '@/components/shared/CommunityLinks';
 
+const FEATURE_ICONS = {
+  DollarSign, Wallet, CreditCard, Package, BarChart3, Cpu, Shield,
+  ChefHat, Monitor, FileText, Truck, Terminal, Lock, Store, Users, Activity, Star
+};
+
+const FEATURE_ACCENTS = {
+  green: 'from-green-400 to-green-600',
+  purple: 'from-purple-500 to-blue-500',
+  blue: 'from-blue-400 to-blue-600',
+  indigo: 'from-indigo-400 to-indigo-600',
+  orange: 'from-orange-400 to-orange-600',
+  emerald: 'from-emerald-400 to-green-600',
+  pink: 'from-pink-400 to-pink-600',
+  teal: 'from-teal-400 to-teal-600',
+  cyan: 'from-cyan-400 to-blue-600',
+  amber: 'from-amber-400 to-orange-600'
+};
+
 function FeaturedChipsSection() {
   const [chips, setChips] = useState([]);
 
@@ -493,6 +511,33 @@ export default function HomePage() {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {settings?.features?.length > 0 ? (
+              settings.features.map((feat, i) => {
+                const Icon = FEATURE_ICONS[feat.icon] || Cpu;
+                const accent = FEATURE_ACCENTS[feat.accent] || FEATURE_ACCENTS.blue;
+                return (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: (i % 3) * 0.1 }}
+                    className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow border border-gray-200 dark:border-gray-700"
+                  >
+                    <div className={`w-12 h-12 bg-gradient-to-br ${accent} rounded-lg flex items-center justify-center mb-4`}>
+                      <Icon className="w-6 h-6 text-white" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                      {feat.title}
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-300">
+                      {feat.description}
+                    </p>
+                  </motion.div>
+                );
+              })
+            ) : (
+              <>
             {/* Dual Pricing Feature */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -790,6 +835,8 @@ export default function HomePage() {
                 </span>
               </div>
             </motion.div>
+              </>
+            )}
           </div>
         </div>
       </section>
