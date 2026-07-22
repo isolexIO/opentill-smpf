@@ -1,9 +1,9 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import { Connection, PublicKey, Transaction, SystemProgram, Keypair } from 'npm:@solana/web3.js@1.95.8';
-import { 
+import {
   createCreateMetadataAccountV3Instruction,
-  PROGRAM_ID as TOKEN_METADATA_PROGRAM_ID 
-} from 'npm:@metaplex-foundation/mpl-token-metadata@3.2.1';
+  PROGRAM_ID as TOKEN_METADATA_PROGRAM_ID
+} from 'npm:@metaplex-foundation/mpl-token-metadata@2.5.2';
 import {
   createMint,
   getOrCreateAssociatedTokenAccount,
