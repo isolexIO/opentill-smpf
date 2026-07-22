@@ -184,7 +184,7 @@ export default function SystemMenu() {
   };
 
   const isSuperAdmin = () => {
-    return user && (user.role === 'super_admin' || user.role === 'admin' || user.role === 'root_admin');
+    return user && (user.role === 'super_admin' || user.role === 'root_admin');
   };
 
   const isDealerAdmin = () => {
