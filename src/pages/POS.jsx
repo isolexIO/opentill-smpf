@@ -751,10 +751,9 @@ export default function POSPage() {
             const merchant = merchants[0];
             console.log('POS: Merchant loaded:', merchant.business_name);
 
-            // Determine the station ID and name
-            let effectiveStationId = pinUser.pos_settings?.station_id;
-            let effectiveStationName = pinUser.pos_settings?.station_name;
-            let updatedPinUser = { ...pinUser };
+            const urlStationId = new URLSearchParams(window.location.search).get('station_id');
+            let effectiveStationId = urlStationId || pinUser.pos_settings?.station_id, effectiveStationName = pinUser.pos_settings?.station_name, updatedPinUser = { ...pinUser };
+            if (urlStationId) { try { const st = await base44.entities.Station.filter({ merchant_id: pinUser.merchant_id, station_id: urlStationId }); effectiveStationName = st?.length ? st[0].name : urlStationId; } catch { effectiveStationName = urlStationId; } }
 
             if (!effectiveStationId) {
               effectiveStationId = `STATION-${Date.now()}`;

@@ -16,8 +16,11 @@ import {
   Pencil,
   Utensils,
   MonitorPlay,
+  Monitor,
+  QrCode,
   X
 } from 'lucide-react';
+import QRCodeLib from 'qrcode';
 
 const LAYOUT_TYPES = [
   { value: 'counter', label: 'Counter' },
@@ -44,6 +47,8 @@ export default function StationManager({ merchantId }) {
   const [layoutType, setLayoutType] = useState('counter');
   const [copied, setCopied] = useState('');
   const [saving, setSaving] = useState(false);
+  const [qrKey, setQrKey] = useState('');
+  const [qrSrc, setQrSrc] = useState('');
 
   useEffect(() => {
     if (merchantId) loadStations();
@@ -154,6 +159,21 @@ export default function StationManager({ merchantId }) {
     }
   };
 
+  const toggleQr = async (key, url) => {
+    if (qrKey === key) {
+      setQrKey('');
+      setQrSrc('');
+      return;
+    }
+    try {
+      const src = await QRCodeLib.toDataURL(url, { width: 160, margin: 1 });
+      setQrSrc(src);
+      setQrKey(key);
+    } catch (e) {
+      alert('Could not generate QR code');
+    }
+  };
+
   const origin = window.location.origin;
   const linkFor = (s, page) =>
     `${origin}${createPageUrl(page)}?merchant_id=${merchantId}&station_id=${encodeURIComponent(s.station_id)}`;
@@ -172,7 +192,7 @@ export default function StationManager({ merchantId }) {
               Stations
             </CardTitle>
             <CardDescription>
-              Define stations (counter, server, bar, etc.) and copy their persistent Customer / Kitchen Display links. Orders are routed to a station by its <code>station_id</code>.
+              Define stations (counter, server, bar, etc.) and copy their persistent Customer / Kitchen Display and POS Terminal links — or scan the QR code to launch one on another device. Orders are routed to a station by its <code>station_id</code>.
             </CardDescription>
           </div>
           {!showForm && (
@@ -251,6 +271,7 @@ export default function StationManager({ merchantId }) {
             {stations.map((s) => {
               const customerUrl = linkFor(s, 'CustomerDisplay');
               const kitchenUrl = linkFor(s, 'KitchenDisplay');
+              const posUrl = linkFor(s, 'POS');
               return (
                 <div key={s.id} className="border rounded-lg p-3 space-y-3">
                   <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -277,26 +298,37 @@ export default function StationManager({ merchantId }) {
                   {[
                     { key: `c-${s.id}`, label: 'Customer Display', url: customerUrl, Icon: MonitorPlay },
                     { key: `k-${s.id}`, label: 'Kitchen Display', url: kitchenUrl, Icon: Utensils },
+                    { key: `p-${s.id}`, label: 'POS Terminal', url: posUrl, Icon: Monitor },
                   ].map(({ key, label, url, Icon }) => (
-                    <div key={key} className="flex flex-col sm:flex-row sm:items-center gap-2">
-                      <div className="flex items-center gap-2 w-40 shrink-0">
-                        <Icon className="w-4 h-4 text-gray-500" />
-                        <span className="text-xs font-medium">{label}</span>
+                    <div key={key} className="space-y-2">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                        <div className="flex items-center gap-2 w-40 shrink-0">
+                          <Icon className="w-4 h-4 text-gray-500" />
+                          <span className="text-xs font-medium">{label}</span>
+                        </div>
+                        <div className="flex flex-1 gap-2">
+                          <Input readOnly value={url} className="flex-1 font-mono text-xs" />
+                          <Button variant="outline" size="sm" onClick={() => copyLink(url, key)}>
+                            {copied === key ? (
+                              <CheckCircle className="w-4 h-4 mr-1 text-green-600" />
+                            ) : (
+                              <Copy className="w-4 h-4 mr-1" />
+                            )}
+                            {copied === key ? 'Copied' : 'Copy'}
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => window.open(url, '_blank')}>
+                            <ExternalLink className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => toggleQr(key, url)} title="Show QR code">
+                            <QrCode className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </div>
-                      <div className="flex flex-1 gap-2">
-                        <Input readOnly value={url} className="flex-1 font-mono text-xs" />
-                        <Button variant="outline" size="sm" onClick={() => copyLink(url, key)}>
-                          {copied === key ? (
-                            <CheckCircle className="w-4 h-4 mr-1 text-green-600" />
-                          ) : (
-                            <Copy className="w-4 h-4 mr-1" />
-                          )}
-                          {copied === key ? 'Copied' : 'Copy'}
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => window.open(url, '_blank')}>
-                          <ExternalLink className="w-4 h-4" />
-                        </Button>
-                      </div>
+                      {qrKey === key && qrSrc && (
+                        <div className="flex justify-center">
+                          <img src={qrSrc} alt={`QR code for ${label}`} className="w-32 h-32 border rounded p-1 bg-white" />
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
