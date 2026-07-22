@@ -41,7 +41,11 @@ Deno.serve(async (req) => {
         company: {
           name: merchant.business_name || 'openTILL Merchant',
         },
-        metadata: { merchant_id },
+        metadata: {
+          merchant_id,
+          entity_type: 'merchant',
+          entity_name: merchant.business_name || 'openTILL Merchant',
+        },
       });
       accountId = account.id;
 

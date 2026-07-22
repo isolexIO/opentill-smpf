@@ -33,6 +33,11 @@ Deno.serve(async (req) => {
       company: {
         name: business_name,
       },
+      metadata: {
+        entity_type: 'dealer',
+        entity_name: business_name,
+        dealer_id,
+      },
     });
 
     // Create account link for onboarding

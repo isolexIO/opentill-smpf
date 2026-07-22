@@ -24,6 +24,9 @@ Deno.serve(async (req) => {
 
     // No account yet — create an Express account
     if (!accountId) {
+      const nameParts = (builder.full_name || '').trim().split(/\s+/);
+      const firstName = nameParts[0] || 'openTILL';
+      const lastName = nameParts.slice(1).join(' ') || 'Builder';
       const account = await stripe.accounts.create({
         type: 'express',
         country: 'US',
@@ -33,7 +36,16 @@ Deno.serve(async (req) => {
           transfers: { requested: true },
         },
         business_type: 'individual',
-        metadata: { builder_id: builder.id, user_email: user.email },
+        individual: {
+          first_name: firstName,
+          last_name: lastName,
+        },
+        metadata: {
+          builder_id: builder.id,
+          user_email: user.email,
+          entity_type: 'builder',
+          entity_name: builder.full_name || `${firstName} ${lastName}`,
+        },
       });
       accountId = account.id;
       await base44.asServiceRole.entities.Builder.update(builder.id, {
