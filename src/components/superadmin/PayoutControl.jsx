@@ -83,8 +83,6 @@ export default function PayoutControl() {
   const [busy, setBusy] = useState(false);
   const [resultMsg, setResultMsg] = useState(null);
   const [details, setDetails] = useState(null);
-  const [structure, setStructure] = useState('full_stripe');
-  const [stripeSplitAmount, setStripeSplitAmount] = useState(0);
   const [bonusDialog, setBonusDialog] = useState({ open: false, ambassadorId: '', amount: '', note: '' });
 
   useEffect(() => {
@@ -132,18 +130,6 @@ export default function PayoutControl() {
   const openAction = (payout, action) => {
     setCancelReason('');
     setResultMsg(null);
-    if (action === 'trigger') {
-      const base = payout.split_method
-        || (payout.payout_method === 'solana' ? 'full_solana'
-          : payout.payout_method === 'manual' ? 'full_solana'
-          : 'full_stripe');
-      setStructure(base);
-      setStripeSplitAmount(
-        base === 'combo'
-          ? (payout.stripe_amount || (payout.commission_amount / 2))
-          : (base === 'full_stripe' ? payout.commission_amount : 0)
-      );
-    }
     setActionDialog({ open: true, payout, action });
   };
 
@@ -156,15 +142,6 @@ export default function PayoutControl() {
       let res;
       if (action === 'trigger') {
         const payload = { payout_id: payout.id, bypass_minimum: true };
-        if (structure === 'full_stripe') {
-          payload.split_method = 'full_stripe';
-        } else if (structure === 'full_solana') {
-          payload.split_method = 'full_solana';
-        } else if (structure === 'combo') {
-          payload.split_method = 'combo';
-          payload.stripe_amount = stripeSplitAmount;
-          payload.duc_amount = Math.max(0, (payout.commission_amount || 0) - stripeSplitAmount);
-        }
         res = await base44.functions.invoke('triggerManualPayout', payload);
       } else if (action === 'cancel') {
         res = await base44.functions.invoke('cancelDealerPayout', {
@@ -612,52 +589,17 @@ export default function PayoutControl() {
                 </p>
               </div>
 
-              {actionDialog.action === 'trigger' && (
-                <div className="space-y-3">
-                  <div>
-                    <Label>Payout Structure</Label>
-                    <Select value={structure} onValueChange={setStructure}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="full_stripe">Stripe (full)</SelectItem>
-                        <SelectItem value="full_solana">$DUC (full)</SelectItem>
-                        <SelectItem value="combo">Combo (Stripe + $DUC)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {structure === 'combo' && actionDialog.payout && (
-                    <div className="space-y-2">
-                      <Label>Stripe Amount ($)</Label>
-                      <Input
-                        type="number"
-                        min="0"
-                        max={actionDialog.payout.commission_amount}
-                        step="0.01"
-                        value={stripeSplitAmount}
-                        onChange={(e) => setStripeSplitAmount(parseFloat(e.target.value) || 0)}
-                      />
-                      <p className="text-xs text-gray-500">
-                        Stripe: ${(stripeSplitAmount || 0).toFixed(2)} • $DUC: $
-                        {Math.max(0, (actionDialog.payout.commission_amount || 0) - (stripeSplitAmount || 0)).toFixed(2)}
-                        {' '}(total ${actionDialog.payout.commission_amount})
-                      </p>
-                    </div>
-                  )}
-
-                  <Alert>
-                    <Zap className="h-4 w-4" />
-                    <AlertDescription>
-                      {structure === 'full_solana'
-                        ? "Sends the full commission as $DUC tokens to the ambassador's Solana wallet. The minimum payout threshold is bypassed for platform admins."
-                        : structure === 'combo'
-                        ? 'Splits the commission between Stripe and $DUC — both legs are processed together. The minimum payout threshold is bypassed for platform admins.'
-                        : "Transfers funds from the platform Stripe account to the ambassador's connected Stripe account. The minimum payout threshold is bypassed for platform admins."}
-                    </AlertDescription>
-                  </Alert>
-                </div>
+              {actionDialog.action === 'trigger' && actionDialog.payout && (
+                <Alert>
+                  <Zap className="h-4 w-4" />
+                  <AlertDescription>
+                    Payouts are routed automatically: the platform-percentage commission
+                    (${Math.max(0, (actionDialog.payout.commission_amount || 0) - (actionDialog.payout.bonus_amount || 0)).toFixed(2)})
+                    goes to the ambassador's Stripe account, and any bonuses
+                    (${(actionDialog.payout.bonus_amount || 0).toFixed(2)}) are sent as $DUC to their
+                    Solana wallet. The minimum payout threshold is bypassed for platform admins.
+                  </AlertDescription>
+                </Alert>
               )}
 
               {actionDialog.action === 'cancel' && (

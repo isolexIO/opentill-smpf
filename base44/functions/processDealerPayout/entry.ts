@@ -53,44 +53,40 @@ Deno.serve(async (req) => {
     }
     const dealer = dealers[0];
 
-    // Resolve the payout structure chosen by the super admin.
-    // Falls back to the legacy payout_method when no split_method was set.
-    const splitMethod = payout.split_method
-      || (payout.payout_method === 'solana' ? 'full_solana'
-        : payout.payout_method === 'manual' ? 'manual'
-        : 'full_stripe');
+    // openTILL payout rule (deterministic — not admin-selectable):
+    //   • The platform-percentage commission is paid to the ambassador via Stripe.
+    //   • Every ambassador bonus (signup / per-active-merchant / milestone / carryover)
+    //     is paid in $DUC via Solana.
+    //   • Ad-hoc bonus payouts (payout_type 'bonus') go entirely as $DUC.
+    //   • Manual payout_method still requires admin action.
+    const isBonusPayout = payout.payout_type === 'bonus';
 
-    let stripeAmount = 0;
-    let ducAmount = 0;
-
-    if (splitMethod === 'manual') {
+    if (!isBonusPayout && payout.payout_method === 'manual') {
       await base44.asServiceRole.entities.DealerPayout.update(payout_id, {
         status: 'on_hold',
         error_message: 'Manual payout requires admin action',
         notes: 'Manual payout method selected — admin must arrange payment manually'
       });
       return Response.json({ success: false, message: 'Manual payout requires admin action' });
-    } else if (splitMethod === 'full_stripe') {
-      stripeAmount = payout.commission_amount;
-    } else if (splitMethod === 'full_solana') {
-      ducAmount = payout.commission_amount;
-    } else if (splitMethod === 'combo') {
-      stripeAmount = payout.stripe_amount || 0;
-      ducAmount = payout.duc_amount || 0;
-      const sum = stripeAmount + ducAmount;
-      if (Math.abs(sum - payout.commission_amount) > 0.01) {
-        await base44.asServiceRole.entities.DealerPayout.update(payout_id, {
-          status: 'failed',
-          error_message: `Combo split (${sum}) does not match payout amount (${payout.commission_amount})`
-        });
-        return Response.json({
-          success: false,
-          error: `Combo split (${sum}) does not match payout amount (${payout.commission_amount})`
-        });
-      }
-    } else {
-      return Response.json({ success: false, error: `Unsupported split method: ${splitMethod}` });
     }
+
+    let stripeAmount = 0;
+    let ducAmount = 0;
+
+    if (isBonusPayout) {
+      ducAmount = payout.bonus_amount || payout.commission_amount || 0;
+    } else {
+      const bonusPortion = payout.bonus_amount || 0;
+      const commissionPortion = Math.max(0, (payout.commission_amount || 0) - bonusPortion);
+      stripeAmount = commissionPortion; // platform % commission (+ carryover) → Stripe
+      ducAmount = bonusPortion;          // bonuses → $DUC via Solana
+    }
+
+    const splitMethod = isBonusPayout
+      ? 'full_solana'
+      : (stripeAmount > 0 && ducAmount > 0
+        ? 'combo'
+        : (stripeAmount > 0 ? 'full_stripe' : 'full_solana'));
 
     // Validate each portion has the required destination configured
     if (stripeAmount > 0 && !dealer.stripe_account_id) {
