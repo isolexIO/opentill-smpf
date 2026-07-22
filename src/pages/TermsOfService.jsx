@@ -55,7 +55,23 @@ export default function TermsOfServicePage() {
               <FileText className="w-12 h-12 text-purple-600" />
             </div>
             <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Terms of Service</h1>
-            <p className="text-gray-600 dark:text-gray-400">Last Updated: December 2024</p>
+            <p className="text-gray-600 dark:text-gray-400">Last Updated: July 2026</p>
+          </div>
+
+          {/* Beta Release Notice */}
+          <div className="mb-10 rounded-lg border border-yellow-300 bg-yellow-50 p-5 dark:border-yellow-500/40 dark:bg-yellow-500/10">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-6 h-6 text-yellow-600 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-yellow-800 dark:text-yellow-300">Beta Release Notice</p>
+                <p className="text-sm text-yellow-800/90 dark:text-yellow-200/90 mt-1">
+                  openTILL is currently in beta release. Features may change, contain bugs, or be unavailable without
+                  notice, and you use the Service at your own risk. Please report any issues, bugs, or feedback through
+                  our <a href={createPageUrl('Support')} className="underline font-medium">Support / Ticket Portal</a> so
+                  we can improve the platform.
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Section 1: Acceptance of Terms */}
@@ -67,6 +83,13 @@ export default function TermsOfServicePage() {
               By accessing or using openTILL services, you acknowledge that you have read, 
               understood, and agree to be bound by these Terms of Service and our Privacy Policy. 
               If you do not agree to these terms, please do not use our services.
+            </p>
+            <p className="text-gray-700 leading-relaxed mt-3 dark:text-gray-300">
+              openTILL is available to customers globally. If you access or use openTILL from outside the United States,
+              you are responsible for complying with the local laws of your jurisdiction, including any licensing, tax,
+              data-protection, anti-money-laundering, and cryptocurrency regulations that apply to your use of the
+              Service. You acknowledge that openTILL may not be available or lawful in every jurisdiction, and we make
+              no representation that the Service is appropriate or available in your location.
             </p>
           </section>
 
@@ -200,6 +223,52 @@ export default function TermsOfServicePage() {
               You are responsible for maintaining PCI-DSS compliance when handling cardholder data. We provide 
               tools to help, but ultimate responsibility rests with you.
             </p>
+
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 mt-6">$DUC Vault, Rewards & Staking</h3>
+            <p className="text-gray-700 leading-relaxed dark:text-gray-300">
+              openTILL may issue rewards and bonuses in the $DUC token on the Solana blockchain, including card-processing
+              rewards, referral bonuses (always paid in $DUC), and ambassador/merchant bonuses. $DUC balances, staking,
+              and claims are managed through the $DUC Vault. Token values are volatile; we are not responsible for
+              fluctuations in $DUC market value, and rewards are not deposits, securities, or guarantees of return. You
+              are responsible for maintaining a valid Solana wallet and for any tax obligations arising from rewards.
+            </p>
+
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 mt-6">NFT Chips & Marketplace</h3>
+            <p className="text-gray-700 leading-relaxed dark:text-gray-300">
+              Certain features may require or be unlocked by non-fungible token ("Chip") ownership on Solana. Purchases,
+              mints, and subscriptions involving Chips are final and recorded on-chain. We do not guarantee the value,
+              liquidity, or continued availability of any Chip, and access to gated features may be revoked if a Chip
+              subscription lapses.
+            </p>
+
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 mt-6">Ambassador & Builder Payouts</h3>
+            <p className="text-gray-700 leading-relaxed dark:text-gray-300">
+              Ambassadors and Builders may earn commissions and bonuses payable via Stripe, $DUC, or a combination, at
+              the platform's discretion. Payouts depend on accurate payout-destination details you provide; we are not
+              liable for funds sent to an incorrect or outdated wallet or Stripe account you configured. Ambassadors do
+              not pay platform fees; bonus structures are set per ambassador and may be changed by the platform.
+            </p>
+
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 mt-6">SNS Subdomains & Web3 Identity</h3>
+            <p className="text-gray-700 leading-relaxed dark:text-gray-300">
+              We may register Solana Name Service (SNS) subdomains (e.g., *.opentill.sol) on your behalf. Subdomain
+              minting involves on-chain transactions and network fees; registration may fail due to network conditions
+              or name conflicts, and we are not liable for such failures or for the availability of any particular name.
+            </p>
+
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 mt-6">AI Tools, Marketing & Generated Content</h3>
+            <p className="text-gray-700 leading-relaxed dark:text-gray-300">
+              AI-assisted features (marketing content, website generation, insights) are provided for convenience only.
+              AI output may be inaccurate or incomplete. You must review any AI-generated content before publishing and
+              are solely responsible for its accuracy, compliance, and any claims arising from its use.
+            </p>
+
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 mt-6">Deliveries, Invoices & Online Ordering</h3>
+            <p className="text-gray-700 leading-relaxed dark:text-gray-300">
+              Delivery, invoicing, and online-ordering features are facilitative tools. We are not a carrier, courier, or
+              payment guarantor. You are responsible for fulfilling orders, deliveries, and invoices, and for any
+              disputes with your customers.
+            </p>
           </section>
 
           {/* Section 7: Data and Privacy */}
@@ -268,12 +337,25 @@ export default function TermsOfServicePage() {
               <li>Indirect, incidental, special, or consequential damages</li>
               <li>Loss of profits, revenue, data, or business opportunities</li>
               <li>Service interruptions or data loss</li>
-              <li>Third-party payment gateway failures</li>
-              <li>Cryptocurrency volatility or blockchain issues</li>
-              <li>Errors in transaction processing</li>
+              <li>Third-party payment gateway, blockchain, or wallet failures</li>
+              <li>Cryptocurrency volatility, smart-contract bugs, or on-chain transaction issues</li>
+              <li>Errors, bugs, or defects arising from this beta release</li>
+              <li>Loss of funds sent to an incorrect wallet or Stripe account you configured</li>
+              <li>AI-generated content that is inaccurate or non-compliant</li>
+              <li>Any failure, loss, or damage howsoever arising in connection with the Service</li>
             </ul>
             <p className="text-gray-700 leading-relaxed mt-4 dark:text-gray-300">
-              Our total liability shall not exceed the amount you paid us in the 12 months preceding the claim.
+              Because openTILL is a beta product, the Service is experimental and may contain errors, defects, or
+              unexpected behavior. You acknowledge and assume all such risks.
+            </p>
+            <p className="text-gray-700 leading-relaxed mt-2 dark:text-gray-300">
+              To the maximum extent permitted by law, our total aggregate liability for any claim shall not exceed the
+              greater of (a) the amount you paid us in the 12 months preceding the claim, or (b) USD $100. In no event
+              shall we be liable for any loss of digital assets, tokens, or cryptocurrency.
+            </p>
+            <p className="text-gray-700 leading-relaxed mt-2 dark:text-gray-300">
+              Some jurisdictions do not allow the exclusion or limitation of certain damages; in such cases the above
+              limitations apply to the fullest extent permitted by law.
             </p>
           </section>
 
@@ -392,6 +474,7 @@ export default function TermsOfServicePage() {
               <p className="font-semibold text-gray-900 dark:text-white mb-2">Isolex Corporation</p>
               <p className="text-gray-700 dark:text-gray-300">Email: <a href="mailto:legal@isolex.io" className="text-purple-600 hover:underline">legal@isolex.io</a></p>
               <p className="text-gray-700 dark:text-gray-300">Support: <a href="mailto:support@isolex.io" className="text-purple-600 hover:underline">support@isolex.io</a></p>
+              <p className="text-gray-700 dark:text-gray-300">Report Issues: <a href={createPageUrl('Support')} className="text-purple-600 hover:underline">Support / Ticket Portal</a></p>
               <p className="text-gray-700 mt-2 dark:text-gray-300">Address: Toledo, OH 43606</p>
             </div>
           </section>

@@ -54,7 +54,7 @@ export default function PrivacyPolicyPage() {
             <Shield className="w-12 h-12 text-purple-600" />
           </div>
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Privacy Policy</h1>
-          <p className="text-gray-600">Last Updated: December 2024</p>
+          <p className="text-gray-600">Last Updated: July 2026</p>
         </div>
 
         <Card className="mb-8">
@@ -71,8 +71,18 @@ export default function PrivacyPolicyPage() {
               <p className="text-gray-700 leading-relaxed mt-4">
                 We are committed to protecting your privacy and ensuring the security of your personal and business information. 
                 Please read this policy carefully to understand our practices regarding your data.
-              </p>
-            </section>
+                </p>
+                <p className="text-gray-700 leading-relaxed mt-4">
+                openTILL is available to customers worldwide. If you use openTILL outside the United States, your
+                information may be processed and stored in the U.S. and other countries. By using the Service you consent
+                to such transfers, and you remain responsible for complying with local data-protection laws (such as the
+                GDPR) that apply to your business and your customers.
+                </p>
+                <p className="text-gray-700 leading-relaxed mt-4">
+                openTILL is a beta product. Features may change and defects may occur; please report any issues through our
+                <a href={createPageUrl('Support')} className="text-purple-600 hover:underline"> Support / Ticket Portal</a>.
+                </p>
+                </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
@@ -112,6 +122,22 @@ export default function PrivacyPolicyPage() {
                 <li>Log files and error reports</li>
                 <li>Cookies and similar tracking technologies</li>
               </ul>
+
+              <h3 className="text-xl font-semibold text-gray-900 mb-3 mt-6">Blockchain & Wallet Information</h3>
+              <p className="text-gray-700 leading-relaxed mb-3">
+                To provide crypto, $DUC vault, staking, reward, payout, and NFT Chip features, we may collect and process:
+              </p>
+              <ul className="list-disc pl-6 space-y-2 text-gray-700">
+                <li>Solana wallet addresses you connect or configure</li>
+                <li>On-chain transaction signatures and token transfer records</li>
+                <li>$DUC balances, rewards, stakes, and payout history</li>
+                <li>SNS subdomain registration details</li>
+                <li>Stripe Connect account identifiers for payouts</li>
+              </ul>
+              <p className="text-gray-700 leading-relaxed mt-3">
+                On-chain data is public and controlled by the blockchain network, not by us. We cannot alter or delete
+                transactions once confirmed on-chain.
+              </p>
             </section>
 
             <section className="mb-8">
@@ -280,6 +306,7 @@ export default function PrivacyPolicyPage() {
                 <p className="font-semibold text-gray-900 mb-2">Isolex Corporation</p>
                 <p className="text-gray-700">Email: <a href="mailto:privacy@isolex.io" className="text-purple-600 hover:underline">privacy@isolex.io</a></p>
                 <p className="text-gray-700">Support: <a href="mailto:support@isolex.io" className="text-purple-600 hover:underline">support@isolex.io</a></p>
+                <p className="text-gray-700">Report Issues: <a href={createPageUrl('Support')} className="text-purple-600 hover:underline">Support / Ticket Portal</a></p>
                 <p className="text-gray-700 mt-2">Address: Toledo, OH 43606</p>
               </div>
             </section>
