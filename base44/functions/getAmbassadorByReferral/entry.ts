@@ -23,16 +23,26 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: 'No referral id provided.' }, { status: 400 });
     }
 
-    // 1. Try the public Ambassador entity first (preferred / "no dealers" world).
+    // Resolve by whatever identifier the referral link carries: legacy dealer id
+    // (migrated), the Ambassador record id, or the URL slug.
+    let ambassadors = [];
     try {
-      const ambassadors = await base44.asServiceRole.entities.Ambassador.filter({ legacy_dealer_id: referralId });
-      if (ambassadors && ambassadors.length > 0) {
-        return Response.json({ success: true, ambassador: sanitize(ambassadors[0]), source: 'ambassador' });
-      }
-    } catch { /* fall through to dealer */ }
+      ambassadors = await base44.asServiceRole.entities.Ambassador.filter({ legacy_dealer_id: referralId });
+    } catch { /* try next */ }
+    if (!ambassadors || ambassadors.length === 0) {
+      try {
+        ambassadors = await base44.asServiceRole.entities.Ambassador.filter({ id: referralId });
+      } catch { /* try next */ }
+    }
+    if ((!ambassadors || ambassadors.length === 0) && referralId.length < 40) {
+      try {
+        ambassadors = await base44.asServiceRole.entities.Ambassador.filter({ slug: referralId.toLowerCase() });
+      } catch { /* not found */ }
+    }
+    if (ambassadors && ambassadors.length > 0) {
+      return Response.json({ success: true, ambassador: sanitize(ambassadors[0]), source: 'ambassador' });
+    }
 
-    // Legacy referral links carried a Dealer id; migrated Ambassadors store that
-    // id as legacy_dealer_id, so the Ambassador lookup above already resolves them.
     return Response.json({ success: false, error: 'Ambassador not found.' }, { status: 404 });
   } catch (error) {
     return Response.json({ success: false, error: error.message }, { status: 500 });
