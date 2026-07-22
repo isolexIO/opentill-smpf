@@ -39,9 +39,9 @@ Deno.serve(async (req) => {
     // Check each chip's requirements
     const unlockedChips = {};
     for (const chip of chips) {
-      const requiredCollection = chip.collection;
-      const requiredCount = chip.required_count || 1;
-      const userNftCount = nftCounts[requiredCollection] || 0;
+      const requiredCollection = chip.collection_address;
+      const requiredCount = 1;
+      const userNftCount = requiredCollection ? (nftCounts[requiredCollection] || 0) : 0;
 
       unlockedChips[chip.id] = {
         unlocked: userNftCount >= requiredCount,

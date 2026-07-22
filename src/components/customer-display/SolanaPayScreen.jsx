@@ -74,7 +74,7 @@ export default function SolanaPayScreen({ order, settings, onPaymentComplete }) 
       const txData = {
         recipient: settings?.solana_pay?.wallet_address,
         amount: cryptoAmount,
-        label: `${settings?.business_name || 'ChainLINK POS'} Payment`,
+        label: `${settings?.business_name || 'openTILL'} Payment`,
         memo: `Order ${order.order_number}`,
         order_id: order.id,
         network: network,

@@ -65,7 +65,7 @@ export default function WalletConnectionTab() {
       const publicKey = resp.publicKey.toString();
 
       // Sign a message to verify ownership
-      const message = `Link this wallet to ChainLINK POS\n\nWallet: ${publicKey}\nUser: ${user.email}\nTimestamp: ${Date.now()}`;
+      const message = `Link this wallet to openTILL\n\nWallet: ${publicKey}\nUser: ${user.email}\nTimestamp: ${Date.now()}`;
       const encodedMessage = new TextEncoder().encode(message);
       const signedMessage = await window.solana.signMessage(encodedMessage, 'utf8');
 
@@ -103,7 +103,7 @@ export default function WalletConnectionTab() {
       await provider.connect();
       const publicKey = provider.publicKey.toString();
 
-      const message = `Link this wallet to ChainLINK POS\n\nWallet: ${publicKey}\nUser: ${user.email}\nTimestamp: ${Date.now()}`;
+      const message = `Link this wallet to openTILL\n\nWallet: ${publicKey}\nUser: ${user.email}\nTimestamp: ${Date.now()}`;
       const encodedMessage = new TextEncoder().encode(message);
       const signedMessage = await provider.signMessage(encodedMessage, 'utf8');
 
@@ -140,7 +140,7 @@ export default function WalletConnectionTab() {
       const resp = await provider.connect();
       const publicKey = resp.publicKey.toString();
 
-      const message = `Link this wallet to ChainLINK POS\n\nWallet: ${publicKey}\nUser: ${user.email}\nTimestamp: ${Date.now()}`;
+      const message = `Link this wallet to openTILL\n\nWallet: ${publicKey}\nUser: ${user.email}\nTimestamp: ${Date.now()}`;
       const encodedMessage = new TextEncoder().encode(message);
       const signedMessage = await provider.signMessage(encodedMessage, 'utf8');
 
@@ -177,7 +177,7 @@ export default function WalletConnectionTab() {
       const resp = await provider.connect();
       const publicKey = resp.publicKey.toString();
 
-      const message = `Link this wallet to ChainLINK POS\n\nWallet: ${publicKey}\nUser: ${user.email}\nTimestamp: ${Date.now()}`;
+      const message = `Link this wallet to openTILL\n\nWallet: ${publicKey}\nUser: ${user.email}\nTimestamp: ${Date.now()}`;
       const encodedMessage = new TextEncoder().encode(message);
       const signedMessage = await provider.signMessage(encodedMessage, 'utf8');
 
@@ -219,7 +219,7 @@ export default function WalletConnectionTab() {
 
       const address = accounts[0];
 
-      const message = `Link this wallet to ChainLINK POS\n\nWallet: ${address}\nUser: ${user.email}\nTimestamp: ${Date.now()}`;
+      const message = `Link this wallet to openTILL\n\nWallet: ${address}\nUser: ${user.email}\nTimestamp: ${Date.now()}`;
       const signature = await window.ethereum.request({
         method: 'personal_sign',
         params: [message, address]

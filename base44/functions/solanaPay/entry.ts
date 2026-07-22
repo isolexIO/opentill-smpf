@@ -43,8 +43,8 @@ async function generatePaymentRequest(base44, { merchantId, amount, orderId, ref
     }
     
     const merchant = merchants[0];
-    const solanaWallet = merchant.settings?.solana_wallet_address;
-    const network = merchant.settings?.blockchain_network || 'devnet';
+    const solanaWallet = merchant.settings?.solana_pay?.wallet_address;
+    const network = merchant.settings?.solana_pay?.network || 'mainnet';
     
     if (!solanaWallet) {
       throw new Error('Merchant has not configured Solana wallet');

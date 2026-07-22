@@ -11,7 +11,7 @@ import SolanaWalletProvider from './SolanaWalletProvider';
 import JupiterMobileQR from './JupiterMobileQR';
 
 function WalletLoginContent({ onSuccess, merchantId }) {
-  const { publicKey, connected, signMessage, connecting } = useWallet();
+  const { publicKey, connected, signMessage, connecting, wallet } = useWallet();
   const [authenticating, setAuthenticating] = useState(false);
   const [error, setError] = useState('');
   const [showJupiterQR, setShowJupiterQR] = useState(false);
@@ -40,9 +40,13 @@ function WalletLoginContent({ onSuccess, merchantId }) {
       const encodedMessage = new TextEncoder().encode(message);
       const signature = await signMessage(encodedMessage);
 
+      const detectedWalletType = (wallet?.name || '').toLowerCase();
+      const walletType = ['phantom', 'solflare', 'backpack', 'jupiter'].includes(detectedWalletType)
+        ? detectedWalletType
+        : 'phantom';
       const { data } = await base44.functions.invoke('authenticateWallet', {
         wallet_address: publicKey.toString(),
-        wallet_type: 'phantom',
+        wallet_type: walletType,
         signature_data: {
           signature: Array.from(signature),
           message,

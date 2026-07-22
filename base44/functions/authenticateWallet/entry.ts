@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
     // Verify signature based on wallet type
     let signatureValid = false;
 
-    if (wallet_type === 'phantom' || wallet_type === 'solflare') {
+    if (wallet_type === 'phantom' || wallet_type === 'solflare' || wallet_type === 'backpack' || wallet_type === 'jupiter') {
       // Verify Solana signature
       try {
         const publicKey = new PublicKey(wallet_address);
@@ -98,7 +98,7 @@ Deno.serve(async (req) => {
       console.warn('Unsupported wallet type rejected:', wallet_type);
       return Response.json({
         success: false,
-        error: `Unsupported wallet type: ${wallet_type}. Only phantom, solflare, ethereum, and metamask are supported.`
+        error: `Unsupported wallet type: ${wallet_type}. Only phantom, solflare, backpack, jupiter, ethereum, and metamask are supported.`
       }, { status: 400 });
     }
 
