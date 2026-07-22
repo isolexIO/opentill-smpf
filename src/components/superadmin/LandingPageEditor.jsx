@@ -13,6 +13,23 @@ import { createPageUrl } from '@/utils';
 const FEATURE_ICON_OPTIONS = ['DollarSign', 'Wallet', 'CreditCard', 'Package', 'BarChart3', 'Cpu', 'Shield', 'ChefHat', 'Monitor', 'FileText', 'Truck', 'Terminal', 'Lock', 'Store', 'Users', 'Activity', 'Star'];
 const FEATURE_ACCENT_OPTIONS = ['green', 'purple', 'blue', 'indigo', 'orange', 'emerald', 'pink', 'teal', 'cyan', 'amber'];
 
+const DEFAULT_FEATURES = [
+  { icon: 'DollarSign', accent: 'green', title: 'Dual Pricing Compliant', description: 'Legally compliant surcharging and cash discount programs. Save on processing fees.' },
+  { icon: 'Wallet', accent: 'purple', title: 'Solana Pay', description: 'Accept USDC and other crypto payments instantly with near-zero fees and sub-second settlement.' },
+  { icon: 'CreditCard', accent: 'blue', title: 'EBT/SNAP Accepted', description: 'Accept food assistance benefits with integrated EBT processing and automatic eligibility tracking.' },
+  { icon: 'Wallet', accent: 'indigo', title: 'Multiple Payment Methods', description: 'Cash, credit/debit cards, crypto, EBT, and split payments all in one system.' },
+  { icon: 'Package', accent: 'orange', title: 'Smart Inventory', description: 'Real-time stock tracking, low stock alerts, and automated reordering.' },
+  { icon: 'BarChart3', accent: 'purple', title: 'Advanced Analytics', description: 'Comprehensive sales reports, trends analysis, and performance insights.' },
+  { icon: 'Cpu', accent: 'indigo', title: 'NFT-Gated Features', description: 'Unlock premium features by connecting your wallet and holding specific NFTs. True Web3 integration.' },
+  { icon: 'Shield', accent: 'pink', title: 'Two-Factor Authentication', description: 'Enhanced security with 2FA. Secure email and Google authentication for your account.' },
+  { icon: 'Package', accent: 'teal', title: 'Chip-Based Features', description: 'Modular system where each "chip" represents a feature. Unlock what you need when you need it.' },
+  { icon: 'ChefHat', accent: 'amber', title: 'Kitchen Display System', description: 'Stream orders to the kitchen in real time. Stations track each ticket from New to In Progress to Complete.' },
+  { icon: 'Monitor', accent: 'cyan', title: 'Customer Display', description: 'Customer-facing screen for order approval, tipping, and payment method selection — synced live with the register.' },
+  { icon: 'FileText', accent: 'indigo', title: 'Invoicing & Paylinks', description: 'Send branded invoices with secure paylinks. Customers pay online by card or crypto, with automatic status tracking.' },
+  { icon: 'Truck', accent: 'emerald', title: 'Delivery Management', description: 'Dispatch delivery jobs, assign drivers, and track pickups and drop-offs from a live driver dashboard.' },
+  { icon: 'Terminal', accent: 'purple', title: 'Non-Integrated Terminal', description: 'Run card-present transactions on non-integrated terminals — access is gated by an NFT chip purchased with $DUC.' }
+];
+
 export default function LandingPageEditor() {
   const [settings, setSettings] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -160,6 +177,10 @@ export default function LandingPageEditor() {
 
   const removeFeature = (index) => {
     setSettings({ ...settings, features: (settings.features || []).filter((_, i) => i !== index) });
+  };
+
+  const loadDefaultFeatures = () => {
+    setSettings({ ...settings, features: DEFAULT_FEATURES.map(f => ({ ...f })) });
   };
 
   const addTestimonial = () => {
@@ -484,10 +505,16 @@ export default function LandingPageEditor() {
                   <CardTitle>Feature Tiles</CardTitle>
                   <CardDescription>The individual feature cards displayed in the grid. Leave empty to use the built-in defaults.</CardDescription>
                 </div>
-                <Button onClick={addFeature} size="sm">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Feature
-                </Button>
+                <div className="flex gap-2">
+                  <Button onClick={loadDefaultFeatures} size="sm" variant="outline">
+                    <Home className="w-4 h-4 mr-2" />
+                    Load Current Defaults
+                  </Button>
+                  <Button onClick={addFeature} size="sm">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Feature
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
