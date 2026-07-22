@@ -62,10 +62,10 @@ Deno.serve(async (req) => {
 
     if (!location) {
       const address = {
-        line1: merchant.address || '123 Main St',
-        city: 'San Francisco',
-        state: 'CA',
-        postal_code: '94107',
+        line1: merchant.address || '1 Seagate',
+        city: 'Toledo',
+        state: 'OH',
+        postal_code: '43604',
         country: 'US',
       };
       location = await stripe.terminal.locations.create({
