@@ -24,11 +24,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Building2, 
-  Plus, 
-  Edit, 
-  Trash2, 
+import {
+  Building2,
+  Plus,
+  Edit,
+  Trash2,
   Search,
   DollarSign,
   Users,
@@ -47,31 +47,31 @@ import SolanaWalletInput from '@/components/shared/SolanaWalletInput';
 import { createPageUrl } from '@/utils';
 
 export default function DealerManagement() {
-  const [dealers, setDealers] = useState([]);
+  const [ambassadors, setAmbassadors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState('dealers');
-  const [editDialog, setEditDialog] = useState({ open: false, dealer: null, tab: 'basic' });
+  const [activeTab, setActiveTab] = useState('ambassadors');
+  const [editDialog, setEditDialog] = useState({ open: false, ambassador: null, tab: 'basic' });
 
   useEffect(() => {
-    loadDealers();
+    loadAmbassadors();
   }, []);
 
-  const loadDealers = async () => {
+  const loadAmbassadors = async () => {
     try {
-      const dealerList = await base44.entities.Ambassador.list('-created_date');
-      setDealers(dealerList);
+      const list = await base44.entities.Ambassador.list('-created_date');
+      setAmbassadors(list);
     } catch (error) {
-      console.error('Error loading dealers:', error);
+      console.error('Error loading ambassadors:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCreateDealer = () => {
-    setEditDialog({ 
-      open: true, 
-      dealer: {
+  const handleCreateAmbassador = () => {
+    setEditDialog({
+      open: true,
+      ambassador: {
         name: '',
         slug: '',
         owner_name: '',
@@ -103,93 +103,89 @@ export default function DealerManagement() {
     });
   };
 
-  const handleEditDealer = (dealer) => {
-    setEditDialog({ open: true, dealer: { ...dealer }, tab: 'basic' });
+  const handleEditAmbassador = (ambassador) => {
+    setEditDialog({ open: true, ambassador: { ...ambassador }, tab: 'basic' });
   };
 
-  const handleSaveDealer = async () => {
+  const handleSaveAmbassador = async () => {
     try {
-      const { dealer } = editDialog;
-      
-      // Generate slug from name if not provided
-      if (!dealer.slug && dealer.name) {
-        dealer.slug = dealer.name.toLowerCase()
+      const { ambassador } = editDialog;
+
+      if (!ambassador.slug && ambassador.name) {
+        ambassador.slug = ambassador.name.toLowerCase()
           .replace(/[^a-z0-9]+/g, '-')
           .replace(/(^-|-$)/g, '');
       }
 
-      if (dealer.id) {
-        // Update existing dealer
-        await base44.entities.Ambassador.update(dealer.id, dealer);
+      if (ambassador.id) {
+        await base44.entities.Ambassador.update(ambassador.id, ambassador);
       } else {
-        // Create new dealer through backend function (creates dealer + dealer admin user)
         const response = await base44.functions.invoke('createDealerAccount', {
-          dealer_name: dealer.name,
-          owner_name: dealer.owner_name,
-          owner_email: dealer.owner_email,
-          contact_phone: dealer.contact_phone,
-          slug: dealer.slug
+          dealer_name: ambassador.name,
+          owner_name: ambassador.owner_name,
+          owner_email: ambassador.owner_email,
+          contact_phone: ambassador.contact_phone,
+          slug: ambassador.slug
         });
 
         if (!response.success) {
-          throw new Error(response.error || 'Failed to create dealer');
+          throw new Error(response.error || 'Failed to create ambassador');
         }
 
-        alert(`Dealer created successfully!\n\nDealer Admin Credentials:\nPIN: ${response.credentials.pin}\nPassword: ${response.credentials.temp_password}\n\nCredentials have been emailed to ${dealer.owner_email}`);
+        alert(`Ambassador created successfully!\n\nAmbassador Admin Credentials:\nPIN: ${response.credentials.pin}\nPassword: ${response.credentials.temp_password}\n\nCredentials have been emailed to ${ambassador.owner_email}`);
       }
-      
-      await loadDealers();
-      setEditDialog({ open: false, dealer: null, tab: 'basic' });
+
+      await loadAmbassadors();
+      setEditDialog({ open: false, ambassador: null, tab: 'basic' });
     } catch (error) {
-      console.error('Error saving dealer:', error);
-      alert('Failed to save dealer: ' + error.message);
+      console.error('Error saving ambassador:', error);
+      alert('Failed to save ambassador: ' + error.message);
     }
   };
 
-  const handleDeleteDealer = async (dealerId) => {
-    if (!confirm('Are you sure you want to delete this dealer? This will affect all associated merchants.')) {
+  const handleDeleteAmbassador = async (ambassadorId) => {
+    if (!confirm('Are you sure you want to delete this ambassador? This will affect all associated merchants.')) {
       return;
     }
 
     try {
-      await base44.entities.Ambassador.delete(dealerId);
-      await loadDealers();
+      await base44.entities.Ambassador.delete(ambassadorId);
+      await loadAmbassadors();
     } catch (error) {
-      console.error('Error deleting dealer:', error);
-      alert('Failed to delete dealer');
+      console.error('Error deleting ambassador:', error);
+      alert('Failed to delete ambassador');
     }
   };
 
-  const handleImpersonateDealer = async (dealer) => {
+  const handleImpersonateAmbassador = async (ambassador) => {
     try {
       const currentUser = await base44.auth.me();
 
-      // Build a synthetic dealer session that matches what dealerAuth login produces
-      const dealerData = {
-        id: dealer.legacy_dealer_id || dealer.id,
-        name: dealer.name,
-        slug: dealer.slug,
-        owner_email: dealer.owner_email,
-        owner_name: dealer.owner_name,
-        primary_color: dealer.primary_color,
-        secondary_color: dealer.secondary_color,
-        logo_url: dealer.logo_url,
-        status: dealer.status,
-        commission_percent: dealer.commission_percent,
+      const ambassadorData = {
+        id: ambassador.legacy_dealer_id || ambassador.id,
+        name: ambassador.name,
+        slug: ambassador.slug,
+        owner_email: ambassador.owner_email,
+        owner_name: ambassador.owner_name,
+        primary_color: ambassador.primary_color,
+        secondary_color: ambassador.secondary_color,
+        logo_url: ambassador.logo_url,
+        status: ambassador.status,
+        commission_percent: ambassador.commission_percent,
       };
 
       const syntheticUser = {
-        id: dealer.legacy_dealer_id || dealer.id,
-        full_name: dealer.owner_name || dealer.name,
-        email: dealer.owner_email,
+        id: ambassador.legacy_dealer_id || ambassador.id,
+        full_name: ambassador.owner_name || ambassador.name,
+        email: ambassador.owner_email,
         role: 'dealer_admin',
-        dealer_id: dealer.legacy_dealer_id || dealer.id,
+        dealer_id: ambassador.legacy_dealer_id || ambassador.id,
         is_impersonating: true,
         original_admin_email: currentUser.email
       };
 
-      localStorage.setItem('dealerToken', 'impersonation_' + dealer.id);
-      localStorage.setItem('dealerData', JSON.stringify(dealerData));
+      localStorage.setItem('dealerToken', 'impersonation_' + ambassador.id);
+      localStorage.setItem('dealerData', JSON.stringify(ambassadorData));
       localStorage.setItem('pinLoggedInUser', JSON.stringify(syntheticUser));
 
       window.location.href = createPageUrl('DealerDashboard');
@@ -199,52 +195,52 @@ export default function DealerManagement() {
     }
   };
 
-  const handleCreateDealerAdmin = async (dealer) => {
-    const email = prompt(`Enter email for new dealer admin user for "${dealer.name}":`, dealer.owner_email);
+  const handleCreateAmbassadorAdmin = async (ambassador) => {
+    const email = prompt(`Enter email for new ambassador admin user for "${ambassador.name}":`, ambassador.owner_email);
     if (!email) return;
 
     try {
       const response = await base44.functions.invoke('createDealerAdminUser', {
-        dealer_id: dealer.legacy_dealer_id || dealer.id,
+        dealer_id: ambassador.legacy_dealer_id || ambassador.id,
         email: email.toLowerCase().trim(),
-        full_name: dealer.owner_name || 'Dealer Admin'
+        full_name: ambassador.owner_name || 'Ambassador Admin'
       });
 
       if (response.data.success) {
-        alert(`Dealer admin invitation sent to ${email}\n\nThey will receive an email to set up their account.`);
-        loadDealers();
+        alert(`Ambassador admin invitation sent to ${email}\n\nThey will receive an email to set up their account.`);
+        loadAmbassadors();
       }
     } catch (error) {
-      console.error('Error creating dealer admin:', error);
-      alert('Failed to create dealer admin: ' + error.message);
+      console.error('Error creating ambassador admin:', error);
+      alert('Failed to create ambassador admin: ' + error.message);
     }
   };
 
-  const updateDealer = (field, value) => {
+  const updateAmbassador = (field, value) => {
     setEditDialog({
       ...editDialog,
-      dealer: { ...editDialog.dealer, [field]: value }
+      ambassador: { ...editDialog.ambassador, [field]: value }
     });
   };
 
   const updateSettings = (field, value) => {
     setEditDialog({
       ...editDialog,
-      dealer: {
-        ...editDialog.dealer,
-        settings: { ...editDialog.dealer.settings, [field]: value }
+      ambassador: {
+        ...editDialog.ambassador,
+        settings: { ...editDialog.ambassador.settings, [field]: value }
       }
     });
   };
 
-  const filteredDealers = dealers.filter(d =>
-    d.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    d.owner_email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    d.slug?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredAmbassadors = ambassadors.filter(a =>
+    a.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    a.owner_email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    a.slug?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {
-    return <div className="text-center py-12">Loading dealers...</div>;
+    return <div className="text-center py-12">Loading ambassadors...</div>;
   }
 
   return (
@@ -252,7 +248,7 @@ export default function DealerManagement() {
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="dealers" className="flex items-center gap-2">
+          <TabsTrigger value="ambassadors" className="flex items-center gap-2">
             <Building2 className="w-4 h-4" />
             <span className="hidden sm:inline">Ambassadors</span>
           </TabsTrigger>
@@ -263,15 +259,15 @@ export default function DealerManagement() {
         </TabsList>
 
         {/* Ambassadors Tab */}
-        <TabsContent value="dealers" className="space-y-6">
+        <TabsContent value="ambassadors" className="space-y-6">
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Total Dealers</p>
-                <p className="text-2xl font-bold">{dealers.length}</p>
+                <p className="text-sm text-gray-500">Total Ambassadors</p>
+                <p className="text-2xl font-bold">{ambassadors.length}</p>
               </div>
               <Building2 className="w-8 h-8 text-blue-500" />
             </div>
@@ -282,9 +278,9 @@ export default function DealerManagement() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Active Dealers</p>
+                <p className="text-sm text-gray-500">Active Ambassadors</p>
                 <p className="text-2xl font-bold">
-                  {dealers.filter(d => d.status === 'active').length}
+                  {ambassadors.filter(a => a.status === 'active').length}
                 </p>
               </div>
               <TrendingUp className="w-8 h-8 text-green-500" />
@@ -298,7 +294,7 @@ export default function DealerManagement() {
               <div>
                 <p className="text-sm text-gray-500">Total Merchants</p>
                 <p className="text-2xl font-bold">
-                  {dealers.reduce((sum, d) => sum + (d.total_merchants || 0), 0)}
+                  {ambassadors.reduce((sum, a) => sum + (a.total_merchants || 0), 0)}
                 </p>
               </div>
               <Users className="w-8 h-8 text-purple-500" />
@@ -312,7 +308,7 @@ export default function DealerManagement() {
               <div>
                 <p className="text-sm text-gray-500">Monthly Fees</p>
                 <p className="text-2xl font-bold">
-                  ${dealers.reduce((sum, d) => sum + (d.platform_fee_monthly || 0), 0).toFixed(0)}
+                  ${ambassadors.reduce((sum, a) => sum + (a.platform_fee_monthly || 0), 0).toFixed(0)}
                 </p>
               </div>
               <DollarSign className="w-8 h-8 text-orange-500" />
@@ -321,53 +317,53 @@ export default function DealerManagement() {
         </Card>
       </div>
 
-      {/* Dealers List */}
+      {/* Ambassadors List */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>All Dealers</CardTitle>
+            <CardTitle>All Ambassadors</CardTitle>
             <div className="flex gap-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
-                  placeholder="Search dealers..."
+                  placeholder="Search ambassadors..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10 w-64"
                 />
               </div>
-              <Button onClick={handleCreateDealer}>
+              <Button onClick={handleCreateAmbassador}>
                 <Plus className="w-4 h-4 mr-2" />
-                Create Dealer
+                Create Ambassador
               </Button>
             </div>
           </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {filteredDealers.map((dealer) => (
+            {filteredAmbassadors.map((ambassador) => (
               <div
-                key={dealer.id}
+                key={ambassador.id}
                 className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
               >
                 <div className="flex items-center gap-4">
-                  {dealer.logo_url ? (
-                    <img src={dealer.logo_url} alt={dealer.name} className="h-12 w-12 rounded object-cover" />
+                  {ambassador.logo_url ? (
+                    <img src={ambassador.logo_url} alt={ambassador.name} className="h-12 w-12 rounded object-cover" />
                   ) : (
-                    <div 
+                    <div
                       className="h-12 w-12 rounded flex items-center justify-center text-white font-bold"
-                      style={{ background: `linear-gradient(135deg, ${dealer.primary_color || '#7B2FD6'}, ${dealer.secondary_color || '#0FD17A'})` }}
+                      style={{ background: `linear-gradient(135deg, ${ambassador.primary_color || '#7B2FD6'}, ${ambassador.secondary_color || '#0FD17A'})` }}
                     >
-                      {dealer.name?.charAt(0)}
+                      {ambassador.name?.charAt(0)}
                     </div>
                   )}
                   <div>
-                    <h3 className="font-medium text-lg">{dealer.name}</h3>
-                    <p className="text-sm text-gray-500">{dealer.owner_email}</p>
+                    <h3 className="font-medium text-lg">{ambassador.name}</h3>
+                    <p className="text-sm text-gray-500">{ambassador.owner_email}</p>
                     <div className="flex gap-2 mt-1">
-                      <span className="text-xs text-gray-400">{dealer.slug}.chainlinkpos.com</span>
-                      {dealer.domain && (
-                        <span className="text-xs text-blue-600">• {dealer.domain}</span>
+                      <span className="text-xs text-gray-400">{ambassador.slug}.opentill.app</span>
+                      {ambassador.domain && (
+                        <span className="text-xs text-blue-600">• {ambassador.domain}</span>
                       )}
                     </div>
                   </div>
@@ -375,49 +371,49 @@ export default function DealerManagement() {
 
                 <div className="flex items-center gap-6">
                   <div className="text-right">
-                    <p className="text-sm font-medium">{dealer.total_merchants || 0} merchants</p>
+                    <p className="text-sm font-medium">{ambassador.total_merchants || 0} merchants</p>
                     <p className="text-xs text-gray-500">
-                      {dealer.commission_percent}% commission • ${dealer.platform_fee_monthly}/mo
+                      {ambassador.commission_percent}% commission • ${ambassador.platform_fee_monthly}/mo
                     </p>
                   </div>
 
                   <Badge className={
-                    dealer.status === 'active' ? 'bg-green-100 text-green-800' :
-                    dealer.status === 'trial' ? 'bg-blue-100 text-blue-800' :
-                    dealer.status === 'suspended' ? 'bg-red-100 text-red-800' :
+                    ambassador.status === 'active' ? 'bg-green-100 text-green-800' :
+                    ambassador.status === 'trial' ? 'bg-blue-100 text-blue-800' :
+                    ambassador.status === 'suspended' ? 'bg-red-100 text-red-800' :
                     'bg-gray-100 text-gray-800'
                   }>
-                    {dealer.status}
+                    {ambassador.status}
                   </Badge>
 
                   <div className="flex gap-2">
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleCreateDealerAdmin(dealer)}
-                      title="Add dealer admin"
+                      onClick={() => handleCreateAmbassadorAdmin(ambassador)}
+                      title="Add ambassador admin"
                     >
                       <UserPlus className="w-4 h-4" />
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleImpersonateDealer(dealer)}
-                      title="Impersonate dealer"
+                      onClick={() => handleImpersonateAmbassador(ambassador)}
+                      title="Impersonate ambassador"
                     >
                       <UserCheck className="w-4 h-4" />
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleEditDealer(dealer)}
+                      onClick={() => handleEditAmbassador(ambassador)}
                     >
                       <Edit className="w-4 h-4" />
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleDeleteDealer(dealer.id)}
+                      onClick={() => handleDeleteAmbassador(ambassador.id)}
                       className="text-red-600 hover:text-red-700"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -427,29 +423,29 @@ export default function DealerManagement() {
               </div>
             ))}
 
-            {filteredDealers.length === 0 && (
+            {filteredAmbassadors.length === 0 && (
               <div className="text-center py-12">
                 <Building2 className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-                <p className="text-gray-600">No dealers found</p>
+                <p className="text-gray-600">No ambassadors found</p>
               </div>
             )}
           </div>
         </CardContent>
       </Card>
 
-      {/* Edit/Create Dealer Dialog */}
-      <Dialog open={editDialog.open} onOpenChange={(open) => !open && setEditDialog({ open: false, dealer: null, tab: 'basic' })}>
+      {/* Edit/Create Ambassador Dialog */}
+      <Dialog open={editDialog.open} onOpenChange={(open) => !open && setEditDialog({ open: false, ambassador: null, tab: 'basic' })}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {editDialog.dealer?.id ? 'Edit Dealer' : 'Create New Dealer'}
+              {editDialog.ambassador?.id ? 'Edit Ambassador' : 'Create New Ambassador'}
             </DialogTitle>
             <DialogDescription>
-              Configure white-label settings, branding, and billing for this dealer
+              Configure white-label settings, branding, and billing for this ambassador
             </DialogDescription>
           </DialogHeader>
-          
-          {editDialog.dealer && (
+
+          {editDialog.ambassador && (
             <Tabs value={editDialog.tab} onValueChange={(tab) => setEditDialog({...editDialog, tab})}>
               <TabsList className="grid w-full grid-cols-6">
                 <TabsTrigger value="basic">
@@ -484,8 +480,8 @@ export default function DealerManagement() {
                   <div>
                     <Label>Business Name *</Label>
                     <Input
-                      value={editDialog.dealer.name}
-                      onChange={(e) => updateDealer('name', e.target.value)}
+                      value={editDialog.ambassador.name}
+                      onChange={(e) => updateAmbassador('name', e.target.value)}
                       placeholder="Acme POS Solutions"
                     />
                   </div>
@@ -493,12 +489,12 @@ export default function DealerManagement() {
                   <div>
                     <Label>Slug (URL) *</Label>
                     <Input
-                      value={editDialog.dealer.slug}
-                      onChange={(e) => updateDealer('slug', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                      value={editDialog.ambassador.slug}
+                      onChange={(e) => updateAmbassador('slug', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
                       placeholder="acme-pos"
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      {editDialog.dealer.slug}.chainlinkpos.com
+                      {editDialog.ambassador.slug}.opentill.app
                     </p>
                   </div>
                 </div>
@@ -507,8 +503,8 @@ export default function DealerManagement() {
                   <div>
                     <Label>Owner Name *</Label>
                     <Input
-                      value={editDialog.dealer.owner_name}
-                      onChange={(e) => updateDealer('owner_name', e.target.value)}
+                      value={editDialog.ambassador.owner_name}
+                      onChange={(e) => updateAmbassador('owner_name', e.target.value)}
                       placeholder="John Smith"
                     />
                   </div>
@@ -517,8 +513,8 @@ export default function DealerManagement() {
                     <Label>Owner Email *</Label>
                     <Input
                       type="email"
-                      value={editDialog.dealer.owner_email}
-                      onChange={(e) => updateDealer('owner_email', e.target.value)}
+                      value={editDialog.ambassador.owner_email}
+                      onChange={(e) => updateAmbassador('owner_email', e.target.value)}
                       placeholder="john@acmepos.com"
                     />
                   </div>
@@ -529,8 +525,8 @@ export default function DealerManagement() {
                     <Label>Contact Email *</Label>
                     <Input
                       type="email"
-                      value={editDialog.dealer.contact_email}
-                      onChange={(e) => updateDealer('contact_email', e.target.value)}
+                      value={editDialog.ambassador.contact_email}
+                      onChange={(e) => updateAmbassador('contact_email', e.target.value)}
                       placeholder="support@acmepos.com"
                     />
                   </div>
@@ -538,8 +534,8 @@ export default function DealerManagement() {
                   <div>
                     <Label>Contact Phone</Label>
                     <Input
-                      value={editDialog.dealer.contact_phone || ''}
-                      onChange={(e) => updateDealer('contact_phone', e.target.value)}
+                      value={editDialog.ambassador.contact_phone || ''}
+                      onChange={(e) => updateAmbassador('contact_phone', e.target.value)}
                       placeholder="+1 (555) 123-4567"
                     />
                   </div>
@@ -548,8 +544,8 @@ export default function DealerManagement() {
                 <div>
                   <Label>Status</Label>
                   <Select
-                    value={editDialog.dealer.status}
-                    onValueChange={(value) => updateDealer('status', value)}
+                    value={editDialog.ambassador.status}
+                    onValueChange={(value) => updateAmbassador('status', value)}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -569,20 +565,20 @@ export default function DealerManagement() {
                 <div>
                   <Label>Logo URL</Label>
                   <Input
-                    value={editDialog.dealer.logo_url || ''}
-                    onChange={(e) => updateDealer('logo_url', e.target.value)}
+                    value={editDialog.ambassador.logo_url || ''}
+                    onChange={(e) => updateAmbassador('logo_url', e.target.value)}
                     placeholder="https://example.com/logo.png"
                   />
-                  {editDialog.dealer.logo_url && (
-                    <img src={editDialog.dealer.logo_url} alt="Logo preview" className="mt-2 h-20 object-contain" />
+                  {editDialog.ambassador.logo_url && (
+                    <img src={editDialog.ambassador.logo_url} alt="Logo preview" className="mt-2 h-20 object-contain" />
                   )}
                 </div>
 
                 <div>
                   <Label>Favicon URL</Label>
                   <Input
-                    value={editDialog.dealer.favicon_url || ''}
-                    onChange={(e) => updateDealer('favicon_url', e.target.value)}
+                    value={editDialog.ambassador.favicon_url || ''}
+                    onChange={(e) => updateAmbassador('favicon_url', e.target.value)}
                     placeholder="https://example.com/favicon.ico"
                   />
                 </div>
@@ -593,13 +589,13 @@ export default function DealerManagement() {
                     <div className="flex gap-2">
                       <Input
                         type="color"
-                        value={editDialog.dealer.primary_color}
-                        onChange={(e) => updateDealer('primary_color', e.target.value)}
+                        value={editDialog.ambassador.primary_color}
+                        onChange={(e) => updateAmbassador('primary_color', e.target.value)}
                         className="w-20"
                       />
                       <Input
-                        value={editDialog.dealer.primary_color}
-                        onChange={(e) => updateDealer('primary_color', e.target.value)}
+                        value={editDialog.ambassador.primary_color}
+                        onChange={(e) => updateAmbassador('primary_color', e.target.value)}
                       />
                     </div>
                   </div>
@@ -609,20 +605,20 @@ export default function DealerManagement() {
                     <div className="flex gap-2">
                       <Input
                         type="color"
-                        value={editDialog.dealer.secondary_color}
-                        onChange={(e) => updateDealer('secondary_color', e.target.value)}
+                        value={editDialog.ambassador.secondary_color}
+                        onChange={(e) => updateAmbassador('secondary_color', e.target.value)}
                         className="w-20"
                       />
                       <Input
-                        value={editDialog.dealer.secondary_color}
-                        onChange={(e) => updateDealer('secondary_color', e.target.value)}
+                        value={editDialog.ambassador.secondary_color}
+                        onChange={(e) => updateAmbassador('secondary_color', e.target.value)}
                       />
                     </div>
                   </div>
                 </div>
 
                 <div className="p-4 rounded-lg" style={{
-                  background: `linear-gradient(135deg, ${editDialog.dealer.primary_color}, ${editDialog.dealer.secondary_color})`
+                  background: `linear-gradient(135deg, ${editDialog.ambassador.primary_color}, ${editDialog.ambassador.secondary_color})`
                 }}>
                   <p className="text-white font-bold text-center">Brand Preview</p>
                 </div>
@@ -630,15 +626,15 @@ export default function DealerManagement() {
 
               {/* Subdomain Tab */}
               <TabsContent value="subdomain" className="space-y-4">
-                {editDialog.dealer.id ? (
-                  <DealerSubdomainManager 
-                    dealer={editDialog.dealer} 
-                    onUpdate={loadDealers}
+                {editDialog.ambassador.id ? (
+                  <DealerSubdomainManager
+                    ambassador={editDialog.ambassador}
+                    onUpdate={loadAmbassadors}
                   />
                 ) : (
                   <Alert>
                     <AlertDescription>
-                      Save the dealer first before managing subdomain
+                      Save the ambassador first before managing the subdomain
                     </AlertDescription>
                   </Alert>
                 )}
@@ -649,8 +645,8 @@ export default function DealerManagement() {
                 <div>
                   <Label>Custom Domain</Label>
                   <Input
-                    value={editDialog.dealer.domain || ''}
-                    onChange={(e) => updateDealer('domain', e.target.value)}
+                    value={editDialog.ambassador.domain || ''}
+                    onChange={(e) => updateAmbassador('domain', e.target.value)}
                     placeholder="pos.yourcompany.com"
                   />
                   <p className="text-xs text-gray-500 mt-1">
@@ -661,8 +657,8 @@ export default function DealerManagement() {
                 <div>
                   <Label>Solana Wallet Address</Label>
                   <SolanaWalletInput
-                    value={editDialog.dealer.solana_wallet_address || ''}
-                    onChange={(v) => updateDealer('solana_wallet_address', v)}
+                    value={editDialog.ambassador.solana_wallet_address || ''}
+                    onChange={(v) => updateAmbassador('solana_wallet_address', v)}
                     placeholder="For $DUC payouts"
                   />
                 </div>
@@ -678,11 +674,11 @@ export default function DealerManagement() {
                       min="0"
                       max="100"
                       step="0.1"
-                      value={editDialog.dealer.commission_percent}
-                      onChange={(e) => updateDealer('commission_percent', parseFloat(e.target.value))}
+                      value={editDialog.ambassador.commission_percent}
+                      onChange={(e) => updateAmbassador('commission_percent', parseFloat(e.target.value))}
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      Dealer earns this % of each merchant's subscription
+                      Ambassador earns this % of each merchant's subscription
                     </p>
                   </div>
 
@@ -692,11 +688,11 @@ export default function DealerManagement() {
                       type="number"
                       min="0"
                       step="0.01"
-                      value={editDialog.dealer.platform_fee_monthly}
-                      onChange={(e) => updateDealer('platform_fee_monthly', parseFloat(e.target.value))}
+                      value={editDialog.ambassador.platform_fee_monthly}
+                      onChange={(e) => updateAmbassador('platform_fee_monthly', parseFloat(e.target.value))}
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      Fee charged to dealer for using the platform
+                      Fee charged to ambassador for using the platform
                     </p>
                   </div>
                 </div>
@@ -704,21 +700,21 @@ export default function DealerManagement() {
                 <div>
                   <Label>Billing Mode</Label>
                   <Select
-                    value={editDialog.dealer.billing_mode}
-                    onValueChange={(value) => updateDealer('billing_mode', value)}
+                    value={editDialog.ambassador.billing_mode}
+                    onValueChange={(value) => updateAmbassador('billing_mode', value)}
                   >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="root_fallback">ChainLINK Bills Merchants</SelectItem>
-                      <SelectItem value="dealer">Dealer Bills Merchants Directly</SelectItem>
+                      <SelectItem value="root_fallback">openTILL Bills Merchants</SelectItem>
+                      <SelectItem value="dealer">Ambassador Bills Merchants Directly</SelectItem>
                     </SelectContent>
                   </Select>
                   <p className="text-xs text-gray-500 mt-1">
-                    {editDialog.dealer.billing_mode === 'dealer' 
-                      ? 'Dealer handles merchant billing through their own openTILL Payments powered by Stripe account' 
-                      : 'ChainLINK bills merchants and pays dealer commission'}
+                    {editDialog.ambassador.billing_mode === 'dealer'
+                      ? 'Ambassador handles merchant billing through their own openTILL Payments powered by Stripe account'
+                      : 'openTILL bills merchants and pays ambassador commission'}
                   </p>
                 </div>
 
@@ -726,8 +722,8 @@ export default function DealerManagement() {
                   <div>
                     <Label>Payout Method</Label>
                     <Select
-                      value={editDialog.dealer.payout_method}
-                      onValueChange={(value) => updateDealer('payout_method', value)}
+                      value={editDialog.ambassador.payout_method}
+                      onValueChange={(value) => updateAmbassador('payout_method', value)}
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -743,8 +739,8 @@ export default function DealerManagement() {
                   <div>
                     <Label>Payout Cadence</Label>
                     <Select
-                      value={editDialog.dealer.payout_cadence}
-                      onValueChange={(value) => updateDealer('payout_cadence', value)}
+                      value={editDialog.ambassador.payout_cadence}
+                      onValueChange={(value) => updateAmbassador('payout_cadence', value)}
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -763,20 +759,20 @@ export default function DealerManagement() {
                       type="number"
                       min="0"
                       step="0.01"
-                      value={editDialog.dealer.payout_minimum}
-                      onChange={(e) => updateDealer('payout_minimum', parseFloat(e.target.value))}
+                      value={editDialog.ambassador.payout_minimum}
+                      onChange={(e) => updateAmbassador('payout_minimum', parseFloat(e.target.value))}
                     />
                   </div>
                 </div>
 
-                {editDialog.dealer.stripe_account_id && (
+                {editDialog.ambassador.stripe_account_id && (
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                     <div className="flex items-center gap-2 text-green-800">
                       <CreditCard className="w-5 h-5" />
                       <span className="font-medium">openTILL Payments Connected</span>
                     </div>
                     <p className="text-sm text-green-600 mt-1">
-                      Account ID: {editDialog.dealer.stripe_account_id}
+                      Account ID: {editDialog.ambassador.stripe_account_id}
                     </p>
                   </div>
                 )}
@@ -791,7 +787,7 @@ export default function DealerManagement() {
                       <p className="text-xs text-gray-500">Remove "Powered by openTILL" from merchant portals</p>
                     </div>
                     <Switch
-                      checked={editDialog.dealer.settings?.hide_opentill_branding || false}
+                      checked={editDialog.ambassador.settings?.hide_opentill_branding || false}
                       onCheckedChange={(checked) => updateSettings('hide_opentill_branding', checked)}
                     />
                   </div>
@@ -799,10 +795,10 @@ export default function DealerManagement() {
                   <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div>
                       <Label>Allow Merchant Self-Signup</Label>
-                      <p className="text-xs text-gray-500">Let merchants register without dealer approval</p>
+                      <p className="text-xs text-gray-500">Let merchants register without ambassador approval</p>
                     </div>
                     <Switch
-                      checked={editDialog.dealer.settings?.allow_merchant_self_signup !== false}
+                      checked={editDialog.ambassador.settings?.allow_merchant_self_signup !== false}
                       onCheckedChange={(checked) => updateSettings('allow_merchant_self_signup', checked)}
                     />
                   </div>
@@ -810,10 +806,10 @@ export default function DealerManagement() {
                   <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div>
                       <Label>Custom Pricing Enabled</Label>
-                      <p className="text-xs text-gray-500">Allow dealer to set custom subscription prices</p>
+                      <p className="text-xs text-gray-500">Allow ambassador to set custom subscription prices</p>
                     </div>
                     <Switch
-                      checked={editDialog.dealer.settings?.custom_pricing_enabled || false}
+                      checked={editDialog.ambassador.settings?.custom_pricing_enabled || false}
                       onCheckedChange={(checked) => updateSettings('custom_pricing_enabled', checked)}
                     />
                   </div>
@@ -822,7 +818,7 @@ export default function DealerManagement() {
                 <div>
                   <Label>Default Merchant Plan</Label>
                   <Select
-                    value={editDialog.dealer.settings?.default_merchant_plan || 'basic'}
+                    value={editDialog.ambassador.settings?.default_merchant_plan || 'basic'}
                     onValueChange={(value) => updateSettings('default_merchant_plan', value)}
                   >
                     <SelectTrigger>
@@ -840,7 +836,7 @@ export default function DealerManagement() {
                 <div>
                   <Label>Custom Login Message</Label>
                   <Textarea
-                    value={editDialog.dealer.settings?.custom_login_message || ''}
+                    value={editDialog.ambassador.settings?.custom_login_message || ''}
                     onChange={(e) => updateSettings('custom_login_message', e.target.value)}
                     placeholder="Welcome to Acme POS! Contact support@acmepos.com for help."
                     rows={3}
@@ -850,7 +846,7 @@ export default function DealerManagement() {
                 <div>
                   <Label>Custom Support URL</Label>
                   <Input
-                    value={editDialog.dealer.settings?.custom_support_url || ''}
+                    value={editDialog.ambassador.settings?.custom_support_url || ''}
                     onChange={(e) => updateSettings('custom_support_url', e.target.value)}
                     placeholder="https://support.yourcompany.com"
                   />
@@ -860,11 +856,11 @@ export default function DealerManagement() {
           )}
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditDialog({ open: false, dealer: null, tab: 'basic' })}>
+            <Button variant="outline" onClick={() => setEditDialog({ open: false, ambassador: null, tab: 'basic' })}>
               Cancel
             </Button>
-            <Button onClick={handleSaveDealer}>
-              {editDialog.dealer?.id ? 'Update' : 'Create'} Dealer
+            <Button onClick={handleSaveAmbassador}>
+              {editDialog.ambassador?.id ? 'Update' : 'Create'} Ambassador
             </Button>
           </DialogFooter>
         </DialogContent>
