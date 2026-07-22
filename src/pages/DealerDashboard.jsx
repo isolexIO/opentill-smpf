@@ -232,7 +232,7 @@ export default function DealerDashboardPage() {
               </TabsList>
               <TabsContent value="branding"><DealerBrandingSettings dealer={dealer} onUpdate={loadDealerData} /></TabsContent>
               <TabsContent value="payments"><StripeConnectSetup dealer={dealer} onUpdate={loadDealerData} /></TabsContent>
-              <TabsContent value="domains"><SNSSubdomainRegistration dealer={dealer} onUpdate={loadDealerData} /></TabsContent>
+              <TabsContent value="domains"><SNSSubdomainRegistration ownerType="ambassador" ownerId={dealer.id} onUpdate={loadDealerData} /></TabsContent>
             </Tabs>
           </TabsContent>
         </Tabs>

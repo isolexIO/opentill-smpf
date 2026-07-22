@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,16 +16,30 @@ import {
 } from 'lucide-react';
 
 const PARENT_DOMAIN = 'opentill.sol';
+const ENTITY_MAP = { ambassador: 'Ambassador', merchant: 'Merchant', builder: 'Builder' };
 
-export default function SNSSubdomainRegistration({ dealer, onUpdate }) {
+export default function SNSSubdomainRegistration({ ownerType, ownerId, onUpdate }) {
   const [label, setLabel] = useState('');
   const [loading, setLoading] = useState(false);
+  const [owner, setOwner] = useState(null);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [copied, setCopied] = useState(false);
 
-  const current = dealer?.opentill_subdomain;
-  const isActive = dealer?.subdomain_status === 'active';
+  const loadOwner = async () => {
+    if (!ownerType || !ownerId || !ENTITY_MAP[ownerType]) return;
+    try {
+      const list = await base44.entities[ENTITY_MAP[ownerType]].filter({ id: ownerId });
+      if (list && list.length) setOwner(list[0]);
+    } catch {
+      /* ignore */
+    }
+  };
+
+  useEffect(() => { loadOwner(); }, [ownerType, ownerId]);
+
+  const current = owner?.opentill_subdomain;
+  const isActive = owner?.subdomain_status === 'active';
   const fullDomain = current ? `${current}.${PARENT_DOMAIN}` : null;
 
   const cleanLabel = (val) =>
@@ -42,13 +56,15 @@ export default function SNSSubdomainRegistration({ dealer, onUpdate }) {
     try {
       setLoading(true);
       const res = await base44.functions.invoke('registerAmbassadorSNSSubdomain', {
-        ambassador_id: dealer.id,
+        owner_type: ownerType,
+        owner_id: ownerId,
         subdomain: clean,
       });
       const data = res?.data || {};
       if (data.success) {
         setResult({ subdomain: data.subdomain, tx_signature: data.tx_signature });
         setLabel('');
+        await loadOwner();
         await onUpdate?.();
       } else {
         setError(data.error || 'Registration failed.');
@@ -110,7 +126,7 @@ export default function SNSSubdomainRegistration({ dealer, onUpdate }) {
               <CheckCircle className="h-4 w-4 text-green-600" />
               <AlertDescription className="text-green-800">
                 Your subdomain is registered on-chain via Solana Name Service and owned by the openTILL
-                authority wallet. It resolves to your ambassador portal.
+                authority wallet.
               </AlertDescription>
             </Alert>
           </>

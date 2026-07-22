@@ -4,11 +4,12 @@ import { createPageUrl } from '@/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { DollarSign, Package, Plus, TrendingUp, Users, AlertCircle, Loader2, BookOpen } from 'lucide-react';
+import { DollarSign, Package, Plus, TrendingUp, Users, AlertCircle, Loader2, BookOpen, Globe } from 'lucide-react';
 import SubmissionManager from '@/components/builders/SubmissionManager.jsx';
 import AnalyticsDashboard from '@/components/builders/AnalyticsDashboard.jsx';
 import ProfileSettings from '@/components/builders/ProfileSettings.jsx';
 import ChipSubmissionDocs from '@/components/builders/ChipSubmissionDocs.jsx';
+import SNSSubdomainRegistration from '@/components/dealer/SNSSubdomainRegistration.jsx';
 
 export default function BuilderDashboardPage() {
   const [user, setUser] = useState(null);
@@ -190,6 +191,9 @@ export default function BuilderDashboardPage() {
               <TabsTrigger value="settings" className="rounded-t-lg">
                 Settings
               </TabsTrigger>
+              <TabsTrigger value="domain" className="rounded-t-lg">
+                <Globe className="w-4 h-4 mr-1" /> Domain
+              </TabsTrigger>
               <TabsTrigger value="docs" className="rounded-t-lg">
                 <BookOpen className="w-4 h-4 mr-1" /> How to Submit
               </TabsTrigger>
@@ -205,6 +209,12 @@ export default function BuilderDashboardPage() {
 
             <TabsContent value="settings">
               <ProfileSettings builder={builder} user={user} onUpdated={loadData} />
+            </TabsContent>
+
+            <TabsContent value="domain">
+              <div className="p-6">
+                <SNSSubdomainRegistration ownerType="builder" ownerId={builder.id} onUpdate={loadData} />
+              </div>
             </TabsContent>
 
             <TabsContent value="docs">

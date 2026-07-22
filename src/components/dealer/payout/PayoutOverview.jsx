@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import {
-  DollarSign, Clock, CheckCircle, Calendar, Eye, Zap, AlertCircle,
+  DollarSign, Clock, CheckCircle, Calendar, Eye, AlertCircle,
   Loader2, RefreshCw, TrendingUp, XCircle, ArrowUpRight
 } from 'lucide-react';
 
@@ -26,7 +26,6 @@ export default function PayoutOverview({ dealer, onUpdate }) {
   const [payouts, setPayouts]           = useState([]);
   const [preview, setPreview]           = useState(null);
   const [selectedPayout, setSelectedPayout] = useState(null);
-  const [triggeringId, setTriggeringId] = useState(null);
   const [loading, setLoading]           = useState(true);
   const [refreshing, setRefreshing]     = useState(false);
   const [stats, setStats]               = useState({ totalEarned: 0, pending: 0, lastDate: null, nextDate: null });
@@ -63,24 +62,6 @@ export default function PayoutOverview({ dealer, onUpdate }) {
     } catch { /* silent */ }
   };
 
-  const handleTrigger = async (payout) => {
-    if (!confirm(`Trigger instant payout of $${payout.commission_amount.toFixed(2)}?\n\nThis will attempt to process the payout immediately using your configured payout method.`)) return;
-    setTriggeringId(payout.id);
-    try {
-      const { data } = await base44.functions.invoke('triggerManualPayout', { payout_id: payout.id });
-      if (data?.success) {
-        alert(`✓ Payout triggered successfully!`);
-        await refresh();
-      } else {
-        alert(`Failed: ${data?.error || 'Unknown error'}`);
-      }
-    } catch (e) {
-      alert(`Error: ${e.message}`);
-    } finally {
-      setTriggeringId(null);
-    }
-  };
-
   const handleViewDetails = async (payout) => {
     const items = await base44.entities.DealerPayoutItem.filter({ payout_id: payout.id });
     setSelectedPayout({ ...payout, items });
@@ -96,8 +77,6 @@ export default function PayoutOverview({ dealer, onUpdate }) {
       <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
     </div>
   );
-
-  const canTrigger = (p) => ['pending', 'on_hold', 'failed', 'scheduled'].includes(p.status);
 
   return (
     <div className="space-y-6">
@@ -230,18 +209,6 @@ export default function PayoutOverview({ dealer, onUpdate }) {
                           <Button variant="ghost" size="sm" onClick={() => handleViewDetails(payout)} title="View Details">
                             <Eye className="w-4 h-4" />
                           </Button>
-                          {canTrigger(payout) && (
-                            <Button
-                              size="sm"
-                              className="bg-emerald-600 hover:bg-emerald-700 text-white h-8 px-3 text-xs"
-                              onClick={() => handleTrigger(payout)}
-                              disabled={triggeringId === payout.id}
-                            >
-                              {triggeringId === payout.id
-                                ? <Loader2 className="w-3 h-3 animate-spin" />
-                                : <><Zap className="w-3 h-3 mr-1" />Pay Now</>}
-                            </Button>
-                          )}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -338,16 +305,6 @@ export default function PayoutOverview({ dealer, onUpdate }) {
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setSelectedPayout(null)}>Close</Button>
-            {selectedPayout && canTrigger(selectedPayout) && (
-              <Button
-                className="bg-emerald-600 hover:bg-emerald-700 text-white"
-                disabled={triggeringId === selectedPayout?.id}
-                onClick={() => { setSelectedPayout(null); handleTrigger(selectedPayout); }}
-              >
-                <Zap className="w-4 h-4 mr-2" />
-                Trigger Instant Payout
-              </Button>
-            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

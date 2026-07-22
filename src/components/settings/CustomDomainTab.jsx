@@ -35,6 +35,7 @@ import {
   Lock,
   ExternalLink
 } from 'lucide-react';
+import SNSSubdomainRegistration from '@/components/dealer/SNSSubdomainRegistration.jsx';
 
 export default function CustomDomainTab() {
   const [domains, setDomains] = useState([]);
@@ -248,6 +249,11 @@ export default function CustomDomainTab() {
 
   return (
     <div className="space-y-6">
+      {/* SNS subdomain registration */}
+      {currentUser?.merchant_id && (
+        <SNSSubdomainRegistration ownerType="merchant" ownerId={currentUser.merchant_id} onUpdate={loadDomains} />
+      )}
+
       {/* PCI-DSS Compliance Notice */}
       <Alert>
         <Shield className="h-4 w-4" />

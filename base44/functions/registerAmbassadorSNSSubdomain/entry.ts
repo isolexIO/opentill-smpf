@@ -14,12 +14,13 @@ const HASH_PREFIX = 'SPL Name Service';
 const NAME_PROGRAM_ID = new PublicKey(
   'namesLPneVptA9Z5rqUDD9tMTWEJwofgaYwp8cawRkX'
 );
-// The .sol TLD name account — parent of every top-level .sol domain.
 const ROOT_DOMAIN_ACCOUNT = new PublicKey(
   '58PwtjSDuFHuUkYjH9BYnnQKHfwo9reZhC2zMJv9JPkx'
 );
 const HEADER_LEN = 96; // NameRegistryState.HEADER_LEN
-const SPACE = 2000; // subdomain data space (matches SDK default)
+// Ownership-only subdomain (header only, no record data). Keeps rent minimal
+// (~0.0016 SOL) so the authority wallet can register many subdomains.
+const SPACE = 0;
 
 // ---- SNS hashing / derivation (raw, no SDK dependency) ----
 const ZEROS32 = new Uint8Array(32);
@@ -53,13 +54,11 @@ function concat(...arrs) {
   return out;
 }
 
-// getHashedNameSync(name) = sha256("SPL Name Service" + name)
 async function getHashedName(name) {
   const input = new TextEncoder().encode(HASH_PREFIX + name);
   return sha256(input);
 }
 
-// getNameAccountKeySync(hashedName, nameClass?, nameParent?)
 function getNameAccountKey(hashedName, nameClass, nameParent) {
   const seeds = [
     hashedName,
@@ -70,18 +69,14 @@ function getNameAccountKey(hashedName, nameClass, nameParent) {
   return key;
 }
 
-// getDomainKeySync for "label.parent" subdomain → returns { parent, pubkey }
 async function getSubdomainKeys(label, parentLabel) {
   const parentHashed = await getHashedName(parentLabel);
   const parentKey = getNameAccountKey(parentHashed, undefined, ROOT_DOMAIN_ACCOUNT);
-
-  // subdomain leaf name is "\0" + label (the SDK prepends a 0-byte prefix)
   const subHashed = await getHashedName('\0' + label);
   const subKey = getNameAccountKey(subHashed, undefined, parentKey);
   return { parentKey, subKey, subHashed };
 }
 
-// Build the SPL Name Service Create (instruction 0) instruction.
 function buildCreateInstruction({
   payer,
   nameKey,
@@ -93,7 +88,7 @@ function buildCreateInstruction({
   parentOwner,
 }) {
   const data = concat(
-    new Uint8Array([0]), // instruction discriminator
+    new Uint8Array([0]),
     u32le(hashedName.length),
     hashedName,
     u64le(lamports),
@@ -101,20 +96,68 @@ function buildCreateInstruction({
   );
 
   const keys = [
-    { pubkey: SystemProgram.programId, isSigner: false, isWritable: false }, // system program
-    { pubkey: payer, isSigner: true, isWritable: true }, // fee payer
-    { pubkey: nameKey, isSigner: false, isWritable: true }, // new name account (PDA)
-    { pubkey: nameOwner, isSigner: false, isWritable: false }, // owner of the new name
-    { pubkey: new PublicKey(ZEROS32), isSigner: false, isWritable: false }, // class (none)
-    { pubkey: parentKey, isSigner: false, isWritable: false }, // parent name
-    { pubkey: parentOwner, isSigner: true, isWritable: false }, // parent owner (signs)
+    { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+    { pubkey: payer, isSigner: true, isWritable: true },
+    { pubkey: nameKey, isSigner: false, isWritable: true },
+    { pubkey: nameOwner, isSigner: false, isWritable: false },
+    { pubkey: new PublicKey(ZEROS32), isSigner: false, isWritable: false },
+    { pubkey: parentKey, isSigner: false, isWritable: false },
+    { pubkey: parentOwner, isSigner: true, isWritable: false },
   ];
 
-  return new TransactionInstruction({
-    keys,
-    programId: NAME_PROGRAM_ID,
-    data,
-  });
+  return new TransactionInstruction({ keys, programId: NAME_PROGRAM_ID, data });
+}
+
+const ENTITY_BY_TYPE = {
+  ambassador: 'Ambassador',
+  merchant: 'Merchant',
+  builder: 'Builder',
+};
+
+async function loadOwner(base44, ownerType, ownerId) {
+  const entity = ENTITY_BY_TYPE[ownerType];
+  if (!entity) return null;
+  const list = await base44.asServiceRole.entities[entity].filter({ id: ownerId });
+  return list && list.length ? list[0] : null;
+}
+
+function isOwnerOf(ownerType, owner, user) {
+  if (ownerType === 'ambassador') {
+    return (
+      (owner.owner_email &&
+        user.email &&
+        owner.owner_email.toLowerCase() === user.email.toLowerCase()) ||
+      (owner.legacy_dealer_id &&
+        user.dealer_id &&
+        owner.legacy_dealer_id === user.dealer_id)
+    );
+  }
+  if (ownerType === 'merchant') {
+    return (
+      (owner.owner_email &&
+        user.email &&
+        owner.owner_email.toLowerCase() === user.email.toLowerCase()) ||
+      (user.merchant_id && user.merchant_id === owner.id)
+    );
+  }
+  if (ownerType === 'builder') {
+    return (
+      owner.user_email &&
+      user.email &&
+      owner.user_email.toLowerCase() === user.email.toLowerCase()
+    );
+  }
+  return false;
+}
+
+async function isSubdomainTaken(base44, subdomain, excludeOwnerId) {
+  for (const entity of Object.values(ENTITY_BY_TYPE)) {
+    const matches = await base44.asServiceRole.entities[entity].filter({
+      opentill_subdomain: subdomain,
+    });
+    if (matches && matches.some((m) => m.id !== excludeOwnerId)) return true;
+  }
+  return false;
 }
 
 Deno.serve(async (req) => {
@@ -124,10 +167,9 @@ Deno.serve(async (req) => {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const isAdmin =
-      user.role === 'admin' || user.role === 'super_admin' || user.role === 'root_admin';
-    if (!isAdmin && user.role !== 'dealer_admin' && user.role !== 'ambassador') {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+      user.role === 'admin' ||
+      user.role === 'super_admin' ||
+      user.role === 'root_admin';
 
     let body = {};
     try {
@@ -135,17 +177,19 @@ Deno.serve(async (req) => {
     } catch {
       body = {};
     }
-    const ambassador_id = body.ambassador_id;
+
+    // Backward-compat: ambassador_id -> owner_type ambassador
+    const ownerType = body.owner_type || (body.ambassador_id ? 'ambassador' : '');
+    const ownerId = body.owner_id || body.ambassador_id;
     let subdomain = (body.subdomain || '').toString().toLowerCase().trim();
 
-    if (!ambassador_id || !subdomain) {
+    if (!ENTITY_BY_TYPE[ownerType] || !ownerId || !subdomain) {
       return Response.json(
-        { error: 'ambassador_id and subdomain are required' },
+        { error: 'owner_type, owner_id and subdomain are required' },
         { status: 400 }
       );
     }
 
-    // Strip any parent/TLD suffix the client may have included.
     if (subdomain.endsWith('.opentill.sol')) subdomain = subdomain.slice(0, -12);
     else if (subdomain.endsWith('.sol')) subdomain = subdomain.slice(0, -4);
     else if (subdomain.endsWith('.opentill')) subdomain = subdomain.slice(0, -9);
@@ -160,38 +204,24 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Load ambassador (service role bypasses RLS; we enforce authorization manually).
-    const ambassadors = await base44.asServiceRole.entities.Ambassador.filter({
-      id: ambassador_id,
-    });
-    if (!ambassadors || ambassadors.length === 0) {
-      return Response.json({ error: 'Ambassador not found' }, { status: 404 });
+    const owner = await loadOwner(base44, ownerType, ownerId);
+    if (!owner) {
+      return Response.json({ error: `${ownerType} not found` }, { status: 404 });
     }
-    const ambassador = ambassadors[0];
-
-    const isOwner =
-      (ambassador.owner_email &&
-        user.email &&
-        ambassador.owner_email.toLowerCase() === user.email.toLowerCase()) ||
-      (ambassador.legacy_dealer_id &&
-        user.dealer_id &&
-        ambassador.legacy_dealer_id === user.dealer_id);
-    if (!isAdmin && !isOwner) {
-      return Response.json({ error: 'Forbidden: not the ambassador owner' }, { status: 403 });
-    }
-
-    // Uniqueness across ambassadors.
-    const existing = await base44.asServiceRole.entities.Ambassador.filter({
-      opentill_subdomain: subdomain,
-    });
-    if (existing && existing.some((a) => a.id !== ambassador_id)) {
+    if (!isAdmin && !isOwnerOf(ownerType, owner, user)) {
       return Response.json(
-        { error: `Subdomain "${subdomain}.opentill.sol" is already taken.` },
+        { error: 'Forbidden: not the owner' },
+        { status: 403 }
+      );
+    }
+
+    if (await isSubdomainTaken(base44, subdomain, ownerId)) {
+      return Response.json(
+        { error: `Subdomain "${subdomain}.${PARENT_DOMAIN}.sol" is already taken.` },
         { status: 409 }
       );
     }
 
-    // Solana connection.
     const network = Deno.env.get('SOLANA_NETWORK') || 'devnet';
     const rpcUrl =
       network === 'mainnet'
@@ -199,7 +229,6 @@ Deno.serve(async (req) => {
         : 'https://api.devnet.solana.com';
     const connection = new Connection(rpcUrl, 'confirmed');
 
-    // Authority keypair (parent domain owner / fee payer).
     const authoritySecretKey = Deno.env.get('SOLANA_AUTHORITY_PRIVATE_KEY');
     if (!authoritySecretKey) {
       return Response.json(
@@ -219,8 +248,10 @@ Deno.serve(async (req) => {
     }
     const authorityKeypair = Keypair.fromSecretKey(authoritySecretKeyBytes);
 
-    // Derive parent + subdomain keys, verify the parent domain exists and is owned by the authority.
-    const { parentKey, subKey, subHashed } = await getSubdomainKeys(subdomain, PARENT_DOMAIN);
+    const { parentKey, subKey, subHashed } = await getSubdomainKeys(
+      subdomain,
+      PARENT_DOMAIN
+    );
 
     const parentInfo = await connection.getAccountInfo(parentKey);
     if (!parentInfo || !parentInfo.data || parentInfo.data.length < 64) {
@@ -231,7 +262,6 @@ Deno.serve(async (req) => {
         { status: 400 }
       );
     }
-    // NameRegistryState header: parentName(32) | owner(32) | class(32)
     const parentOwner = new PublicKey(parentInfo.data.slice(32, 64));
     if (!parentOwner.equals(authorityKeypair.publicKey)) {
       return Response.json(
@@ -242,8 +272,36 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Rent-exempt lamports for the subdomain name account (space + header).
-    const lamports = await connection.getMinimumBalanceForRentExemption(SPACE + HEADER_LEN);
+    const lamports = await connection.getMinimumBalanceForRentExemption(
+      SPACE + HEADER_LEN
+    );
+
+    // Pre-check authority balance so we return a clean, actionable error
+    // instead of an opaque on-chain simulation failure.
+    const balance = await connection.getBalance(authorityKeypair.publicKey);
+    const feeBuffer = 20000; // lamports for tx fee + margin
+    if (balance < lamports + feeBuffer) {
+      return Response.json(
+        {
+          error: `The authority wallet (${authorityKeypair.publicKey.toBase58()}) has insufficient SOL on ${network}: needs ~${(
+            (lamports + feeBuffer) /
+            1_000_000_000
+          ).toFixed(5)} SOL, has ~${(balance / 1_000_000_000).toFixed(5)} SOL. Please fund the authority wallet.`,
+        },
+        { status: 400 }
+      );
+    }
+
+    // Reject if the subdomain account already exists on-chain.
+    const existing = await connection.getAccountInfo(subKey);
+    if (existing) {
+      return Response.json(
+        {
+          error: `Subdomain "${subdomain}.${PARENT_DOMAIN}.sol" is already registered on-chain.`,
+        },
+        { status: 409 }
+      );
+    }
 
     const ix = buildCreateInstruction({
       payer: authorityKeypair.publicKey,
@@ -257,16 +315,21 @@ Deno.serve(async (req) => {
     });
 
     const transaction = new Transaction().add(ix);
-    const signature = await connection.sendTransaction(transaction, [authorityKeypair]);
+    const signature = await connection.sendTransaction(transaction, [
+      authorityKeypair,
+    ]);
     await connection.confirmTransaction(signature);
 
-    await base44.asServiceRole.entities.Ambassador.update(ambassador_id, {
+    const entity = ENTITY_BY_TYPE[ownerType];
+    const update = {
       opentill_subdomain: subdomain,
       subdomain_status: 'active',
       subdomain_approved_at: new Date().toISOString(),
-      subdomain_requested_at: ambassador.subdomain_requested_at || new Date().toISOString(),
+      subdomain_requested_at:
+        owner.subdomain_requested_at || new Date().toISOString(),
       subdomain_wallet: authorityKeypair.publicKey.toBase58(),
-    });
+    };
+    await base44.asServiceRole.entities[entity].update(ownerId, update);
 
     return Response.json({
       success: true,
@@ -277,6 +340,9 @@ Deno.serve(async (req) => {
     });
   } catch (error) {
     console.error('registerAmbassadorSNSSubdomain error:', error);
-    return Response.json({ success: false, error: error.message }, { status: 500 });
+    return Response.json(
+      { success: false, error: error.message || 'Unknown error' },
+      { status: 500 }
+    );
   }
 });

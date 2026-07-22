@@ -105,6 +105,34 @@
       "type": "number",
       "default": 0,
       "description": "Total chip installations"
+    },
+    "opentill_subdomain": {
+      "type": "string",
+      "description": "Unique .opentill.sol subdomain"
+    },
+    "subdomain_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "active",
+        "disabled"
+      ],
+      "default": "pending",
+      "description": "Subdomain activation status"
+    },
+    "subdomain_requested_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When subdomain was requested"
+    },
+    "subdomain_approved_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When subdomain was approved"
+    },
+    "subdomain_wallet": {
+      "type": "string",
+      "description": "Authority wallet that minted the subdomain"
     }
   },
   "required": [
