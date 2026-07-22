@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { Buffer } from 'node:buffer';
 import { Connection, PublicKey, Transaction, SystemProgram, Keypair } from 'npm:@solana/web3.js@1.95.8';
 import {
   createCreateMetadataAccountV3Instruction,
@@ -82,9 +83,16 @@ Deno.serve(async (req) => {
       }, { status: 500 });
     }
 
-    const authorityKeypair = Keypair.fromSecretKey(
-      new Uint8Array(JSON.parse(authoritySecretKey))
-    );
+    let authoritySecretKeyBytes;
+    const trimmed = authoritySecretKey.trim();
+    if (trimmed.startsWith('[')) {
+      authoritySecretKeyBytes = new Uint8Array(JSON.parse(trimmed));
+    } else {
+      // base58 encoded key
+      const bs58 = await import('npm:bs58@5.0.0');
+      authoritySecretKeyBytes = new Uint8Array(bs58.default ? bs58.default.decode(trimmed) : bs58.decode(trimmed));
+    }
+    const authorityKeypair = Keypair.fromSecretKey(authoritySecretKeyBytes);
 
     // Create mint account
     const mint = await createMint(
