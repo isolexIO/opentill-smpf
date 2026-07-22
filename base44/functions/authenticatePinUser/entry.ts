@@ -30,11 +30,20 @@ function checkRateLimit(ipAddress) {
 Deno.serve(async (req) => {
   try {
     const body = await req.json();
-    const { pin } = body;
+    const { pin, merchant_id } = body;
     
     if (!pin || typeof pin !== 'string') {
       return Response.json(
         { success: false, error: 'Invalid PIN provided' },
+        { status: 400 }
+      );
+    }
+
+    // PINs are short numeric codes that collide across merchants. Require a
+    // tenant scope so logins are isolated to the requesting merchant.
+    if (!merchant_id || typeof merchant_id !== 'string') {
+      return Response.json(
+        { success: false, error: 'Merchant context is required for PIN login.' },
         { status: 400 }
       );
     }
@@ -58,7 +67,7 @@ Deno.serve(async (req) => {
     // Use service role to securely look up PIN - never expose all users
     let user;
     try {
-      const users = await base44.asServiceRole.entities.User.filter({ pin });
+      const users = await base44.asServiceRole.entities.User.filter({ pin, merchant_id });
       
       if (!users || users.length === 0) {
         // Generic error - don't reveal if PIN exists

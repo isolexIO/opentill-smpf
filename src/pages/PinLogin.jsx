@@ -83,7 +83,18 @@ export default function PinLoginPage() {
     setError('');
 
     try {
-      const { data } = await base44.functions.invoke('authenticatePinUser', { pin });
+      // PINs are scoped per-merchant. Resolve this device's merchant from the
+      // login URL or from a prior merchant sign-in stored on the device.
+      const merchant_id = new URLSearchParams(window.location.search).get('merchant_id')
+        || localStorage.getItem('deviceMerchantId');
+
+      if (!merchant_id) {
+        setError('This device is not registered to a merchant. Please sign in with your merchant account first.');
+        setLoading(false);
+        return;
+      }
+
+      const { data } = await base44.functions.invoke('authenticatePinUser', { pin, merchant_id });
 
       if (!data.success) {
         setError(data.error || 'Invalid PIN. Please try again.');
@@ -94,6 +105,7 @@ export default function PinLoginPage() {
 
       const user = data.user;
       localStorage.setItem('pinLoggedInUser', JSON.stringify(user));
+      if (user.merchant_id) localStorage.setItem('deviceMerchantId', user.merchant_id);
 
       // Redirect based on role and context
       const role = user.role;

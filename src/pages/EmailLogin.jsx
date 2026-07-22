@@ -61,6 +61,7 @@ export default function EmailLoginPage() {
 
   const redirectAfterLogin = (user) => {
     localStorage.setItem('pinLoggedInUser', JSON.stringify(user));
+    if (user.merchant_id) localStorage.setItem('deviceMerchantId', user.merchant_id);
     const role = user.role;
     if (['admin', 'super_admin', 'root_admin'].includes(role)) {
       window.location.href = createPageUrl('SuperAdmin');

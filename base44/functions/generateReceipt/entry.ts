@@ -154,14 +154,25 @@ function generateReceiptText(order, merchant) {
   return receipt;
 }
 
+function escapeHtml(value) {
+  if (value === null || value === undefined) return '';
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function generateReceiptHtml(order, merchant) {
+  const e = escapeHtml;
   return `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Receipt - ${order.order_number}</title>
+  <title>Receipt - ${e(order.order_number)}</title>
   <style>
     body {
       font-family: 'Courier New', monospace;
@@ -190,23 +201,23 @@ function generateReceiptHtml(order, merchant) {
 <body>
   <div class="receipt">
     <div class="center header">ChainLINK POS</div>
-    <div class="center">${merchant.business_name || 'Store'}</div>
-    <div class="center">${merchant.address || ''}</div>
-    <div class="center">${merchant.phone || ''}</div>
+    <div class="center">${e(merchant.business_name || 'Store')}</div>
+    <div class="center">${e(merchant.address || '')}</div>
+    <div class="center">${e(merchant.phone || '')}</div>
     <div class="line"></div>
     
-    <div>Order #: ${order.order_number}</div>
-    <div>Date: ${new Date(order.created_date).toLocaleString()}</div>
-    <div>Station: ${order.station_name || order.station_id}</div>
-    ${order.customer_name ? `<div>Customer: ${order.customer_name}</div>` : ''}
+    <div>Order #: ${e(order.order_number)}</div>
+    <div>Date: ${e(new Date(order.created_date).toLocaleString())}</div>
+    <div>Station: ${e(order.station_name || order.station_id)}</div>
+    ${order.customer_name ? `<div>Customer: ${e(order.customer_name)}</div>` : ''}
     <div class="line"></div>
     
     ${order.items.map(item => `
       <div class="row">
-        <span>${item.quantity}x ${item.product_name}</span>
+        <span>${e(item.quantity)}x ${e(item.product_name)}</span>
         <span>$${(item.item_total * item.quantity).toFixed(2)}</span>
       </div>
-      ${item.modifiers?.map(mod => `<div style="margin-left: 20px;">+ ${mod.name}</div>`).join('') || ''}
+      ${item.modifiers?.map(mod => `<div style="margin-left: 20px;">+ ${e(mod.name)}</div>`).join('') || ''}
     `).join('')}
     
     <div class="spacer"></div>
@@ -233,7 +244,7 @@ function generateReceiptHtml(order, merchant) {
     ` : ''}
     ${order.surcharge_amount > 0 ? `
       <div class="row">
-        <span>${order.surcharge_label || 'Surcharge'}:</span>
+        <span>${e(order.surcharge_label || 'Surcharge')}:</span>
         <span>$${order.surcharge_amount.toFixed(2)}</span>
       </div>
     ` : ''}
@@ -247,19 +258,19 @@ function generateReceiptHtml(order, merchant) {
     
     <div class="row">
       <span>Payment:</span>
-      <span>${order.payment_method?.toUpperCase()}</span>
+      <span>${e(order.payment_method?.toUpperCase())}</span>
     </div>
     ${order.payment_details?.card_last_4 ? `
       <div class="row">
         <span>Card:</span>
-        <span>****${order.payment_details.card_last_4}</span>
+        <span>****${e(order.payment_details.card_last_4)}</span>
       </div>
     ` : ''}
     
     ${order.age_verification?.verified ? `
       <div class="spacer"></div>
       <div class="center bold">AGE VERIFIED</div>
-      <div class="center">By: ${order.age_verification.verified_by_user_name}</div>
+      <div class="center">By: ${e(order.age_verification.verified_by_user_name)}</div>
     ` : ''}
     
     <div class="line"></div>
