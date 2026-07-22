@@ -1,6 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 import Stripe from 'npm:stripe@17.4.0';
-import { PublicKey } from 'npm:@solana/web3.js@1.91.4';
+import { Connection, PublicKey, Keypair } from 'npm:@solana/web3.js@1.95.8';
+import { getOrCreateAssociatedTokenAccount, getAssociatedTokenAddress, transfer } from 'npm:@solana/spl-token@0.3.9';
 
 /**
  * Process a single dealer payout
@@ -78,7 +79,7 @@ Deno.serve(async (req) => {
           break;
         
         case 'solana':
-          result = await processSolana(dealer, payout);
+          result = await processSolana(base44, dealer, payout);
           break;
         
         case 'manual':
@@ -256,11 +257,8 @@ async function processStripeConnect(dealer, payout) {
   }
 }
 
-function processSolana(dealer, payout) {
+async function processSolana(base44, dealer, payout) {
   try {
-    // This is a simplified implementation
-    // In production, you'd need proper key management and custody solutions
-    
     if (!dealer.solana_wallet_address) {
       return {
         success: false,
@@ -268,7 +266,7 @@ function processSolana(dealer, payout) {
       };
     }
 
-    // Validate Solana address
+    // Validate recipient address
     let recipientPubkey;
     try {
       recipientPubkey = new PublicKey(dealer.solana_wallet_address);
@@ -279,43 +277,94 @@ function processSolana(dealer, payout) {
       };
     }
 
-    // Note: This requires a funded platform wallet with private key
-    // In production, use a secure key management system (KMS, HSM, etc.)
-    
-    // For now, return a placeholder indicating manual processing needed
-    return {
-      success: false,
-      error: 'Solana payouts require manual processing or custodial integration'
-    };
+    // Resolve $DUC mint address from global vault settings
+    const vaultSettings = await base44.asServiceRole.entities.cLINKVaultSettings.filter({ merchant_id: null });
+    const ducMintAddress = vaultSettings?.[0]?.duc_mint_address;
+    if (!ducMintAddress) {
+      return {
+        success: false,
+        error: '$DUC mint address not configured in vault settings'
+      };
+    }
 
-    // Production implementation would look like:
-    /*
-    const connection = new Connection('https://api.mainnet-beta.solana.com');
-    const platformKeypair = Keypair.fromSecretKey(/* load from secure storage *);
-    
-    const lamports = Math.floor(payout.commission_amount * LAMPORTS_PER_SOL / conversionRate);
-    
-    const transaction = new Transaction().add(
-      SystemProgram.transfer({
-        fromPubkey: platformKeypair.publicKey,
-        toPubkey: recipientPubkey,
-        lamports: lamports
-      })
+    // Load platform authority wallet
+    const authoritySecretKey = Deno.env.get('SOLANA_AUTHORITY_PRIVATE_KEY');
+    if (!authoritySecretKey) {
+      return {
+        success: false,
+        error: 'Platform Solana wallet not configured'
+      };
+    }
+
+    const network = Deno.env.get('SOLANA_NETWORK') || 'devnet';
+    const rpcUrl = network === 'mainnet'
+      ? 'https://api.mainnet-beta.solana.com'
+      : 'https://api.devnet.solana.com';
+    const connection = new Connection(rpcUrl, 'confirmed');
+    const authorityKeypair = Keypair.fromSecretKey(new Uint8Array(JSON.parse(authoritySecretKey)));
+    const mint = new PublicKey(ducMintAddress);
+
+    // $DUC is treated 1:1 with USD for payout purposes (6 decimals)
+    const decimals = 6;
+    const usdAmount = payout.commission_amount;
+    const ducAmountRaw = Math.floor(usdAmount * Math.pow(10, decimals));
+
+    if (ducAmountRaw <= 0) {
+      return {
+        success: false,
+        error: 'Payout amount too small to transfer'
+      };
+    }
+
+    // Authority source token account
+    const sourceATA = await getAssociatedTokenAddress(mint, authorityKeypair.publicKey);
+
+    // Check treasury balance
+    let sourceBalance = 0;
+    try {
+      const bal = await connection.getTokenAccountBalance(sourceATA);
+      sourceBalance = bal.value?.uiAmount || 0;
+    } catch (e) {
+      // No source account exists
+    }
+    if (sourceBalance < usdAmount) {
+      return {
+        success: false,
+        error: `Platform $DUC treasury insufficient (${sourceBalance} available, ${usdAmount} required)`
+      };
+    }
+
+    // Recipient token account (create if it doesn't exist, authority funds it)
+    const destATA = await getOrCreateAssociatedTokenAccount(
+      connection,
+      authorityKeypair,
+      mint,
+      recipientPubkey
     );
-    
-    const signature = await connection.sendTransaction(transaction, [platformKeypair]);
-    await connection.confirmTransaction(signature);
-    
+
+    // Transfer $DUC tokens
+    const signature = await transfer(
+      connection,
+      authorityKeypair,
+      sourceATA,
+      destATA.address,
+      authorityKeypair.publicKey,
+      ducAmountRaw,
+      [],
+      { commitment: 'confirmed' }
+    );
+    await connection.confirmTransaction(signature, 'confirmed');
+
     return {
       success: true,
       destination: {
         solana_wallet: dealer.solana_wallet_address,
-        tx_signature: signature
+        tx_signature: signature,
+        duc_amount: usdAmount,
+        duc_mint: ducMintAddress
       },
-      fees: /* calculate gas fees *
+      fees: 0
     };
-    */
-
   } catch (error) {
     console.error('Solana transfer error:', error);
     return {
