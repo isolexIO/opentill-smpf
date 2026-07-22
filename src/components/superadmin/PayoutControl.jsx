@@ -28,24 +28,73 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2, Eye, CheckCircle, XCircle, Clock, AlertCircle } from 'lucide-react';
+import {
+  Loader2,
+  Eye,
+  Zap,
+  Ban,
+  RefreshCw,
+  Calculator,
+  CalendarClock,
+  AlertCircle,
+  CheckCircle,
+  XCircle,
+} from 'lucide-react';
+
+const STATUS_OPTIONS = [
+  'all',
+  'pending',
+  'scheduled',
+  'on_hold',
+  'processing',
+  'completed',
+  'failed',
+  'manual_review',
+  'canceled',
+];
+
+function StatusBadge({ status }) {
+  const map = {
+    pending: { variant: 'outline', className: 'text-yellow-700 border-yellow-300 bg-yellow-50', label: 'Pending' },
+    scheduled: { variant: 'outline', className: 'text-blue-700 border-blue-300 bg-blue-50', label: 'Scheduled' },
+    on_hold: { variant: 'outline', className: 'text-amber-700 border-amber-300 bg-amber-50', label: 'On Hold' },
+    processing: { variant: 'default', className: 'bg-purple-500', label: 'Processing' },
+    completed: { variant: 'default', className: 'bg-green-600', label: 'Completed' },
+    failed: { variant: 'destructive', className: '', label: 'Failed' },
+    manual_review: { variant: 'outline', className: 'text-orange-700 border-orange-300 bg-orange-50', label: 'Manual Review' },
+    canceled: { variant: 'outline', className: 'text-gray-600 border-gray-300 bg-gray-50', label: 'Canceled' },
+  };
+  const b = map[status] || map.pending;
+  return (
+    <Badge variant={b.variant} className={b.className}>{b.label}</Badge>
+  );
+}
 
 export default function PayoutControl() {
   const [payouts, setPayouts] = useState([]);
+  const [dealers, setDealers] = useState({});
   const [loading, setLoading] = useState(true);
-  const [selectedPayout, setSelectedPayout] = useState(null);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [search, setSearch] = useState('');
   const [actionDialog, setActionDialog] = useState({ open: false, payout: null, action: null });
-  const [processAmount, setProcessAmount] = useState('');
+  const [cancelReason, setCancelReason] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [resultMsg, setResultMsg] = useState(null);
+  const [details, setDetails] = useState(null);
 
   useEffect(() => {
-    loadPayouts();
+    loadAll();
   }, []);
 
-  const loadPayouts = async () => {
+  const loadAll = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const payoutList = await base44.entities.DealerPayout.list('-created_date', 100);
-      setPayouts(payoutList);
+      const [payoutList, dealerList] = await Promise.all([
+        base44.entities.DealerPayout.list('-created_date', 200),
+        base44.entities.Dealer.list(),
+      ]);
+      setPayouts(Array.isArray(payoutList) ? payoutList : []);
+      setDealers(Object.fromEntries((dealerList || []).map((d) => [d.id, d])));
     } catch (error) {
       console.error('Error loading payouts:', error);
     } finally {
@@ -53,120 +102,126 @@ export default function PayoutControl() {
     }
   };
 
-  const handleViewDetails = async (payout) => {
-    try {
-      const items = await base44.entities.DealerPayoutItem.filter({
-        payout_id: payout.id
-      });
-      setSelectedPayout({ ...payout, items });
-    } catch (error) {
-      console.error('Error loading payout details:', error);
-    }
-  };
+  const dealerFor = (payout) => dealers[payout?.dealer_id];
+  const dealerName = (payout) => dealerFor(payout)?.name || (payout?.dealer_id ? payout.dealer_id.slice(-6) : 'Unknown');
+  const stripeConnected = (payout) => !!dealerFor(payout)?.stripe_account_id;
 
-  const handleApprove = async () => {
-    try {
-      const user = await base44.auth.me();
-      await base44.entities.DealerPayout.update(actionDialog.payout.id, {
-        status: 'approved',
-        approved_by: user.email,
-        approved_at: new Date().toISOString()
-      });
-
-      // Send notification
-      try {
-        await base44.functions.invoke('triggerManualPayoutNotification', {
-          ambassador_id: actionDialog.payout.dealer_id,
-          action: 'approved',
-          reason: 'Payout approved by administrator',
-          amount: actionDialog.payout.commission_amount,
-          payout_id: actionDialog.payout.id
-        });
-      } catch (notifyError) {
-        console.error('Notification failed:', notifyError);
-      }
-
-      await loadPayouts();
-      setActionDialog({ open: false, payout: null, action: null });
-    } catch (error) {
-      console.error('Error approving payout:', error);
-      alert('Failed to approve payout');
-    }
-  };
-
-  const handleReject = async () => {
-    try {
-      const user = await base44.auth.me();
-      await base44.entities.DealerPayout.update(actionDialog.payout.id, {
-        status: 'rejected',
-        rejected_by: user.email,
-        rejected_at: new Date().toISOString()
-      });
-
-      // Send notification
-      try {
-        await base44.functions.invoke('triggerManualPayoutNotification', {
-          ambassador_id: actionDialog.payout.dealer_id,
-          action: 'rejected',
-          reason: 'Payout rejected by administrator',
-          amount: actionDialog.payout.commission_amount,
-          payout_id: actionDialog.payout.id
-        });
-      } catch (notifyError) {
-        console.error('Notification failed:', notifyError);
-      }
-
-      await loadPayouts();
-      setActionDialog({ open: false, payout: null, action: null });
-    } catch (error) {
-      console.error('Error rejecting payout:', error);
-      alert('Failed to reject payout');
-    }
-  };
-
-  const handleProcess = async () => {
-    try {
-      const response = await base44.functions.invoke('triggerManualPayout', {
-        payout_id: actionDialog.payout.id,
-        manual_override_amount: processAmount ? parseFloat(processAmount) : null
-      });
-
-      if (response.data.success) {
-        await loadPayouts();
-        setActionDialog({ open: false, payout: null, action: null });
-        setProcessAmount('');
-        alert('Payout processed successfully');
-      } else {
-        alert('Failed to process payout: ' + response.data.error);
-      }
-    } catch (error) {
-      console.error('Error processing payout:', error);
-      alert('Failed to process payout');
-    }
-  };
-
-  const getStatusBadge = (status) => {
-    const badges = {
-      pending: { variant: 'outline', text: 'Pending Approval', color: 'text-yellow-600' },
-      approved: { variant: 'default', text: 'Approved', className: 'bg-blue-500' },
-      processing: { variant: 'default', text: 'Processing', className: 'bg-purple-500' },
-      completed: { variant: 'default', text: 'Completed', className: 'bg-green-500' },
-      rejected: { variant: 'destructive', text: 'Rejected' },
-      failed: { variant: 'destructive', text: 'Failed' },
-      on_hold: { variant: 'outline', text: 'On Hold' }
-    };
-
-    const badge = badges[status] || badges.pending;
-    return <Badge variant={badge.variant} className={badge.className}>{badge.text}</Badge>;
-  };
+  const filtered = payouts.filter((p) => {
+    const matchesStatus = statusFilter === 'all' || p.status === statusFilter;
+    const q = search.trim().toLowerCase();
+    const matchesSearch = !q || dealerName(p).toLowerCase().includes(q) || (p.id || '').toLowerCase().includes(q);
+    return matchesStatus && matchesSearch;
+  });
 
   const stats = {
-    pending: payouts.filter(p => p.status === 'pending').length,
-    approved: payouts.filter(p => p.status === 'approved').length,
-    totalAmount: payouts
-      .filter(p => ['completed', 'processing', 'approved'].includes(p.status))
-      .reduce((sum, p) => sum + (p.commission_amount || 0), 0)
+    open: payouts.filter((p) => ['pending', 'scheduled', 'on_hold', 'manual_review', 'failed'].includes(p.status)).length,
+    completed: payouts.filter((p) => p.status === 'completed').length,
+    paidOut: payouts.filter((p) => p.status === 'completed').reduce((s, p) => s + (p.commission_amount || 0), 0),
+    pendingAmount: payouts.filter((p) => ['pending', 'scheduled', 'on_hold', 'manual_review', 'failed'].includes(p.status)).reduce((s, p) => s + (p.commission_amount || 0), 0),
   };
+
+  const showResult = (type, text) => setResultMsg({ type, text });
+
+  const openAction = (payout, action) => {
+    setCancelReason('');
+    setResultMsg(null);
+    setActionDialog({ open: true, payout, action });
+  };
+
+  const confirmAction = async () => {
+    const { payout, action } = actionDialog;
+    if (!payout) return;
+    setBusy(true);
+    setResultMsg(null);
+    try {
+      let res;
+      if (action === 'trigger') {
+        res = await base44.functions.invoke('triggerManualPayout', {
+          payout_id: payout.id,
+          bypass_minimum: true,
+        });
+      } else if (action === 'cancel') {
+        res = await base44.functions.invoke('cancelDealerPayout', {
+          payout_id: payout.id,
+          reason: cancelReason,
+        });
+      }
+      const data = res?.data || {};
+      const proc = data.result;
+
+      if (action === 'cancel') {
+        if (data.success) {
+          showResult('success', 'Payout canceled.');
+          await loadAll();
+          setActionDialog({ open: false, payout: null, action: null });
+        } else {
+          showResult('error', data.error || 'Failed to cancel payout.');
+        }
+      } else {
+        // trigger
+        if (data.success && (!proc || proc.success !== false)) {
+          showResult(
+            'success',
+            `Payout processed via Stripe. Transfer ID: ${proc?.destination?.stripe_transfer_id || 'pending confirmation'}`
+          );
+          await loadAll();
+          setActionDialog({ open: false, payout: null, action: null });
+        } else {
+          const msg = proc?.message || proc?.error || data.error || 'Payout could not be processed.';
+          showResult('error', msg);
+          await loadAll();
+        }
+      }
+    } catch (error) {
+      console.error('Payout action error:', error);
+      showResult('error', error.message || 'Action failed.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleCalculate = async () => {
+    setBusy(true);
+    setResultMsg(null);
+    try {
+      const { data } = await base44.functions.invoke('calculateDealerPayouts', {});
+      showResult('success', `Recalculated payouts — ${data?.results?.created || 0} created, ${data?.results?.skipped || 0} skipped.`);
+      await loadAll();
+    } catch (error) {
+      showResult('error', error.message || 'Recalculation failed.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleSchedule = async () => {
+    setBusy(true);
+    setResultMsg(null);
+    try {
+      const { data } = await base44.functions.invoke('schedulePayouts', {});
+      showResult(
+        'success',
+        `Scheduler ran — ${data?.results?.scheduled || 0} scheduled, ${data?.results?.processed || 0} processed.`
+      );
+      await loadAll();
+    } catch (error) {
+      showResult('error', error.message || 'Scheduler failed.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const viewDetails = async (payout) => {
+    try {
+      const items = await base44.entities.DealerPayoutItem.filter({ payout_id: payout.id });
+      setDetails({ ...payout, items: items || [] });
+    } catch (error) {
+      setDetails({ ...payout, items: [] });
+    }
+  };
+
+  const canTrigger = (status) => ['pending', 'on_hold', 'failed', 'manual_review'].includes(status);
+  const canCancel = (status) => ['pending', 'scheduled', 'on_hold'].includes(status);
 
   if (loading) {
     return (
@@ -178,148 +233,197 @@ export default function PayoutControl() {
 
   return (
     <div className="space-y-6">
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {resultMsg && (
+        <Alert className={resultMsg.type === 'success' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}>
+          {resultMsg.type === 'success' ? (
+            <CheckCircle className="h-4 w-4 text-green-600" />
+          ) : (
+            <AlertCircle className="h-4 w-4 text-red-600" />
+          )}
+          <AlertDescription className={resultMsg.type === 'success' ? 'text-green-800' : 'text-red-800'}>
+            {resultMsg.text}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         <Card>
           <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500">Pending Approval</p>
-                <p className="text-2xl font-bold">{stats.pending}</p>
-              </div>
-              <Clock className="w-8 h-8 text-orange-500" />
-            </div>
+            <p className="text-sm text-gray-500">Open Payouts</p>
+            <p className="text-2xl font-bold">{stats.open}</p>
           </CardContent>
         </Card>
-
         <Card>
           <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500">Approved Ready</p>
-                <p className="text-2xl font-bold">{stats.approved}</p>
-              </div>
-              <CheckCircle className="w-8 h-8 text-blue-500" />
-            </div>
+            <p className="text-sm text-gray-500">Pending Amount</p>
+            <p className="text-2xl font-bold">${stats.pendingAmount.toFixed(2)}</p>
           </CardContent>
         </Card>
-
         <Card>
           <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500">Total Processing</p>
-                <p className="text-2xl font-bold">${stats.totalAmount.toFixed(0)}</p>
-              </div>
-              <AlertCircle className="w-8 h-8 text-purple-500" />
-            </div>
+            <p className="text-sm text-gray-500">Completed</p>
+            <p className="text-2xl font-bold">{stats.completed}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-sm text-gray-500">Paid Out (Stripe)</p>
+            <p className="text-2xl font-bold text-green-600">${stats.paidOut.toFixed(2)}</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Payouts List */}
+      {/* Bulk Actions */}
       <Card>
         <CardHeader>
-          <CardTitle>Payout Control Center</CardTitle>
+          <CardTitle>Payout Operations</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-wrap gap-3">
+          <Button onClick={handleCalculate} disabled={busy} variant="outline">
+            <Calculator className="w-4 h-4 mr-2" />
+            Recalculate Payouts
+          </Button>
+          <Button onClick={handleSchedule} disabled={busy} variant="outline">
+            <CalendarClock className="w-4 h-4 mr-2" />
+            Run Scheduler
+          </Button>
+          <Button onClick={loadAll} disabled={busy} variant="ghost">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Refresh
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="w-full sm:w-56">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              {STATUS_OPTIONS.map((s) => (
+                <SelectItem key={s} value={s}>
+                  {s === 'all' ? 'All Statuses' : s.replace('_', ' ')}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <Input
+          placeholder="Search ambassador or payout id..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="flex-1"
+        />
+      </div>
+
+      {/* Payouts Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>All Payouts ({filtered.length})</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Ambassador</TableHead>
-                <TableHead>Period</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Method</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {payouts.map((payout) => (
-                <TableRow key={payout.id}>
-                  <TableCell className="font-medium">
-                    {payout.dealer_name || 'N/A'}
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    {new Date(payout.period_start).toLocaleDateString()} - {new Date(payout.period_end).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell className="font-semibold">
-                    ${payout.commission_amount?.toFixed(2) || '0.00'}
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    {payout.payout_method === 'stripe_connect' ? 'Stripe' :
-                     payout.payout_method === 'solana' ? 'Solana' : 'Manual'}
-                  </TableCell>
-                  <TableCell>
-                    {getStatusBadge(payout.status)}
-                  </TableCell>
-                  <TableCell className="text-sm text-gray-500">
-                    {new Date(payout.created_date).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleViewDetails(payout)}
-                        title="View details"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </Button>
-
-                      {payout.status === 'pending' && (
-                        <>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setActionDialog({ open: true, payout, action: 'approve' })}
-                            className="text-green-600 hover:bg-green-50"
-                            title="Approve"
-                          >
-                            <CheckCircle className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setActionDialog({ open: true, payout, action: 'reject' })}
-                            className="text-red-600 hover:bg-red-50"
-                            title="Reject"
-                          >
-                            <XCircle className="w-4 h-4" />
-                          </Button>
-                        </>
-                      )}
-
-                      {payout.status === 'approved' && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setActionDialog({ open: true, payout, action: 'process' })}
-                          className="text-blue-600 hover:bg-blue-50"
-                          title="Process payout"
-                        >
-                          Process
-                        </Button>
-                      )}
-                    </div>
-                  </TableCell>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Ambassador</TableHead>
+                  <TableHead>Period</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Method</TableHead>
+                  <TableHead>Stripe</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Transfer ID</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filtered.map((payout) => (
+                  <TableRow key={payout.id}>
+                    <TableCell className="font-medium">{dealerName(payout)}</TableCell>
+                    <TableCell className="text-sm text-gray-600">
+                      {payout.period_start ? new Date(payout.period_start).toLocaleDateString() : '—'} –{' '}
+                      {payout.period_end ? new Date(payout.period_end).toLocaleDateString() : '—'}
+                    </TableCell>
+                    <TableCell className="font-semibold">
+                      ${(payout.commission_amount || 0).toFixed(2)}
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {payout.payout_method === 'stripe_connect'
+                        ? 'Stripe'
+                        : payout.payout_method === 'solana'
+                        ? 'Solana'
+                        : payout.payout_method || '—'}
+                    </TableCell>
+                    <TableCell>
+                      {payout.payout_method === 'stripe_connect' ? (
+                        stripeConnected(payout) ? (
+                          <Badge className="bg-green-100 text-green-700">Connected</Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-red-600 border-red-300">Not Connected</Badge>
+                        )
+                      ) : (
+                        <span className="text-gray-400">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <StatusBadge status={payout.status} />
+                    </TableCell>
+                    <TableCell className="text-xs text-gray-500 font-mono">
+                      {payout.payout_destination?.stripe_transfer_id || '—'}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => viewDetails(payout)}
+                          title="View details"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        {canTrigger(payout.status) && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openAction(payout, 'trigger')}
+                            className="text-blue-600 hover:bg-blue-50"
+                            title="Trigger payout from Stripe account"
+                          >
+                            <Zap className="w-4 h-4 mr-1" />
+                            Trigger
+                          </Button>
+                        )}
+                        {canCancel(payout.status) && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openAction(payout, 'cancel')}
+                            className="text-red-600 hover:bg-red-50"
+                            title="Cancel payout"
+                          >
+                            <Ban className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
 
-          {payouts.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
-              No payouts to manage
-            </div>
+          {filtered.length === 0 && (
+            <div className="text-center py-8 text-gray-500">No payouts match the current filters.</div>
           )}
         </CardContent>
       </Card>
 
       {/* Details Dialog */}
-      {selectedPayout && (
-        <Dialog open={!!selectedPayout} onOpenChange={() => setSelectedPayout(null)}>
+      {details && (
+        <Dialog open={!!details} onOpenChange={() => setDetails(null)}>
           <DialogContent className="max-w-3xl">
             <DialogHeader>
               <DialogTitle>Payout Details</DialogTitle>
@@ -328,53 +432,72 @@ export default function PayoutControl() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-500">Ambassador</p>
-                  <p className="font-semibold">{selectedPayout.dealer_name}</p>
+                  <p className="font-semibold">{dealerName(details)}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Status</p>
-                  <div className="mt-1">{getStatusBadge(selectedPayout.status)}</div>
+                  <div className="mt-1">
+                    <StatusBadge status={details.status} />
+                  </div>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Period</p>
                   <p className="font-semibold">
-                    {new Date(selectedPayout.period_start).toLocaleDateString()} - {new Date(selectedPayout.period_end).toLocaleDateString()}
+                    {details.period_start ? new Date(details.period_start).toLocaleDateString() : '—'} –{' '}
+                    {details.period_end ? new Date(details.period_end).toLocaleDateString() : '—'}
                   </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Commission Amount</p>
-                  <p className="font-semibold text-green-600">${selectedPayout.commission_amount?.toFixed(2)}</p>
+                  <p className="font-semibold text-green-600">${(details.commission_amount || 0).toFixed(2)}</p>
                 </div>
+                <div>
+                  <p className="text-sm text-gray-500">Gross / Root Share</p>
+                  <p className="font-semibold">
+                    ${(details.gross_amount || 0).toFixed(2)} / ${(details.root_share || 0).toFixed(2)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Stripe Transfer ID</p>
+                  <p className="font-mono text-xs break-all">
+                    {details.payout_destination?.stripe_transfer_id || '—'}
+                  </p>
+                </div>
+                {details.error_message && (
+                  <div className="col-span-2">
+                    <p className="text-sm text-gray-500">Error</p>
+                    <p className="text-sm text-red-600">{details.error_message}</p>
+                  </div>
+                )}
+                {details.notes && (
+                  <div className="col-span-2">
+                    <p className="text-sm text-gray-500">Notes</p>
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{details.notes}</p>
+                  </div>
+                )}
               </div>
 
-              {selectedPayout.items && selectedPayout.items.length > 0 && (
+              {details.items && details.items.length > 0 && (
                 <div>
                   <h4 className="font-semibold mb-2">Contributing Merchants</h4>
                   <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead>Merchant</TableHead>
-                        <TableHead>Revenue</TableHead>
-                        <TableHead>Commission</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>Commission %</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {selectedPayout.items.map((item) => (
+                      {details.items.map((item) => (
                         <TableRow key={item.id}>
-                          <TableCell>{item.merchant_name}</TableCell>
-                          <TableCell>${item.amount?.toFixed(2)}</TableCell>
-                          <TableCell>${(item.amount * (item.commission_percent / 100))?.toFixed(2)}</TableCell>
+                          <TableCell>{item.merchant_name || '—'}</TableCell>
+                          <TableCell>${(item.amount || 0).toFixed(2)}</TableCell>
+                          <TableCell>{item.commission_percent ?? '—'}%</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
                   </Table>
-                </div>
-              )}
-
-              {selectedPayout.approved_by && (
-                <div className="bg-green-50 p-3 rounded-lg text-sm">
-                  <p className="text-gray-600">
-                    Approved by <span className="font-semibold">{selectedPayout.approved_by}</span> on {new Date(selectedPayout.approved_at).toLocaleDateString()}
-                  </p>
                 </div>
               )}
             </div>
@@ -383,13 +506,15 @@ export default function PayoutControl() {
       )}
 
       {/* Action Dialog */}
-      <Dialog open={actionDialog.open} onOpenChange={(open) => !open && setActionDialog({ open: false, payout: null, action: null })}>
+      <Dialog
+        open={actionDialog.open}
+        onOpenChange={(open) => !open && setActionDialog({ open: false, payout: null, action: null })}
+      >
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {actionDialog.action === 'approve' && 'Approve Payout'}
-              {actionDialog.action === 'reject' && 'Reject Payout'}
-              {actionDialog.action === 'process' && 'Process Payout'}
+              {actionDialog.action === 'trigger' && 'Trigger Payout from Stripe'}
+              {actionDialog.action === 'cancel' && 'Cancel Payout'}
             </DialogTitle>
           </DialogHeader>
 
@@ -397,49 +522,56 @@ export default function PayoutControl() {
             <div className="space-y-4">
               <div className="bg-gray-50 p-3 rounded-lg">
                 <p className="text-sm text-gray-600">
-                  <span className="font-semibold">{actionDialog.payout.dealer_name}</span> - ${actionDialog.payout.commission_amount?.toFixed(2)}
+                  <span className="font-semibold">{dealerName(actionDialog.payout)}</span> — $
+                  {(actionDialog.payout.commission_amount || 0).toFixed(2)} via{' '}
+                  {actionDialog.payout.payout_method === 'stripe_connect'
+                    ? 'Stripe Connect'
+                    : actionDialog.payout.payout_method}
                 </p>
               </div>
 
-              {actionDialog.action === 'approve' && (
+              {actionDialog.action === 'trigger' && (
                 <Alert>
-                  <AlertCircle className="h-4 w-4" />
+                  <Zap className="h-4 w-4" />
                   <AlertDescription>
-                    This payout will be marked as approved and ready for processing.
+                    This will transfer funds from the platform Stripe account to the ambassador's connected
+                    Stripe account. The minimum payout threshold is bypassed for platform admins.
                   </AlertDescription>
                 </Alert>
               )}
 
-              {actionDialog.action === 'reject' && (
-                <Alert>
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    This payout will be rejected and the ambassador will be notified.
-                  </AlertDescription>
-                </Alert>
-              )}
-
-              {actionDialog.action === 'process' && (
+              {actionDialog.action === 'cancel' && (
                 <>
                   <Alert>
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>
-                      Process this payout to {actionDialog.payout.payout_method === 'stripe_connect' ? 'Stripe' : actionDialog.payout.payout_method === 'solana' ? 'Solana' : 'manual'} account.
+                      This payout will be canceled. The ambassador will not be paid for this period unless it is
+                      recalculated.
                     </AlertDescription>
                   </Alert>
-
-                  <div>
-                    <Label>Override Amount (Optional)</Label>
+                  <div className="space-y-2">
+                    <Label htmlFor="cancel-reason">Reason (optional)</Label>
                     <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={processAmount}
-                      onChange={(e) => setProcessAmount(e.target.value)}
-                      placeholder={`Leave empty to use ${actionDialog.payout.commission_amount?.toFixed(2)}`}
+                      id="cancel-reason"
+                      value={cancelReason}
+                      onChange={(e) => setCancelReason(e.target.value)}
+                      placeholder="Reason for cancellation"
                     />
                   </div>
                 </>
+              )}
+
+              {resultMsg && (
+                <Alert className={resultMsg.type === 'success' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}>
+                  {resultMsg.type === 'success' ? (
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                  ) : (
+                    <XCircle className="h-4 w-4 text-red-600" />
+                  )}
+                  <AlertDescription className={resultMsg.type === 'success' ? 'text-green-800' : 'text-red-800'}>
+                    {resultMsg.text}
+                  </AlertDescription>
+                </Alert>
               )}
             </div>
           )}
@@ -448,22 +580,20 @@ export default function PayoutControl() {
             <Button
               variant="outline"
               onClick={() => setActionDialog({ open: false, payout: null, action: null })}
+              disabled={busy}
             >
-              Cancel
+              Close
             </Button>
-            {actionDialog.action === 'approve' && (
-              <Button onClick={handleApprove} className="bg-green-600 hover:bg-green-700">
-                Approve
+            {actionDialog.action === 'trigger' && (
+              <Button onClick={confirmAction} disabled={busy} className="bg-blue-600 hover:bg-blue-700">
+                {busy ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Zap className="w-4 h-4 mr-2" />}
+                Trigger Payout
               </Button>
             )}
-            {actionDialog.action === 'reject' && (
-              <Button onClick={handleReject} className="bg-red-600 hover:bg-red-700">
-                Reject
-              </Button>
-            )}
-            {actionDialog.action === 'process' && (
-              <Button onClick={handleProcess} className="bg-blue-600 hover:bg-blue-700">
-                Process
+            {actionDialog.action === 'cancel' && (
+              <Button onClick={confirmAction} disabled={busy} className="bg-red-600 hover:bg-red-700">
+                {busy ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Ban className="w-4 h-4 mr-2" />}
+                Cancel Payout
               </Button>
             )}
           </DialogFooter>

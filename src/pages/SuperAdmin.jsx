@@ -22,7 +22,8 @@ import {
   Home,
   UserPlus,
   Cpu,
-  Vault
+  Vault,
+  Wallet
 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 
@@ -46,6 +47,7 @@ import AmazonAffiliateManager from '../components/superadmin/AmazonAffiliateMana
 import VaultManager from '../components/superadmin/VaultManager';
 import BuilderManagement from '../components/superadmin/BuilderManagement';
 import BuilderSplashEditor from '../components/superadmin/BuilderSplashEditor';
+import PayoutControl from '../components/superadmin/PayoutControl';
 
 export default function SuperAdminPage() {
   const [user, setUser] = useState(null);
@@ -228,6 +230,7 @@ export default function SuperAdminPage() {
       label: 'Billing',
       items: [
         { key: 'subscriptions', icon: CreditCard, label: 'Subscriptions' },
+        { key: 'payouts', icon: Wallet, label: 'Payouts' },
         { key: 'vault', icon: Vault, label: 'Vault' },
       ],
     },
@@ -264,7 +267,7 @@ export default function SuperAdminPage() {
   const tabLabels = {
     pending: 'Pending Merchants', merchants: 'Merchant Management', dealers: 'Ambassador Management',
     subscriptions: 'Subscription Management', devices: 'Device Shop', amazon: 'Affiliate Links',
-    vault: '$DUC Vault', chips: 'Chip Manager', builders: 'Builder Management', logs: 'System Logs',
+    payouts: 'Payout Management', vault: '$DUC Vault', chips: 'Chip Manager', builders: 'Builder Management', logs: 'System Logs',
     reports: 'Global Reports', ads: 'Advertising', notifications: 'Notifications', settings: 'Settings',
   };
 
@@ -427,6 +430,10 @@ export default function SuperAdminPage() {
 
           {activeTab === 'vault' && (
             <VaultManager />
+          )}
+
+          {activeTab === 'payouts' && (
+            <PayoutControl />
           )}
 
           {activeTab === 'chips' && (

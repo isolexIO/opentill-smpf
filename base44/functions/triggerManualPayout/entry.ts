@@ -23,7 +23,8 @@ Deno.serve(async (req) => {
     }
 
     // Verify access
-    if (user.role !== 'root_admin' && user.role !== 'dealer_admin') {
+    const isPlatformAdmin = ['root_admin', 'admin', 'super_admin'].includes(user.role);
+    if (!isPlatformAdmin && user.role !== 'dealer_admin') {
       return Response.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
@@ -46,8 +47,8 @@ Deno.serve(async (req) => {
 
     const dealer = dealers[0];
 
-    // Check minimum unless bypassed (root admin only)
-    if (!bypass_minimum || user.role !== 'root_admin') {
+    // Check minimum unless bypassed (platform admin only)
+    if (!bypass_minimum || !isPlatformAdmin) {
       const minimumPayout = dealer.payout_minimum || 20.0;
       if (payout.commission_amount < minimumPayout) {
         return Response.json({

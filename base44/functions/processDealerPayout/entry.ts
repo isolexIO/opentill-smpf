@@ -14,9 +14,9 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     
-    // Verify admin access
+    // Verify admin access (platform admins or dealer admins)
     const user = await base44.auth.me();
-    if (!user || !['root_admin', 'dealer_admin'].includes(user.role)) {
+    if (!user || !['root_admin', 'admin', 'super_admin', 'dealer_admin'].includes(user.role)) {
       return Response.json({ error: 'Unauthorized' }, { status: 403 });
     }
 

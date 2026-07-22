@@ -10,8 +10,8 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
 
-    if (!user || user.role !== 'root_admin') {
-      return Response.json({ error: 'Unauthorized - Root admin only' }, { status: 403 });
+    if (!user || !['root_admin', 'admin', 'super_admin'].includes(user.role)) {
+      return Response.json({ error: 'Unauthorized - Platform admin only' }, { status: 403 });
     }
 
     const { payout_id, reason } = await req.json();
