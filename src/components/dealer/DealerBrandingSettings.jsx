@@ -3,8 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { AlertCircle, Check, Copy } from 'lucide-react';
+import { Check, Copy } from 'lucide-react';
 
 export default function DealerBrandingSettings({ dealer, onUpdate }) {
   const [saving, setSaving] = useState(false);
@@ -14,8 +13,6 @@ export default function DealerBrandingSettings({ dealer, onUpdate }) {
     favicon_url: dealer.favicon_url || '',
     primary_color: dealer.primary_color || '#7B2FD6',
     secondary_color: dealer.secondary_color || '#0FD17A',
-    domain: dealer.domain || '',
-    opentill_subdomain: dealer.opentill_subdomain || '',
   });
 
   const [previews, setPreviews] = useState({
@@ -164,58 +161,6 @@ export default function DealerBrandingSettings({ dealer, onUpdate }) {
               </div>
             </div>
             <p className="text-xs text-gray-600">These colors will be applied to your public-facing pages and customer displays.</p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Domain Settings */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Domain Settings</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium block mb-2">Custom Domain</label>
-              <Input
-                value={formData.domain}
-                onChange={(e) => setFormData({...formData, domain: e.target.value})}
-                placeholder="pos.yourcompany.com"
-              />
-              <p className="text-xs text-gray-500 mt-1">Your custom domain for POS and merchant pages</p>
-            </div>
-
-            <div>
-              <label className="text-sm font-medium block mb-2">openTILL Subdomain</label>
-              <div className="flex gap-2 items-center">
-                <Input
-                  value={formData.opentill_subdomain}
-                  disabled
-                  className="bg-gray-50"
-                />
-                <Badge variant="outline">{formData.opentill_subdomain ? 'Active' : 'Not Set'}</Badge>
-              </div>
-              <p className="text-xs text-gray-500 mt-1">Your unique subdomain (e.g., yourdealer.chainlink-pos.sol)</p>
-              {formData.opentill_subdomain && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => copyToClipboard(`${formData.opentill_subdomain}.opentill-pos.sol`, 'subdomain')}
-                  className="mt-2 text-xs"
-                >
-                  {copiedField === 'subdomain' ? <Check className="w-3 h-3 mr-1" /> : <Copy className="w-3 h-3 mr-1" />}
-                  {copiedField === 'subdomain' ? 'Copied!' : 'Copy Full Domain'}
-                </Button>
-              )}
-            </div>
-          </div>
-
-          <div className="p-4 bg-blue-50 rounded-lg flex gap-3">
-            <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-            <div className="text-xs text-blue-900">
-              <p className="font-medium mb-1">Domain Management</p>
-              <p>Custom domains require DNS configuration. openTILL subdomains are automatically configured.</p>
-            </div>
           </div>
         </CardContent>
       </Card>

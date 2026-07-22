@@ -10,7 +10,7 @@ import {
   LogOut, Bell, Globe, BarChart3, Wallet
 } from 'lucide-react';
 import StripeConnectSetup from '../components/dealer/StripeConnectSetup.jsx';
-import CustomDomainSSL from '../components/dealer/CustomDomainSSL.jsx';
+import SNSSubdomainRegistration from '../components/dealer/SNSSubdomainRegistration.jsx';
 import PayoutDashboard from '../components/dealer/PayoutDashboard.jsx';
 import AIMarketingTools from '../components/dealer/AIMarketingTools.jsx';
 import MerchantManagement from '../components/dealer/MerchantManagement.jsx';
@@ -228,11 +228,11 @@ export default function DealerDashboardPage() {
               <TabsList>
                 <TabsTrigger value="branding">Branding</TabsTrigger>
                 <TabsTrigger value="payments">Payments</TabsTrigger>
-                <TabsTrigger value="domains">Domains</TabsTrigger>
+                <TabsTrigger value="domains">SNS Subdomain</TabsTrigger>
               </TabsList>
               <TabsContent value="branding"><DealerBrandingSettings dealer={dealer} onUpdate={loadDealerData} /></TabsContent>
               <TabsContent value="payments"><StripeConnectSetup dealer={dealer} onUpdate={loadDealerData} /></TabsContent>
-              <TabsContent value="domains"><CustomDomainSSL dealer={dealer} onUpdate={loadDealerData} /></TabsContent>
+              <TabsContent value="domains"><SNSSubdomainRegistration dealer={dealer} onUpdate={loadDealerData} /></TabsContent>
             </Tabs>
           </TabsContent>
         </Tabs>
