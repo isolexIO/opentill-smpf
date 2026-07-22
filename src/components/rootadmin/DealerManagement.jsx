@@ -87,7 +87,7 @@ export default function DealerManagement() {
         logo_url: '',
         favicon_url: '',
         domain: '',
-        status: 'trial',
+        status: 'active',
         commission_percent: 10,
         platform_fee_monthly: 0,
         signup_bonus_per_merchant: 0,
@@ -425,7 +425,6 @@ export default function DealerManagement() {
 
                   <Badge className={
                     ambassador.status === 'active' ? 'bg-green-100 text-green-800' :
-                    ambassador.status === 'trial' ? 'bg-blue-100 text-blue-800' :
                     ambassador.status === 'suspended' ? 'bg-red-100 text-red-800' :
                     'bg-gray-100 text-gray-800'
                   }>
@@ -597,7 +596,6 @@ export default function DealerManagement() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="trial">Trial</SelectItem>
                       <SelectItem value="active">Active</SelectItem>
                       <SelectItem value="suspended">Suspended</SelectItem>
                       <SelectItem value="cancelled">Cancelled</SelectItem>

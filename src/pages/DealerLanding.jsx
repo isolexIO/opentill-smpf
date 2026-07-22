@@ -48,7 +48,7 @@ export default function DealerLanding() {
         base44.entities.Merchant.list()
       ]);
       setStats({
-        activeDealers: dealers.filter(d => ['active','trial'].includes(d.status)).length,
+        activeDealers: dealers.filter(d => d.status === 'active').length,
         totalMerchants: merchants.length,
         totalProcessed: merchants.reduce((s, m) => s + (m.total_revenue || 0), 0),
         loading: false
