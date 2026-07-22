@@ -96,6 +96,15 @@ export function useFeatureAccess(requiredFlags = []) {
         }
       }
 
+      // Also honor features the super admin toggled on for this merchant account
+      if (user?.merchant_id) {
+        try {
+          const merchants = await base44.entities.Merchant.filter({ id: user.merchant_id });
+          const feats = merchants?.[0]?.features_enabled || [];
+          feats.forEach(f => { if (!enabledFlags.includes(f)) enabledFlags.push(f); });
+        } catch (_) {}
+      }
+
       // Check if all required flags are present
       const missing = requiredFlags.filter(flag => !enabledFlags.includes(flag));
       setMissingFlags(missing);

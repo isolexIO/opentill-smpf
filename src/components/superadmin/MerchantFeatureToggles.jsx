@@ -15,9 +15,12 @@ const ALL_FEATURES = [
   { key: 'kitchen_display',  label: 'Kitchen Display',         description: 'KDS screen for kitchen staff' },
   { key: 'device_monitor',   label: 'Device Monitor',          description: 'Monitor connected POS devices' },
   { key: 'time_tracking',    label: 'Time Tracking',           description: 'Employee clock-in/out & hours' },
-  { key: 'chain_link',       label: 'ChainLINK Pay',           description: 'Payment link generation' },
+  { key: 'chain_link',       label: 'openTILL Pay',            description: 'Payment link generation' },
   { key: 'referral',         label: 'Referral Dashboard',      description: 'Merchant referral program' },
   { key: 'marketing',        label: 'Marketing Tools',         description: 'Campaigns & promotions' },
+  { key: 'invoicing',        label: 'Invoices & Paylinks',     description: 'Send invoices and paylinks to customers' },
+  { key: 'driver',           label: 'Delivery Driver',        description: 'Driver dashboard & delivery jobs' },
+  { key: 'non_integrated_terminal', label: 'Non-Integrated Terminal', description: 'Manual / non-integrated CC terminal access' },
 ];
 
 /**

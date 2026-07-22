@@ -37,7 +37,8 @@ import {
   Sparkles,
   Cpu,
   Vault,
-  Lightbulb
+  Lightbulb,
+  Truck
 } from 'lucide-react';
 import AdvertisingTile from '../components/system-menu/AdvertisingTile';
 import CommunityLinks from '../components/shared/CommunityLinks';
@@ -55,6 +56,8 @@ const FEATURE_REQUIREMENTS = {
   inventory: 'inventory',
   device_monitor: 'device_monitor',
   ai_assistant: 'ai_assistant',
+  invoices: 'invoicing',
+  driver: 'driver',
 };
 
 // Items that are always visible (no chip needed)
@@ -291,6 +294,15 @@ export default function SystemMenu() {
       description: 'Send paylinks to customers',
       path: 'Invoices',
       color: 'from-emerald-500 to-teal-600',
+      permission: null
+    },
+    {
+      id: 'driver',
+      icon: <Truck className="w-6 h-6" />,
+      title: 'Delivery Dashboard',
+      description: 'Driver jobs & deliveries',
+      path: 'DriverDashboard',
+      color: 'from-amber-500 to-orange-600',
       permission: null
     },
     {
