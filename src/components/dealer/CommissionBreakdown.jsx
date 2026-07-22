@@ -39,10 +39,22 @@ export default function CommissionBreakdown({ dealer }) {
 
       setMerchants(merchantList);
 
-      // Calculate breakdown
+      // Commission is earned on merchant subscription fees (not POS sales) and
+      // is recorded on DealerPayout records. Aggregate from payouts for accuracy.
+      const payoutList = await base44.entities.DealerPayout.filter(
+        { dealer_id: dealer.legacy_dealer_id || dealer.id },
+        '-created_date',
+        200
+      );
+      const totalCommissionPaid = payoutList
+        .filter(p => p.status === 'completed')
+        .reduce((sum, p) => sum + (p.commission_amount || 0), 0);
+      const totalCommissionPending = payoutList
+        .filter(p => ['pending', 'scheduled', 'on_hold', 'processing'].includes(p.status))
+        .reduce((sum, p) => sum + (p.commission_amount || 0), 0);
+
       const totalRevenue = merchantList.reduce((sum, m) => sum + (m.total_revenue || 0), 0);
       const commissionRate = dealer.commission_percent || 0;
-      const totalCommission = (totalRevenue * commissionRate) / 100;
 
       const chartData = merchantList
         .filter(m => m.total_revenue > 0)
@@ -50,8 +62,7 @@ export default function CommissionBreakdown({ dealer }) {
         .slice(0, 10)
         .map(m => ({
           name: m.business_name,
-          revenue: m.total_revenue || 0,
-          commission: ((m.total_revenue || 0) * commissionRate) / 100
+          revenue: m.total_revenue || 0
         }));
 
       const statusBreakdown = [
@@ -79,7 +90,8 @@ export default function CommissionBreakdown({ dealer }) {
 
       setBreakdown({
         totalRevenue,
-        totalCommission,
+        totalCommissionPaid,
+        totalCommissionPending,
         commissionRate,
         totalMerchants: merchantList.length,
         activeMerchants: merchantList.filter(m => m.status === 'active').length,
@@ -112,9 +124,9 @@ export default function CommissionBreakdown({ dealer }) {
         <Card>
           <CardContent className="pt-6">
             <div>
-              <p className="text-sm text-gray-500">Total Network Revenue</p>
+              <p className="text-sm text-gray-500">Total Merchant Sales</p>
               <p className="text-2xl font-bold">${breakdown.totalRevenue.toLocaleString('en-US', { maximumFractionDigits: 0 })}</p>
-              <p className="text-xs text-gray-400 mt-1">All merchants combined</p>
+              <p className="text-xs text-gray-400 mt-1">POS sales across network</p>
             </div>
           </CardContent>
         </Card>
@@ -122,9 +134,9 @@ export default function CommissionBreakdown({ dealer }) {
         <Card>
           <CardContent className="pt-6">
             <div>
-              <p className="text-sm text-gray-500">Your Total Commission</p>
-              <p className="text-2xl font-bold text-green-600">${breakdown.totalCommission.toLocaleString('en-US', { maximumFractionDigits: 0 })}</p>
-              <p className="text-xs text-gray-400 mt-1">{breakdown.commissionRate}% of revenue</p>
+              <p className="text-sm text-gray-500">Total Commission Paid</p>
+              <p className="text-2xl font-bold text-green-600">${breakdown.totalCommissionPaid.toLocaleString('en-US', { maximumFractionDigits: 0 })}</p>
+              <p className="text-xs text-gray-400 mt-1">{breakdown.commissionRate}% of subscription revenue</p>
             </div>
           </CardContent>
         </Card>
@@ -156,19 +168,17 @@ export default function CommissionBreakdown({ dealer }) {
       <Card>
         <CardHeader>
           <CardTitle>Top 10 Merchants by Revenue</CardTitle>
-          <CardDescription>Breakdown of your commission sources</CardDescription>
+          <CardDescription>Top revenue-contributing merchants (commission is earned on subscription fees)</CardDescription>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={breakdown.chartData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} interval={0} />
-              <YAxis yAxisId="left" label={{ value: 'Revenue ($)', angle: -90, position: 'insideLeft' }} />
-              <YAxis yAxisId="right" orientation="right" label={{ value: 'Commission ($)', angle: 90, position: 'insideRight' }} />
+              <YAxis label={{ value: 'Sales ($)', angle: -90, position: 'insideLeft' }} />
               <Tooltip formatter={(value) => `$${value.toFixed(2)}`} />
               <Legend />
-              <Bar yAxisId="left" dataKey="revenue" fill="#3b82f6" name="Revenue" />
-              <Bar yAxisId="right" dataKey="commission" fill="#10b981" name="Your Commission" />
+              <Bar dataKey="revenue" fill="#3b82f6" name="Merchant Sales" />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>

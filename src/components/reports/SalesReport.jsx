@@ -8,11 +8,14 @@ import jsPDF from 'jspdf';
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
 
 export default function SalesReport({ orders, products, customers, dateRange, loading, selectedEmployee, selectedDepartment }) {
+  // Only completed (paid) orders represent realized revenue.
+  const revenueOrders = orders.filter(o => o.status === 'completed');
+
   const calculateMetrics = () => {
-    const totalRevenue = orders.reduce((sum, order) => sum + (order.total || 0), 0);
-    const totalOrders = orders.length;
+    const totalRevenue = revenueOrders.reduce((sum, order) => sum + (order.total || 0), 0);
+    const totalOrders = revenueOrders.length;
     const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
-    const totalItems = orders.reduce((sum, order) => 
+    const totalItems = revenueOrders.reduce((sum, order) => 
       sum + (order.items?.reduce((itemSum, item) => itemSum + (item.quantity || 0), 0) || 0), 0
     );
 
@@ -26,7 +29,7 @@ export default function SalesReport({ orders, products, customers, dateRange, lo
 
   const getDailySales = () => {
     const salesByDate = {};
-    orders.forEach(order => {
+    revenueOrders.forEach(order => {
       const date = new Date(order.created_date).toLocaleDateString();
       if (!salesByDate[date]) {
         salesByDate[date] = { date, revenue: 0, orders: 0 };
@@ -39,7 +42,7 @@ export default function SalesReport({ orders, products, customers, dateRange, lo
 
   const getTopProducts = () => {
     const productSales = {};
-    orders.forEach(order => {
+    revenueOrders.forEach(order => {
       order.items?.forEach(item => {
         if (!productSales[item.product_id]) {
           productSales[item.product_id] = {
@@ -59,7 +62,7 @@ export default function SalesReport({ orders, products, customers, dateRange, lo
 
   const getPaymentMethodBreakdown = () => {
     const breakdown = {};
-    orders.forEach(order => {
+    revenueOrders.forEach(order => {
       const method = order.payment_method || 'unknown';
       if (!breakdown[method]) {
         breakdown[method] = { name: method, value: 0, count: 0 };

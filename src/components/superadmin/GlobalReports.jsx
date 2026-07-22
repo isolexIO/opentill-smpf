@@ -145,7 +145,10 @@ export default function GlobalReports() {
   // Dealer / merchant payouts
   const completedPayouts = dealerPayouts.filter(p => p.status === 'completed');
   const pendingPayouts = dealerPayouts.filter(p => ['pending', 'scheduled', 'processing', 'on_hold', 'manual_review'].includes(p.status));
-  const dealerPayoutsPaid = completedPayouts.reduce((sum, p) => sum + (p.commission_amount || 0), 0);
+  // Actual USD paid out via Stripe — deterministic routing sends only the
+  // platform-% commission (+ carryover) through Stripe; bonuses go as $DUC.
+  const dealerPayoutsPaid = completedPayouts.reduce((sum, p) => sum + (p.stripe_amount || 0), 0);
+  const dealerBonusDucPaid = completedPayouts.reduce((sum, p) => sum + (p.duc_amount || 0), 0);
   const dealerPayoutsPending = pendingPayouts.reduce((sum, p) => sum + (p.commission_amount || 0), 0);
   const platformNetRevenue = completedPayouts.reduce((sum, p) => sum + (p.root_share || 0), 0);
   const payoutStatusBreakdown = ['completed', 'pending', 'scheduled', 'processing', 'failed', 'on_hold'].map(st => ({
@@ -238,7 +241,7 @@ export default function GlobalReports() {
               { label: 'Total Platform Sales', value: `$${totalPlatformSales.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, sub: `${completedOrders.length} orders`, icon: DollarSign, color: 'text-green-500' },
               { label: 'Chip Sales Revenue', value: `${chipTotalDuc.toLocaleString(undefined, { maximumFractionDigits: 1 })} $DUC`, sub: 'one-time + MRR', icon: Cpu, color: 'text-purple-500' },
               { label: 'Builder Payouts', value: `$${builderEarnings.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, sub: `${builders.length} builders`, icon: Wallet, color: 'text-blue-500' },
-              { label: 'Dealer Payouts', value: `$${dealerPayoutsPaid.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, sub: 'paid out', icon: Receipt, color: 'text-indigo-500' },
+              { label: 'Dealer Payouts', value: `$${dealerPayoutsPaid.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, sub: `paid via Stripe · ${dealerBonusDucPaid.toLocaleString(undefined, { maximumFractionDigits: 0 })} $DUC bonus`, icon: Receipt, color: 'text-indigo-500' },
               { label: 'Platform Net Revenue', value: `$${platformNetRevenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, sub: 'platform share', icon: TrendingUp, color: 'text-emerald-500' },
               { label: 'Pending Payouts', value: `$${dealerPayoutsPending.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, sub: 'to dealers', icon: Calendar, color: 'text-orange-500' }
             ].map((kpi) => {

@@ -81,7 +81,7 @@ export default function ReportsPage() {
       endDate.setHours(23, 59, 59, 999);
 
       const dateMatch = orderDate >= dateRange.from && orderDate <= endDate;
-      const employeeMatch = selectedEmployee === "all" || order.created_by === selectedEmployee;
+      const employeeMatch = selectedEmployee === "all" || order.created_by_id === selectedEmployee;
       
       let departmentMatch = true;
       if (selectedDepartment !== "all" && order.items) {
