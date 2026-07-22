@@ -42,7 +42,7 @@ export default function CustomerDisplayPage() {
       // logic needs to react immediately to currentOrder state changes.
       return () => clearInterval(interval);
     }
-  }, [merchant, currentScreen, currentOrder, stationId]); // Removed lastCheckedOrderId, added currentOrder and stationId
+  }, [merchant, currentScreen, currentOrder, stationId, sessionId]); // Removed lastCheckedOrderId, added currentOrder and stationId
 
   const initializeDisplay = async () => {
     try {
@@ -199,6 +199,7 @@ export default function CustomerDisplayPage() {
       if (!currentOrder) {
         const pendingResp = await base44.functions.invoke('getDisplayOrders', {
           merchant_id: merchant.id,
+          session_id: sessionId,
           station_id: targetStationId || null,
           mode: 'customer'
         });
@@ -217,6 +218,7 @@ export default function CustomerDisplayPage() {
           await base44.functions.invoke('updateDisplayOrder', {
             order_id: order.id,
             merchant_id: merchant.id,
+            session_id: sessionId,
             action: 'mark_sent'
           });
 
@@ -237,6 +239,7 @@ export default function CustomerDisplayPage() {
         try {
           const statusResp = await base44.functions.invoke('getDisplayOrders', {
             merchant_id: merchant.id,
+            session_id: sessionId,
             mode: 'customer',
             current_order_id: currentOrder.id
           });
@@ -323,6 +326,7 @@ export default function CustomerDisplayPage() {
       await base44.functions.invoke('updateDisplayOrder', {
         order_id: currentOrder.id,
         merchant_id: merchant.id,
+        session_id: sessionId,
         action: 'set_tip',
         tip_amount: tipAmount
       });
@@ -342,6 +346,7 @@ export default function CustomerDisplayPage() {
       await base44.functions.invoke('updateDisplayOrder', {
         order_id: currentOrder.id,
         merchant_id: merchant.id,
+        session_id: sessionId,
         action: 'set_payment_method',
         payment_method: method
       });
@@ -362,6 +367,7 @@ export default function CustomerDisplayPage() {
           await base44.functions.invoke('updateDisplayOrder', {
             order_id: currentOrder.id,
             merchant_id: merchant.id,
+            session_id: sessionId,
             action: 'complete',
             payment_details: details
           });
@@ -465,6 +471,7 @@ export default function CustomerDisplayPage() {
             await base44.functions.invoke('updateDisplayOrder', {
               order_id: currentOrder.id,
               merchant_id: merchant.id,
+              session_id: sessionId,
               action: 'approve'
             });
           }}

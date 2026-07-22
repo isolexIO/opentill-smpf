@@ -7,23 +7,55 @@ Deno.serve(async (req) => {
 
     // Support both direct call and entity automation payload
     let merchant_id, customer_id, customer_phone, order_id, order_total;
+    let isAutomation = false;
     if (body.event && body.data) {
       // Entity automation: only handle completed orders
+      isAutomation = true;
       const { event, data } = body;
       if ((event.type !== 'create' && event.type !== 'update') || !data || data.status !== 'completed') {
         return Response.json({ success: true, message: 'Skipped - not a completed order event' });
       }
       merchant_id = data.merchant_id;
-      customer_id = data.customer_id || null;
-      customer_phone = data.customer_phone || null;
       order_id = data.id;
-      order_total = data.total || 0;
     } else {
       ({ merchant_id, customer_id, customer_phone, order_id, order_total } = body);
     }
 
     if (!merchant_id || !order_id) {
       return Response.json({ success: false, error: 'Missing required fields' }, { status: 400 });
+    }
+
+    if (isAutomation) {
+      // Re-verify the order from the database so a forged automation payload
+      // cannot be used to drain an arbitrary merchant's vault or credit an
+      // attacker-controlled customer. Use the authoritative DB fields only.
+      let orders;
+      try {
+        orders = await base44.asServiceRole.entities.Order.filter({ id: order_id });
+      } catch (lookupError) {
+        return Response.json({ success: true, message: 'Order lookup failed, skipped' });
+      }
+      if (!orders || orders.length === 0) {
+        return Response.json({ success: true, message: 'Order not found, skipped' });
+      }
+      const verifiedOrder = orders[0];
+      if (verifiedOrder.merchant_id !== merchant_id || verifiedOrder.status !== 'completed') {
+        return Response.json({ success: true, message: 'Order not completed or merchant mismatch, skipped' });
+      }
+      customer_id = verifiedOrder.customer_id || null;
+      customer_phone = verifiedOrder.customer_phone || null;
+      order_total = verifiedOrder.total || 0;
+    } else {
+      // Direct call: require an authenticated, authorized caller.
+      let user;
+      try {
+        user = await base44.auth.me();
+      } catch (e) {
+        return Response.json({ success: false, error: 'Unauthorized: authentication required' }, { status: 401 });
+      }
+      if (!user || (user.role !== 'admin' && user.merchant_id !== merchant_id)) {
+        return Response.json({ success: false, error: 'Forbidden: not authorized for this merchant' }, { status: 403 });
+      }
     }
 
     // Skip if no customer attached

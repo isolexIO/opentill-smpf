@@ -30,7 +30,7 @@ export default function KitchenDisplay() {
     const interval = setInterval(loadOrders, 5000);
 
     return () => clearInterval(interval);
-  }, [merchantId, stationId, error]); // Re-run effect if merchantId/stationId changes or error state changes
+  }, [merchantId, stationId, error, deviceSessionId]); // Re-run effect if merchantId/stationId changes or error state changes
 
   // Device Session Registration and Heartbeat
   useEffect(() => {
@@ -173,6 +173,7 @@ export default function KitchenDisplay() {
     try {
       const { data } = await base44.functions.invoke('getDisplayOrders', {
         merchant_id: merchantId,
+        session_id: deviceSessionId,
         station_id: stationId || null,
         mode: 'kitchen'
       });
@@ -201,6 +202,7 @@ export default function KitchenDisplay() {
       await base44.functions.invoke('updateDisplayOrder', {
         order_id: orderId,
         merchant_id: merchantId,
+        session_id: deviceSessionId,
         action
       });
       await loadOrders();
