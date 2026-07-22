@@ -654,46 +654,45 @@ export default function POSPage() {
     try {
       console.log('POS: Loading settings and merchant...');
 
+      // Entity calls (Merchant, Products, Orders) require an authenticated base44
+      // session for RLS. PIN/email logins only store a local snapshot — they do NOT
+      // create a session. So always verify a live session first; if there is none,
+      // send the user through the platform login (the only flow that creates a real
+      // session), preserving this station link so they return straight to the POS.
       let pinUser = null;
-      const pinUserJSON = localStorage.getItem('pinLoggedInUser');
+      let sessionUser = null;
+      try {
+        sessionUser = await base44.auth.me();
+      } catch (e) {
+        console.warn('POS: No authenticated session.');
+      }
 
+      if (!sessionUser || !sessionUser.id) {
+        const up = new URLSearchParams(window.location.search);
+        const sId = up.get('station_id') || '';
+        const returnTo = sId ? `${createPageUrl('POS')}?station_id=${encodeURIComponent(sId)}` : createPageUrl('POS');
+        try {
+          await base44.auth.redirectToLogin(returnTo);
+        } catch (err) {
+          console.error('POS: redirectToLogin failed:', err);
+          setInitError('Authentication is required to use this station. Please sign in and reopen the station link.');
+        }
+        return;
+      }
+
+      // Prefer the staff PIN identity when it belongs to the same merchant as the session
+      const pinUserJSON = localStorage.getItem('pinLoggedInUser');
       if (pinUserJSON) {
         try {
-          pinUser = JSON.parse(pinUserJSON);
-          console.log('POS: Found pinUser in localStorage:', pinUser.email, 'merchant_id:', pinUser.merchant_id);
-        } catch (e) {
-          console.error('Error parsing pinLoggedInUser:', e);
-        }
-      }
-
-      // If no pinUser or no merchant_id, try to get from API
-      if (!pinUser || !pinUser.merchant_id) {
-        try {
-          console.log('POS: No pinUser or merchant_id, trying auth.me()...');
-          pinUser = await base44.auth.me();
-          console.log('POS: Got user from auth.me():', pinUser?.email, 'merchant_id:', pinUser?.merchant_id);
-
-          if (pinUser && pinUser.id) {
-            localStorage.setItem('pinLoggedInUser', JSON.stringify(pinUser));
-          } else {
-            console.warn('POS: auth.me() returned no valid user.');
-            const up = new URLSearchParams(window.location.search);
-            const mId = up.get('merchant_id') || localStorage.getItem('deviceMerchantId') || '';
-            const sId = up.get('station_id') || '';
-            const next = `POS?merchant_id=${encodeURIComponent(mId)}&station_id=${encodeURIComponent(sId)}`;
-            window.location.href = `${createPageUrl('PinLogin')}?merchant_id=${encodeURIComponent(mId)}&next=${encodeURIComponent(next)}`;
-            return;
+          const local = JSON.parse(pinUserJSON);
+          if (local && local.merchant_id && local.merchant_id === sessionUser.merchant_id) {
+            pinUser = local;
           }
-        } catch (e) {
-          console.error('POS: Error getting user from auth.me():', e);
-          const up = new URLSearchParams(window.location.search);
-          const mId = up.get('merchant_id') || localStorage.getItem('deviceMerchantId') || '';
-          const sId = up.get('station_id') || '';
-          const next = `POS?merchant_id=${encodeURIComponent(mId)}&station_id=${encodeURIComponent(sId)}`;
-          window.location.href = `${createPageUrl('PinLogin')}?merchant_id=${encodeURIComponent(mId)}&next=${encodeURIComponent(next)}`;
-          return;
-        }
+        } catch (e) { /* ignore malformed snapshot */ }
       }
+      if (!pinUser) pinUser = sessionUser;
+      localStorage.setItem('pinLoggedInUser', JSON.stringify(pinUser));
+      if (sessionUser.merchant_id) localStorage.setItem('deviceMerchantId', sessionUser.merchant_id);
 
       // Proceed based on whether we are in demo mode or a real merchant
       if (pinUser && pinUser.merchant_id && pinUser.merchant_id !== 'demo') {
