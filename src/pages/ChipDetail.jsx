@@ -14,6 +14,28 @@ export default function ChipDetail() {
   const [minting, setMinting] = useState(false);
   const [mintError, setMintError] = useState(null);
   const [mintSuccess, setMintSuccess] = useState(null);
+  const [connectingWallet, setConnectingWallet] = useState(false);
+
+  const handleConnectWallet = async () => {
+    setMintError(null);
+    const provider = window.solana || window.phantom?.solana;
+    if (!provider) {
+      setMintError('Phantom wallet not detected. Install the Phantom extension to continue.');
+      return;
+    }
+    try {
+      setConnectingWallet(true);
+      const resp = await provider.connect();
+      const address = resp?.publicKey?.toString();
+      if (!address) throw new Error('No wallet address returned');
+      await base44.auth.updateMe({ wallet_address: address });
+      setUser((u) => ({ ...u, wallet_address: address }));
+    } catch (e) {
+      setMintError(e?.message || 'Failed to connect wallet');
+    } finally {
+      setConnectingWallet(false);
+    }
+  };
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -215,17 +237,31 @@ export default function ChipDetail() {
                   </Alert>
                 )}
                 {user && !user.wallet_address && (
-                  <Alert className="border-yellow-200 bg-yellow-50 w-full">
-                    <Wallet className="h-4 w-4 text-yellow-600" />
-                    <AlertDescription className="text-yellow-800">
-                      Connect your Solana wallet in Settings to mint this chip.
-                    </AlertDescription>
-                  </Alert>
+                  <div className="w-full space-y-2">
+                    <Alert className="border-yellow-200 bg-yellow-50 w-full">
+                      <Wallet className="h-4 w-4 text-yellow-600" />
+                      <AlertDescription className="text-yellow-800">
+                        You must connect your Solana wallet to {chip.billing_type === 'ONE_TIME' ? 'mint' : 'subscribe'}.
+                      </AlertDescription>
+                    </Alert>
+                    <Button
+                      variant="outline"
+                      className="w-full h-12 border-cyan-300 text-cyan-700 hover:bg-cyan-50"
+                      onClick={handleConnectWallet}
+                      disabled={connectingWallet}
+                    >
+                      {connectingWallet ? (
+                        <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Connecting...</>
+                      ) : (
+                        <><Wallet className="w-5 h-5 mr-2" /> Connect Solana Wallet</>
+                      )}
+                    </Button>
+                  </div>
                 )}
                 <Button
                   className="w-full bg-cyan-600 hover:bg-cyan-700 h-14 text-lg font-bold"
                   onClick={handleMintOrSubscribe}
-                  disabled={isSoldOut || isComingSoon || minting}
+                  disabled={isSoldOut || isComingSoon || minting || (user && !user.wallet_address)}
                 >
                   {minting ? (
                     <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Minting NFT...</>
