@@ -217,7 +217,7 @@ export default function Layout({ children, currentPageName }) {
           // Load dealer branding if user has dealer_id (skip if invalid format)
           if (parsedUser.dealer_id && parsedUser.dealer_id.length > 10) {
             try {
-              const dealers = await base44.entities.Dealer.filter({ id: parsedUser.dealer_id });
+              const dealers = await base44.entities.Ambassador.filter({ legacy_dealer_id: parsedUser.dealer_id });
               if (dealers && dealers.length > 0) {
                 foundDealer = dealers[0];
               }
@@ -243,7 +243,7 @@ export default function Layout({ children, currentPageName }) {
       // Load dealer branding from authenticated user if not already loaded
       if (currentUser && !foundDealer && currentUser.dealer_id && currentUser.dealer_id.length > 10) {
         try {
-          const dealers = await base44.entities.Dealer.filter({ id: currentUser.dealer_id });
+          const dealers = await base44.entities.Ambassador.filter({ legacy_dealer_id: currentUser.dealer_id });
           if (dealers && dealers.length > 0) {
             foundDealer = dealers[0];
           }
@@ -260,7 +260,7 @@ export default function Layout({ children, currentPageName }) {
           
           if (subdomain && !['localhost', 'chainlinkpos', 'www', ''].includes(subdomain.toLowerCase())) {
             try {
-              const dealers = await base44.entities.Dealer.filter({ slug: subdomain });
+              const dealers = await base44.entities.Ambassador.filter({ slug: subdomain });
               if (dealers && dealers.length > 0) {
                 foundDealer = dealers[0];
               }

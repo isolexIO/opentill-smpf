@@ -51,7 +51,7 @@ export default function DealerDashboardPage() {
         try {
           const parsed = JSON.parse(storedDealerData);
           if (parsed.id) {
-            const dealers = await base44.entities.Dealer.filter({ id: parsed.id });
+            const dealers = await base44.entities.Ambassador.filter({ legacy_dealer_id: parsed.id });
             dealerData = dealers[0];
           }
         } catch { /* fall through */ }
@@ -61,11 +61,11 @@ export default function DealerDashboardPage() {
         if (['root_admin', 'admin'].includes(user.role)) {
           const dealerId = new URLSearchParams(window.location.search).get('dealer_id');
           const dealers = dealerId
-            ? await base44.entities.Dealer.filter({ id: dealerId })
-            : await base44.entities.Dealer.list();
+            ? await base44.entities.Ambassador.filter({ legacy_dealer_id: dealerId })
+            : await base44.entities.Ambassador.list();
           dealerData = dealers[0];
         } else if (user.dealer_id) {
-          const dealers = await base44.entities.Dealer.filter({ id: user.dealer_id });
+          const dealers = await base44.entities.Ambassador.filter({ legacy_dealer_id: user.dealer_id });
           dealerData = dealers[0];
         }
       }
@@ -73,7 +73,7 @@ export default function DealerDashboardPage() {
       if (!dealerData) throw new Error('No dealer found');
       setDealer(dealerData);
 
-      const merchantList = await base44.entities.Merchant.filter({ dealer_id: dealerData.id });
+      const merchantList = await base44.entities.Merchant.filter({ dealer_id: dealerData.legacy_dealer_id });
       setMerchants(merchantList);
       const activeMerchants = merchantList.filter(m => m.status === 'active').length;
       const monthlyRevenue = merchantList.reduce((s, m) => s + (m.total_revenue || 0), 0);
@@ -115,6 +115,8 @@ export default function DealerDashboardPage() {
 
   const primaryColor = dealer.primary_color || '#10b981';
   const secondaryColor = dealer.secondary_color || '#7c3aed';
+  // Children join child entities (Merchant, payouts, etc.) by the legacy dealer_id foreign key.
+  const dealerView = { ...dealer, id: dealer.legacy_dealer_id || dealer.id, chainlink_subdomain: dealer.opentill_subdomain };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
@@ -209,19 +211,19 @@ export default function DealerDashboardPage() {
           </TabsList>
 
           <TabsContent value="merchants">
-            <MerchantManagement dealerId={dealer.id} />
+            <MerchantManagement dealerId={dealerView.id} />
           </TabsContent>
           <TabsContent value="analytics">
-            <MerchantAnalytics dealerId={dealer.id} />
+            <MerchantAnalytics dealerId={dealerView.id} />
           </TabsContent>
           <TabsContent value="marketing">
-            <AIMarketingTools dealerId={dealer.id} />
+            <AIMarketingTools dealerId={dealerView.id} />
           </TabsContent>
           <TabsContent value="payouts">
-            <PayoutDashboard dealer={dealer} onUpdate={loadDealerData} />
+            <PayoutDashboard dealer={dealerView} onUpdate={loadDealerData} />
           </TabsContent>
           <TabsContent value="staff">
-            <StaffManagement dealerId={dealer.id} />
+            <StaffManagement dealerId={dealerView.id} />
           </TabsContent>
           <TabsContent value="settings">
             <Tabs defaultValue="branding" className="space-y-4">
@@ -230,9 +232,9 @@ export default function DealerDashboardPage() {
                 <TabsTrigger value="payments">Payments</TabsTrigger>
                 <TabsTrigger value="domains">Domains</TabsTrigger>
               </TabsList>
-              <TabsContent value="branding"><DealerBrandingSettings dealer={dealer} onUpdate={loadDealerData} /></TabsContent>
-              <TabsContent value="payments"><StripeConnectSetup dealer={dealer} onUpdate={loadDealerData} /></TabsContent>
-              <TabsContent value="domains"><CustomDomainSSL dealer={dealer} onUpdate={loadDealerData} /></TabsContent>
+              <TabsContent value="branding"><DealerBrandingSettings dealer={dealerView} onUpdate={loadDealerData} /></TabsContent>
+              <TabsContent value="payments"><StripeConnectSetup dealer={dealerView} onUpdate={loadDealerData} /></TabsContent>
+              <TabsContent value="domains"><CustomDomainSSL dealer={dealerView} onUpdate={loadDealerData} /></TabsContent>
             </Tabs>
           </TabsContent>
         </Tabs>

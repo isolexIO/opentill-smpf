@@ -78,7 +78,7 @@ Deno.serve(async (req) => {
 
     try {
       // Try to load dealer with service role
-      const dealers = await base44.asServiceRole.entities.Dealer.filter({ id: dealer_id });
+      const dealers = await base44.asServiceRole.entities.Ambassador.filter({ legacy_dealer_id: dealer_id });
       
       if (dealers && dealers.length > 0) {
         dealer = dealers[0];
@@ -94,7 +94,7 @@ Deno.serve(async (req) => {
       // Fallback: If service role doesn't work, try direct access
       // This works because the function itself has verified permissions
       try {
-        const dealers = await base44.entities.Dealer.filter({ id: dealer_id });
+        const dealers = await base44.entities.Ambassador.filter({ legacy_dealer_id: dealer_id });
         
         if (dealers && dealers.length > 0) {
           dealer = dealers[0];

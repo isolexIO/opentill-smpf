@@ -26,8 +26,8 @@ Deno.serve(async (req) => {
 
         // Check if dealer slug already exists
         console.log('Checking for existing dealer with slug:', slug);
-        const existingDealers = await base44.asServiceRole.entities.Dealer.filter({ 
-            slug: slug.toLowerCase().trim() 
+        const existingDealers = await base44.asServiceRole.entities.Ambassador.filter({
+            slug: slug.toLowerCase().trim()
         });
         
         if (existingDealers && existingDealers.length > 0) {
@@ -100,9 +100,11 @@ Deno.serve(async (req) => {
             }
         };
 
-        console.log('Creating dealer:', dealerData.name);
-        const dealer = await base44.asServiceRole.entities.Dealer.create(dealerData);
-        console.log('Dealer created with ID:', dealer.id);
+        console.log('Creating ambassador:', dealerData.name);
+        const dealer = await base44.asServiceRole.entities.Ambassador.create(dealerData);
+        // Bridge legacy dealer_id foreign keys to this ambassador.
+        await base44.asServiceRole.entities.Ambassador.update(dealer.id, { legacy_dealer_id: dealer.id });
+        console.log('Ambassador created with ID:', dealer.id);
 
         // Create dealer admin user
         const userData = {

@@ -25,7 +25,7 @@ Deno.serve(async (req) => {
 
     // 1. Try the public Ambassador entity first (preferred / "no dealers" world).
     try {
-      const ambassadors = await base44.asServiceRole.entities.Ambassador.filter({ id: referralId });
+      const ambassadors = await base44.asServiceRole.entities.Ambassador.filter({ legacy_dealer_id: referralId });
       if (ambassadors && ambassadors.length > 0) {
         return Response.json({ success: true, ambassador: sanitize(ambassadors[0]), source: 'ambassador' });
       }

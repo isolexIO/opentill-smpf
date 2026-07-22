@@ -9,6 +9,10 @@ if (!JWT_SECRET) {
   throw new Error('Server configuration error. Contact administrator to set JWT_SECRET.');
 }
 
+// The Dealer entity has been consolidated into Ambassador. The "dealer_id" that
+// flows through JWTs, user records, and child-entity foreign keys is the
+// Ambassador's `legacy_dealer_id` (the original Dealer id for migrated records,
+// or the Ambassador's own id for new records).
 async function generateToken(dealerId, email) {
   const key = await crypto.subtle.importKey(
     'raw',
@@ -44,78 +48,80 @@ async function verifyToken(token) {
   }
 }
 
+function publicAmbassador(record) {
+  const id = record.legacy_dealer_id || record.id;
+  return {
+    id,
+    name: record.name,
+    company: record.name,
+    email: record.owner_email,
+    slug: record.slug,
+    status: record.status,
+    commission_percent: record.commission_percent
+  };
+}
+
 Deno.serve(async (req) => {
   const base44 = createClientFromRequest(req);
-  
+
   try {
     const body = await req.json();
     const action = body.action || 'login';
-    
+
     // LOGIN
     if (action === 'login') {
       const { email, password } = body;
 
       if (!email || !password) {
-        return Response.json({ 
-          success: false, 
-          error: 'Email and password are required' 
+        return Response.json({
+          success: false,
+          error: 'Email and password are required'
         }, { status: 400 });
       }
 
-      // Find dealer by owner_email
-      const dealers = await base44.asServiceRole.entities.Dealer.filter({ 
-        owner_email: email.toLowerCase() 
+      const ambassadors = await base44.asServiceRole.entities.Ambassador.filter({
+        owner_email: email.toLowerCase()
       });
 
-      if (dealers.length === 0) {
-        return Response.json({ 
-          success: false, 
-          error: 'Invalid credentials' 
+      if (ambassadors.length === 0) {
+        return Response.json({
+          success: false,
+          error: 'Invalid credentials'
         }, { status: 401 });
       }
 
-      const dealer = dealers[0];
+      const ambassador = ambassadors[0];
 
-      // Check if dealer is active
-      if (dealer.status !== 'active' && dealer.status !== 'trial') {
-        return Response.json({ 
-          success: false, 
-          error: 'Your dealer account is not active. Please contact support.' 
+      if (ambassador.status !== 'active' && ambassador.status !== 'trial') {
+        return Response.json({
+          success: false,
+          error: 'Your ambassador account is not active. Please contact support.'
         }, { status: 403 });
       }
 
-      // Verify password using bcrypt
-      if (!dealer.password_hash) {
-        return Response.json({ 
-          success: false, 
-          error: 'Invalid credentials' 
+      if (!ambassador.password_hash) {
+        return Response.json({
+          success: false,
+          error: 'Invalid credentials'
         }, { status: 401 });
       }
 
-      const isValidPassword = await bcrypt.compare(password, dealer.password_hash);
-      
+      const isValidPassword = await bcrypt.compare(password, ambassador.password_hash);
+
       if (!isValidPassword) {
-        return Response.json({ 
-          success: false, 
-          error: 'Invalid credentials' 
+        return Response.json({
+          success: false,
+          error: 'Invalid credentials'
         }, { status: 401 });
       }
 
-      // Generate JWT token
-      const token = await generateToken(dealer.id, dealer.owner_email);
+      const dealerId = ambassador.legacy_dealer_id || ambassador.id;
+      const token = await generateToken(dealerId, ambassador.owner_email);
 
       return Response.json({
         success: true,
         token,
-        dealer: {
-          id: dealer.id,
-          name: dealer.name,
-          company: dealer.name,
-          email: dealer.owner_email,
-          slug: dealer.slug,
-          status: dealer.status,
-          commission_percent: dealer.commission_percent
-        }
+        dealer: publicAmbassador(ambassador)
       });
     }
 
@@ -123,47 +129,41 @@ Deno.serve(async (req) => {
     if (action === 'register') {
       const { name, company, email, password, referral_code } = body;
 
-      // Validation
       if (!name || !company || !email || !password) {
-        return Response.json({ 
-          success: false, 
-          error: 'All fields are required' 
+        return Response.json({
+          success: false,
+          error: 'All fields are required'
         }, { status: 400 });
       }
 
       if (password.length < 8) {
-        return Response.json({ 
-          success: false, 
-          error: 'Password must be at least 8 characters' 
+        return Response.json({
+          success: false,
+          error: 'Password must be at least 8 characters'
         }, { status: 400 });
       }
 
-      // Check if email already exists
-      const existingDealers = await base44.asServiceRole.entities.Dealer.filter({ 
-        owner_email: email.toLowerCase() 
+      const existing = await base44.asServiceRole.entities.Ambassador.filter({
+        owner_email: email.toLowerCase()
       });
 
-      if (existingDealers.length > 0) {
-        return Response.json({ 
-          success: false, 
-          error: 'A dealer account with this email already exists' 
+      if (existing.length > 0) {
+        return Response.json({
+          success: false,
+          error: 'An ambassador account with this email already exists'
         }, { status: 409 });
       }
 
-      // Generate slug from company name
       const slug = company.toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/(^-|-$)/g, '');
 
-      // Check if slug already exists
-      const existingSlugs = await base44.asServiceRole.entities.Dealer.filter({ slug });
+      const existingSlugs = await base44.asServiceRole.entities.Ambassador.filter({ slug });
       const finalSlug = existingSlugs.length > 0 ? `${slug}-${Date.now()}` : slug;
 
-      // Hash password with bcrypt
       const passwordHash = await bcrypt.hash(password, 10);
 
-      // Create dealer
-      const dealer = await base44.asServiceRole.entities.Dealer.create({
+      const ambassador = await base44.asServiceRole.entities.Ambassador.create({
         name: company,
         slug: finalSlug,
         owner_name: name,
@@ -188,25 +188,27 @@ Deno.serve(async (req) => {
         commission_paid_out: 0,
         commission_pending: 0,
         settings: {
-          hide_chainlink_branding: false,
+          hide_opentill_branding: false,
           allow_merchant_self_signup: true,
           default_merchant_plan: 'basic',
           custom_pricing_enabled: false
         }
       });
 
-      // Generate JWT token
-      const token = await generateToken(dealer.id, dealer.owner_email);
+      // Bridge legacy dealer_id foreign keys to this ambassador.
+      await base44.asServiceRole.entities.Ambassador.update(ambassador.id, { legacy_dealer_id: ambassador.id });
 
-      // Create audit log
+      const dealerId = ambassador.id;
+      const token = await generateToken(dealerId, ambassador.owner_email);
+
       await base44.asServiceRole.entities.AuditLog.create({
         action_type: 'login',
-        actor_id: dealer.id,
-        actor_email: dealer.owner_email,
+        actor_id: dealerId,
+        actor_email: ambassador.owner_email,
         actor_role: 'dealer_admin',
-        description: 'New dealer account registered',
+        description: 'New ambassador account registered',
         metadata: {
-          dealer_id: dealer.id,
+          ambassador_id: ambassador.id,
           company: company,
           referral_code: referral_code || null
         }
@@ -215,15 +217,7 @@ Deno.serve(async (req) => {
       return Response.json({
         success: true,
         token,
-        dealer: {
-          id: dealer.id,
-          name: dealer.name,
-          company: dealer.name,
-          email: dealer.owner_email,
-          slug: dealer.slug,
-          status: dealer.status,
-          commission_percent: dealer.commission_percent
-        }
+        dealer: publicAmbassador(ambassador)
       });
     }
 
@@ -241,36 +235,25 @@ Deno.serve(async (req) => {
         return Response.json({ success: false, error: 'Invalid or expired token' }, { status: 401 });
       }
 
-      // Get dealer data
-      const dealers = await base44.asServiceRole.entities.Dealer.filter({ id: payload.dealer_id });
-      
-      if (dealers.length === 0) {
-        return Response.json({ success: false, error: 'Dealer not found' }, { status: 404 });
-      }
+      const ambassadors = await base44.asServiceRole.entities.Ambassador.filter({ legacy_dealer_id: payload.dealer_id });
 
-      const dealer = dealers[0];
+      if (ambassadors.length === 0) {
+        return Response.json({ success: false, error: 'Ambassador not found' }, { status: 404 });
+      }
 
       return Response.json({
         success: true,
-        dealer: {
-          id: dealer.id,
-          name: dealer.name,
-          company: dealer.name,
-          email: dealer.owner_email,
-          slug: dealer.slug,
-          status: dealer.status,
-          commission_percent: dealer.commission_percent
-        }
+        dealer: publicAmbassador(ambassadors[0])
       });
     }
 
     return Response.json({ success: false, error: 'Invalid action' }, { status: 400 });
 
   } catch (error) {
-    console.error('Dealer auth error:', error);
-    return Response.json({ 
-      success: false, 
-      error: error.message || 'An error occurred' 
+    console.error('Ambassador auth error:', error);
+    return Response.json({
+      success: false,
+      error: error.message || 'An error occurred'
     }, { status: 500 });
   }
 });

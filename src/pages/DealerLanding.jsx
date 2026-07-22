@@ -43,7 +43,7 @@ export default function DealerLanding() {
   const loadStats = async () => {
     try {
       const [dealers, merchants] = await Promise.all([
-        base44.entities.Dealer.list(),
+        base44.entities.Ambassador.list(),
         base44.entities.Merchant.list()
       ]);
       setStats({
