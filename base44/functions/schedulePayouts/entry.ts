@@ -15,9 +15,10 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    // Verify root admin access (or system/cron auth)
-    const user = await base44.auth.me();
-    if (!user || user.role !== 'root_admin') {
+    // Dual-mode: allow platform automation (no authenticated user) OR root admin manual trigger.
+    let user = null;
+    try { user = await base44.auth.me(); } catch (e) {}
+    if (user && user.role !== 'root_admin') {
       return Response.json({ error: 'Unauthorized - Root admin only' }, { status: 403 });
     }
 

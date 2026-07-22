@@ -9,9 +9,10 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     
-    // Verify root admin access
-    const user = await base44.auth.me();
-    if (!user || user.role !== 'root_admin') {
+    // Dual-mode: allow platform automation (no authenticated user) OR root admin manual trigger.
+    let user = null;
+    try { user = await base44.auth.me(); } catch (e) {}
+    if (user && user.role !== 'root_admin') {
       return Response.json({ error: 'Unauthorized - Root admin only' }, { status: 403 });
     }
 
@@ -212,7 +213,7 @@ Deno.serve(async (req) => {
       log_type: 'super_admin_action',
       action: 'Dealer Payout Calculation',
       description: `Calculated payouts for ${results.processed} dealers, created ${results.created} payout records`,
-      user_email: user.email,
+      user_email: user?.email || 'automation',
       user_role: 'root_admin',
       severity: 'info',
       metadata: results
