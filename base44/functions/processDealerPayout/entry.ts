@@ -1,7 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 import Stripe from 'npm:stripe@17.4.0';
 import { Connection, PublicKey, Keypair } from 'npm:@solana/web3.js@1.95.8';
-import { getOrCreateAssociatedTokenAccount, getAssociatedTokenAddress, transfer } from 'npm:@solana/spl-token@0.3.9';
+import { getOrCreateAssociatedTokenAccount, getAssociatedTokenAddress, transferChecked, TOKEN_PROGRAM_ID } from 'npm:@solana/spl-token@0.3.9';
 
 /**
  * Process a single dealer (ambassador) payout.
@@ -327,8 +327,23 @@ async function processSolana(base44, dealer, payout, amount) {
       ? 'https://api.mainnet-beta.solana.com'
       : 'https://api.devnet.solana.com';
     const connection = new Connection(rpcUrl, 'confirmed');
-    const authorityKeypair = Keypair.fromSecretKey(new Uint8Array(JSON.parse(authoritySecretKey)));
+    let authoritySecretKeyBytes;
+    const trimmed = authoritySecretKey.trim();
+    if (trimmed.startsWith('[')) {
+      authoritySecretKeyBytes = new Uint8Array(JSON.parse(trimmed));
+    } else {
+      const bs58 = await import('npm:bs58@5.0.0');
+      authoritySecretKeyBytes = new Uint8Array(bs58.default ? bs58.default.decode(trimmed) : bs58.decode(trimmed));
+    }
+    const authorityKeypair = Keypair.fromSecretKey(authoritySecretKeyBytes);
     const mint = new PublicKey(ducMintAddress);
+
+    // $DUC is a Token-2022 mint; resolve the actual token program so ATAs and
+    // transfers target the correct program (standard Token vs Token-2022).
+    const mintAccountInfo = await connection.getAccountInfo(mint);
+    const mintProgramId = mintAccountInfo?.owner
+      ? new PublicKey(mintAccountInfo.owner)
+      : TOKEN_PROGRAM_ID;
 
     // $DUC is treated 1:1 with USD for payout purposes (6 decimals)
     const decimals = 6;
@@ -339,11 +354,11 @@ async function processSolana(base44, dealer, payout, amount) {
       return { success: false, error: 'Payout amount too small to transfer' };
     }
 
-    const sourceATA = await getAssociatedTokenAddress(mint, authorityKeypair.publicKey);
+    const sourceATA = await getAssociatedTokenAddress(mint, authorityKeypair.publicKey, true, mintProgramId);
 
     let sourceBalance = 0;
     try {
-      const bal = await connection.getTokenAccountBalance(sourceATA);
+      const bal = await connection.getTokenAccountBalance(sourceATA, 'confirmed');
       sourceBalance = bal.value?.uiAmount || 0;
     } catch (e) {
       // No source account exists
@@ -359,18 +374,26 @@ async function processSolana(base44, dealer, payout, amount) {
       connection,
       authorityKeypair,
       mint,
-      recipientPubkey
+      recipientPubkey,
+      true,
+      null,
+      undefined,
+      mintProgramId
     );
 
-    const signature = await transfer(
+    // Token-2022 requires the checked transfer variant (includes mint + decimals).
+    const signature = await transferChecked(
       connection,
       authorityKeypair,
       sourceATA,
+      mint,
       destATA.address,
       authorityKeypair.publicKey,
       ducAmountRaw,
+      decimals,
       [],
-      { commitment: 'confirmed' }
+      { commitment: 'confirmed' },
+      mintProgramId
     );
     await connection.confirmTransaction(signature, 'confirmed');
 
