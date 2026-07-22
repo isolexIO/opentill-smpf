@@ -285,6 +285,15 @@ export default function SystemMenu() {
       permission: 'process_orders'
     },
     {
+      id: 'invoices',
+      icon: <FileText className="w-6 h-6" />,
+      title: 'Invoices',
+      description: 'Send paylinks to customers',
+      path: 'Invoices',
+      color: 'from-emerald-500 to-teal-600',
+      permission: null
+    },
+    {
       id: 'reports',
       icon: <BarChart3 className="w-6 h-6" />,
       title: 'Reports',

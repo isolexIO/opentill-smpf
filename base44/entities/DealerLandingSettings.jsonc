@@ -7,7 +7,7 @@
       "properties": {
         "headline": {
           "type": "string",
-          "default": "Welcome to ChainLINK Dealer Portal"
+          "default": "Welcome to openTILL SMPF Dealer Portal"
         },
         "subheadline": {
           "type": "string",

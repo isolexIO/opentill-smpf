@@ -10,6 +10,8 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import DriverDashboard from './pages/DriverDashboard';
+import Invoices from './pages/Invoices';
+import PayInvoice from './pages/PayInvoice';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -69,6 +71,16 @@ const AuthenticatedApp = () => {
       <Route path="/DriverDashboard" element={
         <LayoutWrapper currentPageName="DriverDashboard">
           <DriverDashboard />
+        </LayoutWrapper>
+      } />
+      <Route path="/Invoices" element={
+        <LayoutWrapper currentPageName="Invoices">
+          <Invoices />
+        </LayoutWrapper>
+      } />
+      <Route path="/PayInvoice" element={
+        <LayoutWrapper currentPageName="PayInvoice">
+          <PayInvoice />
         </LayoutWrapper>
       } />
       <Route path="*" element={<PageNotFound />} />
