@@ -1924,9 +1924,9 @@ export default function POSPage() {
 
   const handleClockOut = () => {
     if (confirm('Are you sure you want to clock out?')) {
-      // Just clear PIN user, keep merchant context
       localStorage.removeItem('pinLoggedInUser');
-      window.location.href = createPageUrl('PinLogin');
+      const next = stationId ? `POS?station_id=${encodeURIComponent(stationId)}` : 'POS';
+      window.location.href = `${createPageUrl('PinLogin')}?next=${encodeURIComponent(next)}`;
     }
   };
 
