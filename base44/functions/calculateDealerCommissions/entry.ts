@@ -64,8 +64,13 @@ Deno.serve(async (req) => {
               continue;
             }
 
-            // Calculate commission
-            const commissionAmount = (subscription.price * dealer.commission_percent) / 100;
+            // Calculate commission (+ one-time signup bonus on the merchant's first commission)
+            const baseCommission = (subscription.price * dealer.commission_percent) / 100;
+            const priorMerchantCommissions = await base44.asServiceRole.entities.DealerCommission.filter({ merchant_id: merchant.id });
+            const signupBonus = (priorMerchantCommissions && priorMerchantCommissions.length === 0)
+              ? (dealer.signup_bonus_per_merchant || 0)
+              : 0;
+            const commissionAmount = baseCommission + signupBonus;
 
             // Create commission record
             await base44.asServiceRole.entities.DealerCommission.create({

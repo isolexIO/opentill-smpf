@@ -85,7 +85,11 @@ export default function DealerManagement() {
         domain: '',
         status: 'trial',
         commission_percent: 10,
-        platform_fee_monthly: 99,
+        platform_fee_monthly: 0,
+        signup_bonus_per_merchant: 0,
+        bonus_per_active_merchant: 0,
+        milestone_bonus_threshold: 0,
+        milestone_bonus_amount: 0,
         payout_method: 'stripe_connect',
         payout_minimum: 20,
         payout_cadence: 'monthly',
@@ -306,9 +310,9 @@ export default function DealerManagement() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Monthly Fees</p>
+                <p className="text-sm text-gray-500">Pending Commission</p>
                 <p className="text-2xl font-bold">
-                  ${ambassadors.reduce((sum, a) => sum + (a.platform_fee_monthly || 0), 0).toFixed(0)}
+                  ${ambassadors.reduce((sum, a) => sum + (a.commission_pending || 0), 0).toFixed(2)}
                 </p>
               </div>
               <DollarSign className="w-8 h-8 text-orange-500" />
@@ -373,7 +377,8 @@ export default function DealerManagement() {
                   <div className="text-right">
                     <p className="text-sm font-medium">{ambassador.total_merchants || 0} merchants</p>
                     <p className="text-xs text-gray-500">
-                      {ambassador.commission_percent}% commission • ${ambassador.platform_fee_monthly}/mo
+                      {ambassador.commission_percent}% commission
+                      {ambassador.bonus_per_active_merchant ? ` • $${ambassador.bonus_per_active_merchant}/merchant bonus` : ''}
                     </p>
                   </div>
 
@@ -666,34 +671,77 @@ export default function DealerManagement() {
 
               {/* Billing Tab */}
               <TabsContent value="billing" className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Commission Percentage</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.1"
+                    value={editDialog.ambassador.commission_percent}
+                    onChange={(e) => updateAmbassador('commission_percent', parseFloat(e.target.value))}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Ambassador earns this % of each merchant's subscription revenue
+                  </p>
+                </div>
+
+                <div className="border-t pt-4 space-y-4">
                   <div>
-                    <Label>Commission Percentage</Label>
-                    <Input
-                      type="number"
-                      min="0"
-                      max="100"
-                      step="0.1"
-                      value={editDialog.ambassador.commission_percent}
-                      onChange={(e) => updateAmbassador('commission_percent', parseFloat(e.target.value))}
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Ambassador earns this % of each merchant's subscription
-                    </p>
+                    <p className="font-semibold text-sm">Bonus Structure</p>
+                    <p className="text-xs text-gray-500">Ambassadors are not charged platform fees. Configure optional bonuses below.</p>
                   </div>
 
-                  <div>
-                    <Label>Platform Fee (Monthly)</Label>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={editDialog.ambassador.platform_fee_monthly}
-                      onChange={(e) => updateAmbassador('platform_fee_monthly', parseFloat(e.target.value))}
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Fee charged to ambassador for using the platform
-                    </p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Signup Bonus per Merchant ($)</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={editDialog.ambassador.signup_bonus_per_merchant || 0}
+                        onChange={(e) => updateAmbassador('signup_bonus_per_merchant', parseFloat(e.target.value) || 0)}
+                      />
+                      <p className="text-xs text-gray-500 mt-1">One-time bonus when a new merchant signs up</p>
+                    </div>
+
+                    <div>
+                      <Label>Active Merchant Bonus ($/period)</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={editDialog.ambassador.bonus_per_active_merchant || 0}
+                        onChange={(e) => updateAmbassador('bonus_per_active_merchant', parseFloat(e.target.value) || 0)}
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Added for each active merchant each payout period</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Milestone Threshold (merchants)</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="1"
+                        value={editDialog.ambassador.milestone_bonus_threshold || 0}
+                        onChange={(e) => updateAmbassador('milestone_bonus_threshold', parseFloat(e.target.value) || 0)}
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Active merchants needed to unlock the milestone bonus</p>
+                    </div>
+
+                    <div>
+                      <Label>Milestone Bonus ($)</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={editDialog.ambassador.milestone_bonus_amount || 0}
+                        onChange={(e) => updateAmbassador('milestone_bonus_amount', parseFloat(e.target.value) || 0)}
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Bonus paid each period the threshold is met</p>
+                    </div>
                   </div>
                 </div>
 

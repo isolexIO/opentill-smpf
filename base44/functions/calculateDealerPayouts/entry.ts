@@ -113,8 +113,17 @@ Deno.serve(async (req) => {
           }
         }
 
-        // Calculate totals
+        // Calculate base commission
         const commissionAmount = (grossAmount * dealer.commission_percent) / 100;
+
+        // Calculate ambassador bonuses (ambassadors pay no platform fees)
+        const activeMerchantCount = payoutItems.length;
+        let bonusAmount = activeMerchantCount * (dealer.bonus_per_active_merchant || 0);
+        const milestoneThreshold = dealer.milestone_bonus_threshold || 0;
+        if (milestoneThreshold > 0 && activeMerchantCount >= milestoneThreshold) {
+          bonusAmount += dealer.milestone_bonus_amount || 0;
+        }
+
         const rootShare = grossAmount - commissionAmount;
 
         // Get carryover from previous period if any
@@ -124,7 +133,7 @@ Deno.serve(async (req) => {
         });
 
         const carryover = previousPayouts.reduce((sum, p) => sum + (p.carryover_amount || 0), 0);
-        const totalCommission = commissionAmount + carryover;
+        const totalCommission = commissionAmount + bonusAmount + carryover;
 
         // Check minimum payout threshold
         let status = 'pending';
@@ -154,7 +163,8 @@ Deno.serve(async (req) => {
           status: status,
           scheduled_at: scheduledAt ? scheduledAt.toISOString() : null,
           carryover_amount: status === 'on_hold' ? totalCommission : 0,
-          notes: notes,
+          bonus_amount: bonusAmount,
+          notes: bonusAmount > 0 ? `${notes ? notes + ' ' : ''}Includes $${bonusAmount.toFixed(2)} ambassador bonus.` : notes,
           merchant_names: payoutItems.map(item => item.merchant_name)
         });
 

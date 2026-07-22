@@ -24,6 +24,11 @@
       "type": "number",
       "description": "Dealer commission (dealer's cut)"
     },
+    "bonus_amount": {
+      "type": "number",
+      "default": 0,
+      "description": "Ambassador bonus included in this payout (active-merchant + milestone)"
+    },
     "root_share": {
       "type": "number",
       "description": "Platform's share of revenue"

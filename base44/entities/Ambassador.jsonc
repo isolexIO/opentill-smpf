@@ -96,7 +96,27 @@
     "platform_fee_monthly": {
       "type": "number",
       "default": 0,
-      "description": "Monthly platform fee charged to ambassador"
+      "description": "Reserved \u2014 ambassadors are not charged platform fees"
+    },
+    "signup_bonus_per_merchant": {
+      "type": "number",
+      "default": 0,
+      "description": "One-time $ bonus paid to ambassador when a new merchant signs up"
+    },
+    "bonus_per_active_merchant": {
+      "type": "number",
+      "default": 0,
+      "description": "$ bonus added per active merchant each payout period"
+    },
+    "milestone_bonus_threshold": {
+      "type": "number",
+      "default": 0,
+      "description": "Active merchant count required to unlock the milestone bonus"
+    },
+    "milestone_bonus_amount": {
+      "type": "number",
+      "default": 0,
+      "description": "$ bonus added each period the milestone threshold is met"
     },
     "commission_percent": {
       "type": "number",
