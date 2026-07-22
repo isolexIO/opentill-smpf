@@ -504,7 +504,8 @@ Deno.serve(async (req) => {
         'logo_url', 'favicon_url', 'primary_color', 'secondary_color', 'domain',
         'contact_phone', 'owner_name', 'settings',
         'payout_method', 'payout_destination', 'payout_minimum', 'payout_cadence',
-        'payout_hold_days', 'payout_enabled', 'solana_wallet_address'
+        'payout_hold_days', 'payout_enabled', 'solana_wallet_address',
+        'payout_methods', 'stripe_connected', 'stripe_account_id', 'billing_mode'
       ]);
 
       const updates = {};

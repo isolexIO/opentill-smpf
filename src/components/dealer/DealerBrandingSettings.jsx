@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Check, Copy } from 'lucide-react';
+import { updateAmbassadorProfile } from '@/lib/dealerProfile';
 
 export default function DealerBrandingSettings({ dealer, onUpdate }) {
   const [saving, setSaving] = useState(false);
@@ -23,17 +23,7 @@ export default function DealerBrandingSettings({ dealer, onUpdate }) {
   const handleSave = async () => {
     try {
       setSaving(true);
-      const token = localStorage.getItem('dealerToken');
-      if (token) {
-        // Ambassador Hub session (email / Google / wallet) — no platform User,
-        // so update through the token-authenticated service-role action.
-        const { data } = await base44.functions.invoke('dealerAuth', {
-          action: 'update_profile', token, updates: formData
-        });
-        if (!data?.success) throw new Error(data?.error || 'Failed to update branding');
-      } else {
-        await base44.entities.Ambassador.update(dealer.id, formData);
-      }
+      await updateAmbassadorProfile(dealer, formData);
       onUpdate?.();
     } catch (error) {
       alert('Error updating branding: ' + error.message);

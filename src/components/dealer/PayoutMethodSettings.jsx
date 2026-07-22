@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/select';
 import { AlertCircle, Plus, Trash2, Check } from 'lucide-react';
 import SolanaWalletInput from '@/components/shared/SolanaWalletInput';
+import { updateAmbassadorProfile } from '@/lib/dealerProfile';
 
 export default function PayoutMethodSettings({ dealer, onUpdate }) {
   const [methods, setMethods] = useState(dealer?.payout_methods || []);
@@ -89,7 +90,7 @@ export default function PayoutMethodSettings({ dealer, onUpdate }) {
         updatedMethods = updatedMethods.map(m => ({ ...m, is_primary: m.id === (formData.id || formData.id) }));
       }
 
-      await base44.entities.Ambassador.update(dealer.id, {
+      await updateAmbassadorProfile(dealer, {
         payout_methods: updatedMethods
       });
 
@@ -109,7 +110,7 @@ export default function PayoutMethodSettings({ dealer, onUpdate }) {
 
     try {
       const updatedMethods = methods.filter(m => m.id !== methodId);
-      await base44.entities.Ambassador.update(dealer.id, {
+      await updateAmbassadorProfile(dealer, {
         payout_methods: updatedMethods
       });
       setMethods(updatedMethods);

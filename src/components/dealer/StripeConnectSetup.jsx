@@ -4,14 +4,15 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { 
-  CreditCard, 
-  CheckCircle, 
-  AlertCircle, 
+import {
+  CreditCard,
+  CheckCircle,
+  AlertCircle,
   ExternalLink,
   Loader2,
   DollarSign
 } from 'lucide-react';
+import { updateAmbassadorProfile } from '@/lib/dealerProfile';
 
 export default function StripeConnectSetup({ dealer, onUpdate }) {
   const [loading, setLoading] = useState(false);
@@ -98,7 +99,7 @@ export default function StripeConnectSetup({ dealer, onUpdate }) {
     try {
       setLoading(true);
       
-      await base44.entities.Ambassador.update(dealer.id, {
+      await updateAmbassadorProfile(dealer, {
         stripe_connected: false,
         stripe_account_id: '',
         billing_mode: 'root_fallback'

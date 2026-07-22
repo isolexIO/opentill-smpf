@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
+import { updateAmbassadorProfile } from '@/lib/dealerProfile';
 
 export default function PayoutThresholdSettings({ dealer, onUpdate }) {
   const [payoutThreshold, setPayoutThreshold] = useState(dealer?.payout_minimum || 20);
@@ -23,7 +24,7 @@ export default function PayoutThresholdSettings({ dealer, onUpdate }) {
         return;
       }
 
-      await base44.entities.Ambassador.update(dealer.id, {
+      await updateAmbassadorProfile(dealer, {
         payout_minimum: parseFloat(payoutThreshold),
         payout_cadence: payoutCadence
       });
