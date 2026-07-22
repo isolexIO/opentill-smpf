@@ -70,7 +70,7 @@ export default function UserManual() {
         },
         {
           title: 'Payment Methods',
-          content: 'ChainLINK supports multiple payment types:\n\n• Cash - Manual cash transactions with change calculation\n• Card - Credit/Debit via Stripe, Square, or other gateways\n• EBT/SNAP - For eligible food items only (auto-calculates eligible items)\n• Solana Pay - Cryptocurrency via QR code (USDC or custom tokens)\n• Split Payment - Combine multiple methods (e.g., EBT + Card for non-eligible items)\n\nAll transactions are recorded in Order History with full details.'
+          content: 'openTILL supports multiple payment types:\n\n• Cash - Manual cash transactions with change calculation\n• Card - Credit/Debit via Stripe, Square, or other gateways\n• EBT/SNAP - For eligible food items only (auto-calculates eligible items)\n• Solana Pay - Cryptocurrency via QR code (USDC or custom tokens)\n• Split Payment - Combine multiple methods (e.g., EBT + Card for non-eligible items)\n\nAll transactions are recorded in Order History with full details.'
         },
         {
           title: 'Dual Pricing & Surcharges',
@@ -162,11 +162,11 @@ export default function UserManual() {
       content: [
         {
           title: 'Payment Gateway Setup - Stripe',
-          content: 'STEP 1: Get Stripe Account\n• Sign up at stripe.com\n• Complete business verification\n• Navigate to Developers → API Keys\n\nSTEP 2: Get API Credentials\n• Copy "Publishable key" (starts with pk_)\n• Copy "Secret key" (starts with sk_)\n• Use test keys for testing, live keys for production\n\nSTEP 3: Configure in ChainLINK\n• Settings → Payment Gateways → Stripe\n• Paste Publishable Key\n• Paste Secret Key\n• Select Test Mode or Live Mode\n\nSTEP 4: Test Connection\n• Click "Test Connection" button\n• Green checkmark = success\n• Red X = recheck keys\n\nSTEP 5: Enable\n• Toggle "Enabled" switch\n• Save settings\n• Stripe now active for card payments\n\nSTEP 6: Test Transaction\n• Process small test order\n• Use Stripe test card: 4242 4242 4242 4242\n• Verify transaction in Stripe dashboard'
+          content: 'STEP 1: Get Stripe Account\n• Sign up at stripe.com\n• Complete business verification\n• Navigate to Developers → API Keys\n\nSTEP 2: Get API Credentials\n• Copy "Publishable key" (starts with pk_)\n• Copy "Secret key" (starts with sk_)\n• Use test keys for testing, live keys for production\n\nSTEP 3: Configure in openTILL\n• Settings → Payment Gateways → Stripe\n• Paste Publishable Key\n• Paste Secret Key\n• Select Test Mode or Live Mode\n\nSTEP 4: Test Connection\n• Click "Test Connection" button\n• Green checkmark = success\n• Red X = recheck keys\n\nSTEP 5: Enable\n• Toggle "Enabled" switch\n• Save settings\n• Stripe now active for card payments\n\nSTEP 6: Test Transaction\n• Process small test order\n• Use Stripe test card: 4242 4242 4242 4242\n• Verify transaction in Stripe dashboard'
         },
         {
           title: 'Payment Gateway Setup - Square',
-          content: 'STEP 1: Get Square Account\n• Sign up at squareup.com\n• Complete business setup\n• Navigate to Developer Dashboard\n\nSTEP 2: Create Application\n• Create new application\n• Get Access Token\n• Get Location ID (from Locations)\n\nSTEP 3: Configure in ChainLINK\n• Settings → Payment Gateways → Square\n• Paste Access Token\n• Paste Location ID\n• Select Sandbox or Production\n\nSTEP 4: Test & Enable\n• Test connection\n• Enable gateway\n• Square hardware auto-syncs'
+          content: 'STEP 1: Get Square Account\n• Sign up at squareup.com\n• Complete business setup\n• Navigate to Developer Dashboard\n\nSTEP 2: Create Application\n• Create new application\n• Get Access Token\n• Get Location ID (from Locations)\n\nSTEP 3: Configure in openTILL\n• Settings → Payment Gateways → Square\n• Paste Access Token\n• Paste Location ID\n• Select Sandbox or Production\n\nSTEP 4: Test & Enable\n• Test connection\n• Enable gateway\n• Square hardware auto-syncs'
         },
         {
           title: 'EBT/SNAP Payment Processing',
@@ -274,7 +274,7 @@ Note: openTILL Payments is optional — you can still connect your own Stripe, S
       content: [
         {
           title: 'Online Menu Setup - Complete Guide',
-          content: 'STEP 1: Enable Feature\n• Settings → Online Ordering\n• Toggle "Enable Online Ordering"\n\nSTEP 2: Fulfillment Options\n• Enable Pickup: Allow customer pickup\n• Enable Delivery: Offer delivery service\n• Set delivery radius (miles)\n• Set delivery fee\n• Set minimum order amounts\n\nSTEP 3: Operating Hours\n• Enter business hours per day\n• Set special holiday hours\n• Orders only accepted during open hours\n• Display estimated wait time\n\nSTEP 4: Payment Options\n• Allow cash on pickup (toggle)\n• Enable card payments (requires gateway)\n• Enable crypto payments (if Solana Pay enabled)\n\nSTEP 5: Branding\n• Upload logo\n• Set primary and secondary colors\n• Add welcome message\n• Add special instructions\n• Configure menu layout\n\nSTEP 6: Menu Configuration\n• Choose which products appear online\n• Set online-only pricing (if different)\n• Add product photos (highly recommended)\n• Write descriptions\n• Configure modifiers\n\nSTEP 7: Get Your URL\n• Copy unique menu URL\n• Format: yourbusiness.chainlink-pos.com\n• Or set up custom domain (Settings → Custom Domains)\n\nSTEP 8: Promote Your Menu\n• Add link to website\n• Share on social media (Facebook, Instagram)\n• Print QR code on receipts/menus\n• Add to Google My Business\n• Email to customer list'
+          content: 'STEP 1: Enable Feature\n• Settings → Online Ordering\n• Toggle "Enable Online Ordering"\n\nSTEP 2: Fulfillment Options\n• Enable Pickup: Allow customer pickup\n• Enable Delivery: Offer delivery service\n• Set delivery radius (miles)\n• Set delivery fee\n• Set minimum order amounts\n\nSTEP 3: Operating Hours\n• Enter business hours per day\n• Set special holiday hours\n• Orders only accepted during open hours\n• Display estimated wait time\n\nSTEP 4: Payment Options\n• Allow cash on pickup (toggle)\n• Enable card payments (requires gateway)\n• Enable crypto payments (if Solana Pay enabled)\n\nSTEP 5: Branding\n• Upload logo\n• Set primary and secondary colors\n• Add welcome message\n• Add special instructions\n• Configure menu layout\n\nSTEP 6: Menu Configuration\n• Choose which products appear online\n• Set online-only pricing (if different)\n• Add product photos (highly recommended)\n• Write descriptions\n• Configure modifiers\n\nSTEP 7: Get Your URL\n• Copy unique menu URL\n• Format: yourbusiness.opentill-pos.com\n• Or set up custom domain (Settings → Custom Domains)\n\nSTEP 8: Promote Your Menu\n• Add link to website\n• Share on social media (Facebook, Instagram)\n• Print QR code on receipts/menus\n• Add to Google My Business\n• Email to customer list'
         },
         {
           title: 'Managing Online Orders',
@@ -286,7 +286,7 @@ Note: openTILL Payments is optional — you can still connect your own Stripe, S
         },
         {
           title: 'Marketplace Integrations',
-          content: 'Connect third-party delivery platforms:\n\nAvailable Integrations:\n• DoorDash - Wide coverage, fast delivery\n• Grubhub - Restaurant-focused platform\n• Uber Eats - Large customer base\n• Takeout7 - Regional service\n\nSetup Process:\n1. Navigate to Marketplace page\n2. Click "Connect" on desired platform\n3. Follow OAuth connection flow\n4. Enter API credentials\n5. Map your menu to their platform\n6. Configure pricing and availability\n7. Enable auto-accept or manual review\n\nBenefits:\n• Orders sync automatically to ChainLINK\n• Menu updates push to all platforms\n• Unified order management\n• Consolidated reporting\n• Single POS for all orders'
+          content: 'Connect third-party delivery platforms:\n\nAvailable Integrations:\n• DoorDash - Wide coverage, fast delivery\n• Grubhub - Restaurant-focused platform\n• Uber Eats - Large customer base\n• Takeout7 - Regional service\n\nSetup Process:\n1. Navigate to Marketplace page\n2. Click "Connect" on desired platform\n3. Follow OAuth connection flow\n4. Enter API credentials\n5. Map your menu to their platform\n6. Configure pricing and availability\n7. Enable auto-accept or manual review\n\nBenefits:\n• Orders sync automatically to openTILL\n• Menu updates push to all platforms\n• Unified order management\n• Consolidated reporting\n• Single POS for all orders'
         },
         {
           title: 'QR Code Ordering',
@@ -310,7 +310,7 @@ Note: openTILL Payments is optional — you can still connect your own Stripe, S
         },
         {
           title: 'Time Tracking & Clock In/Out',
-          content: 'Employee time management:\n\nClock In:\n1. Employee opens ChainLINK\n2. Clicks "PIN Login"\n3. Enters 4-digit PIN\n4. System records clock-in time\n5. Employee can now work\n\nClock Out:\n1. From System Menu, click profile\n2. Select "Clock Out"\n3. Confirm action\n4. System records clock-out time\n5. Session ends\n\nManagement:\n• Navigate to Users → Time Tracking tab\n• View all clock in/out records\n• Edit entries (admin only)\n• Add manual entries\n• Approve/reject timesheets\n• Export for payroll\n• Calculate hours:\n  - Regular hours\n  - Overtime\n  - Break time\n  - Total per pay period\n\nReports:\n• Hours by employee\n• Hours by date range\n• Cost of labor\n• Compare scheduled vs actual'
+          content: 'Employee time management:\n\nClock In:\n1. Employee opens openTILL\n2. Clicks "PIN Login"\n3. Enters 4-digit PIN\n4. System records clock-in time\n5. Employee can now work\n\nClock Out:\n1. From System Menu, click profile\n2. Select "Clock Out"\n3. Confirm action\n4. System records clock-out time\n5. Session ends\n\nManagement:\n• Navigate to Users → Time Tracking tab\n• View all clock in/out records\n• Edit entries (admin only)\n• Add manual entries\n• Approve/reject timesheets\n• Export for payroll\n• Calculate hours:\n  - Regular hours\n  - Overtime\n  - Break time\n  - Total per pay period\n\nReports:\n• Hours by employee\n• Hours by date range\n• Cost of labor\n• Compare scheduled vs actual'
         },
         {
           title: 'Performance Tracking',
@@ -382,7 +382,7 @@ Note: openTILL Payments is optional — you can still connect your own Stripe, S
       content: [
         {
           title: 'Recommended Hardware',
-          content: 'ChainLINK works on any device:\n\nPOS Terminal:\n• Tablet: iPad, Android tablet (10"+ recommended)\n• Desktop: Windows, Mac, Linux\n• All-in-one POS systems\n• Minimum: Dual-core processor, 4GB RAM\n\nCard Readers:\n• Verifone VX520 (recommended)\n• Clover terminals\n• PAX devices\n• Square reader\n• Ellipal crypto terminal\n\nReceipt Printers:\n• Epson TM-T88VI (thermal)\n• Star Micronics TSP143IIIBI\n• Any ESC/POS compatible\n\nBarcode Scanners:\n• Zebra DS2208\n• Honeywell Voyager 1250g\n• Any USB HID scanner\n• Camera-based scanning (built-in)\n\nCash Drawer:\n• APG Vasario Series\n• Star Micronics CD series\n• Any RJ11/RJ12 compatible\n\nCustomer Display:\n• 7"-10" tablet\n• Secondary monitor\n• Any device with web browser'
+          content: 'openTILL works on any device:\n\nPOS Terminal:\n• Tablet: iPad, Android tablet (10"+ recommended)\n• Desktop: Windows, Mac, Linux\n• All-in-one POS systems\n• Minimum: Dual-core processor, 4GB RAM\n\nCard Readers:\n• Verifone VX520 (recommended)\n• Clover terminals\n• PAX devices\n• Square reader\n• Ellipal crypto terminal\n\nReceipt Printers:\n• Epson TM-T88VI (thermal)\n• Star Micronics TSP143IIIBI\n• Any ESC/POS compatible\n\nBarcode Scanners:\n• Zebra DS2208\n• Honeywell Voyager 1250g\n• Any USB HID scanner\n• Camera-based scanning (built-in)\n\nCash Drawer:\n• APG Vasario Series\n• Star Micronics CD series\n• Any RJ11/RJ12 compatible\n\nCustomer Display:\n• 7"-10" tablet\n• Secondary monitor\n• Any device with web browser'
         },
         {
           title: 'Card Reader Setup',
@@ -394,7 +394,7 @@ Note: openTILL Payments is optional — you can still connect your own Stripe, S
         },
         {
           title: 'Barcode Scanner Setup',
-          content: 'Configure barcode scanning:\n\nUSB Scanner (Plug & Play):\n1. Plug scanner into USB port\n2. No configuration needed\n3. ChainLINK auto-detects\n4. Test scan on POS or Products page\n5. Supported formats: UPC, EAN, Code 39, Code 128\n\nBluetooth Scanner:\n1. Put scanner in pairing mode\n2. Device Bluetooth settings\n3. Pair with scanner\n4. ChainLINK auto-detects\n5. Test scan\n\nCamera Scanner:\n• Built-in to ChainLINK\n• Click camera icon on POS\n• Allow camera access\n• Point at barcode\n• Auto-scans and adds product\n\nWorks for:\n• Adding products to cart\n• Looking up product info\n• Creating new products'
+          content: 'Configure barcode scanning:\n\nUSB Scanner (Plug & Play):\n1. Plug scanner into USB port\n2. No configuration needed\n3. openTILL auto-detects\n4. Test scan on POS or Products page\n5. Supported formats: UPC, EAN, Code 39, Code 128\n\nBluetooth Scanner:\n1. Put scanner in pairing mode\n2. Device Bluetooth settings\n3. Pair with scanner\n4. openTILL auto-detects\n5. Test scan\n\nCamera Scanner:\n• Built-in to openTILL\n• Click camera icon on POS\n• Allow camera access\n• Point at barcode\n• Auto-scans and adds product\n\nWorks for:\n• Adding products to cart\n• Looking up product info\n• Creating new products'
         },
         {
           title: 'Cash Drawer Setup',
@@ -434,7 +434,7 @@ Note: openTILL Payments is optional — you can still connect your own Stripe, S
         },
         {
           title: 'Swapping via Jupiter',
-          content: 'Trade $DUC for other tokens:\n\n1. Navigate to Swap Tab:\n   • $DUC Vault → Swap\n\n2. Select Tokens:\n   • From: $DUC\n   • To: USDC, SOL, or other SPL token\n\n3. Enter Amount:\n   • Amount of $DUC to swap\n   • System shows estimated receive amount\n   • Includes slippage and fees\n\n4. Review & Swap:\n   • Check exchange rate\n   • Review network fee\n   • Click "Swap"\n   • Approve in wallet\n   • Swap executes on Jupiter DEX\n   • Tokens arrive in wallet\n\n5. Powered by Jupiter:\n   • Best rates from all Solana DEXs\n   • Low fees\n   • Fast execution\n   • Referral fees support ChainLINK development'
+          content: 'Trade $DUC for other tokens:\n\n1. Navigate to Swap Tab:\n   • $DUC Vault → Swap\n\n2. Select Tokens:\n   • From: $DUC\n   • To: USDC, SOL, or other SPL token\n\n3. Enter Amount:\n   • Amount of $DUC to swap\n   • System shows estimated receive amount\n   • Includes slippage and fees\n\n4. Review & Swap:\n   • Check exchange rate\n   • Review network fee\n   • Click "Swap"\n   • Approve in wallet\n   • Swap executes on Jupiter DEX\n   • Tokens arrive in wallet\n\n5. Powered by Jupiter:\n   • Best rates from all Solana DEXs\n   • Low fees\n   • Fast execution\n   • Referral fees support openTILL development'
         },
         {
           title: 'Vault Settings',
@@ -462,7 +462,7 @@ Note: openTILL Payments is optional — you can still connect your own Stripe, S
         },
         {
           title: 'Purchasing NFTs',
-          content: 'How to acquire feature NFTs:\n\n1. Check Required Collection:\n   • View Chip details in Motherboard\n   • Note collection address\n   • See floor price estimate\n\n2. Buy NFT:\n   • Visit Solana NFT marketplace:\n     - Magic Eden (magiceden.io)\n     - Tensor (tensor.trade)\n     - OpenSea (Solana)\n   • Search for collection address\n   • Purchase NFT\n   • NFT arrives in your wallet\n\n3. Verify Ownership:\n   • Return to ChainLINK Motherboard\n   • Connect wallet (if not already)\n   • Click "Refresh" or reconnect wallet\n   • System verifies NFT\n   • Feature unlocks\n\n4. Maintaining Access:\n   • Keep NFT in wallet for continued access\n   • Selling NFT removes feature access\n   • Transfer to another wallet if needed\n   • NFT can be listed on marketplace while in use'
+          content: 'How to acquire feature NFTs:\n\n1. Check Required Collection:\n   • View Chip details in Motherboard\n   • Note collection address\n   • See floor price estimate\n\n2. Buy NFT:\n   • Visit Solana NFT marketplace:\n     - Magic Eden (magiceden.io)\n     - Tensor (tensor.trade)\n     - OpenSea (Solana)\n   • Search for collection address\n   • Purchase NFT\n   • NFT arrives in your wallet\n\n3. Verify Ownership:\n   • Return to openTILL Motherboard\n   • Connect wallet (if not already)\n   • Click "Refresh" or reconnect wallet\n   • System verifies NFT\n   • Feature unlocks\n\n4. Maintaining Access:\n   • Keep NFT in wallet for continued access\n   • Selling NFT removes feature access\n   • Transfer to another wallet if needed\n   • NFT can be listed on marketplace while in use'
         },
         {
           title: 'Using Unlocked Features',
@@ -482,7 +482,7 @@ Note: openTILL Payments is optional — you can still connect your own Stripe, S
       content: [
         {
           title: 'What is Device Shop?',
-          content: 'Purchase POS hardware:\n• Browse recommended hardware\n• Card readers, printers, scanners, tablets\n• Pre-configured for ChainLINK\n• Fast shipping\n• Warranty and support included\n• Competitive pricing\n\nAccess: Navigate to "Device Shop" from System Menu\n\nBenefits:\n• Guaranteed compatibility\n• Plug-and-play setup\n• Bulk discounts available\n• Dealer pricing for resellers'
+          content: 'Purchase POS hardware:\n• Browse recommended hardware\n• Card readers, printers, scanners, tablets\n• Pre-configured for openTILL\n• Fast shipping\n• Warranty and support included\n• Competitive pricing\n\nAccess: Navigate to "Device Shop" from System Menu\n\nBenefits:\n• Guaranteed compatibility\n• Plug-and-play setup\n• Bulk discounts available\n• Dealer pricing for resellers'
         },
         {
           title: 'Browsing Products',
@@ -499,6 +499,10 @@ Note: openTILL Payments is optional — you can still connect your own Stripe, S
         {
           title: 'Returns & Support',
           content: 'Hardware issues:\n\n30-Day Return Policy:\n• Unused items in original packaging\n• Return shipping provided\n• Full refund issued\n\nWarranty:\n• 1-year manufacturer warranty on all hardware\n• Defects and malfunctions covered\n• Replacement or repair\n\nTechnical Support:\n• Contact Device Shop support\n• Phone, email, live chat\n• Setup assistance\n• Troubleshooting help\n• Replacement parts\n\nHow to Get Support:\n1. Navigate to Support page\n2. Select "Hardware Issue"\n3. Describe problem\n4. Attach photos if needed\n5. Submit ticket\n6. Support team responds within 24 hours'
+        },
+        {
+          title: 'Affiliate Links',
+          content: 'Recommended hardware via affiliate links:\n• Some products in the Shop include affiliate links to third-party retailers (e.g., Amazon)\n• Clicking "Shop" takes you to the retailer to complete the purchase\n• openTILL may earn a commission at no extra cost to you\n• Prices and availability set by the retailer\n\nSuper Admins manage affiliate products and links from the Super Admin panel (Affiliate Links manager).'
         }
       ]
     },
@@ -518,7 +522,7 @@ Note: openTILL Payments is optional — you can still connect your own Stripe, S
         },
         {
           title: 'Using Your Subdomain',
-          content: 'How to use subdomain:\n\n1. Share with customers:\n   • yourstore.chainlink-pos.sol\n   • Links to your online menu\n   • Or custom landing page\n\n2. Add to Marketing:\n   • Print on business cards\n   • Social media bio\n   • Email signatures\n   • Storefront signage\n\n3. Wallet Integration:\n   • Link subdomain to Solana wallet\n   • Customers can send crypto to subdomain\n   • Resolves to your wallet address\n   • Easier than long wallet addresses\n\n4. Future Features:\n   • NFT integration\n   • Token-gated content\n   • Web3 rewards\n   • Decentralized identity'
+          content: 'How to use subdomain:\n\n1. Share with customers:\n   • yourstore.opentill-pos.sol\n   • Links to your online menu\n   • Or custom landing page\n\n2. Add to Marketing:\n   • Print on business cards\n   • Social media bio\n   • Email signatures\n   • Storefront signage\n\n3. Wallet Integration:\n   • Link subdomain to Solana wallet\n   • Customers can send crypto to subdomain\n   • Resolves to your wallet address\n   • Easier than long wallet addresses\n\n4. Future Features:\n   • NFT integration\n   • Token-gated content\n   • Web3 rewards\n   • Decentralized identity'
         },
         {
           title: 'Subdomain Status',
@@ -747,7 +751,7 @@ Revenue share defaults to 70% to the builder. Super Admin can adjust the platfor
         },
         {
           title: 'Dealer Dashboard Features',
-          content: 'Manage your business:\n• Overview:\n  - Total merchants\n  - Active merchants\n  - Monthly revenue\n  - Earned commissions\n• Merchant Management:\n  - View all your merchants\n  - See merchant status\n  - Impersonate for support\n  - Commission per merchant\n• Commission Tracking:\n  - Real-time commission calculations\n  - Breakdown by merchant\n  - Payment history\n  - Pending payouts\n• Stripe Connect:\n  - Connect your Stripe account\n  - Automatic payouts\n  - View payout history\n• Branding:\n  - Upload your logo\n  - Set brand colors\n  - Custom subdomain\n  - Hide ChainLINK branding (optional)\n• Custom Domains:\n  - Use your own domain\n  - SSL certificates\n  - DNS management\n• Analytics:\n  - Merchant performance\n  - Revenue trends\n  - Growth metrics'
+          content: 'Manage your business:\n• Overview:\n  - Total merchants\n  - Active merchants\n  - Monthly revenue\n  - Earned commissions\n• Merchant Management:\n  - View all your merchants\n  - See merchant status\n  - Impersonate for support\n  - Commission per merchant\n• Commission Tracking:\n  - Real-time commission calculations\n  - Breakdown by merchant\n  - Payment history\n  - Pending payouts\n• Stripe Connect:\n  - Connect your Stripe account\n  - Automatic payouts\n  - View payout history\n• Branding:\n  - Upload your logo\n  - Set brand colors\n  - Custom subdomain\n  - Hide openTILL branding (optional)\n• Custom Domains:\n  - Use your own domain\n  - SSL certificates\n  - DNS management\n• Analytics:\n  - Merchant performance\n  - Revenue trends\n  - Growth metrics'
         },
         {
           title: 'Commission Structure',
@@ -766,11 +770,11 @@ All new feature revenue is included in your monthly commission calculations. Tra
         },
         {
           title: 'Onboarding Merchants',
-          content: 'Add merchants to your portfolio:\n\n1. Share your dealer landing page:\n   • yourdomain.chainlink-pos.com\n   • Branded registration form\n\n2. Merchant registers:\n   • Fills onboarding form\n   • Automatically assigned to you\n   • No manual assignment needed\n\n3. Super Admin approves:\n   • Account activated\n   • Trial period starts\n\n4. Provide Support:\n   • Help merchant with setup\n   • Configure settings\n   • Train on features\n   • Ongoing support\n\n5. Earn Commissions:\n   • Automatic from day one\n   • Track in dealer dashboard'
+          content: 'Add merchants to your portfolio:\n\n1. Share your dealer landing page:\n   • yourdomain.opentill-pos.com\n   • Branded registration form\n\n2. Merchant registers:\n   • Fills onboarding form\n   • Automatically assigned to you\n   • No manual assignment needed\n\n3. Super Admin approves:\n   • Account activated\n   • Trial period starts\n\n4. Provide Support:\n   • Help merchant with setup\n   • Configure settings\n   • Train on features\n   • Ongoing support\n\n5. Earn Commissions:\n   • Automatic from day one\n   • Track in dealer dashboard'
         },
         {
           title: 'White Label Branding',
-          content: 'Custom branding:\n\n1. Upload Your Logo:\n   • Dealer Dashboard → Branding\n   • Upload logo (PNG, SVG)\n   • Shows throughout merchant experience\n\n2. Set Brand Colors:\n   • Primary color\n   • Secondary color\n   • Applied to all UI elements\n\n3. Custom Domain:\n   • Use your own domain\n   • Example: pos.yourcompany.com\n   • Full SSL support\n\n4. Hide ChainLINK Branding:\n   • Toggle in dealer settings\n   • Removes "Powered by ChainLINK"\n   • Your brand only\n\n5. Custom Email Templates:\n   • Merchant welcome emails\n   • Receipt templates\n   • Notification emails\n   • All from your brand\n\nMerchants see your brand, not ChainLINK.'
+          content: 'Custom branding:\n\n1. Upload Your Logo:\n   • Dealer Dashboard → Branding\n   • Upload logo (PNG, SVG)\n   • Shows throughout merchant experience\n\n2. Set Brand Colors:\n   • Primary color\n   • Secondary color\n   • Applied to all UI elements\n\n3. Custom Domain:\n   • Use your own domain\n   • Example: pos.yourcompany.com\n   • Full SSL support\n\n4. Hide openTILL Branding:\n   • Toggle in dealer settings\n   • Removes "Powered by openTILL"\n   • Your brand only\n\n5. Custom Email Templates:\n   • Merchant welcome emails\n   • Receipt templates\n   • Notification emails\n   • All from your brand\n\nMerchants see your brand, not openTILL.'
         },
         {
           title: 'Dealer Support',
@@ -858,7 +862,7 @@ All new feature revenue is included in your monthly commission calculations. Tra
         },
         {
           title: 'Performance Issues',
-          content: 'System running slow:\n\n1. Browser Issues:\n   • Close unused tabs\n   • Clear cache and cookies\n   • Update browser to latest version\n   • Try different browser\n   • Disable browser extensions\n\n2. Internet Connection:\n   • Test speed (speedtest.net)\n   • Restart router/modem\n   • Switch to ethernet if on WiFi\n   • Contact ISP\n\n3. Device Performance:\n   • Restart tablet/computer\n   • Close background apps\n   • Free up storage space\n   • Update operating system\n\n4. Server Issues:\n   • Check status.chainlinkpos.com\n   • Platform maintenance\n   • Wait and retry\n\nIf persistent, contact support with details.'
+          content: 'System running slow:\n\n1. Browser Issues:\n   • Close unused tabs\n   • Clear cache and cookies\n   • Update browser to latest version\n   • Try different browser\n   • Disable browser extensions\n\n2. Internet Connection:\n   • Test speed (speedtest.net)\n   • Restart router/modem\n   • Switch to ethernet if on WiFi\n   • Contact ISP\n\n3. Device Performance:\n   • Restart tablet/computer\n   • Close background apps\n   • Free up storage space\n   • Update operating system\n\n4. Server Issues:\n   • Check status.opentillpos.com\n   • Platform maintenance\n   • Wait and retry\n\nIf persistent, contact support with details.'
         },
         {
           title: 'Printing Issues',
@@ -870,7 +874,7 @@ All new feature revenue is included in your monthly commission calculations. Tra
         },
         {
           title: 'Payment Gateway Errors',
-          content: 'Payment processing failures:\n\n1. Gateway Connection Failed:\n   • Verify API keys correct\n   • Check test/live mode matches keys\n   • Test connection in settings\n   • Check gateway dashboard for issues\n   • Verify account in good standing\n\n2. Transaction Declined:\n   • Not a ChainLINK issue\n   • Customer card declined by bank\n   • Try different card\n   • Check card not expired\n   • Verify sufficient funds\n\n3. Gateway Timeout:\n   • Internet connection issue\n   • Try again\n   • If persists, switch to backup gateway\n   • Contact gateway support\n\n4. Invalid Merchant Account:\n   • Gateway account suspended\n   • Verification needed\n   • Contact gateway directly\n\n5. API Error:\n   • Check gateway status page\n   • May be down for maintenance\n   • Try different gateway\n   • Contact ChainLINK support'
+          content: 'Payment processing failures:\n\n1. Gateway Connection Failed:\n   • Verify API keys correct\n   • Check test/live mode matches keys\n   • Test connection in settings\n   • Check gateway dashboard for issues\n   • Verify account in good standing\n\n2. Transaction Declined:\n   • Not a openTILL issue\n   • Customer card declined by bank\n   • Try different card\n   • Check card not expired\n   • Verify sufficient funds\n\n3. Gateway Timeout:\n   • Internet connection issue\n   • Try again\n   • If persists, switch to backup gateway\n   • Contact gateway support\n\n4. Invalid Merchant Account:\n   • Gateway account suspended\n   • Verification needed\n   • Contact gateway directly\n\n5. API Error:\n   • Check gateway status page\n   • May be down for maintenance\n   • Try different gateway\n   • Contact openTILL support'
         },
         {
           title: 'Wallet Connection Issues',
@@ -918,7 +922,7 @@ All new feature revenue is included in your monthly commission calculations. Tra
         },
         {
           title: 'What is the difference between Super Admin and Merchant Admin?',
-          content: 'Super Admin: Platform team members (ChainLINK staff) with access to all merchants, system configuration, and platform-wide settings. Used for support and management.\n\nMerchant Admin: Business owner/manager with full access to their own merchant account only. Can manage products, employees, settings, but cannot access other merchants or platform settings.'
+          content: 'Super Admin: Platform team members (openTILL staff) with access to all merchants, system configuration, and platform-wide settings. Used for support and management.\n\nMerchant Admin: Business owner/manager with full access to their own merchant account only. Can manage products, employees, settings, but cannot access other merchants or platform settings.'
         },
         {
           title: 'How do I export sales data?',
@@ -934,7 +938,7 @@ All new feature revenue is included in your monthly commission calculations. Tra
         },
         {
           title: 'What devices are compatible?',
-          content: 'ChainLINK works on any device with a modern web browser:\n• Desktop: Windows, Mac, Linux, Chrome OS\n• Tablets: iPad, Android tablets (recommended: 10"+)\n• Smartphones: iOS, Android (for managers/mobile POS)\n• All-in-one POS terminals\n• Touch screen displays\n• Minimum: Dual-core processor, 4GB RAM, internet connection'
+          content: 'openTILL works on any device with a modern web browser:\n• Desktop: Windows, Mac, Linux, Chrome OS\n• Tablets: iPad, Android tablets (recommended: 10"+)\n• Smartphones: iOS, Android (for managers/mobile POS)\n• All-in-one POS terminals\n• Touch screen displays\n• Minimum: Dual-core processor, 4GB RAM, internet connection'
         },
         {
           title: 'How does $DUC Vault work?',
@@ -958,7 +962,7 @@ All new feature revenue is included in your monthly commission calculations. Tra
         },
         {
           title: 'What payment gateways are supported?',
-          content: 'Supported gateways:\n• Stripe (recommended - easy setup)\n• Square (all-in-one with hardware)\n• PayPal (online payments)\n• Authorize.net (enterprise)\n• More coming soon\n\nConfigure in Settings → Payment Gateways. Can enable multiple and set default. Each requires API credentials from their respective dashboards.'
+          content: 'Supported gateways:\n• openTILL Payments (Powered by Stripe) — managed, no own account needed\n• Stripe (recommended - easy setup)\n• Square (all-in-one with hardware)\n• PayPal (online payments)\n• Authorize.net (enterprise)\n• More coming soon\n\nConfigure in Settings → Payment Gateways. Can enable multiple and set default. Stripe/Square require API credentials; openTILL Payments uses guided Stripe Connect onboarding.'
         },
         {
           title: 'How do I handle age-restricted items?',
