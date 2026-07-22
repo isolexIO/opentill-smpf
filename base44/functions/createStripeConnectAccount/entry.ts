@@ -8,15 +8,16 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
 
-    if (!user || user.role !== 'dealer_admin') {
+    // Allow platform admins or dealer_admins. dealer_admins may only act on
+    // their own dealer (IDOR protection); admins are exempt.
+    const isAdmin = user.role === 'admin' || user.role === 'super_admin' || user.role === 'root_admin';
+    if (!user || (user.role !== 'dealer_admin' && !isAdmin)) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { dealer_id, business_name, business_email, return_url, refresh_url } = await req.json();
 
-    // SECURITY: Prevent IDOR — a dealer_admin may only create a Stripe Connect
-    // account for their own dealer. Admins are exempt.
-    if (user.role !== 'admin' && user.dealer_id !== dealer_id) {
+    if (!isAdmin && user.dealer_id !== dealer_id) {
       return Response.json({ error: 'Forbidden: cannot create Stripe account for another dealer' }, { status: 403 });
     }
 
