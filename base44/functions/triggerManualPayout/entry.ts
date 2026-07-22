@@ -22,14 +22,9 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Payout not found' }, { status: 404 });
     }
 
-    // Verify access
-    const isPlatformAdmin = ['root_admin', 'admin', 'super_admin'].includes(user.role);
-    if (!isPlatformAdmin && user.role !== 'dealer_admin') {
-      return Response.json({ error: 'Unauthorized' }, { status: 403 });
-    }
-
-    if (user.role === 'dealer_admin' && user.dealer_id !== payout.dealer_id) {
-      return Response.json({ error: 'Unauthorized - can only trigger own payouts' }, { status: 403 });
+    // Verify access - platform admins only (ambassadors never trigger their own payouts)
+    if (!['root_admin', 'admin', 'super_admin'].includes(user.role)) {
+      return Response.json({ error: 'Unauthorized - Platform admin only' }, { status: 403 });
     }
 
     // Check status
@@ -47,8 +42,8 @@ Deno.serve(async (req) => {
 
     const dealer = dealers[0];
 
-    // Check minimum unless bypassed (platform admin only)
-    if (!bypass_minimum || !isPlatformAdmin) {
+    // Check minimum unless bypassed (platform admins may bypass)
+    if (!bypass_minimum) {
       const minimumPayout = dealer.payout_minimum || 20.0;
       if (payout.commission_amount < minimumPayout) {
         return Response.json({

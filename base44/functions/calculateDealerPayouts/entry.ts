@@ -12,8 +12,8 @@ Deno.serve(async (req) => {
     // Dual-mode: allow platform automation (no authenticated user) OR root admin manual trigger.
     let user = null;
     try { user = await base44.auth.me(); } catch (e) {}
-    if (user && user.role !== 'root_admin') {
-      return Response.json({ error: 'Unauthorized - Root admin only' }, { status: 403 });
+    if (user && !['root_admin', 'admin', 'super_admin'].includes(user.role)) {
+      return Response.json({ error: 'Unauthorized - Platform admin only' }, { status: 403 });
     }
 
     const { dealer_id, force_period_start, force_period_end } = await req.json() || {};

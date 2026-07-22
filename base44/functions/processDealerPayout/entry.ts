@@ -14,10 +14,12 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     
-    // Verify admin access (platform admins or dealer admins)
-    const user = await base44.auth.me();
-    if (!user || !['root_admin', 'admin', 'super_admin', 'dealer_admin'].includes(user.role)) {
-      return Response.json({ error: 'Unauthorized' }, { status: 403 });
+    // Dual-mode: allow platform automation (no authenticated user) OR platform admin.
+    // Ambassadors never process their own payouts.
+    let user = null;
+    try { user = await base44.auth.me(); } catch (e) { user = null; }
+    if (user && !['root_admin', 'admin', 'super_admin'].includes(user.role)) {
+      return Response.json({ error: 'Unauthorized - Platform admin only' }, { status: 403 });
     }
 
     const { payout_id } = await req.json();
@@ -115,8 +117,8 @@ Deno.serve(async (req) => {
           log_type: 'super_admin_action',
           action: 'Dealer Payout Processed',
           description: `Payout of $${payout.commission_amount} processed for dealer ${dealer.name}`,
-          user_email: user.email,
-          user_role: user.role,
+          user_email: user?.email || 'automation',
+          user_role: user?.role || 'system',
           severity: 'info',
           metadata: { payout_id, dealer_id: dealer.id, method: payout.payout_method }
         });
@@ -160,8 +162,8 @@ Deno.serve(async (req) => {
           log_type: 'super_admin_action',
           action: 'Dealer Payout Failed',
           description: `Payout failed for dealer ${dealer.name}: ${result.error}`,
-          user_email: user.email,
-          user_role: user.role,
+          user_email: user?.email || 'automation',
+          user_role: user?.role || 'system',
           severity: 'warning',
           metadata: { payout_id, dealer_id: dealer.id, attempt_count: attemptCount, error: result.error }
         });
