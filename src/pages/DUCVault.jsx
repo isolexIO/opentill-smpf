@@ -59,25 +59,30 @@ export default function DUCVault() {
     setLoading(true);
     try {
       const impersonatedUserJSON = localStorage.getItem('pinLoggedInUser');
-      let currentUser = null;
+      let pinUser = null;
       let merchantId = null;
 
       if (impersonatedUserJSON) {
         try {
-          currentUser = JSON.parse(impersonatedUserJSON);
-          merchantId = currentUser.merchant_id;
+          pinUser = JSON.parse(impersonatedUserJSON);
+          merchantId = pinUser.merchant_id;
         } catch (e) {
           console.error('Error parsing impersonated user:', e);
         }
       }
 
-      if (!currentUser) {
+      // Always fetch fresh user data so the wallet connection state is current.
+      // The localStorage snapshot is stale from login time (before any wallet was linked).
+      let currentUser = null;
+      try {
         currentUser = await base44.auth.me();
+        merchantId = merchantId || currentUser.merchant_id;
+      } catch (e) {
+        currentUser = pinUser;
       }
 
-      merchantId = merchantId || currentUser.merchant_id;
       setUser(currentUser);
-      setWalletConnected(!!currentUser.wallet_address);
+      setWalletConnected(!!(currentUser?.wallet_address));
 
       const settings = await base44.entities.cLINKVaultSettings.filter({ merchant_id: merchantId });
       const globalSettings = await base44.entities.cLINKVaultSettings.filter({ merchant_id: null });
