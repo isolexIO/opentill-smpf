@@ -11,6 +11,7 @@ export default function KitchenDisplay() {
   const [error, setError] = useState(null); // Added for error handling
   const [deviceSessionId, setDeviceSessionId] = useState(null);
   const [stationInfo, setStationInfo] = useState(null);
+  const [stationId, setStationId] = useState(null);
   const audioRef = useRef(null);
 
   useEffect(() => {
@@ -29,7 +30,7 @@ export default function KitchenDisplay() {
     const interval = setInterval(loadOrders, 5000);
 
     return () => clearInterval(interval);
-  }, [merchantId, error]); // Re-run effect if merchantId changes or error state changes
+  }, [merchantId, stationId, error]); // Re-run effect if merchantId/stationId changes or error state changes
 
   // Device Session Registration and Heartbeat
   useEffect(() => {
@@ -151,6 +152,7 @@ export default function KitchenDisplay() {
         // Load station info if a station_id was provided in the URL
         const stationIdFromUrl = new URLSearchParams(window.location.search).get('station_id');
         if (stationIdFromUrl) {
+          setStationId(stationIdFromUrl);
           try {
             const stations = await base44.entities.Station.filter({ merchant_id: foundMerchantId, station_id: stationIdFromUrl });
             if (stations && stations.length > 0) setStationInfo(stations[0]);
@@ -169,10 +171,12 @@ export default function KitchenDisplay() {
     if (!merchantId) return;
 
     try {
-      const orderList = await base44.entities.Order.filter({
+      const { data } = await base44.functions.invoke('getDisplayOrders', {
         merchant_id: merchantId,
-        status: { $in: ['pending', 'processing'] }
-      }, '-created_date', 50);
+        station_id: stationId || null,
+        mode: 'kitchen'
+      });
+      const orderList = data?.success ? (data.orders || []) : [];
 
       // Check for new orders
       if (orderList.length > orders.length) {
@@ -193,7 +197,12 @@ export default function KitchenDisplay() {
 
   const updateOrderStatus = async (orderId, newStatus) => {
     try {
-      await base44.entities.Order.update(orderId, { status: newStatus });
+      const action = newStatus === 'processing' ? 'kitchen_start' : 'kitchen_complete';
+      await base44.functions.invoke('updateDisplayOrder', {
+        order_id: orderId,
+        merchant_id: merchantId,
+        action
+      });
       await loadOrders();
     } catch (error) {
       console.error('Error updating order:', error);

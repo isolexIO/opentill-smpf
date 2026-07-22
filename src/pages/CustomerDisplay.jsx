@@ -93,13 +93,13 @@ export default function CustomerDisplayPage() {
         userId = user.id;
       }
 
-      // Load merchant data
-      const merchantResults = await base44.entities.Merchant.filter({ id: merchantId });
-      if (!merchantResults || merchantResults.length === 0) {
-        setError('Merchant not found. Please check your configuration.');
+      // Load merchant data via public endpoint (display links may be unauthenticated)
+      const merchantResp = await base44.functions.invoke('getPublicMerchant', { merchant_id: merchantId });
+      if (!merchantResp.data?.success || !merchantResp.data?.merchant) {
+        setError(merchantResp.data?.error || 'Merchant not found. Please check your configuration.');
         return;
       }
-      const merchantData = merchantResults[0];
+      const merchantData = merchantResp.data.merchant;
       console.log('CustomerDisplay: Loaded merchant:', merchantData.business_name);
       setMerchant(merchantData);
 
@@ -197,16 +197,14 @@ export default function CustomerDisplayPage() {
 
       // --- Part 1: Find new orders that need to be displayed (if no order is currently active) ---
       if (!currentOrder) {
-        // Filter for orders ready for initial customer display and not yet sent
-        const pendingOrders = await base44.entities.Order.filter({
+        const pendingResp = await base44.functions.invoke('getDisplayOrders', {
           merchant_id: merchant.id,
-          ...(targetStationId && { station_id: targetStationId }),
-          status: { $in: ['preview', 'approval', 'tip_selection', 'ready_for_payment'] },
-          sent_to_customer_display: false
-        }, '-created_date', 1); // Limit to 1 to pick up the latest relevant one first
+          station_id: targetStationId || null,
+          mode: 'customer'
+        });
 
-        if (pendingOrders.length > 0) {
-          const order = pendingOrders[0];
+        if (pendingResp.data?.success && pendingResp.data.pendingOrder) {
+          const order = pendingResp.data.pendingOrder;
           console.log('CustomerDisplay: Found new order:', {
             orderNumber: order.order_number,
             status: order.status,
@@ -214,13 +212,14 @@ export default function CustomerDisplayPage() {
           });
 
           setCurrentOrder(order);
-          
+
           // Mark as sent to display
-          await base44.entities.Order.update(order.id, {
-            sent_to_customer_display: true
+          await base44.functions.invoke('updateDisplayOrder', {
+            order_id: order.id,
+            merchant_id: merchant.id,
+            action: 'mark_sent'
           });
 
-          // Determine screen based on status
           if (order.status === 'approval') {
             setCurrentScreen('approval');
           } else if (order.status === 'tip_selection') {
@@ -228,7 +227,7 @@ export default function CustomerDisplayPage() {
           } else if (order.status === 'ready_for_payment') {
             setCurrentScreen('payment_method');
           } else {
-            setCurrentScreen('approval'); // Default remains approval
+            setCurrentScreen('approval');
           }
         }
       }
@@ -236,13 +235,17 @@ export default function CustomerDisplayPage() {
       // --- Part 2: If we have a current order, check for status updates ---
       if (currentOrder?.id) {
         try {
-          const orderResults = await base44.entities.Order.filter({ id: currentOrder.id });
-          if (!orderResults || orderResults.length === 0) {
+          const statusResp = await base44.functions.invoke('getDisplayOrders', {
+            merchant_id: merchant.id,
+            mode: 'customer',
+            current_order_id: currentOrder.id
+          });
+          if (!statusResp.data?.success || !statusResp.data.currentOrder) {
             console.log('CustomerDisplay: Current order not found, returning to welcome.');
             returnToWelcome();
             return;
           }
-          const updatedOrder = orderResults[0];
+          const updatedOrder = statusResp.data.currentOrder;
           
           console.log('CustomerDisplay: Status check:', {
             orderNumber: updatedOrder.order_number,
@@ -316,15 +319,12 @@ export default function CustomerDisplayPage() {
     try {
       console.log('CustomerDisplay: Tip selected:', tipAmount);
       
-      // Calculate new total with tip
-      const newTotal = currentOrder.subtotal + currentOrder.tax_amount + tipAmount + 
-                      (currentOrder.surcharge_amount || 0) - (currentOrder.discount_amount || 0);
-
-      // Update order with tip
-      await base44.entities.Order.update(currentOrder.id, {
-        tip_amount: tipAmount,
-        total: newTotal,
-        status: 'ready_for_payment'
+      // Update order with tip (server recomputes the total)
+      await base44.functions.invoke('updateDisplayOrder', {
+        order_id: currentOrder.id,
+        merchant_id: merchant.id,
+        action: 'set_tip',
+        tip_amount: tipAmount
       });
 
       // No need to setCurrentOrder or setCurrentScreen here, polling will pick it up
@@ -339,9 +339,11 @@ export default function CustomerDisplayPage() {
     try {
       console.log('CustomerDisplay: Payment method selected:', method);
 
-      await base44.entities.Order.update(currentOrder.id, {
-        payment_method: method,
-        status: 'payment_in_progress'
+      await base44.functions.invoke('updateDisplayOrder', {
+        order_id: currentOrder.id,
+        merchant_id: merchant.id,
+        action: 'set_payment_method',
+        payment_method: method
       });
 
       // No need to setCurrentOrder or setCurrentScreen here, polling will pick it up
@@ -357,8 +359,10 @@ export default function CustomerDisplayPage() {
       // Update order status to completed
       if (currentOrder?.id) {
         try {
-          await base44.entities.Order.update(currentOrder.id, {
-            status: 'completed',
+          await base44.functions.invoke('updateDisplayOrder', {
+            order_id: currentOrder.id,
+            merchant_id: merchant.id,
+            action: 'complete',
             payment_details: details
           });
           // Polling will eventually catch the 'completed' status and transition
@@ -458,8 +462,10 @@ export default function CustomerDisplayPage() {
           onApprove={async () => {
             // Only update backend, polling will handle screen transition
             console.log('CustomerDisplay: Order approved, updating status to tip_selection');
-            await base44.entities.Order.update(currentOrder.id, {
-              status: 'tip_selection'
+            await base44.functions.invoke('updateDisplayOrder', {
+              order_id: currentOrder.id,
+              merchant_id: merchant.id,
+              action: 'approve'
             });
           }}
         />
