@@ -191,6 +191,50 @@ export default function UserManual() {
       ]
     },
     {
+      id: 'opentill-payments',
+      icon: CreditCard,
+      title: 'openTILL Payments (Powered by Stripe)',
+      color: 'text-indigo-600',
+      content: [
+        {
+          title: 'What is openTILL Payments?',
+          content: `openTILL Payments is our managed card-payment offering, powered by Stripe:
+• No need to create or manage your own Stripe account
+• openTILL handles onboarding, underwriting, and payouts via Stripe Connect
+• Accept credit and debit cards at the register, online, and via paylinks
+• Funds settle to your bank account on Stripe's standard schedule
+• PCI-DSS compliance handled by Stripe
+
+Enable it in Settings → Wallet & Payments by toggling "openTILL Payments" and completing the guided Stripe Connect onboarding.
+
+Best for merchants who want card acceptance live quickly without managing their own gateway keys.`
+        },
+        {
+          title: 'Getting Set Up',
+          content: `Onboarding flow:
+1. Settings → Wallet & Payments → enable openTILL Payments
+2. Click "Connect with Stripe"
+3. Complete the Stripe Connect Express onboarding (business info, bank account, KYC)
+4. Stripe reviews and activates your account
+5. Card payments are enabled automatically across POS, online ordering, and invoices
+6. Payouts go to your linked bank account on Stripe's schedule (usually 2 business days)
+
+Check connection status and refresh onboarding from the same settings page at any time.`
+        },
+        {
+          title: 'Pricing & Payouts',
+          content: `How costs work:
+• Card processing fees are set by openTILL (per your plan; typically 2.7% + $0.30)
+• Surcharges / dual pricing apply the same as with any card gateway
+• Payouts are deposited by Stripe to your bank account
+• Transaction and payout history visible in your dashboard
+• Super Admins can configure platform-level rates and view aggregate volume
+
+Note: openTILL Payments is optional — you can still connect your own Stripe, Square, or crypto gateways instead.`
+        }
+      ]
+    },
+    {
       id: 'reports',
       icon: BarChart3,
       title: 'Reports & Analytics',

@@ -204,6 +204,9 @@ export default function UserGuide() {
                 <li>Setting a primary wallet for incoming payments</li>
               </ul>
 
+              <h3 className="text-lg font-semibold mt-6">openTILL Payments (Powered by Stripe)</h3>
+              <p>Prefer not to manage your own gateway? Enable <strong>openTILL Payments</strong> in <strong>Settings → Wallet & Payments</strong>. We handle Stripe Connect onboarding for you — accept cards at the register, online, and via paylinks, with funds settling to your bank account on Stripe's schedule. Dual pricing and surcharges apply the same as any card gateway. You can still connect your own Stripe, Square, or crypto gateways instead.</p>
+
               <h3 className="text-lg font-semibold mt-6">Refunds</h3>
               <ol className="list-decimal pl-5 space-y-1">
                 <li>Go to <strong>System Menu → Orders</strong></li>
@@ -384,6 +387,10 @@ export default function UserGuide() {
                 <div>
                   <p className="font-semibold">Can I accept both card and crypto payments?</p>
                   <p className="text-gray-600">Yes! Enable card gateways in <strong>Settings → Payment Gateways</strong> and crypto in <strong>Settings → Solana Pay</strong>. Customers choose at checkout.</p>
+                </div>
+                <div>
+                  <p className="font-semibold">What is openTILL Payments powered by Stripe?</p>
+                  <p className="text-gray-600">It's our managed card-payment option — we handle the Stripe Connect onboarding for you so you can accept cards without your own Stripe account. Enable it in <strong>Settings → Wallet & Payments</strong>, complete the guided setup, and funds settle to your bank account on Stripe's schedule.</p>
                 </div>
                 <div>
                   <p className="font-semibold">How does dual pricing work?</p>
