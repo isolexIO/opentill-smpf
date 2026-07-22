@@ -91,10 +91,10 @@ export default function PayoutControl() {
     try {
       const [payoutList, dealerList] = await Promise.all([
         base44.entities.DealerPayout.list('-created_date', 200),
-        base44.entities.Dealer.list(),
+        base44.entities.Ambassador.list(),
       ]);
       setPayouts(Array.isArray(payoutList) ? payoutList : []);
-      setDealers(Object.fromEntries((dealerList || []).map((d) => [d.id, d])));
+      setDealers(Object.fromEntries((dealerList || []).map((d) => [d.legacy_dealer_id || d.id, d])));
     } catch (error) {
       console.error('Error loading payouts:', error);
     } finally {

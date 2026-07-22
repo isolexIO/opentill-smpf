@@ -49,11 +49,14 @@ Deno.serve(async (req) => {
       type: 'account_onboarding',
     });
 
-    // Update dealer with Stripe account ID
-    await base44.asServiceRole.entities.Dealer.update(dealer_id, {
-      stripe_account_id: account.id,
-      stripe_connected: false // Will be true after onboarding
-    });
+    // Update ambassador with Stripe account ID (resolve by legacy dealer_id FK)
+    const ambassadors = await base44.asServiceRole.entities.Ambassador.filter({ legacy_dealer_id: dealer_id });
+    if (ambassadors && ambassadors.length > 0) {
+      await base44.asServiceRole.entities.Ambassador.update(ambassadors[0].id, {
+        stripe_account_id: account.id,
+        stripe_connected: false // Will be true after onboarding
+      });
+    }
 
     return Response.json({
       success: true,

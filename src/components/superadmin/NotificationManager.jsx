@@ -81,7 +81,7 @@ export default function NotificationManager() {
       const [notificationsList, merchantsList, dealersList] = await Promise.all([
         base44.entities.MerchantNotification.list('-created_date'),
         base44.entities.Merchant.list('business_name'),
-        base44.entities.Dealer.list('name')
+        base44.entities.Ambassador.list('name')
       ]);
 
       setNotifications(notificationsList);
@@ -420,21 +420,24 @@ export default function NotificationManager() {
               <div>
                 <Label>Select Dealers</Label>
                 <div className="mt-1 border rounded-md max-h-40 overflow-y-auto p-2 space-y-1">
-                  {dealers.map(d => (
+                  {dealers.map(d => {
+                    const did = d.legacy_dealer_id || d.id;
+                    return (
                     <label key={d.id} className="flex items-center gap-2 text-sm cursor-pointer hover:bg-gray-50 px-1 py-0.5 rounded">
                       <input
                         type="checkbox"
-                        checked={formData.target_dealer_ids.includes(d.id)}
+                        checked={formData.target_dealer_ids.includes(did)}
                         onChange={(e) => {
                           const updated = e.target.checked
-                            ? [...formData.target_dealer_ids, d.id]
-                            : formData.target_dealer_ids.filter(id => id !== d.id);
+                            ? [...formData.target_dealer_ids, did]
+                            : formData.target_dealer_ids.filter(id => id !== did);
                           setFormData({ ...formData, target_dealer_ids: updated });
                         }}
                       />
                       {d.name}
                     </label>
-                  ))}
+                    );
+                  })}
                   {dealers.length === 0 && <p className="text-sm text-gray-400">No dealers found</p>}
                 </div>
               </div>

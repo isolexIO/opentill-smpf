@@ -31,16 +31,8 @@ Deno.serve(async (req) => {
       }
     } catch { /* fall through to dealer */ }
 
-    // 2. Legacy referral links carry a Dealer id. Dealer records contain secrets
-    //    (password hashes, payout details) so we read with the service role and
-    //    return ONLY the public-safe fields.
-    try {
-      const dealers = await base44.asServiceRole.entities.Dealer.filter({ id: referralId });
-      if (dealers && dealers.length > 0) {
-        return Response.json({ success: true, ambassador: sanitize(dealers[0]), source: 'dealer' });
-      }
-    } catch { /* ignore */ }
-
+    // Legacy referral links carried a Dealer id; migrated Ambassadors store that
+    // id as legacy_dealer_id, so the Ambassador lookup above already resolves them.
     return Response.json({ success: false, error: 'Ambassador not found.' }, { status: 404 });
   } catch (error) {
     return Response.json({ success: false, error: error.message }, { status: 500 });

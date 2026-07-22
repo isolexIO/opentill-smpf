@@ -145,12 +145,12 @@ export default function OnlineMenuPage() {
           const hostname = window.location.hostname;
           const subdomain = hostname.split('.')[0];
           
-          if (subdomain && !['localhost', 'chainlinkpos', 'www', ''].includes(subdomain.toLowerCase())) {
-            const dealerList = await base44.entities.Dealer.filter({ slug: subdomain });
+          if (subdomain && !['localhost', 'opentill', 'www', ''].includes(subdomain.toLowerCase())) {
+            const dealerList = await base44.entities.Ambassador.filter({ slug: subdomain });
             if (dealerList && dealerList.length > 0) {
               // For dealer subdomain, get first active merchant under that dealer
               const merchantList = await base44.entities.Merchant.filter({ 
-                dealer_id: dealerList[0].id,
+                dealer_id: dealerList[0].legacy_dealer_id || dealerList[0].id,
                 status: 'active'
               });
               if (merchantList && merchantList.length > 0) {

@@ -45,7 +45,7 @@ export default function PlatformAnalytics() {
   const loadAnalytics = async () => {
     try {
       // Load dealers
-      const dealers = await base44.entities.Dealer.list();
+      const dealers = await base44.entities.Ambassador.list();
       
       // Load all merchants
       const merchants = await base44.entities.Merchant.list();
@@ -62,7 +62,7 @@ export default function PlatformAnalytics() {
       // Calculate dealer revenue
       const dealerRevenueMap = {};
       dealers.forEach(dealer => {
-        dealerRevenueMap[dealer.id] = {
+        dealerRevenueMap[dealer.legacy_dealer_id || dealer.id] = {
           name: dealer.name,
           revenue: dealer.total_revenue_generated || 0,
           commission: dealer.commission_earned || 0,

@@ -27,7 +27,7 @@ export default function BillingOverview() {
   const loadBillingData = async () => {
     try {
       const [dealerList, merchantList, subList] = await Promise.all([
-        base44.entities.Dealer.list(),
+        base44.entities.Ambassador.list(),
         base44.entities.Merchant.list(),
         base44.entities.Subscription.list()
       ]);
@@ -121,7 +121,7 @@ export default function BillingOverview() {
         <CardContent>
           <div className="space-y-3">
             {dealers.map((dealer) => {
-              const dealerMerchants = merchants.filter(m => m.dealer_id === dealer.id);
+              const dealerMerchants = merchants.filter(m => m.dealer_id === (dealer.legacy_dealer_id || dealer.id));
               const dealerSubs = subscriptions.filter(s => 
                 dealerMerchants.some(m => m.id === s.merchant_id) && s.status === 'active'
               );

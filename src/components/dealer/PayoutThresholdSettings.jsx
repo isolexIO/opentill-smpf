@@ -23,7 +23,7 @@ export default function PayoutThresholdSettings({ dealer, onUpdate }) {
         return;
       }
 
-      await base44.entities.Dealer.update(dealer.id, {
+      await base44.entities.Ambassador.update(dealer.id, {
         payout_minimum: parseFloat(payoutThreshold),
         payout_cadence: payoutCadence
       });

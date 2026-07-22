@@ -25,7 +25,7 @@ Deno.serve(async (req) => {
 
     let connectedAccountId = merchant.settings?.payment_gateways?.stripe?.account_id;
     if (!connectedAccountId && merchant.dealer_id) {
-      const dealers = await base44.asServiceRole.entities.Dealer.filter({ id: merchant.dealer_id });
+      const dealers = await base44.asServiceRole.entities.Ambassador.filter({ legacy_dealer_id: merchant.dealer_id });
       if (dealers && dealers.length > 0) connectedAccountId = dealers[0].stripe_account_id;
     }
     const locationId = merchant.settings?.payment_gateways?.stripe?.terminal_location_id;
