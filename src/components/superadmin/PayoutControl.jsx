@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Table,
@@ -39,6 +40,7 @@ import {
   AlertCircle,
   CheckCircle,
   XCircle,
+  Gift,
 } from 'lucide-react';
 
 const STATUS_OPTIONS = [
@@ -83,6 +85,7 @@ export default function PayoutControl() {
   const [details, setDetails] = useState(null);
   const [structure, setStructure] = useState('full_stripe');
   const [stripeSplitAmount, setStripeSplitAmount] = useState(0);
+  const [bonusDialog, setBonusDialog] = useState({ open: false, ambassadorId: '', amount: '', note: '' });
 
   useEffect(() => {
     loadAll();
@@ -107,6 +110,8 @@ export default function PayoutControl() {
   const dealerFor = (payout) => dealers[payout?.dealer_id];
   const dealerName = (payout) => dealerFor(payout)?.name || (payout?.dealer_id ? payout.dealer_id.slice(-6) : 'Unknown');
   const stripeConnected = (payout) => !!dealerFor(payout)?.stripe_account_id;
+
+  const ambassadorList = Object.values(dealers);
 
   const filtered = payouts.filter((p) => {
     const matchesStatus = statusFilter === 'all' || p.status === statusFilter;
@@ -233,6 +238,39 @@ export default function PayoutControl() {
     }
   };
 
+  const openBonus = () => {
+    setBonusDialog({ open: true, ambassadorId: '', amount: '', note: '' });
+    setResultMsg(null);
+  };
+
+  const confirmBonus = async () => {
+    const { ambassadorId, amount, note } = bonusDialog;
+    const amt = Number(amount);
+    if (!ambassadorId) { showResult('error', 'Select an ambassador.'); return; }
+    if (!amt || amt <= 0) { showResult('error', 'Enter a valid $DUC amount.'); return; }
+    setBusy(true);
+    setResultMsg(null);
+    try {
+      const { data } = await base44.functions.invoke('sendAmbassadorBonusDUC', {
+        ambassador_id: ambassadorId,
+        amount: amt,
+        note,
+      });
+      if (data?.success) {
+        const sig = data?.destination?.solana?.tx_signature;
+        showResult('success', `Bonus of ${amt} $DUC sent.${sig ? ` Tx: ${sig}` : ''}`);
+        setBonusDialog({ open: false, ambassadorId: '', amount: '', note: '' });
+        await loadAll();
+      } else {
+        showResult('error', data?.error || 'Bonus could not be sent.');
+      }
+    } catch (error) {
+      showResult('error', error.message || 'Bonus failed.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const viewDetails = async (payout) => {
     try {
       const items = await base44.entities.DealerPayoutItem.filter({ payout_id: payout.id });
@@ -313,6 +351,10 @@ export default function PayoutControl() {
           <Button onClick={loadAll} disabled={busy} variant="ghost">
             <RefreshCw className="w-4 h-4 mr-2" />
             Refresh
+          </Button>
+          <Button onClick={openBonus} disabled={busy} className="bg-amber-500 hover:bg-amber-600 text-white">
+            <Gift className="w-4 h-4 mr-2" />
+            Send $DUC Bonus
           </Button>
         </CardContent>
       </Card>
@@ -674,6 +716,77 @@ export default function PayoutControl() {
                 Cancel Payout
               </Button>
             )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Send $DUC Bonus Dialog */}
+      <Dialog open={bonusDialog.open} onOpenChange={(open) => !open && setBonusDialog({ ...bonusDialog, open })}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Send Ambassador Bonus ($DUC)</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Ambassador</Label>
+              <Select
+                value={bonusDialog.ambassadorId}
+                onValueChange={(v) => setBonusDialog({ ...bonusDialog, ambassadorId: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select ambassador" />
+                </SelectTrigger>
+                <SelectContent>
+                  {ambassadorList.map((a) => (
+                    <SelectItem key={a.id} value={a.id}>
+                      {a.name}{a.solana_wallet_address ? '' : ' (no wallet)'}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>$DUC Amount</Label>
+              <Input
+                type="number"
+                min="0"
+                step="0.01"
+                value={bonusDialog.amount}
+                onChange={(e) => setBonusDialog({ ...bonusDialog, amount: e.target.value })}
+                placeholder="e.g. 100"
+              />
+              <p className="text-xs text-gray-500">$DUC is sent 1:1 with USD to the ambassador's Solana wallet.</p>
+            </div>
+            <div className="space-y-2">
+              <Label>Note (optional)</Label>
+              <Textarea
+                rows={2}
+                value={bonusDialog.note}
+                onChange={(e) => setBonusDialog({ ...bonusDialog, note: e.target.value })}
+                placeholder="Reason / milestone / performance note"
+              />
+            </div>
+            {resultMsg && (
+              <Alert className={resultMsg.type === 'success' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}>
+                {resultMsg.type === 'success' ? (
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                ) : (
+                  <XCircle className="h-4 w-4 text-red-600" />
+                )}
+                <AlertDescription className={resultMsg.type === 'success' ? 'text-green-800' : 'text-red-800'}>
+                  {resultMsg.text}
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBonusDialog({ ...bonusDialog, open: false })} disabled={busy}>
+              Close
+            </Button>
+            <Button onClick={confirmBonus} disabled={busy} className="bg-amber-500 hover:bg-amber-600 text-white">
+              {busy ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Gift className="w-4 h-4 mr-2" />}
+              Send Bonus
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

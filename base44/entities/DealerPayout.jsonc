@@ -27,7 +27,16 @@
     "bonus_amount": {
       "type": "number",
       "default": 0,
-      "description": "Ambassador bonus included in this payout (active-merchant + milestone)"
+      "description": "Ambassador bonus included in this payout (active-merchant + milestone, or ad-hoc admin bonus)"
+    },
+    "payout_type": {
+      "type": "string",
+      "enum": [
+        "commission",
+        "bonus"
+      ],
+      "default": "commission",
+      "description": "Whether this is a recurring commission payout or an ad-hoc admin bonus"
     },
     "root_share": {
       "type": "number",
