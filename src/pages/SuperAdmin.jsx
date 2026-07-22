@@ -214,21 +214,51 @@ export default function SuperAdminPage() {
     );
   }
 
-  const navItems = [
-    { key: 'pending', icon: UserPlus, label: 'Pending' },
-    { key: 'merchants', icon: Users, label: 'Merchants' },
-    { key: 'dealers', icon: Building2, label: 'Ambassadors' },
-    { key: 'subscriptions', icon: CreditCard, label: 'Subscriptions' },
-    { key: 'devices', icon: Package, label: 'Device Shop' },
-    { key: 'amazon', icon: Package, label: 'Affiliate Links' },
-    { key: 'vault', icon: Vault, label: 'Vault' },
-    { key: 'chips', icon: Cpu, label: 'Chips' },
-    { key: 'builders', icon: Users, label: 'Builders' },
-    { key: 'logs', icon: FileText, label: 'Logs' },
-    { key: 'reports', icon: TrendingUp, label: 'Reports' },
-    { key: 'ads', icon: Building2, label: 'Ads' },
-    { key: 'notifications', icon: AlertCircle, label: 'Notifications' },
-    { key: 'settings', icon: Settings, label: 'Settings' },
+  const navCategories = [
+    {
+      label: 'Accounts',
+      items: [
+        { key: 'pending', icon: UserPlus, label: 'Pending' },
+        { key: 'merchants', icon: Users, label: 'Merchants' },
+        { key: 'dealers', icon: Building2, label: 'Ambassadors' },
+        { key: 'builders', icon: Users, label: 'Builders' },
+      ],
+    },
+    {
+      label: 'Billing',
+      items: [
+        { key: 'subscriptions', icon: CreditCard, label: 'Subscriptions' },
+        { key: 'vault', icon: Vault, label: 'Vault' },
+      ],
+    },
+    {
+      label: 'Marketplace',
+      items: [
+        { key: 'chips', icon: Cpu, label: 'Chips' },
+        { key: 'devices', icon: Package, label: 'Device Shop' },
+        { key: 'amazon', icon: Package, label: 'Affiliate Links' },
+      ],
+    },
+    {
+      label: 'Insights',
+      items: [
+        { key: 'logs', icon: FileText, label: 'Logs' },
+        { key: 'reports', icon: TrendingUp, label: 'Reports' },
+      ],
+    },
+    {
+      label: 'Engagement',
+      items: [
+        { key: 'ads', icon: Building2, label: 'Ads' },
+        { key: 'notifications', icon: AlertCircle, label: 'Notifications' },
+      ],
+    },
+    {
+      label: 'System',
+      items: [
+        { key: 'settings', icon: Settings, label: 'Settings' },
+      ],
+    },
   ];
 
   const tabLabels = {
@@ -271,19 +301,26 @@ export default function SuperAdminPage() {
         </div>
 
         <nav className="p-2">
-          {navItems.map(({ key, icon: Icon, label }) => (
-            <button
-              key={key}
-              onClick={() => { setActiveTab(key); setSidebarOpen(false); }}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
-                activeTab === key
-                  ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-              }`}
-            >
-              <Icon className="w-4 h-4" />
-              <span className="text-sm font-medium">{label}</span>
-            </button>
+          {navCategories.map((category) => (
+            <div key={category.label} className="mb-3">
+              <p className="px-4 pt-2 pb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                {category.label}
+              </p>
+              {category.items.map(({ key, icon: Icon, label }) => (
+                <button
+                  key={key}
+                  onClick={() => { setActiveTab(key); setSidebarOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 ${
+                    activeTab === key
+                      ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span className="text-sm font-medium">{label}</span>
+                </button>
+              ))}
+            </div>
           ))}
 
           <div className="border-t border-gray-200 dark:border-gray-700 my-2 pt-2">
