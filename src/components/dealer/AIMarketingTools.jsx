@@ -8,12 +8,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Sparkles, TrendingUp, Target, BarChart3, Mail, MessageSquare, Share2, Copy, CheckCircle, Zap, Globe, Instagram, Twitter } from 'lucide-react';
+import { Loader2, Sparkles, TrendingUp, Target, BarChart3, Mail, MessageSquare, Share2, Copy, CheckCircle, Zap, Globe, Instagram, Twitter, Link2 } from 'lucide-react';
 import ContentGenerator from './ContentGenerator';
 import CampaignManager from './CampaignManager';
 import PerformanceAnalytics from './PerformanceAnalytics';
 
 export default function AIMarketingTools({ dealerId }) {
+  const referralLink = `${window.location.origin}/MerchantOnboarding?dealer_id=${dealerId}`;
   const [merchants, setMerchants] = useState([]);
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -76,6 +77,8 @@ Tone: ${quickForm.tone}.
 Sales angle / focus: ${quickForm.topic}.
 
 About openTILL SMPF: a modern, blockchain-integrated POS that accepts cash, card, crypto (Solana / USDC), and EBT/SNAP, with dual-pricing (cash vs. card) compliance, online ordering, delivery, invoices, inventory, staff management, and $DUC loyalty rewards. Merchants can start with a free trial.
+
+IMPORTANT — REFERRAL LINK: You MUST always include this ambassador referral link in the call-to-action so the prospect signs up through the ambassador and the ambassador gets credit. Use this exact link: ${referralLink}
 ${quickTool === 'email' ? 'Include a subject line, greeting, body (2-3 paragraphs), and a clear CTA to book a demo or start a free trial. Keep it under 200 words.' : ''}
 ${quickTool === 'instagram' ? 'Include an engaging caption with emojis and 5-7 relevant hashtags. Max 150 words.' : ''}
 ${quickTool === 'twitter' ? 'Keep it under 280 characters, punchy and engaging with 1-2 hashtags.' : ''}
@@ -167,6 +170,19 @@ Address the merchant directly and persuasively as a sales prospect. Make it auth
               <p className="text-sm text-gray-500 dark:text-gray-400">Generate ready-to-use marketing content for any platform in seconds</p>
             </CardHeader>
             <CardContent className="space-y-5">
+              {/* Referral link */}
+              <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-xl p-3 flex items-center gap-2">
+                <Link2 className="w-4 h-4 text-purple-600 shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-semibold text-purple-700 dark:text-purple-300">Your referral link</p>
+                  <p className="text-xs text-purple-600 dark:text-purple-400 truncate font-mono">{referralLink}</p>
+                  <p className="text-[11px] text-purple-500 dark:text-purple-400 mt-0.5">Always included in generated content so you get credit.</p>
+                </div>
+                <Button size="sm" variant="ghost" onClick={() => { navigator.clipboard.writeText(referralLink); }} className="text-purple-600 h-8 shrink-0">
+                  <Copy className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+
               {/* Platform selector */}
               <div className="space-y-2">
                 <Label className="text-sm font-medium">Platform</Label>
@@ -266,7 +282,7 @@ Address the merchant directly and persuasively as a sales prospect. Make it auth
         </TabsContent>
 
         <TabsContent value="generate">
-          <ContentGenerator dealerId={dealerId} merchants={merchants} onContentGenerated={loadData} />
+          <ContentGenerator dealerId={dealerId} merchants={merchants} onContentGenerated={loadData} referralLink={referralLink} />
         </TabsContent>
 
         <TabsContent value="campaigns">

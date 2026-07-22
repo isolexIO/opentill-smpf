@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Sparkles, Copy, Check, Download } from 'lucide-react';
 
-export default function ContentGenerator({ dealerId, merchants, onContentGenerated }) {
+export default function ContentGenerator({ dealerId, merchants, onContentGenerated, referralLink }) {
   const [selectedMerchant, setSelectedMerchant] = useState('');
   const [contentType, setContentType] = useState('social_post');
   const [platform, setPlatform] = useState('facebook');
@@ -43,6 +43,7 @@ Context:
 
 Requirements:
 - Address the merchant directly and persuasively as a sales prospect.
+- IMPORTANT: Always include this ambassador referral link in the call-to-action so the prospect signs up through the ambassador: ${referralLink || `(use /MerchantOnboarding?dealer_id=${dealerId})`}
 - ${contentType === 'social_post' ? 'Keep it under 280 characters, engaging and shareable' : ''}
 - ${contentType === 'email_newsletter' ? 'Create a compelling subject line and well-structured email body with sections' : ''}
 - Include relevant hashtags if appropriate
