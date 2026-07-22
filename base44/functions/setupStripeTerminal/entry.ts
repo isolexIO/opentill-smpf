@@ -1,6 +1,37 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.38';
 import Stripe from 'npm:stripe@17.4.0';
 
+// Parse a free-form merchant address string (e.g. "123 Main St, Toledo, OH 43604"
+// or "123 Main St\nToledo, OH 43604") into the structured address Stripe Terminal
+// requires. Falls back to Toledo, OH when the merchant has no usable address.
+function parseMerchantAddress(raw) {
+  const fallback = {
+    line1: '1 Seagate',
+    city: 'Toledo',
+    state: 'OH',
+    postal_code: '43604',
+    country: 'US',
+  };
+  if (!raw || typeof raw !== 'string') return fallback;
+
+  const parts = raw.split(/\n|,/).map((s) => s.trim()).filter(Boolean);
+  const cityStateZip = /^(.+?)\s+([A-Z]{2})\s+(\d{5}(?:-\d{4})?)\s*$/;
+
+  for (let i = 0; i < parts.length; i++) {
+    const m = parts[i].match(cityStateZip);
+    if (m) {
+      return {
+        line1: parts.slice(0, i).join(', ') || fallback.line1,
+        city: m[1].trim(),
+        state: m[2],
+        postal_code: m[3],
+        country: 'US',
+      };
+    }
+  }
+  return { ...fallback, line1: raw };
+}
+
 Deno.serve(async (req) => {
   try {
     const stripeKey = Deno.env.get('STRIPE_CONNECT_KEY') || Deno.env.get('STRIPE_SECRET_KEY');
@@ -61,13 +92,7 @@ Deno.serve(async (req) => {
     }
 
     if (!location) {
-      const address = {
-        line1: merchant.address || '1 Seagate',
-        city: 'Toledo',
-        state: 'OH',
-        postal_code: '43604',
-        country: 'US',
-      };
+      const address = parseMerchantAddress(merchant.address);
       location = await stripe.terminal.locations.create({
         display_name: merchant.business_name || 'openTILL Terminal',
         address,
