@@ -7,8 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Save, AlertTriangle, CreditCard, ShieldCheck, AlertCircle, Terminal } from 'lucide-react';
+import { Save, AlertTriangle, ShieldCheck, AlertCircle, Terminal } from 'lucide-react';
 import StripeTerminalCard from '@/components/settings/StripeTerminalCard';
+import StripeConnectOnboarding from '@/components/settings/StripeConnectOnboarding';
 
 export default function PaymentGatewaysTab({ gateways, onUpdateGateways }) {
   const { toast } = useToast();
@@ -187,150 +188,11 @@ export default function PaymentGatewaysTab({ gateways, onUpdateGateways }) {
         )}
       </Card>
 
-      {/* Stripe Configuration Card */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <CreditCard className="w-5 h-5" />
-                Stripe Payment Gateway
-              </CardTitle>
-              <CardDescription>
-                Process credit card payments securely with Stripe (Integrated).
-              </CardDescription>
-            </div>
-            <Switch
-              checked={localGateways.stripe?.enabled}
-              onCheckedChange={(checked) => handleStripeChange('enabled', checked)}
-            />
-          </div>
-        </CardHeader>
-        {localGateways.stripe?.enabled && (
-          <CardContent className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="stripe-test-mode"
-                checked={localGateways.stripe?.test_mode}
-                onCheckedChange={(checked) => handleStripeChange('test_mode', checked)}
-              />
-              <Label htmlFor="stripe-test-mode">Enable Test Mode</Label>
-            </div>
-            {localGateways.stripe?.test_mode && (
-              <div className="flex items-start p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <AlertTriangle className="w-5 h-5 text-yellow-600 mr-3" />
-                <p className="text-sm text-yellow-800">
-                  Test mode is active. Only test card numbers will work. Use your Stripe test keys.
-                </p>
-              </div>
-            )}
-            <div className="space-y-2">
-              <Label htmlFor="stripe-pk">Publishable Key</Label>
-              <Input
-                id="stripe-pk"
-                value={localGateways.stripe?.publishable_key || ''}
-                onChange={(e) => handleStripeChange('publishable_key', e.target.value)}
-                placeholder="pk_test_..."
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="stripe-sk">Secret Key</Label>
-              <Input
-                id="stripe-sk"
-                type="password"
-                value={localGateways.stripe?.secret_key || ''}
-                onChange={(e) => handleStripeChange('secret_key', e.target.value)}
-                placeholder="sk_test_..."
-              />
-            </div>
-          </CardContent>
-        )}
-      </Card>
+      {/* Stripe Connect — sign up / connect to accept card payments via Terminal */}
+      <StripeConnectOnboarding />
 
-      {/* Stripe Terminal Provisioning - only relevant when Stripe is enabled */}
-      {localGateways.stripe?.enabled && <StripeTerminalCard />}
-
-      {/* Shift4 Configuration Card */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <CreditCard className="w-5 h-5 text-blue-600" />
-                Shift4 Payment Gateway
-              </CardTitle>
-              <CardDescription>
-                Process payments through Shift4 Payments (Integrated).
-              </CardDescription>
-            </div>
-            <Switch
-              checked={localGateways.shift4?.enabled}
-              onCheckedChange={(checked) => handleShift4Change('enabled', checked)}
-            />
-          </div>
-        </CardHeader>
-        {localGateways.shift4?.enabled && (
-          <CardContent className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="shift4-test-mode"
-                checked={localGateways.shift4?.test_mode}
-                onCheckedChange={(checked) => handleShift4Change('test_mode', checked)}
-              />
-              <Label htmlFor="shift4-test-mode">Enable Test Mode</Label>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="shift4-company">Company Name</Label>
-              <Input
-                id="shift4-company"
-                value={localGateways.shift4?.company_name || ''}
-                onChange={(e) => handleShift4Change('company_name', e.target.value)}
-                placeholder="Your company name in Shift4"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="shift4-merchant">Merchant ID</Label>
-              <Input
-                id="shift4-merchant"
-                value={localGateways.shift4?.merchant_id || ''}
-                onChange={(e) => handleShift4Change('merchant_id', e.target.value)}
-                placeholder="Your Shift4 merchant ID"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="shift4-api-key">API Key</Label>
-              <Input
-                id="shift4-api-key"
-                type="password"
-                value={localGateways.shift4?.api_key || ''}
-                onChange={(e) => handleShift4Change('api_key', e.target.value)}
-                placeholder="Your Shift4 API key"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="shift4-token">Access Token</Label>
-              <Input
-                id="shift4-token"
-                type="password"
-                value={localGateways.shift4?.access_token || ''}
-                onChange={(e) => handleShift4Change('access_token', e.target.value)}
-                placeholder="Your Shift4 access token"
-              />
-            </div>
-
-            <Alert>
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                Get your Shift4 credentials from the Shift4 Merchant Portal at <strong>shift4.com</strong>
-              </AlertDescription>
-            </Alert>
-          </CardContent>
-        )}
-      </Card>
+      {/* Stripe Terminal — provision location & register/pair readers */}
+      <StripeTerminalCard />
 
       {/* EBT/SNAP Configuration */}
       <Card>
