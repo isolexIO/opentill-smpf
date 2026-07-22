@@ -82,6 +82,8 @@ export default function StripeConnectSetup({ dealer, onUpdate }) {
       const response = await base44.functions.invoke('refreshStripeConnectOnboarding', {
         dealer_id: dealer.legacy_dealer_id || dealer.id,
         account_id: dealer.stripe_account_id,
+        return_url: window.location.href,
+        refresh_url: window.location.href,
         token: dealerToken
       });
 
