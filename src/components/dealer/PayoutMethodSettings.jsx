@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { AlertCircle, Plus, Trash2, Check } from 'lucide-react';
+import SolanaWalletInput from '@/components/shared/SolanaWalletInput';
 
 export default function PayoutMethodSettings({ dealer, onUpdate }) {
   const [methods, setMethods] = useState(dealer?.payout_methods || []);
@@ -39,7 +40,7 @@ export default function PayoutMethodSettings({ dealer, onUpdate }) {
   const methodTypes = {
     stripe_connect: { label: 'Stripe Connect', icon: '💳' },
     bank_transfer: { label: 'Bank Transfer (ACH)', icon: '🏦' },
-    solana: { label: 'Solana Wallet', icon: '◎' }
+    solana: { label: '$DUC (Solana)', icon: '◎' }
   };
 
   const handleAddMethod = () => {
@@ -214,7 +215,7 @@ export default function PayoutMethodSettings({ dealer, onUpdate }) {
                 <SelectContent>
                   <SelectItem value="stripe_connect">Stripe Connect (Credit)</SelectItem>
                   <SelectItem value="bank_transfer">Bank Transfer (ACH)</SelectItem>
-                  <SelectItem value="solana">Solana Wallet</SelectItem>
+                  <SelectItem value="solana">$DUC (Solana)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -253,9 +254,9 @@ export default function PayoutMethodSettings({ dealer, onUpdate }) {
             {formData.type === 'solana' && (
               <div>
                 <Label>Solana Wallet Address</Label>
-                <Input
+                <SolanaWalletInput
                   value={formData.wallet_address}
-                  onChange={(e) => setFormData({ ...formData, wallet_address: e.target.value })}
+                  onChange={(v) => setFormData({ ...formData, wallet_address: v })}
                   placeholder="9B5X..."
                 />
               </div>
