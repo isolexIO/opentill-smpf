@@ -10,6 +10,10 @@
       "type": "string",
       "description": "URL-safe identifier"
     },
+    "legacy_dealer_id": {
+      "type": "string",
+      "description": "Original Dealer id for migrated records. Lets existing dealer_id foreign keys (on User, Merchant, Order, etc.) resolve to this Ambassador without renaming those fields."
+    },
     "logo_url": {
       "type": "string"
     },
@@ -27,6 +31,31 @@
     "domain": {
       "type": "string"
     },
+    "opentill_subdomain": {
+      "type": "string",
+      "description": "Unique .opentill-pos.sol subdomain"
+    },
+    "subdomain_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "active",
+        "disabled"
+      ],
+      "default": "pending",
+      "description": "Subdomain activation status"
+    },
+    "subdomain_requested_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "subdomain_approved_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "subdomain_wallet": {
+      "type": "string"
+    },
     "contact_email": {
       "type": "string",
       "format": "email"
@@ -41,6 +70,19 @@
       "type": "string",
       "format": "email"
     },
+    "password_hash": {
+      "type": "string",
+      "description": "Hashed password for ambassador login (secret)"
+    },
+    "billing_mode": {
+      "type": "string",
+      "enum": [
+        "dealer",
+        "root_fallback"
+      ],
+      "default": "root_fallback",
+      "description": "Whether ambassador bills directly or platform handles billing"
+    },
     "stripe_connected": {
       "type": "boolean",
       "default": false
@@ -50,6 +92,11 @@
     },
     "solana_wallet_address": {
       "type": "string"
+    },
+    "platform_fee_monthly": {
+      "type": "number",
+      "default": 0,
+      "description": "Monthly platform fee charged to ambassador"
     },
     "commission_percent": {
       "type": "number",
@@ -64,9 +111,31 @@
       ],
       "default": "stripe_connect"
     },
+    "payout_destination": {
+      "type": "object",
+      "description": "Payout destination details (encrypted)",
+      "additionalProperties": true
+    },
     "payout_minimum": {
       "type": "number",
       "default": 20
+    },
+    "payout_cadence": {
+      "type": "string",
+      "enum": [
+        "weekly",
+        "biweekly",
+        "monthly"
+      ],
+      "default": "monthly"
+    },
+    "payout_hold_days": {
+      "type": "number",
+      "default": 7
+    },
+    "payout_enabled": {
+      "type": "boolean",
+      "default": true
     },
     "status": {
       "type": "string",
@@ -78,7 +147,15 @@
       ],
       "default": "trial"
     },
+    "trial_ends_at": {
+      "type": "string",
+      "format": "date-time"
+    },
     "total_merchants": {
+      "type": "number",
+      "default": 0
+    },
+    "total_revenue_generated": {
       "type": "number",
       "default": 0
     },
@@ -86,9 +163,48 @@
       "type": "number",
       "default": 0
     },
+    "commission_paid_out": {
+      "type": "number",
+      "default": 0
+    },
     "commission_pending": {
       "type": "number",
       "default": 0
+    },
+    "next_payout_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_payout_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "settings": {
+      "type": "object",
+      "properties": {
+        "custom_login_message": {
+          "type": "string"
+        },
+        "custom_support_url": {
+          "type": "string"
+        },
+        "hide_opentill_branding": {
+          "type": "boolean",
+          "default": false
+        },
+        "allow_merchant_self_signup": {
+          "type": "boolean",
+          "default": true
+        },
+        "default_merchant_plan": {
+          "type": "string",
+          "default": "basic"
+        },
+        "custom_pricing_enabled": {
+          "type": "boolean",
+          "default": false
+        }
+      }
     }
   },
   "required": [
@@ -102,11 +218,29 @@
         "role": "admin"
       }
     },
-    "read": {},
+    "read": {
+      "$or": [
+        {
+          "data.legacy_dealer_id": "{{user.data.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
     "update": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "$or": [
+        {
+          "data.legacy_dealer_id": "{{user.data.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
     },
     "delete": {
       "user_condition": {
