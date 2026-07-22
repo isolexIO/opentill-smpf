@@ -291,7 +291,7 @@ ChainLINK Support`
       // Reload vault settings
       await loadVaultSettings(merchant.id);
       await loadMerchants();
-      alert(`cLINK Vault ${enabled ? 'enabled' : 'disabled'} for ${merchant.business_name}`);
+      alert(`$DUC Vault ${enabled ? 'enabled' : 'disabled'} for ${merchant.business_name}`);
     } catch (error) {
       console.error('Error toggling vault:', error);
       alert('Failed to update vault setting: ' + error.message);
@@ -721,11 +721,11 @@ ChainLINK Support`
                  </div>
                </div>
 
-               {/* cLINK Vault Access */}
+               {/* $DUC Vault Access */}
                <div className="border-t pt-4">
                  <div className="flex items-center gap-2 mb-3">
                    <Vault className="w-4 h-4" />
-                   <h4 className="font-semibold">cLINK Vault Access</h4>
+                   <h4 className="font-semibold">$DUC Vault Access</h4>
                  </div>
                  <div className="flex gap-2">
                    <Button

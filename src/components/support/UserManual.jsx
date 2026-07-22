@@ -23,7 +23,9 @@ import {
   Crown,
   Link2,
   DollarSign,
-  Truck
+  Truck,
+  Terminal,
+  Cpu
 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -52,7 +54,7 @@ export default function UserManual() {
         },
         {
           title: 'System Menu Navigation',
-          content: 'The System Menu is your central hub with:\n• POS - Process customer orders\n• Products - Manage catalog and inventory\n• Customers - Customer database and loyalty\n• Orders - View order history\n• Online Orders - Manage web/app orders\n• Reports - Analytics and insights\n• Departments - Organize products\n• Settings - System configuration (staff, payments, devices, pricing, etc.)\n• Marketplace - Browse and purchase chip-based feature upgrades\n• Device Shop - Purchase hardware\n• $cLINK Vault - Cryptocurrency rewards for CC processing\n• Motherboard - Chip-based premium features\n• Referral Dashboard - Track and manage your referrals\n• Support - Help and documentation'
+          content: 'The System Menu is your central hub with:\n• POS - Process customer orders\n• Products - Manage catalog and inventory\n• Customers - Customer database and loyalty\n• Orders - View order history\n• Online Orders - Manage web/app orders\n• Reports - Analytics and insights\n• Departments - Organize products\n• Settings - System configuration (staff, payments, devices, pricing, etc.)\n• Marketplace - Browse and purchase chip-based feature upgrades\n• Device Shop - Purchase hardware\n• $DUC Vault - Cryptocurrency rewards for CC processing\n• Motherboard - Chip-based premium features\n• Referral Dashboard - Track and manage your referrals\n• Support - Help and documentation'
         }
       ]
     },
@@ -308,7 +310,7 @@ export default function UserManual() {
         },
         {
           title: 'Web3 Identity & Wallet Connection',
-          content: 'Link blockchain wallets:\n• Settings → Web3 Identity\n• Connect Wallet button\n• Choose wallet:\n  - Phantom\n  - Solflare\n  - Jupiter\n  - Mobile wallets\n• Approve connection\n• Sign message to verify ownership\n• Wallet linked to your account\n• Benefits:\n  - Web3 authentication\n  - Access Motherboard features\n  - $cLINK Vault\n  - NFT-gated features\n• Can link multiple wallets\n• Disconnect anytime'
+          content: 'Link blockchain wallets:\n• Settings → Web3 Identity\n• Connect Wallet button\n• Choose wallet:\n  - Phantom\n  - Solflare\n  - Jupiter\n  - Mobile wallets\n• Approve connection\n• Sign message to verify ownership\n• Wallet linked to your account\n• Benefits:\n  - Web3 authentication\n  - Access Motherboard features\n  - $DUC Vault\n  - NFT-gated features\n• Can link multiple wallets\n• Disconnect anytime'
         },
         {
           title: 'Custom Domains',
@@ -367,32 +369,32 @@ export default function UserManual() {
     {
       id: 'vault',
       icon: Wallet,
-      title: '$cLINK Vault (Crypto Rewards)',
+      title: '$DUC Vault (Crypto Rewards)',
       color: 'text-yellow-600',
       content: [
         {
-          title: 'What is $cLINK Vault?',
-          content: 'Cryptocurrency rewards program for openTILL merchants:\n• Earn $cLINK tokens for processing credit card payments\n• Earn 0.5% of your monthly CC processing volume in $cLINK\n• Stake $cLINK to earn APY (up to 20% for 365-day lockup)\n• Swap $cLINK for USDC or other tokens via Jupiter DEX\n• Rewards calculated automatically at month-end\n\nExample:\n• Process $10,000 in card payments\n• Earn 0.5% = $50 worth of $cLINK\n• Stake for 12% APY\n• Compound rewards monthly\n\nAccess: Navigate to "$cLINK Vault" from System Menu\n\nRequirement: Connect a Solana wallet in Settings → Wallet & Payments first'
+          title: 'What is $DUC Vault?',
+          content: 'Cryptocurrency rewards program for openTILL merchants:\n• Earn $DUC tokens for processing credit card payments\n• Earn 0.5% of your monthly CC processing volume in $DUC\n• Stake $DUC to earn APY (up to 20% for 365-day lockup)\n• Swap $DUC for USDC or other tokens via Jupiter DEX\n• Rewards calculated automatically at month-end\n\nExample:\n• Process $10,000 in card payments\n• Earn 0.5% = $50 worth of $DUC\n• Stake for 12% APY\n• Compound rewards monthly\n\nAccess: Navigate to "$DUC Vault" from System Menu\n\nRequirement: Connect a Solana wallet in Settings → Wallet & Payments first'
         },
         {
           title: 'Earning Rewards',
-          content: 'How rewards work:\n\n1. Automatic Calculation:\n   • System tracks credit card processing volume\n   • Calculates rewards at month end\n   • Rewards appear in "Pending" status\n\n2. Reward Types:\n   • Processing Volume - 0.5% of CC volume\n   • Bonus - Platform bonuses\n   • Referral - Refer other merchants\n   • Staking Yield - Interest on staked tokens\n\n3. View Rewards:\n   • Navigate to $cLINK Vault\n   • See pending and available rewards\n   • View earning history\n   • Track total earned\n\n4. Minimum Claim:\n   • Must accumulate minimum amount (e.g., 10 $cLINK)\n   • Prevents excessive transaction fees\n   • Configure threshold in settings'
+          content: 'How rewards work:\n\n1. Automatic Calculation:\n   • System tracks credit card processing volume\n   • Calculates rewards at month end\n   • Rewards appear in "Pending" status\n\n2. Reward Types:\n   • Processing Volume - 0.5% of CC volume\n   • Bonus - Platform bonuses\n   • Referral - Refer other merchants\n   • Staking Yield - Interest on staked tokens\n\n3. View Rewards:\n   • Navigate to $DUC Vault\n   • See pending and available rewards\n   • View earning history\n   • Track total earned\n\n4. Minimum Claim:\n   • Must accumulate minimum amount (e.g., 10 $DUC)\n   • Prevents excessive transaction fees\n   • Configure threshold in settings'
         },
         {
           title: 'Claiming Rewards',
-          content: 'Claim your $cLINK:\n\n1. Connect Wallet:\n   • Click "Connect Wallet" in Vault\n   • Choose wallet (Phantom, Solflare, etc.)\n   • Approve connection\n\n2. Claim Tokens:\n   • View available rewards\n   • Click "Claim Rewards" button\n   • Approve transaction in wallet\n   • Tokens sent to your wallet\n   • Usually takes 30-60 seconds\n\n3. Transaction Record:\n   • Solana transaction signature provided\n   • Verify on Solscan or Solana Explorer\n   • Claim history in Vault\n\n4. What to Do with $cLINK:\n   • Hold for potential appreciation\n   • Stake for APY\n   • Swap for USDC or other tokens\n   • Use for platform benefits (future features)'
+          content: 'Claim your $DUC:\n\n1. Connect Wallet:\n   • Click "Connect Wallet" in Vault\n   • Choose wallet (Phantom, Solflare, etc.)\n   • Approve connection\n\n2. Claim Tokens:\n   • View available rewards\n   • Click "Claim Rewards" button\n   • Approve transaction in wallet\n   • Tokens sent to your wallet\n   • Usually takes 30-60 seconds\n\n3. Transaction Record:\n   • Solana transaction signature provided\n   • Verify on Solscan or Solana Explorer\n   • Claim history in Vault\n\n4. What to Do with $DUC:\n   • Hold for potential appreciation\n   • Stake for APY\n   • Swap for USDC or other tokens\n   • Use for platform benefits (future features)'
         },
         {
-          title: 'Staking $cLINK',
-          content: 'Earn passive income:\n\n1. Stake Tokens:\n   • Navigate to $cLINK Vault → Staking tab\n   • Enter amount to stake\n   • Choose lockup period:\n     - 30 days: 8% APY\n     - 90 days: 12% APY\n     - 180 days: 15% APY\n     - 365 days: 20% APY\n   • Click "Stake"\n   • Approve in wallet\n\n2. Staking Benefits:\n   • Earn interest on locked tokens\n   • Compound rewards automatically\n   • Early unlock penalty: 10%\n\n3. View Stakes:\n   • Active stakes\n   • Earned rewards\n   • Unlock dates\n   • Total staked amount\n\n4. Unstaking:\n   • Wait for lockup period\n   • Click "Unstake"\n   • Approve transaction\n   • Tokens + rewards returned to wallet'
+          title: 'Staking $DUC',
+          content: 'Earn passive income:\n\n1. Stake Tokens:\n   • Navigate to $DUC Vault → Staking tab\n   • Enter amount to stake\n   • Choose lockup period:\n     - 30 days: 8% APY\n     - 90 days: 12% APY\n     - 180 days: 15% APY\n     - 365 days: 20% APY\n   • Click "Stake"\n   • Approve in wallet\n\n2. Staking Benefits:\n   • Earn interest on locked tokens\n   • Compound rewards automatically\n   • Early unlock penalty: 10%\n\n3. View Stakes:\n   • Active stakes\n   • Earned rewards\n   • Unlock dates\n   • Total staked amount\n\n4. Unstaking:\n   • Wait for lockup period\n   • Click "Unstake"\n   • Approve transaction\n   • Tokens + rewards returned to wallet'
         },
         {
           title: 'Swapping via Jupiter',
-          content: 'Trade $cLINK for other tokens:\n\n1. Navigate to Swap Tab:\n   • $cLINK Vault → Swap\n\n2. Select Tokens:\n   • From: $cLINK\n   • To: USDC, SOL, or other SPL token\n\n3. Enter Amount:\n   • Amount of $cLINK to swap\n   • System shows estimated receive amount\n   • Includes slippage and fees\n\n4. Review & Swap:\n   • Check exchange rate\n   • Review network fee\n   • Click "Swap"\n   • Approve in wallet\n   • Swap executes on Jupiter DEX\n   • Tokens arrive in wallet\n\n5. Powered by Jupiter:\n   • Best rates from all Solana DEXs\n   • Low fees\n   • Fast execution\n   • Referral fees support ChainLINK development'
+          content: 'Trade $DUC for other tokens:\n\n1. Navigate to Swap Tab:\n   • $DUC Vault → Swap\n\n2. Select Tokens:\n   • From: $DUC\n   • To: USDC, SOL, or other SPL token\n\n3. Enter Amount:\n   • Amount of $DUC to swap\n   • System shows estimated receive amount\n   • Includes slippage and fees\n\n4. Review & Swap:\n   • Check exchange rate\n   • Review network fee\n   • Click "Swap"\n   • Approve in wallet\n   • Swap executes on Jupiter DEX\n   • Tokens arrive in wallet\n\n5. Powered by Jupiter:\n   • Best rates from all Solana DEXs\n   • Low fees\n   • Fast execution\n   • Referral fees support ChainLINK development'
         },
         {
           title: 'Vault Settings',
-          content: 'Configure your rewards:\n• Navigate to $cLINK Vault → Settings\n• Options:\n  - Minimum claim threshold\n  - Auto-stake rewards (toggle)\n  - Default staking period\n  - Wallet for rewards\n  - Email notifications for rewards\n• Super Admin can adjust:\n  - Reward percentage (default 0.5%)\n  - Staking APY rates\n  - Jupiter referral settings\n  - Token mint address'
+          content: 'Configure your rewards:\n• Navigate to $DUC Vault → Settings\n• Options:\n  - Minimum claim threshold\n  - Auto-stake rewards (toggle)\n  - Default staking period\n  - Wallet for rewards\n  - Email notifications for rewards\n• Super Admin can adjust:\n  - Reward percentage (default 0.5%)\n  - Staking APY rates\n  - Jupiter referral settings\n  - Token mint address'
         }
       ]
     },
@@ -481,6 +483,211 @@ export default function UserManual() {
       ]
     },
     {
+      id: 'invoicing',
+      icon: FileText,
+      title: 'Invoicing & Paylinks',
+      color: 'text-amber-600',
+      content: [
+        {
+          title: 'Creating Invoices',
+          content: `Send branded invoices to customers:
+1. Navigate to System Menu → Invoices
+2. Click "New Invoice"
+3. Enter customer name and email
+4. Set the amount due and currency
+5. Add an optional due date and notes
+6. Save — a unique invoice number and secure pay token are generated automatically
+7. Invoices start in "draft" status until sent
+
+Invoices are scoped to your merchant account and visible to admins and Super Admins.`
+        },
+        {
+          title: 'Sending Paylinks',
+          content: `Get paid online:
+1. Open an invoice and click "Send"
+2. Status moves to "sent" and a secure paylink is generated
+3. Share the paylink with your customer by email or message
+4. The paylink opens a branded payment page (PayInvoice)
+5. Customer pays by card (Stripe) or crypto (Solana Pay)
+6. Payment is confirmed and the invoice updates to "paid" automatically
+
+No login required for the customer — the pay token validates access.`
+        },
+        {
+          title: 'Invoice Statuses',
+          content: `Lifecycle:
+• draft — created, not yet sent
+• sent — paylink delivered to customer
+• paid — payment confirmed
+• overdue — past due date and unpaid
+• void — cancelled
+• refunded — payment returned
+
+Track every invoice from the Invoices page. Filter by status or search by invoice number.`
+        },
+        {
+          title: 'Payments & Auto-Confirmation',
+          content: `How payment works:
+• Card payments create a Stripe Checkout Session via the paylink
+• Crypto payments use Solana Pay with a QR code
+• On success, the backend confirms the payment and marks the invoice paid
+• paid_at timestamp and transaction IDs are stored on the invoice
+
+Tip: Use invoices for catering, wholesale, B2B, or any order paid after pickup/delivery.`
+        }
+      ]
+    },
+    {
+      id: 'delivery',
+      icon: Truck,
+      title: 'Delivery Management',
+      color: 'text-emerald-600',
+      content: [
+        {
+          title: 'Delivery Dashboard',
+          content: `Manage deliveries from one screen:
+• Navigate to System Menu → Delivery Dashboard
+• View all delivery jobs for your merchant
+• Jobs grouped by status: Available, Accepted, Picked Up, Delivered, Cancelled
+• Filter by priority (normal, high, urgent)
+• See customer name, phone, addresses, items summary, and total
+
+Delivery jobs can be created manually or dispatched automatically from online orders.`
+        },
+        {
+          title: 'Dispatching Delivery Jobs',
+          content: `Create a delivery job:
+1. Click "New Delivery"
+2. Enter pickup address (your store) and delivery address (customer drop-off)
+3. Add customer name, phone, and items summary
+4. Set priority and total
+5. Add special instructions/notes if needed
+6. Save — job appears as "available"
+
+When an online order with delivery is placed, a delivery job can be auto-created and linked to that order.`
+        },
+        {
+          title: 'Driver Workflow',
+          content: `Assign and track drivers:
+1. A driver accepts an available job (status → accepted)
+2. Driver arrives at pickup, marks "Picked Up" (picked_up_at recorded)
+3. Driver delivers to customer, marks "Delivered" (delivered_at recorded)
+4. Cancel if needed (status → cancelled)
+
+Drivers use the Driver Dashboard to see assigned jobs and update status in real time. Each status change is timestamped for a full audit trail.`
+        },
+        {
+          title: 'Driver Accounts',
+          content: `Set up drivers:
+• Add a staff member in Settings → Staff Management
+• Assign the "driver" role
+• Drivers log in via PIN or email and access the Driver Dashboard
+• Drivers only see jobs assigned to them
+• Admins can reassign or cancel jobs at any time
+
+Use the route map to visualize pickup and drop-off locations.`
+        }
+      ]
+    },
+    {
+      id: 'non-integrated-terminal',
+      icon: Terminal,
+      title: 'Non-Integrated Terminal',
+      color: 'text-purple-600',
+      content: [
+        {
+          title: 'What is the Non-Integrated Terminal?',
+          content: `Card-present transactions without a direct gateway integration:
+• Run credit/debit cards on standalone terminals (Verifone, PAX, etc.)
+• The terminal processes the payment; openTILL records the transaction manually
+• Ideal for merchants using existing merchant accounts or non-integrated hardware
+• Access is gated — see NFT-Gated Access below
+
+Access: System Menu → Non-Integrated Terminal (requires feature access).`
+        },
+        {
+          title: 'NFT-Gated Access',
+          content: `How access works:
+• The Non-Integrated Terminal is a premium chip
+• Purchase the chip with $DUC tokens in the Motherboard or Marketplace
+• Owning the chip NFT unlocks the terminal feature for your account
+• For recurring subscription chips, keep it active to maintain access
+• Connect your Solana wallet in Settings → Wallet & Payments first
+
+Super Admins can also grant feature access to specific merchants from the Merchant Management panel.`
+        },
+        {
+          title: 'Processing a Transaction',
+          content: `Card-present flow:
+1. Open the Non-Integrated Terminal from System Menu
+2. Enter the transaction amount
+3. Run the card on your standalone terminal
+4. Enter the approval code / reference returned by the terminal
+5. Record the payment method and last 4 of the card
+6. Confirm — the order is marked paid and recorded in order history
+7. Print or email the receipt
+
+All transactions are logged in audit logs (PCI-relevant) for compliance.`
+        }
+      ]
+    },
+    {
+      id: 'builders',
+      icon: Cpu,
+      title: 'Builders & Chip Marketplace',
+      color: 'text-blue-600',
+      content: [
+        {
+          title: 'What is a Builder?',
+          content: `Builders are developers who create chips (feature upgrades) for the openTILL Marketplace:
+• Build integrations, analytics, AI tools, and more as "chips"
+• Submit chips for review by the openTILL team
+• Earn revenue share on every chip sold
+• Manage your builder profile, submissions, and earnings from the Builder Dashboard
+
+Ideal for independent developers, agencies, and integration partners.
+
+Access: Register at the Builders portal from the homepage.`
+        },
+        {
+          title: 'Becoming a Builder',
+          content: `Get verified:
+1. Visit the Builders landing page from the homepage
+2. Click "Start Building" and complete the builder onboarding form
+3. Provide your name, email, company, bio, and support contact
+4. Submit for verification
+5. openTILL team reviews and verifies your profile
+6. Once verified, you can submit chips and receive payouts
+
+You can optionally connect Stripe Connect for automatic payouts.`
+        },
+        {
+          title: 'Submitting a Chip',
+          content: `Publish a feature:
+1. Navigate to Builder Dashboard → Submit a Chip
+2. Enter chip name, symbol, category, and descriptions
+3. Set billing type (one-time or recurring) and price in $DUC
+4. Configure feature flags unlocked by the chip
+5. Provide NFT collection address and metadata URI
+6. Upload documentation and assets
+7. Submit for review
+
+Once approved by Super Admin, the chip appears in the Marketplace and Motherboard for merchants to purchase.`
+        },
+        {
+          title: 'Builder Dashboard & Earnings',
+          content: `Manage your portfolio:
+• Overview: total chips, total sales, total installs, lifetime earnings
+• Submission manager: track review status of each chip
+• Analytics: sales trends, install counts, revenue by chip
+• Profile settings: update bio, website, social links, support email
+• Payouts: via Stripe Connect once configured
+
+Revenue share defaults to 70% to the builder. Super Admin can adjust the platform fee.`
+        }
+      ]
+    },
+    {
       id: 'dealer',
       icon: TrendingUp,
       title: 'Ambassador Program (Resellers)',
@@ -501,6 +708,17 @@ export default function UserManual() {
         {
           title: 'Commission Structure',
           content: 'How you earn:\n\nCommission on:\n• Monthly subscription fees\n• Payment processing fees (if applicable)\n• Hardware sales (device shop)\n• Premium features (Motherboard)\n\nRates (set by Super Admin):\n• Typical: 10-30% of revenue\n• Tiered based on volume\n• Performance bonuses available\n\nPayout Schedule:\n• Monthly automatic payouts\n• Via Stripe Connect\n• Minimum payout threshold (e.g., $100)\n• Detailed statements provided\n\nView Commissions:\n• Dealer Dashboard → Commissions\n• Real-time tracking\n• Breakdown by merchant\n• Export reports'
+        },
+        {
+          title: 'New Revenue Features',
+          content: `Earn from the latest platform features:
+• Motherboard Chips — commission on every chip merchants purchase (one-time and recurring)
+• $DUC Vault — merchants stake $DUC for rewards; track adoption in your dashboard
+• Affiliate Links — the Device Shop includes affiliate product links; configured by Super Admin
+• Invoicing & Paylinks — merchants send invoices with online payment; volume counts toward commission
+• Non-Integrated Terminal — premium NFT-gated chip; commission applies on purchase
+
+All new feature revenue is included in your monthly commission calculations. Track from Dealer Dashboard → Commissions.`
         },
         {
           title: 'Onboarding Merchants',
@@ -555,8 +773,8 @@ export default function UserManual() {
           content: 'Configure NFT-gated features:\n• Create/edit chips:\n  - Feature name\n  - Description\n  - Required NFT collection address\n  - Number of NFTs required\n  - Category (core, premium, enterprise)\n  - Icon\n  - Display order\n  - Active/inactive\n  - Color coding\n• Chips appear in Motherboard\n• System verifies NFT ownership\n• Enable/disable chips globally'
         },
         {
-          title: '$cLINK Vault Manager',
-          content: 'Configure crypto rewards:\n• Global vault settings:\n  - Reward percentage (e.g., 0.5%)\n  - Minimum claim threshold\n  - Staking APY rates\n  - Default lockup period\n  - $cLINK token mint address\n  - Jupiter referral code\n  - Auto-calculate rewards toggle\n• View all merchant rewards:\n  - Pending rewards\n  - Claimed rewards\n  - Staking positions\n• Manual reward adjustments\n• Reward distribution schedule'
+          title: '$DUC Vault Manager',
+          content: 'Configure crypto rewards:\n• Global vault settings:\n  - Reward percentage (e.g., 0.5%)\n  - Minimum claim threshold\n  - Staking APY rates\n  - Default lockup period\n  - $DUC token mint address\n  - Jupiter referral code\n  - Auto-calculate rewards toggle\n• View all merchant rewards:\n  - Pending rewards\n  - Claimed rewards\n  - Staking positions\n• Manual reward adjustments\n• Reward distribution schedule'
         },
         {
           title: 'System Logs',
@@ -675,8 +893,8 @@ export default function UserManual() {
           content: 'ChainLINK works on any device with a modern web browser:\n• Desktop: Windows, Mac, Linux, Chrome OS\n• Tablets: iPad, Android tablets (recommended: 10"+)\n• Smartphones: iOS, Android (for managers/mobile POS)\n• All-in-one POS terminals\n• Touch screen displays\n• Minimum: Dual-core processor, 4GB RAM, internet connection'
         },
         {
-          title: 'How does $cLINK Vault work?',
-          content: 'Earn cryptocurrency rewards for processing credit card payments. Earn 0.5% of your monthly CC volume in $cLINK tokens. First, connect a Solana wallet in Settings → Wallet & Payments. Then access $cLINK Vault from System Menu. Claim rewards to your wallet, stake for APY (up to 20%), or swap for USDC via Jupiter. Rewards are calculated automatically at month-end. A minimum claim threshold applies.'
+          title: 'How does $DUC Vault work?',
+          content: 'Earn cryptocurrency rewards for processing credit card payments. Earn 0.5% of your monthly CC volume in $DUC tokens. First, connect a Solana wallet in Settings → Wallet & Payments. Then access $DUC Vault from System Menu. Claim rewards to your wallet, stake for APY (up to 20%), or swap for USDC via Jupiter. Rewards are calculated automatically at month-end. A minimum claim threshold applies.'
         },
         {
           title: 'What is Motherboard?',

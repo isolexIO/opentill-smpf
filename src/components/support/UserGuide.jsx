@@ -200,7 +200,7 @@ export default function UserGuide() {
               <ul className="list-disc pl-5 space-y-1">
                 <li>Wallet-based login authentication</li>
                 <li>Access to the Motherboard (chip-based features)</li>
-                <li>$cLINK Vault rewards</li>
+                <li>$DUC Vault rewards</li>
                 <li>Setting a primary wallet for incoming payments</li>
               </ul>
 
@@ -317,16 +317,16 @@ export default function UserGuide() {
               </ol>
               <p>Browse all available chips at the <strong>Marketplace</strong> from the home page or System Menu.</p>
 
-              <h3 className="text-lg font-semibold mt-6">$cLINK Vault — Crypto Rewards</h3>
-              <p>Earn $cLINK tokens by processing credit card payments. You receive <strong>0.5% of your monthly CC volume</strong> in $cLINK.</p>
+              <h3 className="text-lg font-semibold mt-6">$DUC Vault — Crypto Rewards</h3>
+              <p>Earn $DUC tokens by processing credit card payments. You receive <strong>0.5% of your monthly CC volume</strong> in $DUC.</p>
               <ul className="list-disc pl-5 space-y-1">
                 <li>Connect your Solana wallet in the Vault</li>
                 <li>Rewards are calculated monthly and appear as "Pending"</li>
                 <li>Claim rewards to your wallet once you meet the minimum threshold</li>
-                <li>Stake $cLINK to earn APY (up to 20% for 365-day lockups)</li>
-                <li>Swap $cLINK for USDC or other tokens via Jupiter DEX</li>
+                <li>Stake $DUC to earn APY (up to 20% for 365-day lockups)</li>
+                <li>Swap $DUC for USDC or other tokens via Jupiter DEX</li>
               </ul>
-              <p>Access via <strong>System Menu → $cLINK Vault</strong>.</p>
+              <p>Access via <strong>System Menu → $DUC Vault</strong>.</p>
 
               <h3 className="text-lg font-semibold mt-6">Referral Program</h3>
               <p>Earn rewards by referring other merchants to openTILL.</p>
@@ -340,6 +340,18 @@ export default function UserGuide() {
 
               <h3 className="text-lg font-semibold mt-6">Two-Factor Authentication (2FA)</h3>
               <p>Enable 2FA in <strong>Settings → Two-Factor Auth</strong> for enhanced account security. Uses an authenticator app (Google Authenticator, Authy, etc.).</p>
+
+              <h3 className="text-lg font-semibold mt-6">Invoicing & Paylinks</h3>
+              <p>Send branded invoices with secure paylinks from <strong>System Menu → Invoices</strong>. Customers pay online by card or crypto — the invoice updates to "paid" automatically. Great for catering, wholesale, and B2B orders.</p>
+
+              <h3 className="text-lg font-semibold mt-6">Delivery Management</h3>
+              <p>Dispatch delivery jobs, assign drivers, and track pickups and drop-offs from the <strong>Delivery Dashboard</strong>. Drivers use their own dashboard to accept jobs and update status in real time. Delivery jobs can also be auto-created from online orders.</p>
+
+              <h3 className="text-lg font-semibold mt-6">Non-Integrated Terminal</h3>
+              <p>Run card-present transactions on standalone terminals and record them in openTILL. This premium feature is NFT-gated — purchase the chip with <strong>$DUC</strong> tokens in the Motherboard to unlock it. Super Admins can also grant access per merchant.</p>
+
+              <h3 className="text-lg font-semibold mt-6">Builders & Marketplace</h3>
+              <p>Developers can build and sell chips (feature upgrades) in the openTILL Marketplace. Register as a Builder from the homepage, submit chips for review, and earn revenue share on every sale. Manage everything from the Builder Dashboard.</p>
             </CardContent>
           </Card>
         </TabsContent>
@@ -384,6 +396,14 @@ export default function UserGuide() {
                 <div>
                   <p className="font-semibold">How do I become an Ambassador/Reseller?</p>
                   <p className="text-gray-600">Visit the <strong>Ambassador Portal</strong> from the homepage and fill out the registration form. Once approved, you'll get your own branded portal and earn commissions on merchants you onboard.</p>
+                </div>
+                <div>
+                  <p className="font-semibold">How do I send an invoice to a customer?</p>
+                  <p className="text-gray-600">Go to <strong>System Menu → Invoices → New Invoice</strong>, enter the customer and amount, then click Send. A secure paylink is generated — the customer pays online by card or crypto and the invoice marks itself paid automatically.</p>
+                </div>
+                <div>
+                  <p className="font-semibold">How do I become a Builder and sell chips?</p>
+                  <p className="text-gray-600">Visit the <strong>Builders</strong> portal from the homepage and complete the onboarding form. Once verified, submit chips from the Builder Dashboard, get approved by the openTILL team, and earn revenue share on every sale in the Marketplace.</p>
                 </div>
                 <div>
                   <p className="font-semibold">What if my card reader stops working?</p>
