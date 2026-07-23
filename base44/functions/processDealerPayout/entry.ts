@@ -322,8 +322,8 @@ async function processSolana(base44, dealer, payout, amount) {
       return { success: false, error: 'Platform Solana wallet not configured' };
     }
 
-    const network = (Deno.env.get('SOLANA_NETWORK') || 'devnet').toLowerCase();
-    const rpcUrl = network.startsWith('mainnet')
+    const network = Deno.env.get('SOLANA_NETWORK') || 'devnet';
+    const rpcUrl = network === 'mainnet'
       ? 'https://api.mainnet-beta.solana.com'
       : 'https://api.devnet.solana.com';
     const connection = new Connection(rpcUrl, 'confirmed');
