@@ -1,13 +1,18 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { PublicKey } from 'npm:@solana/web3.js@1.95.8';
+import nacl from 'npm:tweetnacl@1.0.3';
 
 /**
  * Complete wallet user onboarding by creating user with full merchant info
+ * SECURITY: requires a verified cryptographic signature proving ownership of
+ * the wallet_address before creating any account, preventing registration
+ * spoofing of arbitrary wallet addresses.
  */
 
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { wallet_address, wallet_type, business_name, owner_name, email, phone } = await req.json();
+    const { wallet_address, wallet_type, business_name, owner_name, email, phone, signature_data } = await req.json();
 
     console.log('completeWalletOnboarding:', { wallet_address, wallet_type, business_name });
 
@@ -16,6 +21,60 @@ Deno.serve(async (req) => {
         success: false,
         error: 'Missing required fields'
       }, { status: 400 });
+    }
+
+    // SECURITY: Verify cryptographic ownership of the wallet before onboarding.
+    // The signed message must contain a fresh timestamp (within 5 minutes) and
+    // bind to the claimed wallet_address, preventing replay and registration
+    // spoofing of arbitrary wallet addresses.
+    if (!signature_data || !signature_data.message) {
+      return Response.json({
+        success: false,
+        error: 'Wallet signature is required to complete onboarding'
+      }, { status: 401 });
+    }
+    const FRESHNESS_WINDOW_MS = 5 * 60 * 1000;
+    const tsMatch = typeof signature_data.message === 'string'
+      && signature_data.message.match(/Timestamp:\s*(\d+)/);
+    if (!tsMatch) {
+      return Response.json({ success: false, error: 'Missing timestamp in signed message' }, { status: 401 });
+    }
+    const msgTime = parseInt(tsMatch[1], 10);
+    if (!Number.isFinite(msgTime) || Math.abs(Date.now() - msgTime) > FRESHNESS_WINDOW_MS) {
+      return Response.json({ success: false, error: 'Signature timestamp expired or invalid' }, { status: 401 });
+    }
+    const walletMatch = typeof signature_data.message === 'string'
+      && signature_data.message.match(/Wallet:\s*([A-Za-z0-9]+)/);
+    if (walletMatch && walletMatch[1].toLowerCase() !== wallet_address.toLowerCase()) {
+      return Response.json({ success: false, error: 'Signed message does not bind to this wallet' }, { status: 401 });
+    }
+
+    let signatureValid = false;
+    if (['phantom', 'solflare', 'backpack', 'jupiter'].includes(wallet_type)) {
+      try {
+        const publicKey = new PublicKey(wallet_address);
+        const messageBytes = new TextEncoder().encode(signature_data.message);
+        const signatureBytes = new Uint8Array(signature_data.signature);
+        signatureValid = nacl.sign.detached.verify(messageBytes, signatureBytes, publicKey.toBytes());
+      } catch (e) {
+        signatureValid = false;
+      }
+    } else if (wallet_type === 'ethereum' || wallet_type === 'metamask') {
+      try {
+        const ethers = await import('npm:ethers@6.13.0');
+        const recovered = ethers.verifyMessage(signature_data.message, signature_data.signature);
+        signatureValid = recovered.toLowerCase() === wallet_address.toLowerCase();
+      } catch (e) {
+        signatureValid = false;
+      }
+    } else {
+      return Response.json({
+        success: false,
+        error: `Unsupported wallet type: ${wallet_type}`
+      }, { status: 400 });
+    }
+    if (!signatureValid) {
+      return Response.json({ success: false, error: 'Invalid wallet signature' }, { status: 401 });
     }
 
     // Check if wallet already has an account (direct field lookup)

@@ -18,15 +18,27 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    // Dual-mode: allow platform automation (no authenticated user) OR platform admin.
-    // Ambassadors never process their own payouts.
+    // Dual-mode: allow platform automation (with internal shared secret) OR a
+    // platform admin. Anonymous callers without the secret are rejected so the
+    // payout processor cannot be triggered by unauthenticated requests.
     let user = null;
     try { user = await base44.auth.me(); } catch (e) { user = null; }
     if (user && !['root_admin', 'admin', 'super_admin'].includes(user.role)) {
       return Response.json({ error: 'Unauthorized - Platform admin only' }, { status: 403 });
     }
 
-    const { payout_id } = await req.json();
+    const body = await req.json();
+    const { payout_id, _internal_secret } = body;
+
+    // Allow internal automation (e.g. schedulePayouts) via the existing server
+    // JWT_SECRET as a shared secret. Anonymous callers without it are blocked.
+    if (!user) {
+      const internalSecret = Deno.env.get('JWT_SECRET');
+      const isAutomation = !!(internalSecret && _internal_secret && _internal_secret === internalSecret);
+      if (!isAutomation) {
+        return Response.json({ error: 'Unauthorized - Platform admin or internal automation secret required' }, { status: 401 });
+      }
+    }
 
     if (!payout_id) {
       return Response.json({ error: 'payout_id required' }, { status: 400 });

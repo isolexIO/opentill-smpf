@@ -79,7 +79,8 @@ Deno.serve(async (req) => {
           // Trigger processing
           try {
             const processResult = await base44.functions.invoke('processDealerPayout', {
-              payout_id: payout.id
+              payout_id: payout.id,
+              _internal_secret: Deno.env.get('JWT_SECRET')
             });
 
             if (processResult.data.success) {

@@ -11,9 +11,9 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { "Content-Type": "application/json" } });
     }
     
-    const { orderId, amount, currency, paymentMethodId, merchantId } = await req.json();
+    const { orderId, paymentMethodId, merchantId } = await req.json();
 
-    if (!orderId || !amount || !currency || !paymentMethodId || !merchantId) {
+    if (!orderId || !paymentMethodId || !merchantId) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), { status: 400, headers: { "Content-Type": "application/json" } });
     }
     
@@ -32,11 +32,31 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "Stripe not configured for this merchant" }), { status: 400, headers: { "Content-Type": "application/json" } });
     }
 
+    // SECURITY: Never trust a client-supplied amount. Load the authoritative
+    // Order from the database and bill its stored total, preventing price
+    // tampering / underpayment attacks.
+    const orderResults = await base44.asServiceRole.entities.Order.filter({ id: orderId });
+    if (!orderResults || orderResults.length === 0) {
+      return new Response(JSON.stringify({ error: "Order not found" }), { status: 404, headers: { "Content-Type": "application/json" } });
+    }
+    const order = orderResults[0];
+    if (order.merchant_id !== merchantId) {
+      return new Response(JSON.stringify({ error: "Forbidden: Order does not belong to this merchant" }), { status: 403, headers: { "Content-Type": "application/json" } });
+    }
+    if (order.status === 'completed' || order.status === 'refunded') {
+      return new Response(JSON.stringify({ error: "Order is already paid" }), { status: 400, headers: { "Content-Type": "application/json" } });
+    }
+    const billableAmount = Number(order.total);
+    if (!Number.isFinite(billableAmount) || billableAmount <= 0) {
+      return new Response(JSON.stringify({ error: "Invalid order total" }), { status: 400, headers: { "Content-Type": "application/json" } });
+    }
+    const currency = (merchant.settings?.currency || 'usd').toLowerCase();
+
     const stripe = new Stripe(stripeSettings.secret_key);
 
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amount * 100), // Amount in cents
-      currency: currency.toLowerCase(),
+      amount: Math.round(billableAmount * 100), // Amount in cents, from DB order total
+      currency: currency,
       payment_method: paymentMethodId,
       confirm: true,
       automatic_payment_methods: {

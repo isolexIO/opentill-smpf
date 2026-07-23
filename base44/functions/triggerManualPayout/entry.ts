@@ -65,7 +65,10 @@ Deno.serve(async (req) => {
     });
 
     // Process payout
-    const result = await base44.functions.invoke('processDealerPayout', { payout_id });
+    const result = await base44.functions.invoke('processDealerPayout', {
+      payout_id,
+      _internal_secret: Deno.env.get('JWT_SECRET')
+    });
 
     // Create audit log
     await base44.functions.invoke('createAuditLog', {
