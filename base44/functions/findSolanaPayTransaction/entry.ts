@@ -16,18 +16,16 @@ Deno.serve(async (req) => {
     console.log('findSolanaPayTransaction: Checking reference:', reference);
     console.log('findSolanaPayTransaction: Network:', network || 'mainnet');
 
-    // Use custom RPC URL if provided, otherwise use default
-    // For production, consider using a private RPC endpoint like QuickNode, Helius, or Alchemy
-    let rpcEndpoint = rpc_url;
-    
-    if (!rpcEndpoint) {
-      if (network === 'devnet') {
-        rpcEndpoint = 'https://api.devnet.solana.com';
-      } else {
-        // For mainnet, use a more reliable endpoint
-        // Default to public endpoint but encourage custom RPC in settings
-        rpcEndpoint = 'https://api.mainnet-beta.solana.com';
-      }
+    // SECURITY (SSRF): never trust a client-supplied `rpc_url` — an attacker
+    // could point this at internal/private addresses (e.g. cloud metadata) and
+    // the backend would issue requests there. The endpoint is chosen solely
+    // from the `network` selector, mapping to hardcoded trusted Solana RPC
+    // URLs. The request-body `rpc_url` value is intentionally ignored.
+    let rpcEndpoint;
+    if (network === 'devnet') {
+      rpcEndpoint = 'https://api.devnet.solana.com';
+    } else {
+      rpcEndpoint = 'https://api.mainnet-beta.solana.com';
     }
 
     console.log('findSolanaPayTransaction: Using RPC endpoint:', rpcEndpoint);
