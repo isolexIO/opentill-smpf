@@ -4,6 +4,21 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Monitor,
   MonitorPlay,
@@ -17,16 +32,31 @@ import {
   WifiOff,
   RefreshCw,
   Power,
-  Search
+  Search,
+  Plus,
+  Copy,
+  ExternalLink,
+  Trash2
 } from 'lucide-react';
 
 export default function DeviceMonitorPage() {
   const [sessions, setSessions] = useState([]);
+  const [devices, setDevices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [user, setUser] = useState(null);
   const [merchant, setMerchant] = useState(null);
+
+  // Link Generator & Modal States
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
+  const [selectedDevice, setSelectedDevice] = useState(null);
+  const [generatedLinks, setGeneratedLinks] = useState({ main: '', customerDisplay: '' });
+
+  // Add Workstation Form State
+  const [deviceName, setDeviceName] = useState('');
+  const [deviceType, setDeviceType] = useState('workstation');
 
   useEffect(() => {
     loadUserAndMerchant();
@@ -47,10 +77,12 @@ export default function DeviceMonitorPage() {
         const merchants = await base44.entities.Merchant.filter({ owner_id: currentUser.id });
         if (merchants && merchants.length > 0) {
           setMerchant(merchants[0]);
+          fetchDevices(merchants[0].id);
         } else {
           const allMerchants = await base44.entities.Merchant.list();
           if (allMerchants && allMerchants.length > 0) {
             setMerchant(allMerchants[0]);
+            fetchDevices(allMerchants[0].id);
           }
         }
       }
@@ -59,15 +91,24 @@ export default function DeviceMonitorPage() {
     }
   };
 
+  const fetchDevices = async (merchantId) => {
+    if (!merchantId) return;
+    try {
+      const deviceList = await base44.entities.Device.filter({ merchant_id: merchantId });
+      setDevices(deviceList || []);
+    } catch (err) {
+      console.error('Failed to fetch devices:', err);
+    }
+  };
+
   const loadSessions = async () => {
     try {
       setLoading(true);
       let sessionData = [];
-      
+
       try {
         sessionData = await base44.entities.DeviceSession.list();
       } catch (err) {
-        // Fallback for service role if RLS blocks standard client list call
         if (base44.asServiceRole) {
           sessionData = await base44.asServiceRole().entities.DeviceSession.list();
         }
@@ -77,11 +118,19 @@ export default function DeviceMonitorPage() {
     } catch (error) {
       console.error('Failed to load device sessions:', error);
       setSessions([]);
-      } finally {
+    } finally {
       setLoading(false);
     }
   };
 
+  // Safe online check (< 2 mins heartbeat)
+  const isOnline = (lastActiveAt) => {
+    if (!lastActiveAt) return false;
+    const diffInMinutes = (new Date() - new Date(lastActiveAt)) / (1000 * 60);
+    return diffInMinutes < 2;
+  };
+
+  // Disconnect a single session
   const handleDisconnect = async (sessionId) => {
     if (!confirm('Are you sure you want to disconnect this device session?')) return;
     try {
@@ -92,10 +141,81 @@ export default function DeviceMonitorPage() {
     }
   };
 
-  const isOnline = (lastActiveAt) => {
-    if (!lastActiveAt) return false;
-    const diffInMinutes = (new Date() - new Date(lastActiveAt)) / (1000 * 60);
-    return diffInMinutes < 2;
+  // Purge all stale/offline sessions
+  const handlePurgeOffline = async () => {
+    const offlineSessions = sessions.filter((s) => !isOnline(s.last_active_at));
+    if (offlineSessions.length === 0) {
+      alert('No inactive sessions to purge.');
+      return;
+    }
+
+    if (!confirm(`Clear ${offlineSessions.length} inactive device session(s)?`)) return;
+
+    try {
+      await Promise.all(
+        offlineSessions.map((s) => base44.entities.DeviceSession.delete(s.id))
+      );
+      setSessions((prev) => prev.filter((s) => isOnline(s.last_active_at)));
+    } catch (error) {
+      console.error('Failed to purge inactive sessions:', error);
+    }
+  };
+
+  // Add new Workstation or Display
+  const handleAddWorkstation = async (e) => {
+    e.preventDefault();
+    if (!merchant?.id) {
+      alert('Cannot add workstation: No active merchant record loaded.');
+      return;
+    }
+
+    try {
+      const newDevice = await base44.entities.Device.create({
+        merchant_id: merchant.id,
+        name: deviceName,
+        category: 'workstations',
+        device_type: deviceType,
+        status: 'online',
+        created_at: new Date().toISOString()
+      });
+
+      setDevices([...devices, newDevice]);
+      setIsAddDialogOpen(false);
+      setDeviceName('');
+      setDeviceType('workstation');
+      handleGenerateLinks(newDevice);
+    } catch (err) {
+      console.error('Error creating workstation:', err);
+      alert('Failed to register workstation.');
+    }
+  };
+
+  // Generate links for Workstation & Customer Display
+  const handleGenerateLinks = (device) => {
+    const resolvedMerchantId = merchant?.id || merchant?.merchant_id || merchant?.stripe_account_id;
+
+    if (!resolvedMerchantId) {
+      alert('Error: Merchant ID could not be determined.');
+      return;
+    }
+
+    const baseUrl = window.location.origin;
+    const stationSlug = device.name ? encodeURIComponent(device.name.toLowerCase().replace(/\s+/g, '-')) : 'counter';
+
+    const mainPosLink = `${baseUrl}/Workstation?merchant_id=${resolvedMerchantId}&station_id=${stationSlug}&device_id=${device.id}`;
+    const displayLink = `${baseUrl}/customerdisplay?merchant_id=${resolvedMerchantId}&station_id=${stationSlug}`;
+
+    setSelectedDevice(device);
+    setGeneratedLinks({
+      main: mainPosLink,
+      customerDisplay: displayLink
+    });
+    setIsLinkDialogOpen(true);
+  };
+
+  const copyToClipboard = (text, label) => {
+    navigator.clipboard.writeText(text);
+    alert(`${label} copied to clipboard!`);
   };
 
   const getDeviceIcon = (deviceType) => {
@@ -136,37 +256,79 @@ export default function DeviceMonitorPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Live Device & Station Monitor</h1>
           <p className="text-sm text-muted-foreground">
-            Track connected POS stations, active customer displays, and terminal heartbeats in real-time.
+            Track connected POS stations, customer displays, and terminal heartbeats in real-time.
           </p>
         </div>
-        <Button onClick={loadSessions} variant="outline" size="sm" disabled={loading}>
-          <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-          Refresh Status
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button onClick={() => setIsAddDialogOpen(true)} className="sm:w-auto">
+            <Plus className="w-4 h-4 mr-2" /> Add Workstation
+          </Button>
+          <Button onClick={loadSessions} variant="outline" size="sm" disabled={loading}>
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+        </div>
       </div>
 
-      {/* Real-time Session Overview */}
+      {/* Registered Workstations List with Link Generators */}
+      {devices.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Configured Workstations & Displays</CardTitle>
+            <CardDescription>
+              Generate launcher links for active terminals and customer screens.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {devices.map((device) => (
+              <div key={device.id} className="flex items-center justify-between p-3 border rounded-lg bg-muted/20">
+                <div className="flex items-center gap-2.5">
+                  {getDeviceIcon(device.device_type)}
+                  <div>
+                    <p className="font-semibold text-sm leading-tight">{device.name}</p>
+                    <p className="text-xs text-muted-foreground capitalize">{device.device_type?.replace('_', ' ')}</p>
+                  </div>
+                </div>
+                <Button size="sm" variant="outline" onClick={() => handleGenerateLinks(device)}>
+                  Get Links
+                </Button>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Real-time Sessions Grid */}
       <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <CardTitle>Active Terminal Sessions</CardTitle>
               <CardDescription>
-                Connected browsers, dedicated workstations, and customer displays.
+                Connected browser windows, kiosks, and customer screens.
               </CardDescription>
             </div>
 
-            {/* Filter and Search Bar */}
             <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs text-destructive hover:text-destructive"
+                onClick={handlePurgeOffline}
+              >
+                <Trash2 className="w-3.5 h-3.5 mr-1" /> Purge Inactive
+              </Button>
+
               <div className="relative">
                 <Search className="w-4 h-4 absolute left-2.5 top-2.5 text-muted-foreground" />
                 <Input
-                  placeholder="Filter by station or device..."
+                  placeholder="Filter station..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-8 w-[200px] sm:w-[250px] text-xs"
+                  className="pl-8 w-[160px] sm:w-[200px] text-xs"
                 />
               </div>
+
               <div className="flex border rounded-md p-0.5 bg-muted">
                 <Button
                   size="sm"
@@ -205,9 +367,9 @@ export default function DeviceMonitorPage() {
           ) : filteredSessions.length === 0 ? (
             <div className="text-center p-12 text-muted-foreground space-y-2">
               <WifiOff className="w-10 h-10 mx-auto stroke-1" />
-              <p className="font-medium text-sm">No active device sessions found</p>
+              <p className="font-medium text-sm">No device sessions found</p>
               <p className="text-xs">
-                Launch a station link from the Devices page to establish a terminal session.
+                Launch a workstation or display link to create an active session.
               </p>
             </div>
           ) : (
@@ -271,7 +433,7 @@ export default function DeviceMonitorPage() {
                           className="text-destructive hover:text-destructive text-xs h-8"
                           onClick={() => handleDisconnect(session.id)}
                         >
-                          <Power className="w-3.5 h-3.5 mr-1" /> Disconnect Session
+                          <Power className="w-3.5 h-3.5 mr-1" /> Disconnect
                         </Button>
                       </div>
                     </div>
@@ -282,6 +444,100 @@ export default function DeviceMonitorPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Add Workstation Dialog */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Add Station / Display</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleAddWorkstation} className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="name">Station Name</Label>
+              <Input
+                id="name"
+                placeholder="e.g. Register 1 or Front Display"
+                value={deviceName}
+                onChange={(e) => setDeviceName(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="type">Role / Type</Label>
+              <Select value={deviceType} onValueChange={setDeviceType}>
+                <SelectTrigger id="type">
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="workstation">POS Workstation</SelectItem>
+                  <SelectItem value="customer_display">Customer Facing Display</SelectItem>
+                  <SelectItem value="kitchen_display">Kitchen Display System (KDS)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <DialogFooter className="pt-4">
+              <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit">Create Station</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Workstation & Customer Display Links Modal */}
+      <Dialog open={isLinkDialogOpen} onOpenChange={setIsLinkDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Station Launch Links</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <p className="text-sm text-muted-foreground">
+              Generated links for <strong className="text-foreground">{selectedDevice?.name}</strong>:
+            </p>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                POS Workstation Link
+              </Label>
+              <div className="flex gap-2 items-center">
+                <div className="p-2 bg-muted rounded text-xs font-mono break-all border flex-1">
+                  {generatedLinks.main}
+                </div>
+                <Button size="sm" variant="outline" onClick={() => copyToClipboard(generatedLinks.main, 'Workstation Link')}>
+                  <Copy className="w-4 h-4" />
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => window.open(generatedLinks.main, '_blank')}>
+                  <ExternalLink className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Customer Facing Display Link
+              </Label>
+              <div className="flex gap-2 items-center">
+                <div className="p-2 bg-muted rounded text-xs font-mono break-all border flex-1">
+                  {generatedLinks.customerDisplay}
+                </div>
+                <Button size="sm" variant="outline" onClick={() => copyToClipboard(generatedLinks.customerDisplay, 'Customer Display Link')}>
+                  <Copy className="w-4 h-4" />
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => window.open(generatedLinks.customerDisplay, '_blank')}>
+                  <ExternalLink className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button onClick={() => setIsLinkDialogOpen(false)}>Done</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
