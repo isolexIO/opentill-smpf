@@ -16,12 +16,13 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
-    // Privilege check: only existing platform admins may perform elevation.
-    // Regular users cannot escalate themselves to root_admin.
-    if (user.role !== 'admin' && user.role !== 'root_admin') {
+    // Privilege check: only an existing root_admin may perform elevation. A
+    // standard 'admin' role must NOT be able to self-elevate to root_admin,
+    // which would be a privilege-escalation vector.
+    if (user.role !== 'root_admin') {
       console.warn('Unauthorized role elevation attempt by:', user.email, 'role:', user.role);
       return Response.json({ 
-        error: 'Forbidden: only existing administrators may perform this action' 
+        error: 'Forbidden: only an existing root administrator may perform this action' 
       }, { status: 403 });
     }
 

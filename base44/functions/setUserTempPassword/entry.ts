@@ -36,9 +36,11 @@ Deno.serve(async (req) => {
     // Path 1: platform User entity (super-admin-created ambassadors)
     const users = await base44.asServiceRole.entities.User.filter({ email: emailLower });
     if (users && users.length > 0) {
-      // emailPasswordLogin validates `temp_password` (plaintext) and clears it after first login.
+      // Store temp_password as a bcrypt hash; emailPasswordLogin verifies with
+      // bcrypt.compare and clears it after first successful login.
+      const tempPasswordHash = bcrypt.hashSync(password, 10);
       await base44.asServiceRole.entities.User.update(users[0].id, {
-        temp_password: password
+        temp_password: tempPasswordHash
       });
       return Response.json({
         success: true,

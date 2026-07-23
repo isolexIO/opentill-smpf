@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import bcrypt from 'npm:bcryptjs@2.4.3';
 
 Deno.serve(async (req) => {
     try {
@@ -44,16 +45,18 @@ Deno.serve(async (req) => {
             tempPassword += charset[randomBytes[i] % charset.length];
         }
 
-        // Store as temp_password (plaintext) — emailPasswordLogin validates this field
-        // and clears it automatically after the first successful login.
+        // Store temp_password as a bcrypt HASH — the plaintext is only sent to the
+        // user via email. emailPasswordLogin verifies with bcrypt.compare and
+        // clears the field after the first successful login.
+        const tempPasswordHash = bcrypt.hashSync(tempPassword, 10);
         try {
             await base44.asServiceRole.entities.User.update(user.id, {
-                temp_password: tempPassword
+                temp_password: tempPasswordHash
             });
         } catch (e) {
             console.log('asServiceRole update failed, trying regular update:', e.message);
             await base44.entities.User.update(user.id, {
-                temp_password: tempPassword
+                temp_password: tempPasswordHash
             });
         }
 

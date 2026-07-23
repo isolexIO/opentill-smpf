@@ -484,6 +484,21 @@ Generate ONLY the HTML files with complete inline CSS, nothing else. No explanat
     return generatedWebsite;
   };
 
+  // SECURITY: strip active content (script blocks, inline event handlers, and
+  // javascript: URLs) from AI-generated HTML before rendering it in the preview
+  // iframe. The iframe sandbox also omits allow-scripts, so this is defense in
+  // depth against injected markup from the AI/business-description input.
+  const sanitizePreviewHtml = (html) => {
+    if (!html || typeof html !== 'string') return '';
+    return html
+      .replace(/<script[\s\S]*?<\/script>/gi, '')
+      .replace(/<iframe[\s\S]*?<\/iframe>/gi, '')
+      .replace(/\son\w+\s*=\s*"[^"]*"/gi, '')
+      .replace(/\son\w+\s*=\s*'[^']*'/gi, '')
+      .replace(/\son\w+\s*=\s*[^\s>]+/gi, '')
+      .replace(/javascript:/gi, '');
+  };
+
   const handleCopyCode = () => {
     if (!generatedWebsite) return;
     navigator.clipboard.writeText(generatedWebsite);
@@ -828,10 +843,10 @@ Generate ONLY the HTML files with complete inline CSS, nothing else. No explanat
                               <TabsContent key={page} value={page}>
                                 <div className="border rounded-lg overflow-hidden bg-white" style={{ height: '600px' }}>
                                   <iframe
-                                    srcDoc={extractPageContent(page)}
+                                    srcDoc={sanitizePreviewHtml(extractPageContent(page))}
                                     className="w-full h-full"
                                     title={`${page} Preview`}
-                                    sandbox="allow-same-origin"
+                                    sandbox=""
                                   />
                                 </div>
                               </TabsContent>

@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import * as OTPAuth from 'npm:otpauth@9.3.6';
+import bcrypt from 'npm:bcryptjs@2.4.3';
 
 Deno.serve(async (req) => {
   try {
@@ -35,22 +36,26 @@ Deno.serve(async (req) => {
       }, { status: 401 });
     }
 
-    // Verify password (temp_password takes priority)
-    const passwordToCheck = user.temp_password || password;
-    
-    if (user.temp_password) {
-      if (password !== user.temp_password) {
-        return Response.json({ 
-          success: false, 
-          error: 'Invalid email or password' 
-        }, { status: 401 });
-      }
-    } else {
-      // In production, you would verify against a hashed password
-      // For now, using temp_password field as plaintext (NOT SECURE - just for demo)
+    // Verify password against the stored temp_password, which is kept as a
+    // bcrypt HASH. The plaintext temp password is only ever emailed to the
+    // user; the database never stores it in cleartext.
+    if (!user.temp_password) {
       return Response.json({ 
         success: false, 
         error: 'No password set for this account. Please use password reset.' 
+      }, { status: 401 });
+    }
+
+    let passwordValid = false;
+    try {
+      passwordValid = await bcrypt.compare(password, user.temp_password);
+    } catch (e) {
+      passwordValid = false;
+    }
+    if (!passwordValid) {
+      return Response.json({ 
+        success: false, 
+        error: 'Invalid email or password' 
       }, { status: 401 });
     }
 
