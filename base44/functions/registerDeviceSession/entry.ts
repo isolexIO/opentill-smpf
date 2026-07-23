@@ -92,12 +92,11 @@ Deno.serve(async (req) => {
             }
         }
 
-        // Generate session ID — stable per station for display devices so the
-        // same endpoint survives refreshes; random for all other devices.
-        const sanitize = (v) => String(v || '').replace(/[^a-zA-Z0-9_-]/g, '_');
-        const session_id = (isDisplayDevice && station_id)
-            ? `disp_${sanitize(device_type)}_${sanitize(merchant_id)}_${sanitize(station_id)}`
-            : `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+        // Generate a cryptographically random session ID for ALL device types.
+        // Display devices still reattach to the same endpoint on refresh via the
+        // existing-session lookup above, so the ID must not be predictable
+        // (a guessable ID would let an attacker authorize order mutations).
+        const session_id = `session_${crypto.randomUUID()}`;
 
         // Get IP and user agent
         const ip_address = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
