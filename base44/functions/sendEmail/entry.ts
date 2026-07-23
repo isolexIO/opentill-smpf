@@ -21,6 +21,21 @@ Deno.serve(async (req) => {
             }, { status: 400 });
         }
 
+        // SECURITY (open mail relay): restrict delivery to the authenticated
+        // user's own email address only. Without this check, any logged-in user
+        // could relay arbitrary messages to any external address from the
+        // organization's SMTP server (spam/phishing). Platform admins are
+        // allowed to send to arbitrary addresses for legitimate admin comms.
+        const isAdmin = user.role === 'admin' || user.role === 'root_admin';
+        const normalizedTo = String(to).trim().toLowerCase();
+        const selfEmail = String(user.email || '').trim().toLowerCase();
+        if (!isAdmin && normalizedTo !== selfEmail) {
+            return Response.json({
+                success: false,
+                error: 'You may only send emails to your own registered address'
+            }, { status: 403 });
+        }
+
         // Verify SMTP credentials are configured
         const smtpHost = Deno.env.get('SMTP_HOST');
         const smtpUser = Deno.env.get('SMTP_USER');
