@@ -1,24 +1,10 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import StationManager from '@/components/devices/StationManager';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import {
   Monitor,
   MonitorPlay,
@@ -32,339 +18,356 @@ import {
   WifiOff,
   RefreshCw,
   Power,
-  Search,
-  Plus,
-  Copy,
-  ExternalLink,
-  Trash2
+  Search
 } from 'lucide-react';
 
 export default function DeviceMonitorPage() {
   const [sessions, setSessions] = useState([]);
-  const [devices, setDevices] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [typeFilter, setTypeFilter] = useState('all');
-  const [showPairModal, setShowPairModal] = useState(false);
-  const [newDevice, setNewDevice] = useState({ name: '', type: 'terminal', location: '' });
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [user, setUser] = useState(null);
 
-  const fetchData = async () => {
-    setLoading(true);
+  useEffect(() => {
+    loadUser();
+    loadSessions();
+    
+    // Auto-refresh every 10 seconds
+    const interval = setInterval(loadSessions, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const loadUser = async () => {
     try {
-      // Safely fetch entities with fallbacks if schemas aren't defined yet
-      let sessionData = [];
-      let deviceData = [];
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+    } catch (error) {
+      console.error('Error loading user:', error);
+    }
+  };
 
-      if (base44.entities?.DeviceSession) {
-        sessionData = await base44.entities.DeviceSession.findMany();
-      } else if (base44.entities?.Device) {
-        sessionData = await base44.entities.Device.findMany();
-      }
+  const loadSessions = async () => {
+    try {
+      const currentUser = user || await base44.auth.me();
+      const allSessions = await base44.entities.DeviceSession.filter({
+        merchant_id: currentUser.merchant_id
+      }, '-last_heartbeat');
+      
+      // Filter out old offline sessions (more than 5 minutes)
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+      const activeSessions = allSessions.filter(session => {
+        if (session.status === 'offline') {
+          const lastHeartbeat = new Date(session.last_heartbeat);
+          return lastHeartbeat > fiveMinutesAgo;
+        }
+        return true;
+      });
 
-      if (base44.entities?.Device) {
-        deviceData = await base44.entities.Device.findMany();
-      }
-
-      setSessions(sessionData || []);
-      setDevices(deviceData || []);
-    } catch (err) {
-      console.warn("Device/DeviceSession entity query fallback:", err);
-      setSessions([]);
-      setDevices([]);
+      setSessions(activeSessions);
+    } catch (error) {
+      console.error('Error loading sessions:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const handleForceDisconnect = async (sessionId) => {
+    if (!confirm('Are you sure you want to disconnect this device? This will log out the user.')) {
+      return;
+    }
 
-  const handlePairDevice = async (e) => {
-    e.preventDefault();
     try {
-      if (base44.entities?.Device) {
-        await base44.entities.Device.create(newDevice);
+      console.log('DeviceMonitor: Disconnecting session:', sessionId);
+      
+      const response = await base44.functions.invoke('forceDisconnectSession', {
+        session_id: sessionId
+      });
+      
+      console.log('DeviceMonitor: Disconnect response:', response.data);
+
+      if (response.data?.success) {
+        alert('Device disconnected successfully');
+        await loadSessions();
       } else {
-        console.warn("Device entity schema missing. Pre-registering local state.");
-        setDevices((prev) => [...prev, { ...newDevice, id: Date.now().toString(), status: 'offline' }]);
+        const errorMsg = response.data?.error || 'Failed to disconnect device';
+        console.error('DeviceMonitor: Disconnect failed:', errorMsg);
+        alert('Failed to disconnect device: ' + errorMsg);
       }
-      setShowPairModal(false);
-      setNewDevice({ name: '', type: 'terminal', location: '' });
-      fetchData();
-    } catch (err) {
-      console.error("Failed to register device:", err);
+    } catch (error) {
+      console.error('DeviceMonitor: Error disconnecting device:', error);
+      
+      // Provide user-friendly error messages
+      let errorMsg = 'Failed to disconnect device';
+      if (error.response?.status === 403) {
+        errorMsg = 'You do not have permission to disconnect this device';
+      } else if (error.response?.status === 404) {
+        errorMsg = 'Device session not found';
+      } else if (error.message) {
+        errorMsg += ': ' + error.message;
+      }
+      
+      alert(errorMsg);
     }
   };
 
-  const filteredSessions = sessions.filter((s) => {
-    const matchesSearch =
-      s.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.id?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || s.status === statusFilter;
-    const matchesType = typeFilter === 'all' || s.type === typeFilter;
-    return matchesSearch && matchesStatus && matchesType;
+  const getDeviceIcon = (deviceType) => {
+    const icons = {
+      pos: Monitor,
+      customer_display: MonitorPlay,
+      kitchen_display: Utensils,
+      tablet: Tablet,
+      mobile: Smartphone,
+      web: Globe
+    };
+    return icons[deviceType] || Monitor;
+  };
+
+  const getStatusColor = (status, lastHeartbeat) => {
+    const heartbeatDate = new Date(lastHeartbeat);
+    const now = new Date();
+    const diffMinutes = (now - heartbeatDate) / 1000 / 60;
+
+    if (status === 'offline') return 'bg-gray-200 text-gray-700';
+    if (diffMinutes > 2) return 'bg-red-100 text-red-700';
+    if (status === 'error') return 'bg-red-100 text-red-700';
+    if (status === 'idle') return 'bg-yellow-100 text-yellow-700';
+    return 'bg-green-100 text-green-700';
+  };
+
+  const getStatusIcon = (status, lastHeartbeat) => {
+    const heartbeatDate = new Date(lastHeartbeat);
+    const now = new Date();
+    const diffMinutes = (now - heartbeatDate) / 1000 / 60;
+
+    if (status === 'offline' || diffMinutes > 2) return WifiOff;
+    if (status === 'error') return XCircle;
+    if (status === 'idle') return Clock;
+    return Wifi;
+  };
+
+  const filteredSessions = sessions.filter(session => {
+    const matchesSearch = 
+      session.device_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      session.station_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      session.user_name?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = filterStatus === 'all' || session.status === filterStatus;
+
+    return matchesSearch && matchesStatus;
   });
 
-  const getDeviceIcon = (type) => {
-    switch (type) {
-      case 'kds':
-        return <Utensils className="w-5 h-5 text-amber-500" />;
-      case 'display':
-        return <MonitorPlay className="w-5 h-5 text-blue-500" />;
-      case 'mobile':
-        return <Smartphone className="w-5 h-5 text-purple-500" />;
-      case 'tablet':
-        return <Tablet className="w-5 h-5 text-indigo-500" />;
-      case 'web':
-        return <Globe className="w-5 h-5 text-emerald-500" />;
-      default:
-        return <Monitor className="w-5 h-5 text-slate-500" />;
-    }
+  const stats = {
+    total: sessions.length,
+    online: sessions.filter(s => s.status === 'online').length,
+    idle: sessions.filter(s => s.status === 'idle').length,
+    offline: sessions.filter(s => s.status === 'offline').length,
+    error: sessions.filter(s => s.status === 'error').length
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <RefreshCw className="w-12 h-12 mx-auto mb-4 animate-spin text-blue-600" />
+          <p className="text-gray-500">Loading devices...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="p-6 max-w-7xl mx-auto">
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Device & Session Monitor</h1>
-          <p className="text-sm text-slate-500">
-            Track real-time active POS terminals, KDS screens, and connected customer displays.
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900">Device Monitor</h1>
+          <p className="text-gray-500 mt-1">Real-time monitoring of connected devices</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={fetchData} disabled={loading}>
-            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
-          <Button size="sm" onClick={() => setShowPairModal(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Pair New Device
-          </Button>
-        </div>
+        <Button onClick={loadSessions} variant="outline">
+          <RefreshCw className="w-4 h-4 mr-2" />
+          Refresh
+        </Button>
       </div>
 
-      {/* Metrics Row */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <StationManager merchantId={user?.merchant_id} />
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
         <Card>
-          <CardContent className="p-4 flex items-center justify-between">
-            <div>
-              <p className="text-xs text-slate-500 font-medium">Total Terminals</p>
-              <p className="text-2xl font-bold">{devices.length || sessions.length}</p>
-            </div>
-            <div className="p-2 bg-slate-100 rounded-lg">
-              <Monitor className="w-5 h-5 text-slate-600" />
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <p className="text-sm text-gray-500">Total Devices</p>
+              <p className="text-3xl font-bold">{stats.total}</p>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4 flex items-center justify-between">
-            <div>
-              <p className="text-xs text-slate-500 font-medium">Online Sessions</p>
-              <p className="text-2xl font-bold text-emerald-600">
-                {sessions.filter((s) => s.status === 'online' || s.active).length}
-              </p>
-            </div>
-            <div className="p-2 bg-emerald-50 rounded-lg">
-              <Wifi className="w-5 h-5 text-emerald-600" />
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-2 mb-1">
+                <Wifi className="w-4 h-4 text-green-600" />
+                <p className="text-sm text-gray-500">Online</p>
+              </div>
+              <p className="text-3xl font-bold text-green-600">{stats.online}</p>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4 flex items-center justify-between">
-            <div>
-              <p className="text-xs text-slate-500 font-medium">Offline / Standby</p>
-              <p className="text-2xl font-bold text-slate-600">
-                {sessions.filter((s) => s.status === 'offline' || !s.active).length}
-              </p>
-            </div>
-            <div className="p-2 bg-slate-100 rounded-lg">
-              <WifiOff className="w-5 h-5 text-slate-500" />
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-2 mb-1">
+                <Clock className="w-4 h-4 text-yellow-600" />
+                <p className="text-sm text-gray-500">Idle</p>
+              </div>
+              <p className="text-3xl font-bold text-yellow-600">{stats.idle}</p>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4 flex items-center justify-between">
-            <div>
-              <p className="text-xs text-slate-500 font-medium">Kitchen Displays (KDS)</p>
-              <p className="text-2xl font-bold text-amber-600">
-                {sessions.filter((s) => s.type === 'kds').length}
-              </p>
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-2 mb-1">
+                <WifiOff className="w-4 h-4 text-gray-600" />
+                <p className="text-sm text-gray-500">Offline</p>
+              </div>
+              <p className="text-3xl font-bold text-gray-600">{stats.offline}</p>
             </div>
-            <div className="p-2 bg-amber-50 rounded-lg">
-              <Utensils className="w-5 h-5 text-amber-600" />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-2 mb-1">
+                <XCircle className="w-4 h-4 text-red-600" />
+                <p className="text-sm text-gray-500">Error</p>
+              </div>
+              <p className="text-3xl font-bold text-red-600">{stats.error}</p>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Filters & Search */}
-      <Card className="p-4">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+      {/* Filters */}
+      <div className="flex gap-4 mb-6">
+        <div className="flex-1">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <Input
-              placeholder="Search by device name or ID..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
+              placeholder="Search devices..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
             />
           </div>
-          <div className="flex gap-2">
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[140px]">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="online">Online</SelectItem>
-                <SelectItem value="offline">Offline</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="w-[140px]">
-                <SelectValue placeholder="Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="terminal">Terminal</SelectItem>
-                <SelectItem value="kds">Kitchen Display</SelectItem>
-                <SelectItem value="display">Customer Display</SelectItem>
-                <SelectItem value="mobile">Mobile POS</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
         </div>
-      </Card>
 
-      {/* Main Grid */}
-      {loading ? (
-        <div className="py-12 text-center text-slate-500">
-          <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-slate-400" />
-          <p>Syncing active hardware sessions...</p>
+        <div className="flex gap-2">
+          {['all', 'online', 'idle', 'offline', 'error'].map((status) => (
+            <Button
+              key={status}
+              variant={filterStatus === status ? 'default' : 'outline'}
+              onClick={() => setFilterStatus(status)}
+              size="sm"
+            >
+              {status.charAt(0).toUpperCase() + status.slice(1)}
+            </Button>
+          ))}
         </div>
-      ) : filteredSessions.length === 0 ? (
-        <Card className="p-12 text-center">
-          <Monitor className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-          <h3 className="text-lg font-medium text-slate-900">No active device sessions</h3>
-          <p className="text-sm text-slate-500 mt-1 max-w-md mx-auto">
-            Pair terminal endpoints or launch workstation sessions to display connection telemetry here.
-          </p>
-          <Button className="mt-4" onClick={() => setShowPairModal(true)}>
-            <Plus className="w-4 h-4 mr-2" /> Pair Device
-          </Button>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredSessions.map((session) => (
-            <Card key={session.id || session._id} className="relative overflow-hidden">
-              <CardHeader className="pb-3">
-                <div className="flex justify-between items-start">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-slate-100 rounded-md">
-                      {getDeviceIcon(session.type)}
+      </div>
+
+      {/* Device List */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {filteredSessions.map((session) => {
+          const DeviceIcon = getDeviceIcon(session.device_type);
+          const StatusIcon = getStatusIcon(session.status, session.last_heartbeat);
+          const heartbeatDate = new Date(session.last_heartbeat);
+          const now = new Date();
+          const diffMinutes = Math.floor((now - heartbeatDate) / 1000 / 60);
+
+          return (
+            <Card key={session.id} className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      <DeviceIcon className="w-6 h-6 text-blue-600" />
                     </div>
                     <div>
-                      <CardTitle className="text-base font-semibold">
-                        {session.name || `Terminal #${session.id?.slice(-4)}`}
-                      </CardTitle>
-                      <CardDescription className="text-xs">
-                        {session.location || 'Front Counter'}
+                      <CardTitle className="text-lg">{session.device_name}</CardTitle>
+                      <CardDescription className="flex items-center gap-2 mt-1">
+                        <Badge className={getStatusColor(session.status, session.last_heartbeat)}>
+                          <StatusIcon className="w-3 h-3 mr-1" />
+                          {session.status}
+                        </Badge>
+                        {session.station_name && (
+                          <span className="text-sm">• {session.station_name}</span>
+                        )}
                       </CardDescription>
                     </div>
                   </div>
-                  <Badge
-                    variant={session.status === 'online' || session.active ? 'default' : 'secondary'}
-                    className={
-                      session.status === 'online' || session.active
-                        ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-100'
-                        : 'bg-slate-100 text-slate-600'
-                    }
-                  >
-                    {session.status === 'online' || session.active ? 'Online' : 'Offline'}
-                  </Badge>
+                  {session.status !== 'offline' && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleForceDisconnect(session.session_id)}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Power className="w-4 h-4" />
+                    </Button>
+                  )}
                 </div>
               </CardHeader>
-              <CardContent className="text-xs space-y-2 text-slate-600">
-                <div className="flex justify-between border-t pt-2">
-                  <span className="text-slate-400">Device ID:</span>
-                  <span className="font-mono">{session.id || session._id}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">IP Address:</span>
-                  <span>{session.ipAddress || '192.168.1.100'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Last Ping:</span>
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-3 h-3 text-slate-400" />
-                    {session.updatedAt ? new Date(session.updatedAt).toLocaleTimeString() : 'Just now'}
-                  </span>
+              <CardContent>
+                <div className="space-y-2 text-sm">
+                  {session.user_name && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">User:</span>
+                      <span className="font-medium">{session.user_name}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">IP Address:</span>
+                    <span className="font-mono text-xs">{session.ip_address}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Last Heartbeat:</span>
+                    <span className={diffMinutes > 2 ? 'text-red-600 font-medium' : ''}>
+                      {diffMinutes === 0 ? 'Just now' : `${diffMinutes}m ago`}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Connected:</span>
+                    <span>{new Date(session.connected_at).toLocaleString()}</span>
+                  </div>
+                  {session.active_order_number && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Active Order:</span>
+                      <Badge variant="outline">{session.active_order_number}</Badge>
+                    </div>
+                  )}
+                  {session.error_message && (
+                    <div className="p-2 bg-red-50 border border-red-200 rounded text-red-700 text-xs">
+                      {session.error_message}
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
-          ))}
-        </div>
-      )}
+          );
+        })}
+      </div>
 
-      {/* Modal for Registering/Pairing Device */}
-      <Dialog open={showPairModal} onOpenChange={setShowPairModal}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Pair New Terminal or Display</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handlePairDevice} className="space-y-4 py-2">
-            <div>
-              <Label htmlFor="deviceName">Device Name</Label>
-              <Input
-                id="deviceName"
-                placeholder="e.g. Front Register #1"
-                value={newDevice.name}
-                onChange={(e) => setNewDevice({ ...newDevice, name: e.target.value })}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="deviceType">Device Type</Label>
-              <Select
-                value={newDevice.type}
-                onValueChange={(val) => setNewDevice({ ...newDevice, type: val })}
-              >
-                <SelectTrigger id="deviceType">
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="terminal">POS Terminal</SelectItem>
-                  <SelectItem value="kds">Kitchen Display (KDS)</SelectItem>
-                  <SelectItem value="display">Customer Facing Display</SelectItem>
-                  <SelectItem value="mobile">Handheld / Mobile</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="deviceLocation">Location / Department</Label>
-              <Input
-                id="deviceLocation"
-                placeholder="e.g. Main Bar / Kitchen Station"
-                value={newDevice.location}
-                onChange={(e) => setNewDevice({ ...newDevice, location: e.target.value })}
-              />
-            </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setShowPairModal(false)}>
-                Cancel
-              </Button>
-              <Button type="submit">Pair Device</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      {filteredSessions.length === 0 && (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <Monitor className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+            <p className="text-gray-500">No devices found</p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
