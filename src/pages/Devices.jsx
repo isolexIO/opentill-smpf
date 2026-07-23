@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -43,575 +42,429 @@ const DEVICE_TYPES = {
     color: 'text-blue-600',
     types: [
       { value: 'verifone', label: 'Verifone' },
-      { value: 'clover', label: 'Clover' },
-      { value: 'pax', label: 'Pax' },
-      { value: 'square', label: 'Square' },
-      { value: 'ellipal', label: 'ELLIPAL' }
+      { value: 'pax', label: 'PAX Terminal' },
+      { value: 'stripe_reader', label: 'Stripe Reader M2/S700' },
+      { value: 'pax_a35', label: 'PAX A35' }
     ]
   },
   printers: {
-    title: 'Printers',
+    title: 'Receipt Printers',
     icon: Printer,
+    color: 'text-emerald-600',
+    types: [
+      { value: 'epson', label: 'Epson POS Printer' },
+      { value: 'star', label: 'Star Micronics' },
+      { value: 'network_printer', label: 'Network Thermal Printer' }
+    ]
+  },
+  workstations: {
+    title: 'Workstations & Terminals',
+    icon: Monitor,
     color: 'text-purple-600',
     types: [
-      { value: 'receipt', label: 'Receipt Printer' },
-      { value: 'kitchen', label: 'Kitchen Printer' },
-      { value: 'bar', label: 'Bar Printer' }
-    ]
-  },
-  barcode_scanners: {
-    title: 'Barcode Scanners',
-    icon: QrCode,
-    color: 'text-green-600',
-    types: [
-      { value: 'usb', label: 'USB Scanner' },
-      { value: 'bluetooth', label: 'Bluetooth Scanner' },
-      { value: 'camera', label: 'Camera Scanner' }
-    ]
-  },
-  displays: {
-    title: 'Customer Displays',
-    icon: Monitor,
-    color: 'text-orange-600',
-    types: [
-      { value: 'wired', label: 'Wired Display' },
-      { value: 'wireless', label: 'Wireless Display' }
+      { value: 'pos_terminal', label: 'Primary POS Terminal' },
+      { value: 'kitchen_display', label: 'Kitchen Display (KDS)' },
+      { value: 'customer_display', label: 'Customer Facing Display' }
     ]
   }
 };
 
-const CONNECTION_TYPES = [
-  { value: 'usb', label: 'USB' },
-  { value: 'bluetooth', label: 'Bluetooth' },
-  { value: 'ethernet', label: 'Ethernet' },
-  { value: 'wifi', label: 'WiFi' }
-];
-
-export default function DevicesPage() {
-  const [devices, setDevices] = useState({
-    card_readers: [],
-    printers: [],
-    barcode_scanners: [],
-    displays: []
-  });
-  const [user, setUser] = useState(null);
-  const [settings, setSettings] = useState(null);
-  const [showAddDialog, setShowAddDialog] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState('card_readers');
-  const [testingDevice, setTestingDevice] = useState(null);
+export default function Devices() {
+  const [devices, setDevices] = useState([]);
+  const [merchant, setMerchant] = useState(null);
   const [loading, setLoading] = useState(true);
-  
-  const [newDevice, setNewDevice] = useState({
-    name: '',
-    type: '',
-    connection_type: 'usb',
-    ip_address: '',
-    port: '',
-    is_connected: false
-  });
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
+  const [selectedDevice, setSelectedDevice] = useState(null);
+  const [generatedLink, setGeneratedLink] = useState('');
+
+  // Form State
+  const [deviceName, setDeviceName] = useState('');
+  const [deviceType, setDeviceType] = useState('card_readers');
+  const [subType, setSubType] = useState('stripe_reader');
+  const [ipAddress, setIpAddress] = useState('');
+  const [serialNumber, setSerialNumber] = useState('');
 
   useEffect(() => {
-    loadUserAndDevices();
+    fetchInitialData();
   }, []);
 
-  const loadUserAndDevices = async () => {
+  const fetchInitialData = async () => {
     try {
       setLoading(true);
-      const userData = await base44.auth.me();
-      setUser(userData);
-
-      if (userData.pos_settings?.hardware_devices) {
-        setDevices(userData.pos_settings.hardware_devices);
+      const user = await base44.auth.me();
+      if (user) {
+        // Fetch Merchant context safely
+        const merchantList = await base44.entities.Merchant.filter({ owner_id: user.id });
+        if (merchantList && merchantList.length > 0) {
+          setMerchant(merchantList[0]);
+          fetchDevices(merchantList[0].id);
+        } else {
+          // Fallback check for service role / staff association
+          const allMerchants = await base44.entities.Merchant.list();
+          if (allMerchants && allMerchants.length > 0) {
+            setMerchant(allMerchants[0]);
+            fetchDevices(allMerchants[0].id);
+          }
+        }
       }
-      if (userData.pos_settings) {
-        setSettings(userData.pos_settings);
-      }
-    } catch (error) {
-      console.error('Error loading devices:', error);
+    } catch (err) {
+      console.error('Error loading devices page data:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const saveDevices = async (updatedDevices) => {
+  const fetchDevices = async (merchantId) => {
+    if (!merchantId) return;
     try {
-      const updatedSettings = {
-        ...settings,
-        hardware_devices: updatedDevices
-      };
+      const deviceList = await base44.entities.Device.filter({ merchant_id: merchantId });
+      setDevices(deviceList || []);
+    } catch (err) {
+      console.error('Failed to fetch devices:', err);
+    }
+  };
 
-      await base44.auth.updateMe({
-        pos_settings: updatedSettings
+  const handleAddDevice = async (e) => {
+    e.preventDefault();
+    if (!merchant?.id) {
+      alert('Cannot add device: No active merchant context found.');
+      return;
+    }
+
+    try {
+      const newDevice = await base44.entities.Device.create({
+        merchant_id: merchant.id,
+        name: deviceName,
+        category: deviceType,
+        device_type: subType,
+        ip_address: ipAddress || null,
+        serial_number: serialNumber || null,
+        status: 'online',
+        created_at: new Date().toISOString()
       });
 
-      setDevices(updatedDevices);
-      setSettings(updatedSettings);
-    } catch (error) {
-      console.error('Error saving devices:', error);
-      alert('Failed to save device configuration');
+      setDevices([...devices, newDevice]);
+      setIsAddDialogOpen(false);
+      resetForm();
+    } catch (err) {
+      console.error('Error adding device:', err);
+      alert('Failed to register device.');
     }
   };
 
-  const handleAddDevice = async () => {
-    if (!newDevice.name.trim() || !newDevice.type) {
-      alert('Please fill in all required fields');
-      return;
-    }
-
-    const device = {
-      id: `${selectedCategory}_${Date.now()}`,
-      name: newDevice.name,
-      type: newDevice.type,
-      connection_type: newDevice.connection_type,
-      ip_address: newDevice.ip_address || '',
-      port: newDevice.port || '',
-      is_connected: false,
-      last_tested: null
-    };
-
-    const updatedDevices = {
-      ...devices,
-      [selectedCategory]: [...(devices[selectedCategory] || []), device]
-    };
-
-    await saveDevices(updatedDevices);
-    setShowAddDialog(false);
-    setNewDevice({
-      name: '',
-      type: '',
-      connection_type: 'usb',
-      ip_address: '',
-      port: '',
-      is_connected: false
-    });
-  };
-
-  const handleRemoveDevice = async (category, deviceId) => {
+  const handleDeleteDevice = async (deviceId) => {
     if (!confirm('Are you sure you want to remove this device?')) return;
-
-    const updatedDevices = {
-      ...devices,
-      [category]: devices[category].filter(d => d.id !== deviceId)
-    };
-
-    await saveDevices(updatedDevices);
+    try {
+      await base44.entities.Device.delete(deviceId);
+      setDevices(devices.filter(d => d.id !== deviceId));
+    } catch (err) {
+      console.error('Failed to delete device:', err);
+    }
   };
 
-  const handleUpdateDevice = async (category, deviceId, updates) => {
-    const updatedDevices = {
-      ...devices,
-      [category]: devices[category].map(d =>
-        d.id === deviceId ? { ...d, ...updates } : d
-      )
-    };
-
-    await saveDevices(updatedDevices);
+  const resetForm = () => {
+    setDeviceName('');
+    setDeviceType('card_readers');
+    setSubType('stripe_reader');
+    setIpAddress('');
+    setSerialNumber('');
   };
 
-  const handleTestConnection = async (category, device) => {
-    setTestingDevice(device.id);
+  // Safe Workstation Link Generator
+  const handleGenerateWorkstationLink = (device) => {
+    // Determine standard active Merchant ID, fallback to custom merchant fields if primary ID is absent
+    const resolvedMerchantId = merchant?.id || merchant?.merchant_id || merchant?.stripe_account_id;
 
-    // Simulate testing
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    // Check if device has proper configuration
-    const needsNetwork = ['ethernet', 'wifi'].includes(device.connection_type);
-    const isConfigured = !needsNetwork || (device.ip_address && device.port);
-
-    if (!isConfigured) {
-      alert('Please configure IP address and port for network devices');
-      setTestingDevice(null);
+    if (!resolvedMerchantId) {
+      alert('Error: Merchant ID is missing or incomplete. Unable to generate link.');
       return;
     }
 
-    // Update device as connected
-    await handleUpdateDevice(category, device.id, {
-      is_connected: true,
-      last_tested: new Date().toISOString()
-    });
-
-    setTestingDevice(null);
+    setSelectedDevice(device);
+    
+    // Construct URL with explicit parameter fallbacks to ensure workstation parsers locate it
+    const baseUrl = window.location.origin;
+    const link = `${baseUrl}/Workstation?merchant_id=${encodeURIComponent(resolvedMerchantId)}&device_id=${encodeURIComponent(device.id)}&merchantId=${encodeURIComponent(resolvedMerchantId)}`;
+    
+    setGeneratedLink(link);
+    setIsLinkDialogOpen(true);
   };
 
-  const handleDisconnect = async (category, deviceId) => {
-    await handleUpdateDevice(category, deviceId, {
-      is_connected: false
-    });
-  };
-
-  const DeviceCard = ({ device, category }) => {
-    const deviceConfig = DEVICE_TYPES[category];
-    const Icon = deviceConfig.icon;
-
-    return (
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Icon className={`w-5 h-5 ${deviceConfig.color}`} />
-              <Input
-                value={device.name}
-                onChange={(e) => handleUpdateDevice(category, device.id, { name: e.target.value })}
-                className="font-semibold border-none p-0 h-auto focus-visible:ring-0"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              {device.is_connected ? (
-                <Badge className="bg-green-100 text-green-800">
-                  <CheckCircle className="w-3 h-3 mr-1" />
-                  Connected
-                </Badge>
-              ) : (
-                <Badge variant="secondary">
-                  <XCircle className="w-3 h-3 mr-1" />
-                  No Device Connected
-                </Badge>
-              )}
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => handleRemoveDevice(category, device.id)}
-              >
-                <Trash2 className="w-4 h-4 text-red-500" />
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label>Device Type</Label>
-              <Select
-                value={device.type}
-                onValueChange={(v) => handleUpdateDevice(category, device.id, { type: v })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {(deviceConfig.types || []).map((type) => ( // Fix: Added || []
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label>Connection Type</Label>
-              <Select
-                value={device.connection_type}
-                onValueChange={(v) => handleUpdateDevice(category, device.id, { connection_type: v })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {CONNECTION_TYPES.map((conn) => (
-                    <SelectItem key={conn.value} value={conn.value}>
-                      {conn.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {['ethernet', 'wifi'].includes(device.connection_type) && (
-              <>
-                <div>
-                  <Label>IP Address</Label>
-                  <Input
-                    placeholder="192.168.1.100"
-                    value={device.ip_address || ''}
-                    onChange={(e) => handleUpdateDevice(category, device.id, { ip_address: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Label>Port</Label>
-                  <Input
-                    type="number"
-                    placeholder="9100"
-                    value={device.port || ''}
-                    onChange={(e) => handleUpdateDevice(category, device.id, { port: e.target.value })}
-                  />
-                </div>
-              </>
-            )}
-          </div>
-
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => handleTestConnection(category, device)}
-              disabled={testingDevice === device.id}
-              className="flex-1"
-            >
-              {testingDevice === device.id ? (
-                <>
-                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                  Testing...
-                </>
-              ) : (
-                'Test Connection'
-              )}
-            </Button>
-            {device.is_connected && (
-              <Button
-                variant="outline"
-                onClick={() => handleDisconnect(category, device.id)}
-              >
-                Disconnect
-              </Button>
-            )}
-          </div>
-
-          {device.last_tested && (
-            <p className="text-xs text-muted-foreground">
-              Last tested: {new Date(device.last_tested).toLocaleString()}
-            </p>
-          )}
-        </CardContent>
-      </Card>
-    );
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(generatedLink);
+    alert('Workstation link copied to clipboard!');
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <RefreshCw className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <PermissionGate permission="configure_devices">
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-2">
-              <div>
-                <h1 className="text-3xl font-bold flex items-center gap-2">
-                  <Wifi className="w-8 h-8 text-cyan-600" />
-                  Device Management
-                </h1>
-                <p className="text-gray-500 mt-1">Configure and manage your POS hardware</p>
-              </div>
-              <Button onClick={() => setShowAddDialog(true)}>
-                <Plus className="w-4 h-4 mr-2" />
-                Add Device
-              </Button>
-            </div>
+    <PermissionGate permission="manage_devices">
+      <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Hardware & Workstations</h1>
+            <p className="text-sm text-muted-foreground">
+              Manage payment terminals, printers, and workstation links for your store.
+            </p>
           </div>
-
-          {/* Device Status Overview */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            {Object.entries(DEVICE_TYPES).map(([key, config]) => {
-              const Icon = config.icon;
-              const deviceList = devices[key] || [];
-              const connectedCount = deviceList.filter(d => d.is_connected).length;
-
-              return (
-                <Card key={key}>
-                  <CardContent className="pt-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-gray-500">{config.title}</p>
-                        <p className="text-2xl font-bold">{deviceList.length}</p>
-                        <p className="text-xs text-green-600">{connectedCount} connected</p>
-                      </div>
-                      <Icon className={`w-8 h-8 ${config.color}`} />
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-
-          {/* Devices by Category */}
-          <Tabs defaultValue="card_readers" className="space-y-6">
-            <TabsList className="grid grid-cols-4 w-full">
-              {Object.entries(DEVICE_TYPES).map(([key, config]) => {
-                const Icon = config.icon;
-                return (
-                  <TabsTrigger key={key} value={key} className="flex items-center gap-2">
-                    <Icon className="w-4 h-4" />
-                    <span className="hidden sm:inline">{config.title}</span>
-                  </TabsTrigger>
-                );
-              })}
-            </TabsList>
-
-            {Object.entries(DEVICE_TYPES).map(([key, config]) => (
-              <TabsContent key={key} value={key}>
-                <div className="space-y-4">
-                  {devices[key]?.length === 0 ? (
-                    <Card>
-                      <CardContent className="p-12 text-center text-gray-500">
-                        <config.icon className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                        <p className="font-medium">No {config.title} configured</p>
-                        <p className="text-sm mt-2">Click "Add Device" to get started</p>
-                      </CardContent>
-                    </Card>
-                  ) : (
-                    <div className="grid grid-cols-1 gap-4">
-                      {(devices[key] || []).map((device) => ( // Fix: Added || []
-                        <DeviceCard key={device.id} device={device} category={key} />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
-            ))}
-          </Tabs>
-
-          {/* Setup Instructions */}
-          <Card className="mt-8">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <AlertCircle className="w-5 h-5 text-blue-600" />
-                Device Setup Instructions
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="prose max-w-none">
-              <h3>Card Readers</h3>
-              <ul>
-                <li><strong>USB:</strong> Plug in the device and select "Test Connection"</li>
-                <li><strong>Network:</strong> Enter the IP address and port (usually 8080 or 9100)</li>
-                <li><strong>Bluetooth:</strong> Pair with your computer first, then connect here</li>
-              </ul>
-
-              <h3>Printers</h3>
-              <ul>
-                <li><strong>Receipt Printers:</strong> Use for customer receipts (default port: 9100)</li>
-                <li><strong>Kitchen Printers:</strong> Automatically print orders to kitchen</li>
-                <li><strong>Bar Printers:</strong> Print drink orders to bar staff</li>
-              </ul>
-
-              <h3>Barcode Scanners</h3>
-              <ul>
-                <li><strong>USB:</strong> Works automatically once connected</li>
-                <li><strong>Camera:</strong> Uses your device's camera to scan barcodes</li>
-                <li><strong>Bluetooth:</strong> Wireless scanning for mobility</li>
-              </ul>
-
-              <h3>Customer Displays</h3>
-              <ul>
-                <li><strong>Wired:</strong> HDMI/VGA connection to show order totals</li>
-                <li><strong>Wireless:</strong> WiFi-enabled display for flexible placement</li>
-              </ul>
-
-              <p className="text-sm text-gray-500 mt-4">
-                <strong>Need help?</strong> Contact support if you're having trouble connecting devices.
-              </p>
-            </CardContent>
-          </Card>
+          <Button onClick={() => setIsAddDialogOpen(true)} className="w-full sm:w-auto">
+            <Plus className="w-4 h-4 mr-2" /> Add Hardware Device
+          </Button>
         </div>
+
+        {/* Device Categories Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {Object.entries(DEVICE_TYPES).map(([key, config]) => {
+            const Icon = config.icon;
+            const categoryCount = devices.filter(d => d.category === key).length;
+
+            return (
+              <Card key={key}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">{config.title}</CardTitle>
+                  <Icon className={`w-5 h-5 ${config.color}`} />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{categoryCount}</div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Active connected units
+                  </p>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+
+        {/* Device Management Tabs */}
+        <Tabs defaultValue="all" className="w-full">
+          <TabsList className="grid w-full grid-cols-4 max-w-md">
+            <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="card_readers">Readers</TabsTrigger>
+            <TabsTrigger value="printers">Printers</TabsTrigger>
+            <TabsTrigger value="workstations">Workstations</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="all" className="mt-4">
+            <DeviceTable 
+              devices={devices} 
+              onDelete={handleDeleteDevice} 
+              onGenerateLink={handleGenerateWorkstationLink} 
+            />
+          </TabsContent>
+          <TabsContent value="card_readers" className="mt-4">
+            <DeviceTable 
+              devices={devices.filter(d => d.category === 'card_readers')} 
+              onDelete={handleDeleteDevice} 
+              onGenerateLink={handleGenerateWorkstationLink} 
+            />
+          </TabsContent>
+          <TabsContent value="printers" className="mt-4">
+            <DeviceTable 
+              devices={devices.filter(d => d.category === 'printers')} 
+              onDelete={handleDeleteDevice} 
+              onGenerateLink={handleGenerateWorkstationLink} 
+            />
+          </TabsContent>
+          <TabsContent value="workstations" className="mt-4">
+            <DeviceTable 
+              devices={devices.filter(d => d.category === 'workstations')} 
+              onDelete={handleDeleteDevice} 
+              onGenerateLink={handleGenerateWorkstationLink} 
+            />
+          </TabsContent>
+        </Tabs>
+
+        {/* Add Device Dialog */}
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Register New Device</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleAddDevice} className="space-y-4 py-2">
+              <div className="space-y-2">
+                <Label htmlFor="name">Device Name</Label>
+                <Input
+                  id="name"
+                  placeholder="e.g. Front Counter Terminal"
+                  value={deviceName}
+                  onChange={(e) => setDeviceName(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="category">Category</Label>
+                <Select value={deviceType} onValueChange={setDeviceType}>
+                  <SelectTrigger id="category">
+                    <SelectValue placeholder="Select Category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="card_readers">Card Reader</SelectItem>
+                    <SelectItem value="printers">Receipt Printer</SelectItem>
+                    <SelectItem value="workstations">Workstation / Terminal</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="type">Device Model</Label>
+                <Select value={subType} onValueChange={setSubType}>
+                  <SelectTrigger id="type">
+                    <SelectValue placeholder="Select Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {DEVICE_TYPES[deviceType]?.types.map((t) => (
+                      <SelectItem key={t.value} value={t.value}>
+                        {t.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="ip">IP Address (Optional)</Label>
+                <Input
+                  id="ip"
+                  placeholder="192.168.1.100"
+                  value={ipAddress}
+                  onChange={(e) => setIpAddress(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="serial">Serial Number / Hardware ID (Optional)</Label>
+                <Input
+                  id="serial"
+                  placeholder="SN-987654321"
+                  value={serialNumber}
+                  onChange={(e) => setSerialNumber(e.target.value)}
+                />
+              </div>
+
+              <DialogFooter className="pt-4">
+                <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit">Save Device</Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Generated Workstation Link Dialog */}
+        <Dialog open={isLinkDialogOpen} onOpenChange={setIsLinkDialogOpen}>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>Workstation Access Link</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-2">
+              <p className="text-sm text-muted-foreground">
+                Use this formatted launch link to open the workstation interface for{' '}
+                <strong className="text-foreground">{selectedDevice?.name}</strong>.
+              </p>
+
+              <div className="p-3 bg-muted rounded-md text-xs font-mono break-all border">
+                {generatedLink}
+              </div>
+
+              <div className="flex items-center gap-2 text-xs text-amber-600 bg-amber-50 dark:bg-amber-950/30 p-2.5 rounded">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <span>
+                  This link embeds your validated Merchant ID. Ensure device network authorization before launching.
+                </span>
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsLinkDialogOpen(false)}>
+                Close
+              </Button>
+              <Button onClick={copyToClipboard}>Copy Link</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
-
-      {/* Add Device Dialog */}
-      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add New Device</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div>
-              <Label>Device Category</Label>
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(DEVICE_TYPES).map(([key, config]) => (
-                    <SelectItem key={key} value={key}>
-                      {config.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label>Device Name *</Label>
-              <Input
-                placeholder="e.g., Front Counter Card Reader"
-                value={newDevice.name}
-                onChange={(e) => setNewDevice({ ...newDevice, name: e.target.value })}
-              />
-            </div>
-
-            <div>
-              <Label>Device Type *</Label>
-              <Select
-                value={newDevice.type}
-                onValueChange={(v) => setNewDevice({ ...newDevice, type: v })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {(DEVICE_TYPES[selectedCategory]?.types || []).map((type) => ( // Fix: Added || []
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label>Connection Type</Label>
-              <Select
-                value={newDevice.connection_type}
-                onValueChange={(v) => setNewDevice({ ...newDevice, connection_type: v })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {CONNECTION_TYPES.map((conn) => (
-                    <SelectItem key={conn.value} value={conn.value}>
-                      {conn.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {['ethernet', 'wifi'].includes(newDevice.connection_type) && (
-              <>
-                <div>
-                  <Label>IP Address</Label>
-                  <Input
-                    placeholder="192.168.1.100"
-                    value={newDevice.ip_address}
-                    onChange={(e) => setNewDevice({ ...newDevice, ip_address: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Label>Port</Label>
-                  <Input
-                    type="number"
-                    placeholder="9100"
-                    value={newDevice.port}
-                    onChange={(e) => setNewDevice({ ...newDevice, port: e.target.value })}
-                  />
-                </div>
-              </>
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAddDialog(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleAddDevice}>
-              Add Device
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </PermissionGate>
+  );
+}
+
+// Device Table Component
+function DeviceTable({ devices, onDelete, onGenerateLink }) {
+  if (devices.length === 0) {
+    return (
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center p-8 text-center text-muted-foreground">
+          <QrCode className="w-12 h-12 mb-3 stroke-[1.5]" />
+          <p className="font-medium text-base">No devices configured</p>
+          <p className="text-xs">Add hardware or workstation terminals to get started.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardContent className="p-0 overflow-x-auto">
+        <table className="w-full text-sm text-left">
+          <thead className="bg-muted/50 text-muted-foreground text-xs uppercase border-b">
+            <tr>
+              <th className="px-4 py-3">Device Name</th>
+              <th className="px-4 py-3">Category</th>
+              <th className="px-4 py-3">Model/Type</th>
+              <th className="px-4 py-3">IP / Serial</th>
+              <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y">
+            {devices.map((device) => (
+              <tr key={device.id} className="hover:bg-muted/30">
+                <td className="px-4 py-3 font-medium">{device.name}</td>
+                <td className="px-4 py-3 capitalize">{device.category?.replace('_', ' ')}</td>
+                <td className="px-4 py-3 uppercase text-xs">{device.device_type}</td>
+                <td className="px-4 py-3 text-xs font-mono">
+                  {device.ip_address || device.serial_number || 'N/A'}
+                </td>
+                <td className="px-4 py-3">
+                  <Badge variant={device.status === 'online' ? 'default' : 'secondary'}>
+                    {device.status === 'online' ? (
+                      <CheckCircle className="w-3 h-3 mr-1 text-emerald-500 inline" />
+                    ) : (
+                      <XCircle className="w-3 h-3 mr-1 text-slate-400 inline" />
+                    )}
+                    {device.status || 'Offline'}
+                  </Badge>
+                </td>
+                <td className="px-4 py-3 text-right space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onGenerateLink(device)}
+                  >
+                    Link
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-destructive hover:text-destructive"
+                    onClick={() => onDelete(device.id)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </CardContent>
+    </Card>
   );
 }
