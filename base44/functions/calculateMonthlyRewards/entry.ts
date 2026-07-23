@@ -1,7 +1,9 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 /**
  * Calculate monthly $DUC rewards based on CC processing volume.
+ * (Hardened: anonymous callers may only run the bulk path; targeted
+ * reward minting requires an admin session or the internal secret.)
  * - Per-merchant path: pass { merchant_id } (admin manual trigger).
  * - Bulk path (automation): omit merchant_id to calculate for every active merchant.
  * Idempotent: skips merchants that already have a processing_volume reward for the period.
@@ -18,7 +20,21 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json().catch(() => ({})) || {};
-    const { merchant_id, processing_volume, override_percentage } = body;
+    const { merchant_id, processing_volume, override_percentage, _internal_secret } = body;
+
+    // SECURITY: anonymous (automation) callers may only run the default bulk
+    // reward calculation. Targeting a specific merchant or injecting a custom
+    // processing_volume / override_percentage requires either a platform
+    // admin session or the server internal secret (JWT_SECRET), preventing
+    // unauthenticated reward minting / token inflation.
+    const isTargeted = !!(merchant_id || processing_volume || override_percentage);
+    if (!user && isTargeted) {
+      const internalSecret = Deno.env.get('JWT_SECRET');
+      const isAutomation = !!(internalSecret && _internal_secret && _internal_secret === internalSecret);
+      if (!isAutomation) {
+        return Response.json({ error: 'Unauthorized - Platform admin or internal automation secret required for targeted reward minting' }, { status: 401 });
+      }
+    }
 
     // Billing period = previous calendar month.
     const periodStart = new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1);

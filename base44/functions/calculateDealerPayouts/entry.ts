@@ -16,7 +16,22 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized - Platform admin only' }, { status: 403 });
     }
 
-    const { dealer_id, force_period_start, force_period_end } = await req.json() || {};
+    const body = await req.json() || {};
+    const { dealer_id, force_period_start, force_period_end, _internal_secret } = body;
+
+    // SECURITY: anonymous (automation) callers may only run the default bulk
+    // payout calculation. Targeting a specific dealer or forcing an arbitrary
+    // billing period requires either a platform admin session or the server
+    // internal secret (JWT_SECRET), preventing unauthenticated payout
+    // injection / premature duplicate payouts.
+    const isTargeted = !!(dealer_id || force_period_start || force_period_end);
+    if (!user && isTargeted) {
+      const internalSecret = Deno.env.get('JWT_SECRET');
+      const isAutomation = !!(internalSecret && _internal_secret && _internal_secret === internalSecret);
+      if (!isAutomation) {
+        return Response.json({ error: 'Unauthorized - Platform admin or internal automation secret required for targeted payouts' }, { status: 401 });
+      }
+    }
 
     // Get all active dealers (or specific dealer if provided)
     const dealerFilter = dealer_id ? { legacy_dealer_id: dealer_id, status: 'active' } : { status: 'active' };
