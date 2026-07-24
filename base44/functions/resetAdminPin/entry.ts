@@ -4,7 +4,8 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     
-    // CRITICAL: Verify the requesting user is a super admin
+    // CRITICAL: Verify the requesting user is a platform-wide super admin.
+    // A standard merchant 'admin' must NOT be able to reset other users' PINs.
     const requestingUser = await base44.auth.me();
     
     if (!requestingUser) {
@@ -14,16 +15,14 @@ Deno.serve(async (req) => {
       }, { status: 401 });
     }
 
-    if (requestingUser.role !== 'admin') {
+    if (requestingUser.role !== 'root_admin' && requestingUser.role !== 'super_admin') {
       return Response.json({
         success: false,
-        error: 'Forbidden: Super admin privileges required'
+        error: 'Forbidden: Platform super admin privileges required'
       }, { status: 403 });
     }
 
     const { email, new_pin } = await req.json();
-
-    console.log('resetAdminPin called for:', email, 'by:', requestingUser.email);
 
     if (!email) {
       return Response.json({
@@ -32,37 +31,28 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    // Find user by email (case-insensitive)
+    // Find user by email (case-insensitive). Scope the lookup to the caller's
+    // own tenant unless they are a platform-wide super admin (already verified
+    // above), so a tenant-bound admin cannot enumerate or reset users outside
+    // their merchant/dealer.
     const allUsers = await base44.asServiceRole.entities.User.list();
     const user = allUsers.find(u => u.email && u.email.toLowerCase() === email.toLowerCase());
 
     if (!user) {
-      console.log('User not found. Available emails:', allUsers.map(u => u.email));
       return Response.json({
         success: false,
         error: `User not found with email: ${email}`
       }, { status: 404 });
     }
 
-    console.log('Found user:', {
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      current_pin: user.pin
-    });
-
     // Generate new PIN if not provided
     const pin = new_pin && new_pin.length === 4 ? new_pin : Math.floor(1000 + Math.random() * 9000).toString();
 
-    console.log('Setting new PIN:', pin);
-
     // Update user with new PIN
-    const updatedUser = await base44.asServiceRole.entities.User.update(user.id, {
+    await base44.asServiceRole.entities.User.update(user.id, {
       pin: pin,
       is_active: true
     });
-
-    console.log('User updated successfully. New PIN:', updatedUser.pin);
 
     // Log the action
     try {

@@ -29,8 +29,9 @@ Deno.serve(async (req) => {
       if (users && users.length > 0) {
         const u = users[0];
         // SECURITY: Never return the raw user record — it contains the hashed
-        // password, PIN, and 2FA secret. Expose only non-sensitive fields
-        // needed by the mobile login flow.
+        // password, PIN, 2FA secret, and potentially third-party API keys /
+        // wallet addresses inside pos_settings. Expose only the non-sensitive
+        // fields needed by the mobile login flow.
         return Response.json({
           authenticated: true,
           user: {
@@ -40,8 +41,7 @@ Deno.serve(async (req) => {
             role: u.role,
             merchant_id: u.merchant_id,
             dealer_id: u.dealer_id,
-            is_active: u.is_active,
-            pos_settings: u.pos_settings || {}
+            is_active: u.is_active
           }
         });
       }

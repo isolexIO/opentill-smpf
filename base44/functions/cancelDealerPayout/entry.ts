@@ -22,11 +22,14 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Payout not found' }, { status: 404 });
     }
 
-    // Cross-tenant guard: a dealer-scoped admin may only cancel payouts for
-    // their own dealer. Platform-wide admins (root_admin/super_admin) may
-    // cancel any payout.
-    if (user.role !== 'root_admin' && user.role !== 'super_admin' && user.dealer_id && payout.dealer_id !== user.dealer_id) {
-      return Response.json({ error: 'Forbidden: payout belongs to a different dealer' }, { status: 403 });
+    // Cross-tenant guard: only platform-wide admins (root_admin/super_admin)
+    // may cancel any payout. A dealer-scoped admin MUST have a dealer_id bound
+    // to their account AND it must match the payout's dealer_id — otherwise
+    // deny (this prevents an unbound 'admin' from operating across tenants).
+    if (user.role !== 'root_admin' && user.role !== 'super_admin') {
+      if (!user.dealer_id || payout.dealer_id !== user.dealer_id) {
+        return Response.json({ error: 'Forbidden: payout belongs to a different dealer' }, { status: 403 });
+      }
     }
 
     // Check status
