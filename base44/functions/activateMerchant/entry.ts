@@ -19,6 +19,18 @@ Deno.serve(async (req) => {
     const now = new Date().toISOString();
     const trialEndDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
+    // Sanitize merchant-supplied fields before inserting into email bodies to
+    // prevent content spoofing / header injection. Strip control characters
+    // (incl. CR/LF used for header injection) and cap length.
+    const sanitizeForEmail = (value, maxLen = 80) => {
+      if (!value) return '';
+      return String(value)
+        .replace(/[\r\n\t\u0000-\u001F\u007F]/g, ' ')
+        .replace(/[<>]/g, '')
+        .trim()
+        .slice(0, maxLen);
+    };
+
     if (action === 'activate') {
       // Activate merchant with trial
       const merchants = await base44.asServiceRole.entities.Merchant.filter({ id: merchant_id });
@@ -50,7 +62,7 @@ Deno.serve(async (req) => {
           from: Deno.env.get('SMTP_USER'),
           to: merchantData.owner_email,
           subject: 'Your openTILL Account Has Been Activated',
-          text: `Dear ${merchantData.owner_name || 'Merchant'},\n\nCongratulations! Your openTILL account has been activated.\n\nBusiness Name: ${merchantData.business_name}\nTrial Period: 30 days\nTrial Expires: ${new Date(trialEndDate).toLocaleDateString()}\n\nYou can now log in and start using openTILL.\n\nBest regards,\nThe openTILL Team`,
+          text: `Dear ${sanitizeForEmail(merchantData.owner_name) || 'Merchant'},\n\nCongratulations! Your openTILL account has been activated.\n\nBusiness Name: ${sanitizeForEmail(merchantData.business_name)}\nTrial Period: 30 days\nTrial Expires: ${new Date(trialEndDate).toLocaleDateString()}\n\nYou can now log in and start using openTILL.\n\nBest regards,\nThe openTILL Team`,
         });
       } catch (emailError) {
         console.error('Failed to send activation email:', emailError);
@@ -85,7 +97,7 @@ Deno.serve(async (req) => {
             from: Deno.env.get('SMTP_USER'),
             to: merchantData.owner_email,
             subject: 'Your openTILL Application Status',
-            text: `Dear ${merchantData.owner_name || 'Applicant'},\n\nThank you for your interest in openTILL. Unfortunately, your application for ${merchantData.business_name} has been rejected by our team.\n\nIf you have any questions, please contact our support team.\n\nBest regards,\nThe openTILL Team`,
+            text: `Dear ${sanitizeForEmail(merchantData.owner_name) || 'Applicant'},\n\nThank you for your interest in openTILL. Unfortunately, your application for ${sanitizeForEmail(merchantData.business_name)} has been rejected by our team.\n\nIf you have any questions, please contact our support team.\n\nBest regards,\nThe openTILL Team`,
           });
         } catch (emailError) {
           console.error('Failed to send rejection email:', emailError);

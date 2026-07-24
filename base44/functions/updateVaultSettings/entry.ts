@@ -12,14 +12,35 @@ Deno.serve(async (req) => {
 
     const { settings_id, settings_data, action } = await req.json();
 
+    const isPlatformAdmin = user.role === 'root_admin' || user.role === 'super_admin';
+    const adminMerchantId = user.data?.merchant_id;
+
     let result;
     
     if (action === 'create') {
+      // Only platform-wide admins may create global vault settings.
+      if (!isPlatformAdmin) {
+        return Response.json({ error: 'Forbidden: only platform admins may create global vault settings' }, { status: 403 });
+      }
       result = await base44.asServiceRole.entities.cLINKVaultSettings.create({
         ...settings_data,
         merchant_id: null
       });
     } else if (action === 'update') {
+      // Verify the caller owns the vault settings record they are trying to modify.
+      const existing = await base44.asServiceRole.entities.cLINKVaultSettings.get(settings_id);
+      if (!existing) {
+        return Response.json({ error: 'Vault settings not found' }, { status: 404 });
+      }
+      const isGlobal = !existing.merchant_id;
+      if (isGlobal && !isPlatformAdmin) {
+        return Response.json({ error: 'Forbidden: only platform admins may modify global vault settings' }, { status: 403 });
+      }
+      if (!isGlobal && !isPlatformAdmin) {
+        if (!adminMerchantId || existing.merchant_id !== adminMerchantId) {
+          return Response.json({ error: 'Forbidden: you can only modify vault settings for your own merchant' }, { status: 403 });
+        }
+      }
       result = await base44.asServiceRole.entities.cLINKVaultSettings.update(settings_id, settings_data);
     } else if (action === 'get') {
       const settings = await base44.asServiceRole.entities.cLINKVaultSettings.list();
