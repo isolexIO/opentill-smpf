@@ -94,9 +94,12 @@ Deno.serve(async (req) => {
             console.log('Defaulting to USDC');
         }
 
-        // Create BigNumber with proper precision
-        const amountBN = new BigNumber(amount);
-        
+        // Round to the token's decimals to eliminate floating-point noise
+        // (e.g. 11.090000000000002 from surcharge math). Amounts with more
+        // precision than the SPL token supports are rejected/misparsed by
+        // many Solana wallets, leaving the amount blank when the QR is scanned.
+        const amountBN = new BigNumber(amount).decimalPlaces(decimals, BigNumber.ROUND_HALF_UP);
+
         console.log('Amount details:', {
             original: amount,
             bigNumber: amountBN.toString(),
