@@ -12,7 +12,6 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const {
       builder_id,
-      builder_email,
       name,
       short_description,
       description,
@@ -33,6 +32,32 @@ Deno.serve(async (req) => {
         { status: 400 }
       );
     }
+
+    // SECURITY: Verify the caller actually owns this Builder profile.
+    // Resolve the builder from the authenticated user's email rather than
+    // trusting the client-supplied builder_id/builder_email, which would
+    // allow an attacker to submit chips under another developer's profile.
+    const builders = await base44.asServiceRole.entities.Builder.filter({
+      user_email: user.email,
+    });
+
+    if (!builders || builders.length === 0) {
+      return Response.json(
+        { success: false, error: 'No verified builder profile found for your account' },
+        { status: 403 }
+      );
+    }
+
+    const verifiedBuilder = builders.find(b => b.id === builder_id);
+    if (!verifiedBuilder) {
+      return Response.json(
+        { success: false, error: 'Forbidden: you can only submit chips under your own builder profile' },
+        { status: 403 }
+      );
+    }
+
+    // Use the verified builder's email, ignoring any client-supplied value.
+    const builder_email = verifiedBuilder.user_email;
 
     // Create chip submission
     const submission = await base44.asServiceRole.entities.ChipSubmission.create({
