@@ -176,7 +176,11 @@
     "total"
   ],
   "rls": {
-    "create": null,
+    "create": {
+      "user_condition": {
+        "role": "unauthenticated"
+      }
+    },
     "read": {
       "$or": [
         {
