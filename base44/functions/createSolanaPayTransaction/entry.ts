@@ -11,6 +11,7 @@ Deno.serve(async (req) => {
             recipient, 
             amount, 
             label, 
+            message, 
             memo, 
             order_id, 
             network, 
@@ -114,7 +115,7 @@ Deno.serve(async (req) => {
             amount: amountBN,
             reference: reference,
             label: label || 'Payment',
-            message: memo || 'Payment'
+            message: message || memo || 'Payment'
         };
 
         // Only add splToken if it's defined (not for native SOL)
@@ -122,7 +123,7 @@ Deno.serve(async (req) => {
             urlParams.splToken = splToken;
         }
 
-        // Add memo only if provided
+        // Add memo only if provided (written on-chain / shown on wallet modal)
         if (memo) {
             urlParams.memo = memo;
         }

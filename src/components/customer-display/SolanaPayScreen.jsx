@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, CheckCircle, AlertCircle, ExternalLink, Copy, Check } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
-export default function SolanaPayScreen({ order, settings, onPaymentComplete }) {
+export default function SolanaPayScreen({ order, settings, merchant, onPaymentComplete }) {
   const [qrCode, setQrCode] = useState(null);
   const [paymentUrl, setPaymentUrl] = useState('');
   const [reference, setReference] = useState('');
@@ -70,12 +70,21 @@ export default function SolanaPayScreen({ order, settings, onPaymentComplete }) 
         setTokenPrice(1.0);
       }
 
-      // Create Solana Pay transaction
+      // Build the wallet modal contents:
+      //  - message: item list (what the customer is paying for)
+      //  - memo: business name & address (shown on the wallet modal / on-chain)
+      const businessName = merchant?.business_name || settings?.business_name || 'openTILL';
+      const businessAddress = merchant?.address || '';
+      const itemList = (order.items || [])
+        .map(item => `${item.quantity}x ${item.product_name || 'Item'}`)
+        .join(', ');
+
       const txData = {
         recipient: settings?.solana_pay?.wallet_address,
         amount: cryptoAmount,
-        label: `${settings?.business_name || 'openTILL'} Payment`,
-        memo: `Order ${order.order_number}`,
+        label: businessName,
+        message: itemList || `Order ${order.order_number}`,
+        memo: businessAddress ? `${businessName} - ${businessAddress}` : businessName,
         order_id: order.id,
         network: network,
         token: token,

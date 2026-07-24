@@ -498,6 +498,7 @@ export default function CustomerDisplayPage() {
         <SolanaPayScreen
           order={currentOrder}
           settings={merchant.settings}
+          merchant={merchant}
           onPaymentComplete={handlePaymentComplete}
         />
       )}
