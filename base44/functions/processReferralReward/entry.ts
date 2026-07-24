@@ -6,13 +6,45 @@ Deno.serve(async (req) => {
     const { event, data } = await req.json();
 
     // Only process when new rewards are created for merchants
-    if (event.type !== 'create' || !data || !data.merchant_id) {
+    if (event.type !== 'create' || !data || !data.id) {
       return Response.json({ success: true, message: 'Skipped - not relevant' });
+    }
+
+    // SECURITY: Verify the triggering reward actually exists in the database
+    // and use its authoritative fields. A direct (non-automation) POST could
+    // otherwise supply a fabricated merchant_id / amount and mint arbitrary
+    // referral rewards (token inflation). We ignore client-supplied values.
+    let sourceRewards;
+    try {
+      sourceRewards = await base44.asServiceRole.entities.cLINKReward.filter({ id: data.id });
+    } catch (e) {
+      // Non-existent / invalid id — ignore spoofed requests gracefully.
+      return Response.json({ success: true, message: 'Source reward not found - ignoring' });
+    }
+    if (!sourceRewards || sourceRewards.length === 0) {
+      return Response.json({ success: true, message: 'Source reward not found - ignoring' });
+    }
+    const sourceReward = sourceRewards[0];
+    const verifiedMerchantId = sourceReward.merchant_id;
+    const verifiedAmount = sourceReward.amount;
+
+    if (!verifiedMerchantId) {
+      return Response.json({ success: true, message: 'Source reward has no merchant - skipping' });
+    }
+
+    // Idempotency / replay protection: never issue more than one referral
+    // bonus per source reward, even if this function is called directly.
+    const alreadyIssued = await base44.asServiceRole.entities.cLINKReward.filter({
+      source_reference: data.id,
+      reward_type: 'referral'
+    });
+    if (alreadyIssued && alreadyIssued.length > 0) {
+      return Response.json({ success: true, message: 'Referral reward already issued for this reward' });
     }
 
     // Check if this merchant was referred by someone
     const referrals = await base44.asServiceRole.entities.MerchantReferral.filter({
-      referred_merchant_id: data.merchant_id,
+      referred_merchant_id: verifiedMerchantId,
       status: 'active'
     });
 
@@ -33,7 +65,7 @@ Deno.serve(async (req) => {
     }
 
     // Calculate referral reward (percentage of the referred merchant's reward)
-    const referralRewardAmount = data.amount * settings.referral_reward_rate;
+    const referralRewardAmount = verifiedAmount * settings.referral_reward_rate;
 
     // Check minimum threshold
     const minReferralReward = settings.min_referral_reward || 0.001;
@@ -49,15 +81,14 @@ Deno.serve(async (req) => {
     await base44.asServiceRole.entities.cLINKReward.create({
       merchant_id: referral.referrer_merchant_id,
       amount: referralRewardAmount,
-      reward_type: 'referral_bonus',
+      reward_type: 'referral',
       status: 'available',
       source_reference: data.id,
-      description: `$DUC referral bonus from ${referral.referred_name}'s rewards`,
       metadata: {
         referred_merchant_id: referral.referred_merchant_id,
         referred_merchant_name: referral.referred_name,
         original_reward_id: data.id,
-        original_reward_amount: data.amount,
+        original_reward_amount: verifiedAmount,
         referral_id: referral.id
       }
     });

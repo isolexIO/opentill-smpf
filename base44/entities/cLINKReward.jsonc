@@ -49,6 +49,15 @@
       "default": "pending",
       "description": "Reward status"
     },
+    "source_reference": {
+      "type": "string",
+      "description": "Id of the source reward that generated this (e.g. referral bonus) \u2014 used for idempotency / replay protection"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Additional context data (e.g. referral linkage)"
+    },
     "claimed_at": {
       "type": "string",
       "format": "date-time",

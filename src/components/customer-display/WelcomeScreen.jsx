@@ -156,9 +156,11 @@ export default function WelcomeScreen({ merchant }) {
                   />
                 )}
                 {currentAd.type === 'html' && (
-                  <div
-                    className="p-8"
-                    dangerouslySetInnerHTML={{ __html: currentAd.content_url }}
+                  <iframe
+                    srcDoc={currentAd.content_url}
+                    sandbox=""
+                    title={currentAd.title || 'Advertisement'}
+                    className="w-full h-[500px] border-0 bg-white"
                   />
                 )}
               </motion.div>
