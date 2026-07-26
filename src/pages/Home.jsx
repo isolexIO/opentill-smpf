@@ -1049,7 +1049,7 @@ export default function HomePage() {
                 📞 +1 (419) 729-3889
               </p>
               <p className="text-gray-300 text-sm">
-                ✉️ info@isolex.io
+                ✉️ SMPF@openTILL.io
               </p>
             </div>
 
