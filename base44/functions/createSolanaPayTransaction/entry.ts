@@ -148,7 +148,7 @@ Deno.serve(async (req) => {
             success: true,
             paymentUrl: paymentUrl,
             reference: reference.toBase58(),
-            amount: amount,
+            amount: amountBN.toString(),
             token: actualToken,
             decimals: decimals,
             recipient: recipient
