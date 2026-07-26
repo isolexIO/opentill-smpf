@@ -1,5 +1,13 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+// Escape user-controlled text for safe interpolation into HTML email bodies.
+const escapeHtml = (value) => String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
 Deno.serve(async (req) => {
     try {
         const body = await req.json();
@@ -129,8 +137,8 @@ Deno.serve(async (req) => {
                 to: owner_email.toLowerCase().trim(),
                 subject: 'Welcome to openTILL — Application Received',
                 body: `
-                    <h2>Welcome to openTILL, ${owner_name}!</h2>
-                    <p>Your merchant application for <strong>${business_name}</strong> has been received successfully.</p>
+                    <h2>Welcome to openTILL, ${escapeHtml(owner_name)}!</h2>
+                    <p>Your merchant application for <strong>${escapeHtml(business_name)}</strong> has been received successfully.</p>
                     <p>Our team will review your application and activate your account within 24 hours. You will receive a follow-up email once your account is active.</p>
                     <p>Once activated, you can log in at: <a href="https://chainlinkpos.isolex.io">chainlinkpos.isolex.io</a></p>
                     <p>Thank you for choosing openTILL!</p>
