@@ -12,6 +12,7 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import DriverDashboard from './pages/DriverDashboard';
 import Invoices from './pages/Invoices';
 import PayInvoice from './pages/PayInvoice';
+import ResetPassword from './pages/ResetPassword';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -83,6 +84,7 @@ const AuthenticatedApp = () => {
           <PayInvoice />
         </LayoutWrapper>
       } />
+      <Route path="/ResetPassword" element={<ResetPassword />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

@@ -37,28 +37,31 @@ Deno.serve(async (req) => {
 
         const user = users[0];
 
-        // Generate a cryptographically secure temporary password
-        const charset = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
-        const randomBytes = crypto.getRandomValues(new Uint8Array(16));
-        let tempPassword = '';
-        for (let i = 0; i < 16; i++) {
-            tempPassword += charset[randomBytes[i] % charset.length];
-        }
+        // SECURITY: Do NOT send credentials in cleartext. Generate a single-use,
+        // expiring reset token. Its bcrypt hash is stored in temp_password; the
+        // plaintext token is only delivered to the user via a reset link in the
+        // email. completePasswordReset verifies the token and lets the user set
+        // a new password, overwriting temp_password (single-use).
+        const tokenBytes = crypto.getRandomValues(new Uint8Array(32));
+        const token = btoa(String.fromCharCode(...tokenBytes))
+            .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        const exp = Date.now() + 60 * 60 * 1000; // 1 hour
+        const resetValue = `${token}.${exp}`;
+        const resetTokenHash = bcrypt.hashSync(resetValue, 10);
 
-        // Store temp_password as a bcrypt HASH — the plaintext is only sent to the
-        // user via email. emailPasswordLogin verifies with bcrypt.compare and
-        // clears the field after the first successful login.
-        const tempPasswordHash = bcrypt.hashSync(tempPassword, 10);
         try {
             await base44.asServiceRole.entities.User.update(user.id, {
-                temp_password: tempPasswordHash
+                temp_password: resetTokenHash
             });
         } catch (e) {
             console.log('asServiceRole update failed, trying regular update:', e.message);
             await base44.entities.User.update(user.id, {
-                temp_password: tempPasswordHash
+                temp_password: resetTokenHash
             });
         }
+
+        const origin = new URL(req.url).origin;
+        const resetLink = `${origin}/ResetPassword?email=${encodeURIComponent(user.email)}&token=${encodeURIComponent(token)}&exp=${exp}`;
 
         // Send email with temporary password using custom SMTP
         try {
@@ -89,21 +92,13 @@ Deno.serve(async (req) => {
 
             const emailBody = `Hello ${user.full_name},
 
-Your password has been reset successfully.
+We received a request to reset the password for your openTILL account.
 
-⚠️ SECURITY NOTICE:
-This email contains sensitive credentials. Please:
-- Delete this email after saving your credentials securely
-- Change your password immediately after login
-- Do not share these credentials with anyone
+Click the link below to choose a new password. This link expires in 1 hour and can only be used once:
 
-TEMPORARY PASSWORD: ${tempPassword}
+${resetLink}
 
-${user.pin ? `Your PIN: ${user.pin} (Use for quick login)` : 'PIN: Not set'}
-
-Please login and change your password immediately in Account Settings.
-
-If you did not request this password reset, please contact support immediately.
+If you did not request a password reset, you can safely ignore this email — your password has not been changed.
 
 Thank you,
 openTILL SMPF Team`;
