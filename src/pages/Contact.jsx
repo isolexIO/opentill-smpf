@@ -279,8 +279,8 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="text-white font-semibold mb-1">Email</h3>
-                    <p className="text-white/80">info@isolex.io</p>
-                    <p className="text-white/80">support@isolex.io</p>
+                    <p className="text-white/80">SMPF@openTILL.io.io</p>
+                    <p className="text-white/80">support@openTILL.io</p>
                   </div>
                 </div>
 
