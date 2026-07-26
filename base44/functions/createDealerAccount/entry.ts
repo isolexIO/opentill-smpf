@@ -24,6 +24,24 @@ Deno.serve(async (req) => {
 
         const base44 = createClientFromRequest(req);
 
+        // SECURITY: creating a dealer admin account is a privileged operation
+        // that grants dealer_admin access with can_view_all_merchants. It must
+        // not be reachable by unauthenticated callers. Require an authenticated
+        // platform administrator.
+        let currentUser = null;
+        try {
+            currentUser = await base44.auth.me();
+        } catch (e) {
+            currentUser = null;
+        }
+        const ADMIN_ROLES = ['admin', 'root_admin', 'super_admin'];
+        if (!currentUser || !ADMIN_ROLES.includes(currentUser.role)) {
+            return Response.json({
+                success: false,
+                error: 'Forbidden: dealer account creation requires administrator access'
+            }, { status: 403 });
+        }
+
         // Check if dealer slug already exists
         console.log('Checking for existing dealer with slug:', slug);
         const existingDealers = await base44.asServiceRole.entities.Ambassador.filter({
