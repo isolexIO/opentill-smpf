@@ -126,9 +126,25 @@ Deno.serve(async (req) => {
       console.log('Could not log mobile authentication:', logError);
     }
 
+    // SECURITY: Never return the raw User record — it contains the hashed
+    // password, PIN, 2FA secret, and potentially third-party API keys / wallet
+    // addresses inside pos_settings. Expose only the non-sensitive fields the
+    // mobile client needs to establish a session.
+    const sanitizedUser = {
+      id: user.id,
+      email: user.email,
+      full_name: user.full_name,
+      role: user.role,
+      merchant_id: user.merchant_id,
+      dealer_id: user.dealer_id,
+      wallet_address: user.wallet_address,
+      is_wallet_user: user.is_wallet_user,
+      is_active: user.is_active
+    };
+
     return Response.json({
       success: true,
-      user: user
+      user: sanitizedUser
     });
 
   } catch (error) {
