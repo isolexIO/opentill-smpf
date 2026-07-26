@@ -12,16 +12,22 @@ import {
   Camera,
   Monitor,
   Globe,
-  CheckCircle,
   AlertCircle,
   Package,
   MonitorPlay, // New import for Customer Display icon
   Settings, // New import for Settings icon
   LogOut,   // New import for LogOut icon
   Menu,      // New import for Menu icon
-  MoreVertical // New import for MoreVertical icon
+  MoreVertical, // New import for MoreVertical icon
+  Lock,
+  User
 } from "lucide-react";
 import { createPageUrl } from "@/utils";
+
+import { useActiveStaff } from "@/hooks/useActiveStaff";
+import StaffLockScreen from "../components/pos/StaffLockScreen";
+import { OnlineOrdersView, OpenTicketsView } from "../components/pos/POSOrderViews";
+import { logStaffAction } from "@/lib/posAudit";
 
 import {
   DropdownMenu,
@@ -100,6 +106,32 @@ export default function POSPage() {
   const loadingTicketsRef = useRef(false);
 
   const isKitchenDisplayEnabled = settings?.kitchen_display?.enabled !== false;
+
+  // Active staff / cashier operating this terminal. The station session
+  // (merchant login) persists; locking only clears the active cashier and
+  // shows the PIN lock screen for a fast staff switch — no full logout.
+  const isDemo = settings?.merchant_id === 'demo';
+  const { activeStaff, isLocked, lock, setStaff } = useActiveStaff(stationId, settings?.merchant_id);
+
+  // Guards sensitive POS actions behind an active cashier. When the terminal
+  // is locked, switches back to the POS view so the lock screen is visible.
+  const requireStaff = () => {
+    if (isDemo) return true;
+    if (!activeStaff) {
+      lock();
+      setViewMode('pos');
+      return false;
+    }
+    return true;
+  };
+
+  const logAction = (actionType, description, metadata = {}, severity = 'info') => {
+    if (isDemo) return;
+    return logStaffAction({
+      merchantId: settings?.merchant_id, stationId, stationName,
+      staff: activeStaff, actionType, description, metadata, severity,
+    });
+  };
 
   // Handle window resize
   useEffect(() => {
@@ -1257,7 +1289,15 @@ export default function POSPage() {
   };
 
   const removeFromCart = (index) => {
+    if (!requireStaff()) return;
+    const removed = cart[index];
     setCart(cart.filter((_, i) => i !== index));
+    if (removed) logAction('order_modified', `Item voided by ${activeStaff?.full_name || 'staff'}`, { item: removed.name });
+  };
+
+  const handleDiscountChange = (v) => {
+    if (v > 0 && !requireStaff()) return;
+    setDiscountPercent(v);
   };
 
   const checkAgeRestrictedItems = () => {
@@ -1266,6 +1306,7 @@ export default function POSPage() {
   };
 
   const handleCheckout = async () => {
+    if (!requireStaff()) return;
     if (settings?.merchant_id === 'demo') {
       alert('Demo Mode: Checkout is simulated. Order would be processed here.');
       setShowPayment(false);
@@ -1386,6 +1427,7 @@ export default function POSPage() {
   };
 
   const processOrder = async (paymentData) => {
+    if (!requireStaff()) return;
     if (settings?.merchant_id === 'demo') {
       alert('Demo Mode: Order would be processed here');
       setCart([]);
@@ -1482,15 +1524,11 @@ export default function POSPage() {
 
       // Add age verification data if applicable
       if (ageVerificationData) {
-        const pinUserJSON = localStorage.getItem('pinLoggedInUser');
-        let verifiedByUser = { id: 'unknown', full_name: 'Unknown Cashier' };
-        if (pinUserJSON) {
-          try {
-            verifiedByUser = JSON.parse(pinUserJSON);
-          } catch (e) {
-            console.error('Error parsing user from localStorage for age verification:', e);
-          }
+        let verifiedByUser = activeStaff;
+        if (!verifiedByUser) {
+          try { verifiedByUser = JSON.parse(localStorage.getItem('pinLoggedInUser') || 'null'); } catch (e) { /* ignore */ }
         }
+        if (!verifiedByUser) verifiedByUser = { id: 'unknown', full_name: 'Unknown Cashier' };
 
         orderData.age_verification = {
           ...ageVerificationData,
@@ -1560,6 +1598,8 @@ export default function POSPage() {
         successMessage += `\n\nChange due: $${(paymentData.change || 0).toFixed(2)}`;
       }
 
+      logAction('payment_confirmed', `Order ${orderData.order_number} processed by ${activeStaff?.full_name || 'staff'}`, { order_number: orderData.order_number, total: orderData.total, payment_method: orderData.payment_method });
+
       alert(successMessage);
 
       if (viewMode === 'open_tickets') {
@@ -1572,6 +1612,7 @@ export default function POSPage() {
   };
 
   const sendToKitchen = async () => {
+    if (!requireStaff()) return;
     if (settings?.merchant_id === 'demo') {
       alert('Demo Mode: Order would be sent to kitchen here.');
       setCart([]);
@@ -1672,6 +1713,8 @@ export default function POSPage() {
       setSelectedDepartment('all');
 
 
+      logAction('order_modified', `Order sent to kitchen by ${activeStaff?.full_name || 'staff'}`, { table_number: tableNumber });
+
       alert(tableNumber ? `Order sent to kitchen for Table ${tableNumber}` : 'Order sent to kitchen');
 
       await loadOpenTickets();
@@ -1682,6 +1725,7 @@ export default function POSPage() {
   };
 
   const acceptOnlineOrder = async (onlineOrder) => {
+    if (!requireStaff()) return;
     if (settings?.merchant_id === 'demo') {
       alert(`Demo Mode: Online order ${onlineOrder.order_number} accepted (simulated).`);
       await loadPendingOnlineOrders(); // Simulate reload
@@ -1776,6 +1820,7 @@ export default function POSPage() {
   };
 
   const processTicketPayment = (ticket) => {
+    if (!requireStaff()) return;
     if (settings?.merchant_id === 'demo') {
       alert('Demo Mode: Processing ticket payment (simulated).');
       setCart([]);
@@ -1923,10 +1968,9 @@ export default function POSPage() {
   };
 
   const handleClockOut = () => {
-    if (confirm('Are you sure you want to clock out?')) {
-      localStorage.removeItem('pinLoggedInUser');
-      const next = stationId ? `POS?station_id=${encodeURIComponent(stationId)}` : 'POS';
-      window.location.href = `${createPageUrl('PinLogin')}?next=${encodeURIComponent(next)}`;
+    if (confirm('Lock this terminal? The station stays signed in — another staff member can PIN in to continue.')) {
+      lock();
+      setViewMode('pos');
     }
   };
 
@@ -1997,215 +2041,25 @@ export default function POSPage() {
 
   // Simplified viewMode for demo
   if (viewMode === 'online_orders') {
-    if (settings?.merchant_id === 'demo') {
-      return (
-        <div className="bg-gray-50 dark:bg-gray-900 min-h-screen">
-          <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-3 md:p-4 sticky top-0 z-10">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <Globe className="w-6 h-6 text-green-600" />
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Pending Online Orders (Demo)</h1>
-                <Badge variant="outline">0 orders</Badge>
-              </div>
-              <Button onClick={() => setViewMode('pos')} variant="outline">
-                Back to POS
-              </Button>
-            </div>
-          </div>
-          <div className="text-center py-12">
-            <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-            <p className="text-xl text-gray-500">No pending online orders in Demo Mode.</p>
-          </div>
-        </div>
-      );
-    }
     return (
-      <div className="bg-gray-50 dark:bg-gray-900 min-h-screen">
-        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-3 md:p-4 sticky top-0 z-10">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Globe className="w-6 h-6 text-green-600" />
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Pending Online Orders</h1>
-              <Badge variant="outline">{pendingOnlineOrders.length} orders</Badge>
-            </div>
-            <Button onClick={() => setViewMode('pos')} variant="outline">
-              Back to POS
-            </Button>
-          </div>
-        </div>
-
-        <div className="p-4 md:p-6">
-          {pendingOnlineOrders.length === 0 ? (
-            <div className="text-center py-12">
-              <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-              <p className="text-xl text-gray-500">No pending online orders</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {pendingOnlineOrders.map((order) => (
-                <Card key={order.id} className="p-6 hover:shadow-lg transition-shadow">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="text-xl font-bold">{order.order_number}</h3>
-                      <p className="text-sm text-gray-600 mt-1">{order.customer_name}</p>
-                      <p className="text-sm text-gray-500">{order.customer_phone}</p>
-                    </div>
-                    <Badge className="bg-yellow-100 text-yellow-800">
-                      {order.fulfillment_type}
-                    </Badge>
-                  </div>
-
-                  {order.delivery_address && (
-                    <div className="mb-3 p-2 bg-gray-50 rounded text-sm">
-                      <p className="font-medium">Delivery Address:</p>
-                      <p className="text-gray-600">{order.delivery_address}</p>
-                    </div>
-                  )}
-
-                  {order.requested_time && (
-                    <div className="mb-3 text-sm">
-                      <p className="font-medium">Requested Time:</p>
-                      <p className="text-gray-600">{new Date(order.requested_time).toLocaleString()}</p>
-                    </div>
-                  )}
-
-                  <div className="space-y-2 mb-4">
-                    {(order.items || []).map((item, index) => (
-                      <div key={index} className="flex justify-between text-sm">
-                        <span>{item.quantity}x {item.product_name}</span>
-                        <span>${item.item_total.toFixed(2)}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {order.special_instructions && (
-                    <div className="mb-4 p-2 bg-yellow-50 rounded text-sm">
-                      <p className="font-medium">Special Instructions:</p>
-                      <p className="text-gray-700">{order.special_instructions}</p>
-                    </div>
-                  )}
-
-                  <div className="border-t pt-4">
-                    <div className="flex justify-between font-bold text-lg mb-4">
-                      <span>Total:</span>
-                      <span>${order.total.toFixed(2)}</span>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="destructive"
-                        onClick={() => {
-                          const reason = prompt('Reason for rejection (optional):');
-                          if (reason !== null) {
-                            rejectOnlineOrder(order, reason);
-                          }
-                        }}
-                        className="flex-1"
-                      >
-                        Reject
-                      </Button>
-                      <Button
-                        onClick={() => acceptOnlineOrder(order)}
-                        className="flex-1 bg-green-600 hover:bg-green-700"
-                      >
-                        Accept Order
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+      <OnlineOrdersView
+        isDemo={isDemo}
+        orders={pendingOnlineOrders}
+        onAccept={acceptOnlineOrder}
+        onReject={rejectOnlineOrder}
+        onBack={() => setViewMode('pos')}
+      />
     );
   }
 
   if (viewMode === 'open_tickets') {
-    if (settings?.merchant_id === 'demo') {
-      return (
-        <div className="bg-gray-50 dark:bg-gray-900 min-h-screen">
-          <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-3 md:p-4 sticky top-0 z-10">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <CreditCard className="w-6 h-6 text-blue-600" />
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Open Tickets (Demo)</h1>
-                <Badge variant="outline">0 tickets</Badge>
-              </div>
-              <Button onClick={() => setViewMode('pos')} variant="outline">
-                Back to POS
-              </Button>
-            </div>
-          </div>
-          <div className="text-center py-12">
-            <p className="text-xl text-gray-500">No open tickets in Demo Mode.</p>
-          </div>
-        </div>
-      );
-    }
     return (
-      <div className="bg-gray-50 dark:bg-gray-900 min-h-screen">
-        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-3 md:p-4 sticky top-0 z-10">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <CreditCard className="w-6 h-6 text-blue-600" />
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Open Tickets</h1>
-              <Badge variant="outline">{openTickets.length} tickets</Badge>
-            </div>
-            <Button onClick={() => setViewMode('pos')} variant="outline">
-              Back to POS
-            </Button>
-          </div>
-        </div>
-
-        <div className="p-4 md:p-6">
-          {openTickets.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-xl text-gray-500">No open tickets</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {openTickets.map((ticket) => (
-                <Card key={ticket.id} className="p-6 hover:shadow-lg transition-shadow">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="text-xl font-bold">{ticket.table_number ? `Table ${ticket.table_number}` : 'No Table'}</h3>
-                      <p className="text-sm text-gray-500">{ticket.order_number}</p>
-                      <p className="text-sm text-gray-600 mt-1">{ticket.customer_name}</p>
-                    </div>
-                    <Badge className={
-                      ticket.status === 'processing' ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800'
-                    }>
-                      {ticket.status}
-                    </Badge>
-                  </div>
-
-                  <div className="space-y-2 mb-4">
-                    {(ticket.items || []).map((item, index) => (
-                      <div key={index} className="flex justify-between text-sm">
-                        <span>{item.quantity}x {item.product_name}</span>
-                        <span>${(item.item_total || 0).toFixed(2)}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="border-t pt-4">
-                    <div className="flex justify-between font-bold text-lg mb-4">
-                      <span>Total:</span>
-                      <span>${(ticket.total || 0).toFixed(2)}</span>
-                    </div>
-                    <Button
-                      onClick={() => processTicketPayment(ticket)}
-                      className="w-full"
-                    >
-                      Process Payment
-                    </Button>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+      <OpenTicketsView
+        isDemo={isDemo}
+        tickets={openTickets}
+        onProcessPayment={processTicketPayment}
+        onBack={() => setViewMode('pos')}
+      />
     );
   }
 
@@ -2222,6 +2076,11 @@ export default function POSPage() {
             <Badge variant="outline" className="px-2 py-1 text-sm">
               {cart.length}
             </Badge>
+            {!isDemo && activeStaff && (
+              <Badge variant="outline" className="text-xs flex items-center gap-1">
+                <User className="w-3 h-3" /> {activeStaff.full_name}
+              </Badge>
+            )}
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
@@ -2367,6 +2226,13 @@ export default function POSPage() {
               </>
             )}
 
+            {!isDemo && activeStaff && (
+              <Button variant="outline" size="sm" onClick={() => { lock(); setViewMode('pos'); }}>
+                <Lock className="w-4 h-4 mr-2" />
+                Lock
+              </Button>
+            )}
+
             {/* System Menu Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -2386,9 +2252,9 @@ export default function POSPage() {
                   Settings
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleClockOut} className="text-red-600">
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Clock Out
+                <DropdownMenuItem onClick={handleClockOut}>
+                  <Lock className="w-4 h-4 mr-2" />
+                  Lock Terminal
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -2404,7 +2270,7 @@ export default function POSPage() {
               onUpdateQuantity={updateCartQuantity}
               onRemoveItem={removeFromCart}
               discountPercent={discountPercent}
-              onDiscountChange={setDiscountPercent}
+              onDiscountChange={handleDiscountChange}
               totals={calculateTotals()}
               onCheckout={handleCheckout}
               onSendToKitchen={posMode === "restaurant" && isKitchenDisplayEnabled ? sendToKitchen : null}
@@ -2453,7 +2319,7 @@ export default function POSPage() {
               onUpdateQuantity={updateCartQuantity}
               onRemoveItem={removeFromCart}
               discountPercent={discountPercent}
-              onDiscountChange={setDiscountPercent}
+              onDiscountChange={handleDiscountChange}
               totals={calculateTotals()}
               onCheckout={handleCheckout}
               onSendToKitchen={posMode === "restaurant" && isKitchenDisplayEnabled ? sendToKitchen : null}
@@ -2577,6 +2443,14 @@ export default function POSPage() {
           isOpen={isOpenItemDialogOpen}
           onClose={() => setIsOpenItemDialogOpen(false)}
           onAddItem={addToCart}
+        />
+      )}
+
+      {!isDemo && isLocked && settings?.merchant_id && (
+        <StaffLockScreen
+          merchantId={settings.merchant_id}
+          stationName={stationName}
+          onUnlock={(staff) => setStaff(staff)}
         />
       )}
     </div>
