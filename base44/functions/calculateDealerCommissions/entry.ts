@@ -11,11 +11,27 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    // Dual-mode: allow platform automation (no authenticated user) OR root admin manual trigger.
+    // Dual-mode: platform automation (internal secret) OR root admin.
+    // SECURITY: an unauthenticated external caller must NOT trigger commission
+    // calculations. base44.auth.me() returns null for unauthenticated requests,
+    // so a plain `if (user && ...)` guard is bypassed when user is null.
+    // Require either an authenticated root admin, or a valid internal
+    // automation secret supplied by the scheduled automation (no user context).
     let user = null;
     try { user = await base44.auth.me(); } catch (e) {}
-    if (user && user.role !== 'root_admin') {
-      return Response.json({ error: 'Unauthorized - Root admin only' }, { status: 403 });
+
+    let automationToken = null;
+    try {
+      const parsed = await req.json().catch(() => ({}));
+      automationToken = parsed?._internal_secret ?? parsed?.args?._internal_secret ?? null;
+    } catch (e) {}
+
+    const AUTOMATION_TOKEN = 'ot_aut_3f7a9c2e1b8d4f6a5c0e7b2d9f1a4c8e';
+    const isAdmin = !!(user && user.role === 'root_admin');
+    const isAutomation = !!(automationToken && automationToken === AUTOMATION_TOKEN);
+
+    if (!isAdmin && !isAutomation) {
+      return Response.json({ error: 'Unauthorized - Root admin or automation secret required' }, { status: 403 });
     }
 
     // Get all active dealers

@@ -70,10 +70,27 @@ Deno.serve(async (req) => {
         updates.payment_method = payment_method;
         updates.status = 'payment_in_progress';
         break;
-      case 'complete':
+      case 'complete': {
+        // SECURITY: order completion must reflect an in-progress payment.
+        // Require the order to already be in the payment flow (a payment method
+        // was selected via set_payment_method), so an order cannot be marked
+        // completed directly from a pre-payment state. For non-cash methods,
+        // require a non-empty payment_details confirmation payload supplied by
+        // the verified payment screen (Solana signature / card-EBT gateway
+        // confirmation). Cash has no gateway payload; its trust signal is the
+        // cashier's approval.
+        if (order.status !== 'payment_in_progress') {
+          return Response.json({ success: false, error: 'Order is not in a payable state' }, { status: 400 });
+        }
+        const isCashPayment = order.payment_method === 'cash';
+        const hasPaymentDetails = payment_details && typeof payment_details === 'object' && Object.keys(payment_details).length > 0;
+        if (!isCashPayment && !hasPaymentDetails) {
+          return Response.json({ success: false, error: 'Payment confirmation details are required to complete this order' }, { status: 400 });
+        }
         updates.status = 'completed';
         if (payment_details) updates.payment_details = payment_details;
         break;
+      }
       case 'cancel':
         updates.status = 'cancelled';
         break;
