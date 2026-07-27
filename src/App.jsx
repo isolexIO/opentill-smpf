@@ -13,6 +13,7 @@ import DriverDashboard from './pages/DriverDashboard';
 import Invoices from './pages/Invoices';
 import PayInvoice from './pages/PayInvoice';
 import ResetPassword from './pages/ResetPassword';
+import Login from './pages/Login';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -85,6 +86,11 @@ const AuthenticatedApp = () => {
         </LayoutWrapper>
       } />
       <Route path="/ResetPassword" element={<ResetPassword />} />
+      <Route path="/Login" element={
+        <LayoutWrapper currentPageName="Login">
+          <Login />
+        </LayoutWrapper>
+      } />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

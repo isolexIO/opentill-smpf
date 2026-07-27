@@ -93,7 +93,7 @@ export default function SuperAdminPage() {
       } catch (authError) {
         console.log('Not authenticated via base44:', authError);
         alert('You must be properly authenticated to access SuperAdmin. Please log in with your credentials.');
-        window.location.href = createPageUrl('PinLogin');
+        window.location.href = createPageUrl('Login');
         return;
       }
 
@@ -109,7 +109,7 @@ export default function SuperAdminPage() {
     } catch (error) {
       console.error('Error loading user:', error);
       alert('Authentication error. Please log in again.');
-      window.location.href = createPageUrl('PinLogin');
+      window.location.href = createPageUrl('Login');
     } finally {
       setLoading(false);
     }

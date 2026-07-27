@@ -28,7 +28,7 @@ import NotificationBanner from '@/components/notifications/NotificationBanner';
 import MobileBottomNav from '@/components/mobile/MobileBottomNav';
 import { useNavigate } from 'react-router-dom';
 
-const PUBLIC_PAGES = ['Home', 'PinLogin', 'EmailLogin', 'WalletLoginPage', 'OnlineMenu', 'CustomerDisplay', 'KitchenDisplay', 'MerchantOnboarding', 'POS', 'PrivacyPolicy', 'TermsOfService', 'License', 'Copyright', 'About', 'Contact', 'DeviceShop', 'DealerLanding', 'DealerDashboard', 'DealerHome', 'SuperAdmin', 'Marketplace', 'ChipDetail', 'Builders', 'BuilderOnboarding', 'DriverDashboard', 'PayInvoice'];
+const PUBLIC_PAGES = ['Home', 'Login', 'PinLogin', 'EmailLogin', 'WalletLoginPage', 'OnlineMenu', 'CustomerDisplay', 'KitchenDisplay', 'MerchantOnboarding', 'POS', 'PrivacyPolicy', 'TermsOfService', 'License', 'Copyright', 'About', 'Contact', 'DeviceShop', 'DealerLanding', 'DealerDashboard', 'DealerHome', 'SuperAdmin', 'Marketplace', 'ChipDetail', 'Builders', 'BuilderOnboarding', 'DriverDashboard', 'PayInvoice'];
 
 function PublicLayout({ children }) {
   return <div className="min-h-screen">{children}</div>;
@@ -341,7 +341,7 @@ export default function Layout({ children, currentPageName }) {
 
   // If no pinUser and not a public page, redirect to login
   if (!pinUser && !PUBLIC_PAGES.includes(currentPageName)) {
-    window.location.href = createPageUrl('PinLogin');
+    window.location.href = createPageUrl('Login');
     return null;
   }
 
