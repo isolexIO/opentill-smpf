@@ -46,7 +46,7 @@ const links = [
   },
   {
     label: 'Solana',
-    href: 'https://explorer.solana.com/address/HduiwhPVavapx13moQDcg5Tk7YNyGoR3S8n94SZhL5o4',
+    href: 'https://explorer.solana.com/address/DWHegttwXD5AVrdvbkfimiyHdBfVmkmnJpztL2dHryq5',
     title: 'View on Solana Explorer',
     icon: (
       <svg viewBox="0 0 397 311" fill="currentColor" className="w-4 h-4">
