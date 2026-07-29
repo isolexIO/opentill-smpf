@@ -2,6 +2,21 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import * as OTPAuth from 'npm:otpauth@9.3.6';
 import bcrypt from 'npm:bcryptjs@2.4.3';
 
+// Simple in-memory rate limiting (in production, use Redis)
+const rateLimitMap = new Map();
+const RATE_LIMIT = 10; // Max attempts per window
+const RATE_LIMIT_WINDOW = 15 * 60 * 1000; // 15 minutes
+
+function checkRateLimit(key) {
+  const now = Date.now();
+  if (!rateLimitMap.has(key)) rateLimitMap.set(key, []);
+  const attempts = rateLimitMap.get(key).filter((t) => now - t < RATE_LIMIT_WINDOW);
+  rateLimitMap.set(key, attempts);
+  if (attempts.length >= RATE_LIMIT) return false;
+  attempts.push(now);
+  return true;
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -12,6 +27,17 @@ Deno.serve(async (req) => {
         success: false, 
         error: 'Email and password are required' 
       }, { status: 400 });
+    }
+
+    // Rate limit by email + IP to prevent password brute-forcing.
+    const ipAddress = req.headers.get('x-forwarded-for') ||
+                      req.headers.get('x-real-ip') || 'unknown';
+    const rlKey = `${email.toLowerCase().trim()}|${ipAddress}`;
+    if (!checkRateLimit(rlKey)) {
+      return Response.json({
+        success: false,
+        error: 'Too many login attempts. Please try again later.'
+      }, { status: 429 });
     }
 
     // Find user by email
