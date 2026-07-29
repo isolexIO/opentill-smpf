@@ -61,8 +61,12 @@ Deno.serve(async (req) => {
         // For station-attached display devices, reuse the existing session for
         // that station so a browser refresh reattaches to the same endpoint
         // instead of spawning a duplicate session every time.
+        // SECURITY: Only return the existing session_id to authenticated users.
+        // Unauthenticated callers must not receive an existing session token
+        // (otherwise an attacker could harvest active tokens and use them to
+        // read or tamper with orders via getDisplayOrders / updateDisplayOrder).
         const isDisplayDevice = device_type === 'customer_display' || device_type === 'kitchen_display';
-        if (isDisplayDevice && station_id) {
+        if (isDisplayDevice && station_id && user) {
             const existing = await base44.asServiceRole.entities.DeviceSession.filter(
                 { merchant_id, station_id, device_type },
                 '-created_date',
@@ -89,6 +93,27 @@ Deno.serve(async (req) => {
                     device_id: s.id,
                     reused: true
                 });
+            }
+        }
+
+        // For unauthenticated display devices, mark any prior session for the
+        // same station offline so we don't accumulate stale records, then fall
+        // through to create a brand-new session with a fresh token.
+        if (isDisplayDevice && station_id && !user) {
+            try {
+                const stale = await base44.asServiceRole.entities.DeviceSession.filter(
+                    { merchant_id, station_id, device_type, status: 'online' },
+                    '-created_date',
+                    50
+                );
+                if (stale && stale.length > 0) {
+                    await base44.asServiceRole.entities.DeviceSession.updateMany(
+                        { merchant_id, station_id, device_type, status: 'online' },
+                        { $set: { status: 'offline', forced_disconnect: true } }
+                    );
+                }
+            } catch (e) {
+                console.warn('Could not clean up stale display sessions:', e);
             }
         }
 
