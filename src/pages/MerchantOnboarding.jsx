@@ -8,6 +8,8 @@ import StepIndicator from '@/components/onboarding/StepIndicator';
 import StepReferral from '@/components/onboarding/StepReferral';
 import StepBusiness from '@/components/onboarding/StepBusiness';
 import StepDocuments from '@/components/onboarding/StepDocuments';
+import StepStripeIdentity from '@/components/onboarding/StepStripeIdentity';
+import { loadOnboardingForm, clearOnboardingForm } from '@/components/onboarding/StepStripeIdentity';
 import StepPaymentPrefs from '@/components/onboarding/StepPaymentPrefs';
 import StepWallet from '@/components/onboarding/StepWallet';
 import StepReview from '@/components/onboarding/StepReview';
@@ -27,6 +29,9 @@ const INITIAL = {
   gov_id_url: '',
   business_license_url: '',
   void_check_url: '',
+  // Stripe Identity
+  stripe_verification_session_id: '',
+  stripe_identity_verified: false,
   // Payment prefs
   accept_cash: true,
   accept_card: true,
@@ -51,6 +56,18 @@ export default function MerchantOnboarding() {
     const params = new URLSearchParams(window.location.search);
     const ref = params.get('ref') || params.get('referral') || params.get('code');
     const dId = params.get('dealer_id') || params.get('dealerid') || params.get('dealer');
+
+    // Restore form data if returning from Stripe Identity redirect
+    const restored = loadOnboardingForm();
+    if (restored) {
+      setFormData(prev => ({ ...restored, ...prev }));
+      // If identity was verified via redirect, jump to the identity step
+      if (params.get('stripe_identity') === 'verified') {
+        setStep(4);
+      }
+      clearOnboardingForm();
+    }
+
     if (dId) {
       setFormData((f) => ({ ...f, referral_code: dId }));
       setReferralLocked(true);
@@ -93,6 +110,8 @@ export default function MerchantOnboarding() {
         gov_id_url: formData.gov_id_url || null,
         business_license_url: formData.business_license_url || null,
         void_check_url: formData.void_check_url || null,
+        // Stripe Identity
+        stripe_verification_session_id: formData.stripe_verification_session_id || null,
         // Payment preferences
         payment_prefs: {
           accept_cash: formData.accept_cash,
@@ -210,7 +229,7 @@ export default function MerchantOnboarding() {
               />
             )}
             {step === 4 && (
-              <StepPaymentPrefs
+              <StepStripeIdentity
                 formData={formData}
                 onChange={onChange}
                 onNext={() => setStep(5)}
@@ -218,7 +237,7 @@ export default function MerchantOnboarding() {
               />
             )}
             {step === 5 && (
-              <StepWallet
+              <StepPaymentPrefs
                 formData={formData}
                 onChange={onChange}
                 onNext={() => setStep(6)}
@@ -226,10 +245,18 @@ export default function MerchantOnboarding() {
               />
             )}
             {step === 6 && (
+              <StepWallet
+                formData={formData}
+                onChange={onChange}
+                onNext={() => setStep(7)}
+                onBack={() => setStep(5)}
+              />
+            )}
+            {step === 7 && (
               <StepReview
                 formData={formData}
                 onSubmit={handleSubmit}
-                onBack={() => setStep(5)}
+                onBack={() => setStep(6)}
                 loading={loading}
                 error={error}
               />

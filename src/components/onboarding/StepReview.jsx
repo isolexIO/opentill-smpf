@@ -19,6 +19,7 @@ export default function StepReview({ formData, onSubmit, onBack, loading, error 
     formData.gov_id_url && { icon: <span className="w-4 h-4">🪪</span>, label: 'Gov ID', value: 'Uploaded ✓' },
     formData.business_license_url && { icon: <span className="w-4 h-4">📄</span>, label: 'License', value: 'Uploaded ✓' },
     formData.void_check_url && { icon: <span className="w-4 h-4">🏦</span>, label: 'Bank Doc', value: 'Uploaded ✓' },
+    formData.stripe_identity_verified && { icon: <span className="w-4 h-4">🛡️</span>, label: 'Identity', value: 'Stripe Verified ✓' },
     paymentLabels && { icon: <span className="w-4 h-4">💳</span>, label: 'Payments', value: paymentLabels },
     formData.pricing_mode && { icon: <span className="w-4 h-4">💱</span>, label: 'Pricing', value: formData.pricing_mode === 'surcharge' ? 'Card Surcharge' : 'Cash Discount' },
     formData.wallet_address && { icon: <Wallet className="w-4 h-4" />, label: 'Wallet', value: formData.wallet_address.slice(0, 6) + '...' + formData.wallet_address.slice(-4) },
