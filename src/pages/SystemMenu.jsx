@@ -336,7 +336,7 @@ export default function SystemMenu() {
 
     {
       id: 'opentill_payments',
-      icon: <OpenTILLPaymentsLogo height="h-10" width="w-12" scale={1.2} />,
+      icon: <OpenTILLPaymentsLogo height="h-16" width="w-24" scale={2.5} />,
       title: 'openTILL Payments',
       description: 'Stripe dashboard, connection & terminal',
       path: 'OpenTILLPayments',
@@ -575,9 +575,15 @@ export default function SystemMenu() {
                 onClick={() => handleNavigate(item.path)}
               >
                 <CardHeader className="p-4 sm:p-6">
-                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-gradient-to-r ${item.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                    {item.icon}
-                  </div>
+                  {item.id === 'opentill_payments' ? (
+                    <div className="flex items-center justify-center mb-4 h-12 group-hover:scale-110 transition-transform">
+                      {item.icon}
+                    </div>
+                  ) : (
+                    <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-gradient-to-r ${item.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                      {item.icon}
+                    </div>
+                  )}
                   <CardTitle className="font-semibold text-base sm:text-lg text-gray-900 dark:text-white mb-1">
                     {item.title}
                   </CardTitle>
