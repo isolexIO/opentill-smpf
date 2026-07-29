@@ -17,7 +17,7 @@ export default function PricingTab({ settings, onSave }) {
     show_dual_prices: settings?.pricing_and_surcharge?.show_dual_prices || true,
     region: settings?.pricing_and_surcharge?.region || 'US',
     pricing_mode: settings?.pricing_and_surcharge?.pricing_mode || 'surcharge',
-    sync_with_payments: settings?.pricing_and_surcharge?.sync_with_payments || false,
+    sync_with_payments: true,
   });
 
   const [isSaving, setIsSaving] = useState(false);
