@@ -5,11 +5,10 @@ import { cn } from '@/lib/utils';
 const steps = [
   { id: 1, label: 'Referral' },
   { id: 2, label: 'Business' },
-  { id: 3, label: 'Documents' },
-  { id: 4, label: 'Identity' },
-  { id: 5, label: 'Payments' },
-  { id: 6, label: 'Wallet' },
-  { id: 7, label: 'Review' },
+  { id: 3, label: 'Identity' },
+  { id: 4, label: 'Payments' },
+  { id: 5, label: 'Wallet' },
+  { id: 6, label: 'Review' },
 ];
 
 export default function StepIndicator({ currentStep }) {

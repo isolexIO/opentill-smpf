@@ -7,7 +7,6 @@ import { Link2, Twitter, Github, Terminal, CheckCircle } from 'lucide-react';
 import StepIndicator from '@/components/onboarding/StepIndicator';
 import StepReferral from '@/components/onboarding/StepReferral';
 import StepBusiness from '@/components/onboarding/StepBusiness';
-import StepDocuments from '@/components/onboarding/StepDocuments';
 import StepStripeIdentity from '@/components/onboarding/StepStripeIdentity';
 import { loadOnboardingForm, clearOnboardingForm } from '@/components/onboarding/StepStripeIdentity';
 import StepPaymentPrefs from '@/components/onboarding/StepPaymentPrefs';
@@ -25,10 +24,6 @@ const INITIAL = {
   address: '',
   referral_code: '',
   wallet_address: '',
-  // Documents
-  gov_id_url: '',
-  business_license_url: '',
-  void_check_url: '',
   // Stripe Identity
   stripe_verification_session_id: '',
   stripe_identity_verified: false,
@@ -63,7 +58,7 @@ export default function MerchantOnboarding() {
       setFormData(prev => ({ ...restored, ...prev }));
       // If identity was verified via redirect, jump to the identity step
       if (params.get('stripe_identity') === 'verified') {
-        setStep(4);
+        setStep(3);
       }
       clearOnboardingForm();
     }
@@ -106,10 +101,6 @@ export default function MerchantOnboarding() {
         referral_code: dealerReferral ? null : (formData.referral_code || null),
         wallet_address: formData.wallet_address || null,
         setup_demo_data: true,
-        // Documents
-        gov_id_url: formData.gov_id_url || null,
-        business_license_url: formData.business_license_url || null,
-        void_check_url: formData.void_check_url || null,
         // Stripe Identity
         stripe_verification_session_id: formData.stripe_verification_session_id || null,
         // Payment preferences
@@ -221,7 +212,7 @@ export default function MerchantOnboarding() {
               />
             )}
             {step === 3 && (
-              <StepDocuments
+              <StepStripeIdentity
                 formData={formData}
                 onChange={onChange}
                 onNext={() => setStep(4)}
@@ -229,7 +220,7 @@ export default function MerchantOnboarding() {
               />
             )}
             {step === 4 && (
-              <StepStripeIdentity
+              <StepPaymentPrefs
                 formData={formData}
                 onChange={onChange}
                 onNext={() => setStep(5)}
@@ -237,7 +228,7 @@ export default function MerchantOnboarding() {
               />
             )}
             {step === 5 && (
-              <StepPaymentPrefs
+              <StepWallet
                 formData={formData}
                 onChange={onChange}
                 onNext={() => setStep(6)}
@@ -245,18 +236,10 @@ export default function MerchantOnboarding() {
               />
             )}
             {step === 6 && (
-              <StepWallet
-                formData={formData}
-                onChange={onChange}
-                onNext={() => setStep(7)}
-                onBack={() => setStep(5)}
-              />
-            )}
-            {step === 7 && (
               <StepReview
                 formData={formData}
                 onSubmit={handleSubmit}
-                onBack={() => setStep(6)}
+                onBack={() => setStep(5)}
                 loading={loading}
                 error={error}
               />
