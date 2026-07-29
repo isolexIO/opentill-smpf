@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 const LOGO_URL =
   'https://media.base44.com/images/public/6970e2871534100b4ebb8d45/5454b9cac_openTILL-Payments.png';
 
-export default function OpenTILLPaymentsLogo({ className, height = 'h-[75px]', subtitle, scale = 1.8 }) {
+export default function OpenTILLPaymentsLogo({ className, height = 'h-[150px]', subtitle, scale = 1.8 }) {
   return (
     <div className={cn('inline-flex flex-col items-center', className)}>
       <div className={cn('overflow-hidden flex items-center justify-center', height)}>
