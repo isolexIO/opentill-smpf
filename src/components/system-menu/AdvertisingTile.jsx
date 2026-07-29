@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
+import { pickAds, getAdContext, getDailyViewCount, incrementDailyViewCount } from '@/lib/adRules';
 
 export default function AdvertisingTile({ targetLocation = 'system_menu' }) {
   const [ads, setAds] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [sessionViews, setSessionViews] = useState({});
 
   useEffect(() => {
     loadAds();
@@ -25,11 +27,17 @@ export default function AdvertisingTile({ targetLocation = 'system_menu' }) {
 
       // Filter by schedule if applicable
       const now = new Date();
-      const activeAds = allAds.filter(ad => {
+      const scheduledAds = allAds.filter(ad => {
         if (ad.schedule_start && new Date(ad.schedule_start) > now) return false;
         if (ad.schedule_end && new Date(ad.schedule_end) < now) return false;
         return true;
       });
+
+      // Apply targeting, time-of-day, and frequency-cap rules
+      const dailyViews = {};
+      scheduledAds.forEach(ad => { dailyViews[ad.id] = getDailyViewCount(ad.id); });
+      const context = { ...getAdContext(), sessionViews, dailyViews };
+      const activeAds = pickAds(scheduledAds, context);
 
       console.log('Active ads after filtering:', activeAds.length);
       setAds(activeAds);
@@ -50,11 +58,13 @@ export default function AdvertisingTile({ targetLocation = 'system_menu' }) {
       setCurrentIndex((prevIndex) => (prevIndex + 1) % ads.length);
     }, duration);
 
-    // Increment view count
+    // Increment view count (DB + daily + session caps)
     if (currentAd?.id) {
       base44.entities.Advertisement.update(currentAd.id, {
         view_count: (currentAd.view_count || 0) + 1
       }).catch(err => console.error('Error updating view count:', err));
+      incrementDailyViewCount(currentAd.id);
+      setSessionViews(prev => ({ ...prev, [currentAd.id]: (prev[currentAd.id] || 0) + 1 }));
     }
 
     return () => clearTimeout(timer);

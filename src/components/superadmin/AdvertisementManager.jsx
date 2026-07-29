@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
@@ -40,7 +39,15 @@ export default function AdvertisementManager() {
     duration_seconds: 10,
     display_order: 0,
     is_active: true,
-    target_location: 'system_menu'
+    target_location: 'system_menu',
+    priority: 0,
+    days_of_week: [],
+    start_time_of_day: '',
+    end_time_of_day: '',
+    max_views_per_day: 0,
+    max_views_per_session: 0,
+    target_merchant_ids: [],
+    target_dealer_ids: []
   });
 
   useEffect(() => {
@@ -176,7 +183,15 @@ export default function AdvertisementManager() {
       duration_seconds: ad.duration_seconds || 10,
       display_order: ad.display_order || 0,
       is_active: ad.is_active,
-      target_location: ad.target_location || 'system_menu'
+      target_location: ad.target_location || 'system_menu',
+      priority: ad.priority || 0,
+      days_of_week: ad.days_of_week || [],
+      start_time_of_day: ad.start_time_of_day || '',
+      end_time_of_day: ad.end_time_of_day || '',
+      max_views_per_day: ad.max_views_per_day || 0,
+      max_views_per_session: ad.max_views_per_session || 0,
+      target_merchant_ids: ad.target_merchant_ids || [],
+      target_dealer_ids: ad.target_dealer_ids || []
     });
     setIsDialogOpen(true);
   };
@@ -204,7 +219,15 @@ export default function AdvertisementManager() {
       duration_seconds: 10,
       display_order: 0,
       is_active: true,
-      target_location: 'system_menu'
+      target_location: 'system_menu',
+      priority: 0,
+      days_of_week: [],
+      start_time_of_day: '',
+      end_time_of_day: '',
+      max_views_per_day: 0,
+      max_views_per_session: 0,
+      target_merchant_ids: [],
+      target_dealer_ids: []
     });
     setIsUploading(false);
     setUploadProgress(0);
@@ -517,6 +540,113 @@ export default function AdvertisementManager() {
                 onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
               />
               <Label htmlFor="is_active">Active (show this ad)</Label>
+            </div>
+
+            <div className="border-t pt-4 space-y-4">
+              <h4 className="text-sm font-semibold text-gray-900">Display Rules</h4>
+              <p className="text-xs text-gray-500 -mt-3">Rules are evaluated per device. Leave optional fields blank for "no restriction".</p>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="priority">Priority</Label>
+                  <Input
+                    id="priority"
+                    type="number"
+                    value={formData.priority}
+                    onChange={(e) => setFormData({ ...formData, priority: parseInt(e.target.value) || 0 })}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Higher priority shows first</p>
+                </div>
+                <div>
+                  <Label>Days of Week</Label>
+                  <div className="flex gap-1">
+                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d, i) => {
+                      const active = formData.days_of_week.includes(i);
+                      return (
+                        <button
+                          type="button"
+                          key={i}
+                          onClick={() => setFormData(prev => ({
+                            ...prev,
+                            days_of_week: active
+                              ? prev.days_of_week.filter(x => x !== i)
+                              : [...prev.days_of_week, i]
+                          }))}
+                          className={`flex-1 h-8 rounded text-xs font-medium ${active ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600'}`}
+                        >
+                          {d.slice(0, 1)}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">Empty = all days</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="start_time">Start Time (daily)</Label>
+                  <Input
+                    id="start_time"
+                    type="time"
+                    value={formData.start_time_of_day}
+                    onChange={(e) => setFormData({ ...formData, start_time_of_day: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="end_time">End Time (daily)</Label>
+                  <Input
+                    id="end_time"
+                    type="time"
+                    value={formData.end_time_of_day}
+                    onChange={(e) => setFormData({ ...formData, end_time_of_day: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="max_day">Max Views / Day</Label>
+                  <Input
+                    id="max_day"
+                    type="number"
+                    min="0"
+                    value={formData.max_views_per_day}
+                    onChange={(e) => setFormData({ ...formData, max_views_per_day: parseInt(e.target.value) || 0 })}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">0 = unlimited</p>
+                </div>
+                <div>
+                  <Label htmlFor="max_session">Max Views / Session</Label>
+                  <Input
+                    id="max_session"
+                    type="number"
+                    min="0"
+                    value={formData.max_views_per_session}
+                    onChange={(e) => setFormData({ ...formData, max_views_per_session: parseInt(e.target.value) || 0 })}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">0 = unlimited</p>
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="target_merchants">Target Merchant IDs</Label>
+                <Input
+                  id="target_merchants"
+                  value={formData.target_merchant_ids.join(', ')}
+                  onChange={(e) => setFormData({ ...formData, target_merchant_ids: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                  placeholder="Comma-separated. Empty = all merchants"
+                />
+              </div>
+              <div>
+                <Label htmlFor="target_dealers">Target Dealer IDs</Label>
+                <Input
+                  id="target_dealers"
+                  value={formData.target_dealer_ids.join(', ')}
+                  onChange={(e) => setFormData({ ...formData, target_dealer_ids: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                  placeholder="Comma-separated. Empty = all dealers"
+                />
+              </div>
             </div>
 
             <DialogFooter>

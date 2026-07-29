@@ -33,6 +33,11 @@
       "default": 0,
       "description": "Order in rotation (lower = first)"
     },
+    "priority": {
+      "type": "number",
+      "default": 0,
+      "description": "Higher priority ads are shown first"
+    },
     "is_active": {
       "type": "boolean",
       "default": true,
@@ -57,6 +62,50 @@
       "type": "string",
       "format": "date-time",
       "description": "When to stop showing this ad (optional)"
+    },
+    "days_of_week": {
+      "type": "array",
+      "items": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 6
+      },
+      "default": [],
+      "description": "Days of week to show (0=Sun..6=Sat). Empty = all days."
+    },
+    "start_time_of_day": {
+      "type": "string",
+      "description": "HH:MM local time to start showing daily (optional). Empty = no start restriction."
+    },
+    "end_time_of_day": {
+      "type": "string",
+      "description": "HH:MM local time to stop showing daily (optional). Empty = no end restriction."
+    },
+    "max_views_per_day": {
+      "type": "number",
+      "default": 0,
+      "description": "Maximum times shown per device per day (0 = unlimited)"
+    },
+    "max_views_per_session": {
+      "type": "number",
+      "default": 0,
+      "description": "Maximum times shown per browser session (0 = unlimited)"
+    },
+    "target_merchant_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Restrict to these merchant IDs. Empty = all merchants."
+    },
+    "target_dealer_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Restrict to these dealer/ambassador IDs. Empty = all dealers."
     },
     "click_count": {
       "type": "number",
