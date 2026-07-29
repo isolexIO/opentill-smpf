@@ -251,7 +251,7 @@ export default function DealerDashboardPage() {
           </TabsList>
 
           <TabsContent value="merchants">
-            <MerchantManagement dealerId={dealer.legacy_dealer_id} />
+            <MerchantManagement dealerId={dealer.legacy_dealer_id} initialMerchants={merchants} />
           </TabsContent>
           <TabsContent value="analytics">
             <MerchantAnalytics dealerId={dealer.legacy_dealer_id} />

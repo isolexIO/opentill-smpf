@@ -11,9 +11,9 @@ import { Plus, Search, LogIn, AlertCircle, Info, Eye, Mail, Copy, Check } from '
 import MerchantOnboarding from './MerchantOnboarding';
 import MerchantDetailsModal from './MerchantDetailsModal';
 
-export default function MerchantManagement({ dealerId }) {
-  const [merchants, setMerchants] = useState([]);
-  const [loading, setLoading] = useState(true);
+export default function MerchantManagement({ dealerId, initialMerchants }) {
+  const [merchants, setMerchants] = useState(initialMerchants || []);
+  const [loading, setLoading] = useState(!initialMerchants || initialMerchants.length === 0);
   const [searchTerm, setSearchTerm] = useState('');
   const [impersonatingId, setImpersonatingId] = useState(null);
   const [suspendingId, setSuspendingId] = useState(null);
@@ -27,6 +27,14 @@ export default function MerchantManagement({ dealerId }) {
     loadMerchants();
   }, [dealerId]);
 
+  // Keep merchants synced if the parent passes updated data
+  useEffect(() => {
+    if (initialMerchants) {
+      setMerchants(initialMerchants);
+      setLoading(false);
+    }
+  }, [initialMerchants]);
+
   const loadMerchants = async () => {
     try {
       setLoading(true);
@@ -34,6 +42,10 @@ export default function MerchantManagement({ dealerId }) {
       setMerchants(data || []);
     } catch (error) {
       console.error('Error loading merchants:', error);
+      // Fall back to initialMerchants if the client-side filter fails (RLS)
+      if (initialMerchants) {
+        setMerchants(initialMerchants);
+      }
     } finally {
       setLoading(false);
     }
