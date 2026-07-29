@@ -1,18 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { useStationDisplay } from '@/hooks/useStationDisplay';
-import WelcomeScreen from '@/components/customer-display/WelcomeScreen';
-import ApprovalScreen from '@/components/customer-display/ApprovalScreen';
-import TipScreen from '@/components/customer-display/TipScreen';
-import SolanaPayScreen from '@/components/customer-display/SolanaPayScreen';
-import TransactionStatusScreen from '@/components/customer-display/TransactionStatusScreen';
-import CardPaymentStatusScreen from '@/components/customer-display/CardPaymentStatusScreen';
-import PaymentMethodSelectionScreen from '@/components/customer-display/PaymentMethodSelectionScreen';
-import EBTPaymentScreen from '@/components/customer-display/EBTPaymentScreen';
+import MobilePOS from '@/components/mobile/MobilePOS';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Lock, Loader2, WifiOff, AlertCircle, RefreshCw, Smartphone } from 'lucide-react';
+import { Lock, Loader2, WifiOff, AlertCircle, RefreshCw } from 'lucide-react';
 
 export default function MobileStationDisplay() {
   const { token } = useParams();
@@ -25,7 +17,6 @@ export default function MobileStationDisplay() {
   const [pin, setPin] = useState('');
   const [pinError, setPinError] = useState(null);
   const [sessionId, setSessionId] = useState(null);
-  const heartbeatRef = useRef(null);
 
   const resolveStation = async (pinValue) => {
     setLoading(true);
@@ -68,7 +59,6 @@ export default function MobileStationDisplay() {
 
         if (sessionResult.data?.session_id) {
           setSessionId(sessionResult.data.session_id);
-          startHeartbeat(sessionResult.data.session_id, res.data.merchant.id);
         }
       } catch (e) {
         console.warn('MobileStationDisplay: Could not register device session:', e);
@@ -82,19 +72,6 @@ export default function MobileStationDisplay() {
     }
   };
 
-  const startHeartbeat = (sid, merchantId) => {
-    if (heartbeatRef.current) clearInterval(heartbeatRef.current);
-    heartbeatRef.current = setInterval(async () => {
-      try {
-        await base44.functions.invoke('updateDeviceHeartbeat', {
-          session_id: sid,
-        });
-      } catch (e) {
-        // non-fatal
-      }
-    }, 10000);
-  };
-
   useEffect(() => {
     if (token) {
       resolveStation();
@@ -104,62 +81,7 @@ export default function MobileStationDisplay() {
       setLoading(false);
     }
 
-    return () => {
-      if (heartbeatRef.current) clearInterval(heartbeatRef.current);
-      if (sessionId) {
-        base44.functions.invoke('disconnectDeviceSession', { session_id: sessionId }).catch(() => {});
-      }
-    };
   }, [token]);
-
-  // PWA meta tags for "Add to Home Screen"
-  useEffect(() => {
-    const metas = [
-      { name: 'apple-mobile-web-app-capable', content: 'yes' },
-      { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
-      { name: 'mobile-web-app-capable', content: 'yes' },
-      { name: 'theme-color', content: '#3B82F6' },
-    ];
-    const created = metas.map(m => {
-      const el = document.createElement('meta');
-      el.name = m.name;
-      el.content = m.content;
-      document.head.appendChild(el);
-      return el;
-    });
-    // Prevent pinch-to-zoom on mobile
-    const viewport = document.querySelector('meta[name="viewport"]');
-    const originalViewport = viewport?.content;
-    if (viewport) {
-      viewport.content = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no';
-    }
-    return () => {
-      created.forEach(el => el.remove());
-      if (viewport && originalViewport) {
-        viewport.content = originalViewport;
-      }
-    };
-  }, []);
-
-  const displayTimeout = station?.mobile_display_timeout || 8;
-  const {
-    currentOrder,
-    currentScreen,
-    connectionLost,
-    handleTipSelected,
-    handlePaymentMethodSelected,
-    handlePaymentComplete,
-    handleApprove,
-  } = useStationDisplay({
-    merchant,
-    // Pass null so the mobile display picks up any pending order for the
-    // merchant — the POS may auto-generate a station_id that doesn't match
-    // the Station entity's station_id, and filtering by station_id would
-    // prevent the mobile display from ever seeing the order.
-    stationId: null,
-    sessionId,
-    displayTimeout,
-  });
 
   const handlePinSubmit = (e) => {
     e?.preventDefault();
@@ -261,107 +183,6 @@ export default function MobileStationDisplay() {
     );
   }
 
-  // --- Customer Display (reuses all existing screens) ---
-  return (
-    <div className="min-h-screen bg-black relative" style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
-      {/* Station badge */}
-      {station && (
-        <div className="fixed top-2 left-2 z-50 bg-black/60 text-white text-xs px-3 py-1 rounded-full backdrop-blur-sm">
-          <Smartphone className="w-3 h-3 inline mr-1" />
-          {station.name}
-        </div>
-      )}
-
-      {/* Connection lost indicator */}
-      {connectionLost && (
-        <div className="fixed top-2 right-2 z-50 bg-orange-500/90 text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1 backdrop-blur-sm">
-          <WifiOff className="w-3 h-3" />
-          Reconnecting…
-        </div>
-      )}
-
-      {/* Idle Screen */}
-      {currentScreen === 'welcome' && (
-        <WelcomeScreen
-          merchant={merchant}
-          order={null}
-          settings={merchant?.settings}
-        />
-      )}
-
-      {/* Active Order / Approval Screen */}
-      {currentScreen === 'approval' && currentOrder && (
-        <ApprovalScreen
-          order={currentOrder}
-          settings={merchant?.settings}
-          onApprove={handleApprove}
-        />
-      )}
-
-      {/* Tip Screen */}
-      {currentScreen === 'tip' && currentOrder && (
-        <TipScreen
-          order={currentOrder}
-          settings={merchant?.settings}
-          onTipSelected={handleTipSelected}
-        />
-      )}
-
-      {/* Payment Method Selection */}
-      {currentScreen === 'payment_method' && currentOrder && (
-        <PaymentMethodSelectionScreen
-          order={currentOrder}
-          settings={merchant?.settings}
-          onMethodSelected={handlePaymentMethodSelected}
-        />
-      )}
-
-      {/* Solana Pay / QR Payment */}
-      {currentScreen === 'solana_pay' && currentOrder && (
-        <SolanaPayScreen
-          order={currentOrder}
-          settings={merchant?.settings}
-          merchant={merchant}
-          onPaymentComplete={handlePaymentComplete}
-        />
-      )}
-
-      {/* Card Payment Processing */}
-      {currentScreen === 'card_payment' && currentOrder && (
-        <CardPaymentStatusScreen
-          order={currentOrder}
-          settings={merchant?.settings}
-          onComplete={handlePaymentComplete}
-        />
-      )}
-
-      {/* EBT Payment */}
-      {currentScreen === 'ebt_payment' && currentOrder && (
-        <EBTPaymentScreen
-          order={currentOrder}
-          settings={merchant?.settings}
-          onComplete={handlePaymentComplete}
-        />
-      )}
-
-      {/* Approved Screen */}
-      {currentScreen === 'success' && currentOrder && (
-        <TransactionStatusScreen
-          success={true}
-          order={currentOrder}
-          settings={merchant?.settings}
-        />
-      )}
-
-      {/* Declined / Failed Screen */}
-      {currentScreen === 'error' && (
-        <TransactionStatusScreen
-          success={false}
-          order={currentOrder}
-          settings={merchant?.settings}
-          errorMessage="Payment was not completed. Please try again."
-        />
-      )}
-    </div>
-  );
+  // --- Full Mobile POS ---
+  return <MobilePOS merchant={merchant} station={station} sessionId={sessionId} />;
 }
