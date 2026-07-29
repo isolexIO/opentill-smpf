@@ -1104,14 +1104,7 @@ export default function HomePage() {
               <p className="text-center text-gray-400 text-xs mb-3 uppercase tracking-widest">Community</p>
               <CommunityLinks className="[&_a]:text-gray-300 [&_a]:hover:text-white [&_a]:bg-white/10 [&_a]:hover:bg-white/20 [&_a]:border-white/10" />
             </div>
-            <div className="flex justify-center mb-4">
-              <a 
-                href={createPageUrl('DealerLogin')} 
-                className="text-gray-400 hover:text-white text-sm transition-colors"
-              >
-                Ambassador Login
-              </a>
-            </div>
+            
             <p className="text-gray-400 text-sm text-center">
               {settings?.company_info?.copyright_text || '© 2026 Isolex Corporation. All rights reserved.'}
             </p>
