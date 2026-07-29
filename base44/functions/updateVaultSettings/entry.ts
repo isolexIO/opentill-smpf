@@ -12,7 +12,7 @@ Deno.serve(async (req) => {
 
     const { settings_id, settings_data, action } = await req.json();
 
-    const isPlatformAdmin = user.role === 'root_admin' || user.role === 'super_admin';
+    const isPlatformAdmin = ['admin', 'super_admin', 'root_admin'].includes(user.role);
     const adminMerchantId = user.data?.merchant_id;
 
     let result;
