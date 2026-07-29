@@ -47,6 +47,53 @@
       "type": "number",
       "default": 0,
       "description": "Display order"
+    },
+    "mobile_access_enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether mobile POS / Customer Display access is enabled for this station"
+    },
+    "mobile_station_token": {
+      "type": "string",
+      "description": "Secure random token used in the public mobile POS URL. Never expose the station's internal database ID."
+    },
+    "mobile_token_created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the mobile token was created"
+    },
+    "mobile_token_expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the mobile token expires (null = no expiration)"
+    },
+    "mobile_pin_hash": {
+      "type": "string",
+      "description": "SHA-256 hash of the station PIN. Never store plain-text PINs."
+    },
+    "allow_mobile_cashier_controls": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether mobile devices can access cashier controls (requires employee auth or station PIN)"
+    },
+    "customer_display_id": {
+      "type": "string",
+      "description": "Assigned Customer Display configuration/layout ID"
+    },
+    "mobile_display_timeout": {
+      "type": "number",
+      "default": 8,
+      "description": "Seconds to show the approved/declined screen before returning to idle"
+    },
+    "max_mobile_connections": {
+      "type": "number",
+      "default": 3,
+      "description": "Maximum number of simultaneous mobile display connections"
+    },
+    "last_mobile_connection_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last time a mobile device connected to this station"
     }
   },
   "required": [

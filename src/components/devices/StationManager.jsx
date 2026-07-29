@@ -19,9 +19,11 @@ import {
   MonitorPlay,
   Monitor,
   QrCode,
-  X
+  X,
+  Smartphone
 } from 'lucide-react';
 import QRCodeLib from 'qrcode';
+import MobileStationSettings from '@/components/devices/MobileStationSettings';
 
 const LAYOUT_TYPES = [
   { value: 'counter', label: 'Counter' },
@@ -396,6 +398,9 @@ export default function StationManager({ merchantId }) {
                       )}
                     </div>
                   ))}
+
+                  {/* Mobile POS & Customer Display */}
+                  <MobileStationSettings station={s} merchantId={merchantId} />
                 </div>
               );
             })}

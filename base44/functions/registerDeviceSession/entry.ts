@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
             user = await base44.auth.me();
         } catch (e) {
             // Only allow customer_display and kitchen_display without auth
-            if (device_type !== 'customer_display' && device_type !== 'kitchen_display') {
+            if (device_type !== 'customer_display' && device_type !== 'kitchen_display' && device_type !== 'mobile') {
                 return Response.json({
                     success: false,
                     error: 'Unauthorized: Authentication required for this device type'
@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
         // Unauthenticated callers must not receive an existing session token
         // (otherwise an attacker could harvest active tokens and use them to
         // read or tamper with orders via getDisplayOrders / updateDisplayOrder).
-        const isDisplayDevice = device_type === 'customer_display' || device_type === 'kitchen_display';
+        const isDisplayDevice = device_type === 'customer_display' || device_type === 'kitchen_display' || device_type === 'mobile';
         if (isDisplayDevice && station_id && user) {
             const existing = await base44.asServiceRole.entities.DeviceSession.filter(
                 { merchant_id, station_id, device_type },
