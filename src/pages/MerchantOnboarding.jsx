@@ -11,6 +11,7 @@ import StepDocuments from '@/components/onboarding/StepDocuments';
 import StepPaymentPrefs from '@/components/onboarding/StepPaymentPrefs';
 import StepWallet from '@/components/onboarding/StepWallet';
 import StepReview from '@/components/onboarding/StepReview';
+import AmbassadorBanner from '@/components/onboarding/AmbassadorBanner';
 import SolanaWalletProvider from '@/components/auth/SolanaWalletProvider';
 
 const INITIAL = {
@@ -43,6 +44,7 @@ export default function MerchantOnboarding() {
   const [referralLocked, setReferralLocked] = useState(false);
   const [dealerReferral, setDealerReferral] = useState(false);
   const [dealerId, setDealerId] = useState(null);
+  const [ambassador, setAmbassador] = useState(null);
 
   // Pre-fill referral code from URL on mount
   useEffect(() => {
@@ -54,6 +56,16 @@ export default function MerchantOnboarding() {
       setReferralLocked(true);
       setDealerReferral(true);
       setDealerId(dId);
+      // Load ambassador branding/contact info for the dealer referral so the
+      // merchant knows who they're signing up under. Uses the public
+      // getAmbassadorByReferral function (service-role, sanitized fields only).
+      base44.functions.invoke('getAmbassadorByReferral', { dealer_id: dId })
+        .then((res) => {
+          if (res.data?.success && res.data.ambassador) {
+            setAmbassador(res.data.ambassador);
+          }
+        })
+        .catch(() => { /* non-fatal: banner is optional */ });
     } else if (ref) {
       setFormData((f) => ({ ...f, referral_code: ref.toUpperCase() }));
       setReferralLocked(true);
@@ -167,6 +179,7 @@ export default function MerchantOnboarding() {
       </div>
 
       <div className="w-full max-w-md">
+        <AmbassadorBanner ambassador={ambassador} />
         <StepIndicator currentStep={step} />
 
         <Card className="border-none shadow-xl rounded-3xl overflow-hidden">
