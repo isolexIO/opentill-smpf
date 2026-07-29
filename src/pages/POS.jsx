@@ -1404,7 +1404,9 @@ export default function POSPage() {
       // Check if cart has tippable items
       const hasTippableItems = cart.some(item => item.tippable !== false);
       
-      // Update order to move to customer display
+      // Update order to move to customer display — reset sent_to_customer_display
+      // so any connected display (stationary CD or mobile phone) picks it up
+      // automatically via polling.
       const updateData = {
         // If there are tippable items, status should be 'approval' to allow tip selection.
         // If not, it goes straight to 'ready_for_payment'.

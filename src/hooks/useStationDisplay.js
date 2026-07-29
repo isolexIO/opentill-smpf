@@ -117,14 +117,17 @@ export function useStationDisplay({ merchant, stationId, sessionId, displayTimeo
   }, [merchant, stationId, sessionId, displayTimeout, returnToWelcome]);
 
   useEffect(() => {
-    if (!merchant) return;
+    if (!merchant || !sessionId) return;
+
+    // Immediate poll on mount / when session becomes available
+    pollForOrder();
 
     const interval = setInterval(() => {
       pollForOrder();
     }, 1500);
 
     return () => clearInterval(interval);
-  }, [merchant, pollForOrder]);
+  }, [merchant, sessionId, pollForOrder]);
 
   const handleTipSelected = useCallback(async (tipAmount) => {
     const { currentOrder: curOrder } = stateRef.current;
