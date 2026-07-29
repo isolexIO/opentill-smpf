@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Link2, Twitter, Github, Terminal, CheckCircle } from 'lucide-react';
+import { Twitter, Github, Terminal, CheckCircle } from 'lucide-react';
 import StepIndicator from '@/components/onboarding/StepIndicator';
 import StepReferral from '@/components/onboarding/StepReferral';
 import StepBusiness from '@/components/onboarding/StepBusiness';
@@ -182,9 +182,7 @@ export default function MerchantOnboarding() {
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center py-10 px-4">
       {/* Logo */}
       <div className="flex items-center gap-2 mb-6">
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-cyan-500 to-blue-600">
-          <Link2 className="w-5 h-5 text-white" />
-        </div>
+        <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6970e2871534100b4ebb8d45/8e45f76fe_DUC3.png" alt="openTILL" className="w-10 h-10" />
         <span className="text-2xl font-black text-slate-900 tracking-tight">openTILL</span>
       </div>
 
