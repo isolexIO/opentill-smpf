@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/components/ui/use-toast';
 import { Loader2, CreditCard, CheckCircle2, ExternalLink, AlertCircle } from 'lucide-react';
+import OpenTILLPaymentsLogo from '@/components/payment/OpenTILLPaymentsLogo';
 
 // Lets a merchant sign up for / connect their Stripe Connect account directly
 // from the Payment Gateways settings tab. Payments then route through Stripe Terminal.
@@ -66,9 +67,9 @@ export default function StripeConnectOnboarding() {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="flex items-center gap-2">
-              <CreditCard className="w-5 h-5 text-indigo-600" />
-              openTILL Payments powered by Stripe
+            <CardTitle className="flex items-center gap-3">
+              <OpenTILLPaymentsLogo height="h-7" />
+              <span className="text-xs text-slate-400 font-normal">powered by Stripe</span>
             </CardTitle>
             <CardDescription>
               Sign up for card payments through openTILL Payments powered by Stripe. Connect your account to accept credit and debit cards.

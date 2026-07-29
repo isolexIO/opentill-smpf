@@ -16,6 +16,7 @@ import {
   AlertCircle,
   CheckCircle
 } from 'lucide-react';
+import OpenTILLPaymentsLogo from '@/components/payment/OpenTILLPaymentsLogo';
 
 export default function PaymentSettingsManager() {
   const [settings, setSettings] = useState({
@@ -257,7 +258,10 @@ export default function PaymentSettingsManager() {
           {/* Stripe */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">openTILL Payments powered by Stripe (Subscription Billing)</CardTitle>
+              <CardTitle className="text-lg flex items-center gap-3">
+                <OpenTILLPaymentsLogo height="h-6" />
+                <span className="text-xs text-slate-400 font-normal">(Subscription Billing)</span>
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -361,7 +365,10 @@ export default function PaymentSettingsManager() {
           {/* Stripe */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">openTILL Payments powered by Stripe (Device Shop)</CardTitle>
+              <CardTitle className="text-lg flex items-center gap-3">
+                <OpenTILLPaymentsLogo height="h-6" />
+                <span className="text-xs text-slate-400 font-normal">(Device Shop)</span>
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">

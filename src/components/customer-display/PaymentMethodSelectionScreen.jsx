@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 // Removed: Card, Button components as per new design
 import { CreditCard, Banknote, Loader2, AlertCircle } from 'lucide-react'; // Removed Coins icon, replaced by img
+import OpenTILLPaymentsLogo from '@/components/payment/OpenTILLPaymentsLogo';
 
 export default function PaymentMethodSelectionScreen({ order, settings, onMethodSelected, onPaymentMethodSelected }) {
   // Support both prop names
@@ -35,8 +36,7 @@ export default function PaymentMethodSelectionScreen({ order, settings, onMethod
   
   // Show card if any gateway is configured, OR always show it by default
   // (the cashier already chose "Customer Terminal" which implies card payment is available)
-  const hasAnyGateway = settings?.payment_gateways?.stripe?.enabled || 
-                        settings?.payment_gateways?.square?.enabled ||
+  const hasAnyGateway = settings?.payment_gateways?.stripe?.enabled ||
                         settings?.payment_gateways?.shift4?.enabled ||
                         settings?.payment_gateways?.non_integrated?.enabled ||
                         settings?.payment_gateways?.pax?.enabled ||
@@ -238,10 +238,8 @@ export default function PaymentMethodSelectionScreen({ order, settings, onMethod
         </div> {/* End of bg-white card */}
 
         {/* Secure payment footer */}
-        <div className="mt-12 text-center">
-          <p className="text-white/80 text-lg">
-            Secure payment powered by openTILL
-          </p>
+        <div className="mt-12 flex justify-center">
+          <OpenTILLPaymentsLogo height="h-8" subtitle="Secure payments" />
         </div>
       </div> {/* End of w-full max-w-4xl */}
     </div>

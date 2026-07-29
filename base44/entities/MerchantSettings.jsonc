@@ -33,29 +33,6 @@
             }
           }
         },
-        "square": {
-          "type": "object",
-          "properties": {
-            "enabled": {
-              "type": "boolean",
-              "default": false
-            },
-            "access_token": {
-              "type": "string"
-            },
-            "location_id": {
-              "type": "string"
-            },
-            "test_mode": {
-              "type": "boolean",
-              "default": true
-            },
-            "last_tested": {
-              "type": "string",
-              "format": "date-time"
-            }
-          }
-        },
         "crypto": {
           "type": "object",
           "properties": {
