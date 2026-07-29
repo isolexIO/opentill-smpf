@@ -19,7 +19,7 @@ export default function PaymentMethodSelectionScreen({ order, settings, onMethod
   // processing rate so the surcharge exactly matches the fee charged to the merchant.
   const stripeRate = settings?.payment_gateways?.stripe?.processing_rate_percent ?? 2.9;
   const stripeFlat = settings?.payment_gateways?.stripe?.processing_flat_fee ?? 0.3;
-  const platformFee = settings?.payment_gateways?.stripe?.platform_fee_percent ?? 0;
+  const platformFee = settings?.payment_gateways?.stripe?.platform_fee_percent ?? 0.5;
   const surchargePercent = stripeRate + platformFee;
   const flatFee = stripeFlat;
 

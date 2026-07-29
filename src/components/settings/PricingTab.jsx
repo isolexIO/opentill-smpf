@@ -79,7 +79,7 @@ export default function PricingTab({ settings, onSave }) {
     
     let surcharge = 0;
     if (pricingSettings.enable_dual_pricing) {
-      const effectivePercent = (settings?.payment_gateways?.stripe?.processing_rate_percent ?? 2.9) + (settings?.payment_gateways?.stripe?.platform_fee_percent ?? 0);
+      const effectivePercent = (settings?.payment_gateways?.stripe?.processing_rate_percent ?? 2.9) + (settings?.payment_gateways?.stripe?.platform_fee_percent ?? 0.5);
       const effectiveFlat = settings?.payment_gateways?.stripe?.processing_flat_fee ?? 0.3;
       if (effectiveFlat > 0) {
         surcharge += effectiveFlat;
@@ -221,7 +221,7 @@ export default function PricingTab({ settings, onSave }) {
                 <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border">
                   <p className="text-xs text-gray-500 mb-1">Platform Fee</p>
                   <p className="text-2xl font-bold text-blue-600">
-                    {(settings?.payment_gateways?.stripe?.platform_fee_percent ?? 0).toFixed(2)}%
+                    {(settings?.payment_gateways?.stripe?.platform_fee_percent ?? 0.5).toFixed(2)}%
                   </p>
                 </div>
                 <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border">
