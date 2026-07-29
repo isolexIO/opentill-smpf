@@ -244,7 +244,7 @@ export default function MerchantManagement({ onUpdate }) {
         await base44.functions.invoke('sendEmail', {
           to: merchant.owner_email,
           subject: `Subscription Plan Change Proposal - Invoice ${invoice.invoice_number}`,
-          body: `Hello ${merchant.owner_name},
+          text: `Hello ${merchant.owner_name},
 
 Your subscription plan has been proposed for change:
 

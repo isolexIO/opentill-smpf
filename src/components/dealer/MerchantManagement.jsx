@@ -108,7 +108,7 @@ export default function MerchantManagement({ dealerId, initialMerchants }) {
       await base44.functions.invoke('sendEmail', {
         to: inviteEmail,
         subject: 'Join Our Network - openTILL POS',
-        body: `Hi,
+        text: `Hi,
 
 You're invited to sign up for openTILL POS and join our merchant network.
 
