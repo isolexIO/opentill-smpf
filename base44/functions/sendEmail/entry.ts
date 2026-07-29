@@ -22,14 +22,14 @@ Deno.serve(async (req) => {
         }
 
         // SECURITY (open mail relay): restrict delivery to the authenticated
-        // user's own email address only. Without this check, any logged-in user
-        // could relay arbitrary messages to any external address from the
-        // organization's SMTP server (spam/phishing). Platform admins are
-        // allowed to send to arbitrary addresses for legitimate admin comms.
-        const isAdmin = user.role === 'admin' || user.role === 'root_admin';
+        // user's own email address only. Platform admins and ambassadors
+        // (users with dealer_id) are allowed to send to arbitrary addresses
+        // for legitimate admin/invite comms.
+        const isAdmin = user.role === 'admin' || user.role === 'root_admin' || user.role === 'super_admin';
+        const isAmbassador = !!(user.data && user.data.dealer_id);
         const normalizedTo = String(to).trim().toLowerCase();
         const selfEmail = String(user.email || '').trim().toLowerCase();
-        if (!isAdmin && normalizedTo !== selfEmail) {
+        if (!isAdmin && !isAmbassador && normalizedTo !== selfEmail) {
             return Response.json({
                 success: false,
                 error: 'You may only send emails to your own registered address'
@@ -61,7 +61,7 @@ Deno.serve(async (req) => {
 
         // Send email
         const info = await transporter.sendMail({
-            from: `"ChainLINK POS" <${smtpUser}>`,
+            from: `"openTILL POS" <${smtpUser}>`,
             to: to,
             subject: subject,
             text: text,
