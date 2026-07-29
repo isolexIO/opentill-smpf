@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Save, AlertTriangle, ShieldCheck, AlertCircle, Terminal, Lock, Cpu } from 'lucide-react';
+import { Save, AlertTriangle, ShieldCheck, AlertCircle, Terminal, Lock, Cpu, CreditCard } from 'lucide-react';
 import StripeTerminalCard from '@/components/settings/StripeTerminalCard';
 import { useFeatureAccess } from '@/components/motherboard/useFeatureAccess';
 import { base44 } from '@/api/base44Client';
@@ -224,6 +224,55 @@ export default function PaymentGatewaysTab({ gateways, onUpdateGateways }) {
             </Alert>
           </CardContent>
         )}
+      </Card>
+
+      {/* openTILL Payments Processing Fee */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <CreditCard className="w-5 h-5 text-blue-600" />
+            openTILL Payments Processing Fee
+          </CardTitle>
+          <CardDescription>
+            Enter the actual processing rate charged to your merchant by openTILL Payments (Stripe). This is used to sync dual-pricing surcharges.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="stripe-rate">Processing Rate (%)</Label>
+              <Input
+                id="stripe-rate"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="2.9"
+                value={localGateways.stripe?.processing_rate_percent ?? 2.9}
+                onChange={(e) => handleStripeChange('processing_rate_percent', parseFloat(e.target.value) || 0)}
+              />
+              <p className="text-xs text-gray-500">Standard Stripe rate is 2.9%</p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="stripe-flat-fee">Flat Fee Per Transaction ($)</Label>
+              <Input
+                id="stripe-flat-fee"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="0.30"
+                value={localGateways.stripe?.processing_flat_fee ?? 0.3}
+                onChange={(e) => handleStripeChange('processing_flat_fee', parseFloat(e.target.value) || 0)}
+              />
+              <p className="text-xs text-gray-500">Standard Stripe flat fee is $0.30</p>
+            </div>
+          </div>
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              When <strong>Dual Pricing</strong> is enabled with <strong>Sync with openTILL Payments</strong>, the surcharge charged to each card transaction will automatically match these values, ensuring the merchant absorbs zero loss on card processing fees.
+            </AlertDescription>
+          </Alert>
+        </CardContent>
       </Card>
 
       {/* Stripe Terminal — provision location & register/pair readers */}

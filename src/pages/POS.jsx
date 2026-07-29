@@ -1242,12 +1242,21 @@ export default function POSPage() {
     let surchargeLabel = '';
 
     if (isDualPricingEnabled && settings?.merchant_id !== 'demo') { // Only apply if not in demo mode
+      // When sync_with_payments is enabled, use the actual openTILL Payments (Stripe)
+      // processing rate so the surcharge exactly matches the fee charged to the merchant.
+      const syncEnabled = pricingSettings.sync_with_payments;
+      const stripeRate = settings?.payment_gateways?.stripe?.processing_rate_percent ?? 2.9;
+      const stripeFlat = settings?.payment_gateways?.stripe?.processing_flat_fee ?? 0.3;
+
+      const effectivePercent = syncEnabled ? stripeRate : (pricingSettings.cc_surcharge_percent || 0);
+      const effectiveFlat = syncEnabled ? stripeFlat : (pricingSettings.flat_fee_amount || 0);
+
       // 1. Apply flat fee
-      if (pricingSettings.flat_fee_amount > 0) {
-        surchargeAmount += pricingSettings.flat_fee_amount;
+      if (effectiveFlat > 0) {
+        surchargeAmount += effectiveFlat;
       }
       // 2. Apply percentage fee on the subtotal after discount
-      let percent = (pricingSettings.cc_surcharge_percent || 0) / 100;
+      let percent = effectivePercent / 100;
 
       // Enforce regional caps
       if (pricingSettings.region === 'US' && percent > 0.04) {

@@ -13,9 +13,15 @@ export default function PaymentMethodSelectionScreen({ order, settings, onMethod
   // Dual pricing / surcharge settings
   const pricingSettings = settings?.pricing_and_surcharge || {};
   const dualPricingEnabled = pricingSettings.enable_dual_pricing || pricingSettings.show_dual_prices;
-  const surchargePercent = pricingSettings.cc_surcharge_percent || 0;
-  const flatFee = pricingSettings.flat_fee_amount || 0;
   const pricingMode = pricingSettings.pricing_mode || 'surcharge'; // 'surcharge' or 'cash_discount'
+
+  // When sync_with_payments is enabled, use the actual openTILL Payments (Stripe)
+  // processing rate so the surcharge exactly matches the fee charged to the merchant.
+  const syncEnabled = pricingSettings.sync_with_payments;
+  const stripeRate = settings?.payment_gateways?.stripe?.processing_rate_percent ?? 2.9;
+  const stripeFlat = settings?.payment_gateways?.stripe?.processing_flat_fee ?? 0.3;
+  const surchargePercent = syncEnabled ? stripeRate : (pricingSettings.cc_surcharge_percent || 0);
+  const flatFee = syncEnabled ? stripeFlat : (pricingSettings.flat_fee_amount || 0);
 
   // Calculate cash price (no surcharge) and card price (with surcharge)
   const baseTotal = order?.total || 0;

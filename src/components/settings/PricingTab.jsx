@@ -18,6 +18,7 @@ export default function PricingTab({ settings, onSave }) {
     show_dual_prices: settings?.pricing_and_surcharge?.show_dual_prices || true,
     region: settings?.pricing_and_surcharge?.region || 'US',
     pricing_mode: settings?.pricing_and_surcharge?.pricing_mode || 'surcharge',
+    sync_with_payments: settings?.pricing_and_surcharge?.sync_with_payments || false,
   });
 
   const [isSaving, setIsSaving] = useState(false);
@@ -78,10 +79,16 @@ export default function PricingTab({ settings, onSave }) {
     
     let surcharge = 0;
     if (pricingSettings.enable_dual_pricing) {
-      if (pricingSettings.flat_fee_amount > 0) {
-        surcharge += pricingSettings.flat_fee_amount;
+      const effectivePercent = pricingSettings.sync_with_payments
+        ? (settings?.payment_gateways?.stripe?.processing_rate_percent ?? 2.9)
+        : pricingSettings.cc_surcharge_percent;
+      const effectiveFlat = pricingSettings.sync_with_payments
+        ? (settings?.payment_gateways?.stripe?.processing_flat_fee ?? 0.3)
+        : pricingSettings.flat_fee_amount;
+      if (effectiveFlat > 0) {
+        surcharge += effectiveFlat;
       }
-      surcharge += (subtotal * (pricingSettings.cc_surcharge_percent / 100));
+      surcharge += (subtotal * (effectivePercent / 100));
     }
     
     const cardTotal = cashTotal + surcharge;
@@ -196,11 +203,50 @@ export default function PricingTab({ settings, onSave }) {
             </CardContent>
           </Card>
 
+          {/* Sync with openTILL Payments */}
+          <Card className="border-2 border-blue-300 bg-blue-50/50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Zap className="w-5 h-5 text-blue-600" />
+                Sync with openTILL Payments
+              </CardTitle>
+              <CardDescription>
+                Automatically match the surcharge to the actual processing fee charged by openTILL Payments (Stripe)
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Switch
+                    checked={pricingSettings.sync_with_payments}
+                    onCheckedChange={(checked) => setPricingSettings({ ...pricingSettings, sync_with_payments: checked })}
+                  />
+                  <Label>{pricingSettings.sync_with_payments ? 'Synced' : 'Manual'}</Label>
+                </div>
+                {pricingSettings.sync_with_payments && (
+                  <Badge className="bg-blue-500">Auto-synced</Badge>
+                )}
+              </div>
+              <Alert>
+                <Info className="w-4 h-4" />
+                <AlertDescription>
+                  {pricingSettings.sync_with_payments
+                    ? 'The surcharge on each card transaction will automatically match your openTILL Payments processing rate (set in Payment Gateways). This ensures you never absorb processing fees.'
+                    : 'Enable this to automatically sync the surcharge with your openTILL Payments (Stripe) processing rate. The manual percentage and flat fee below will be ignored.'}
+                </AlertDescription>
+              </Alert>
+            </CardContent>
+          </Card>
+
           {/* Surcharge Configuration */}
           <Card>
             <CardHeader>
               <CardTitle>Surcharge Configuration</CardTitle>
-              <CardDescription>Set your card processing fees</CardDescription>
+              <CardDescription>
+                {pricingSettings.sync_with_payments
+                  ? 'Synced with openTILL Payments — manual values are overridden'
+                  : 'Set your card processing fees'}
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -216,6 +262,7 @@ export default function PricingTab({ settings, onSave }) {
                       ...pricingSettings, 
                       cc_surcharge_percent: Math.min(parseFloat(e.target.value), getMaxPercent()) 
                     })}
+                    disabled={pricingSettings.sync_with_payments}
                   />
                   <span className="text-sm text-gray-500">Max: {getMaxPercent()}%</span>
                 </div>
@@ -231,6 +278,7 @@ export default function PricingTab({ settings, onSave }) {
                     min="0"
                     value={pricingSettings.flat_fee_amount}
                     onChange={(e) => setPricingSettings({ ...pricingSettings, flat_fee_amount: parseFloat(e.target.value) })}
+                    disabled={pricingSettings.sync_with_payments}
                   />
                 </div>
                 <p className="text-xs text-gray-500 mt-1">Add a fixed fee per transaction</p>

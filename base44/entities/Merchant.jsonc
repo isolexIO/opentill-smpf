@@ -186,12 +186,34 @@
                 "cash_discount"
               ],
               "default": "surcharge"
+            },
+            "sync_with_payments": {
+              "type": "boolean",
+              "default": false,
+              "description": "When true, the surcharge auto-matches the openTILL Payments (Stripe) processing rate instead of using the manually configured percentage"
             }
           }
         },
         "payment_gateways": {
           "type": "object",
-          "additionalProperties": true
+          "additionalProperties": true,
+          "properties": {
+            "stripe": {
+              "type": "object",
+              "properties": {
+                "processing_rate_percent": {
+                  "type": "number",
+                  "default": 2.9,
+                  "description": "The actual processing rate (%) charged to the merchant by openTILL Payments (Stripe). Used for dual-pricing sync."
+                },
+                "processing_flat_fee": {
+                  "type": "number",
+                  "default": 0.3,
+                  "description": "The flat per-transaction fee ($) charged by openTILL Payments (Stripe). Used for dual-pricing sync."
+                }
+              }
+            }
+          }
         },
         "solana_pay": {
           "type": "object",
