@@ -152,7 +152,11 @@ export default function MobileStationDisplay() {
     handleApprove,
   } = useStationDisplay({
     merchant,
-    stationId: station?.station_id,
+    // Pass null so the mobile display picks up any pending order for the
+    // merchant — the POS may auto-generate a station_id that doesn't match
+    // the Station entity's station_id, and filtering by station_id would
+    // prevent the mobile display from ever seeing the order.
+    stationId: null,
     sessionId,
     displayTimeout,
   });

@@ -41,6 +41,14 @@ export function useStationDisplay({ merchant, stationId, sessionId, displayTimeo
 
         if (pendingResp.data?.success && pendingResp.data.pendingOrder) {
           const order = pendingResp.data.pendingOrder;
+          // Ignore preview orders — only show orders that have been explicitly
+          // sent to the customer display (status: approval / tip_selection /
+          // ready_for_payment). Preview orders are created while the cashier
+          // is still building the cart and should not appear on the display.
+          if (order.status === 'preview') {
+            setConnectionLost(false);
+            return;
+          }
           setCurrentOrder(order);
 
           await base44.functions.invoke('updateDisplayOrder', {
