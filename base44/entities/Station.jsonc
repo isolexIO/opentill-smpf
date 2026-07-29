@@ -26,6 +26,18 @@
       "default": "generic",
       "description": "Station layout/type"
     },
+    "receipt_printer_id": {
+      "type": "string",
+      "description": "Printer ID (from MerchantSettings.hardware_devices.printers) used for receipt printing at this station. Null = use merchant default."
+    },
+    "kitchen_printer_id": {
+      "type": "string",
+      "description": "Printer ID used for kitchen ticket printing at this station. Null = use merchant default."
+    },
+    "bar_printer_id": {
+      "type": "string",
+      "description": "Printer ID used for bar ticket printing at this station. Null = use merchant default."
+    },
     "is_active": {
       "type": "boolean",
       "default": true,

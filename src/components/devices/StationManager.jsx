@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Plus,
   Trash2,
@@ -49,10 +50,27 @@ export default function StationManager({ merchantId }) {
   const [saving, setSaving] = useState(false);
   const [qrKey, setQrKey] = useState('');
   const [qrSrc, setQrSrc] = useState('');
+  const [printers, setPrinters] = useState([]);
+  const [receiptPrinterId, setReceiptPrinterId] = useState('none');
+  const [kitchenPrinterId, setKitchenPrinterId] = useState('none');
+  const [barPrinterId, setBarPrinterId] = useState('none');
 
   useEffect(() => {
-    if (merchantId) loadStations();
+    if (merchantId) {
+      loadStations();
+      loadPrinters();
+    }
   }, [merchantId]);
+
+  const loadPrinters = async () => {
+    try {
+      const list = await base44.entities.MerchantSettings.filter({ merchant_id: merchantId });
+      const hw = list?.[0]?.hardware_devices || {};
+      setPrinters(hw.printers || []);
+    } catch (e) {
+      console.error('StationManager: printer load error', e);
+    }
+  };
 
   const loadStations = async () => {
     try {
@@ -73,6 +91,9 @@ export default function StationManager({ merchantId }) {
     setName('');
     setStationId('');
     setLayoutType('counter');
+    setReceiptPrinterId('none');
+    setKitchenPrinterId('none');
+    setBarPrinterId('none');
     setEditing(null);
     setShowForm(false);
   };
@@ -82,6 +103,9 @@ export default function StationManager({ merchantId }) {
     setName('');
     setStationId('');
     setLayoutType('counter');
+    setReceiptPrinterId('none');
+    setKitchenPrinterId('none');
+    setBarPrinterId('none');
     setShowForm(true);
   };
 
@@ -102,6 +126,9 @@ export default function StationManager({ merchantId }) {
           name: name.trim(),
           station_id: slug,
           layout_type: layoutType,
+          receipt_printer_id: receiptPrinterId !== 'none' ? receiptPrinterId : null,
+          kitchen_printer_id: kitchenPrinterId !== 'none' ? kitchenPrinterId : null,
+          bar_printer_id: barPrinterId !== 'none' ? barPrinterId : null,
         });
       } else {
         const existing = await base44.entities.Station.filter({
@@ -120,6 +147,9 @@ export default function StationManager({ merchantId }) {
           layout_type: layoutType,
           is_active: true,
           sort_order: stations.length,
+          receipt_printer_id: receiptPrinterId !== 'none' ? receiptPrinterId : null,
+          kitchen_printer_id: kitchenPrinterId !== 'none' ? kitchenPrinterId : null,
+          bar_printer_id: barPrinterId !== 'none' ? barPrinterId : null,
         });
       }
       resetForm();
@@ -146,6 +176,9 @@ export default function StationManager({ merchantId }) {
     setName(s.name);
     setStationId(s.station_id);
     setLayoutType(s.layout_type || 'generic');
+    setReceiptPrinterId(s.receipt_printer_id || 'none');
+    setKitchenPrinterId(s.kitchen_printer_id || 'none');
+    setBarPrinterId(s.bar_printer_id || 'none');
     setShowForm(true);
   };
 
@@ -248,6 +281,38 @@ export default function StationManager({ merchantId }) {
                     </Button>
                   ))}
                 </div>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t">
+              <div className="space-y-1">
+                <Label className="text-xs text-gray-500">Receipt Printer</Label>
+                <Select value={receiptPrinterId} onValueChange={setReceiptPrinterId}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Default (auto)</SelectItem>
+                    {printers.map((p) => <SelectItem key={p.id} value={p.id}>{p.name} ({p.type})</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-gray-500">Kitchen Printer</Label>
+                <Select value={kitchenPrinterId} onValueChange={setKitchenPrinterId}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Default (auto)</SelectItem>
+                    {printers.map((p) => <SelectItem key={p.id} value={p.id}>{p.name} ({p.type})</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-gray-500">Bar Printer</Label>
+                <Select value={barPrinterId} onValueChange={setBarPrinterId}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Default (auto)</SelectItem>
+                    {printers.map((p) => <SelectItem key={p.id} value={p.id}>{p.name} ({p.type})</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <div className="flex justify-end gap-2">
