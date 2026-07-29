@@ -504,50 +504,50 @@ export default function SystemMenu() {
 
         {user?.merchant_id && (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
-            <Card className="bg-white dark:bg-gray-800">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Pending Orders</p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.pendingOrders}</p>
+            <Card className="bg-white dark:bg-gray-800 overflow-hidden">
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">Pending Orders</p>
+                    <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{stats.pendingOrders}</p>
                   </div>
-                  <Clock className="w-8 h-8 text-blue-500" />
+                  <Clock className="w-6 h-6 sm:w-8 sm:h-8 text-blue-500 flex-shrink-0" />
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-white dark:bg-gray-800">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Low Stock Items</p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.lowStockItems}</p>
+            <Card className="bg-white dark:bg-gray-800 overflow-hidden">
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">Low Stock Items</p>
+                    <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{stats.lowStockItems}</p>
                   </div>
-                  <AlertCircle className="w-8 h-8 text-orange-500" />
+                  <AlertCircle className="w-6 h-6 sm:w-8 sm:h-8 text-orange-500 flex-shrink-0" />
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-white dark:bg-gray-800">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Open Tickets</p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.openTickets}</p>
+            <Card className="bg-white dark:bg-gray-800 overflow-hidden">
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">Open Tickets</p>
+                    <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{stats.openTickets}</p>
                   </div>
-                  <HelpCircle className="w-8 h-8 text-purple-500" />
+                  <HelpCircle className="w-6 h-6 sm:w-8 sm:h-8 text-purple-500 flex-shrink-0" />
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-white dark:bg-gray-800">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Today's Sales</p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">${stats.todaySales}</p>
+            <Card className="bg-white dark:bg-gray-800 overflow-hidden">
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">Today's Sales</p>
+                    <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">${stats.todaySales}</p>
                   </div>
-                  <DollarSign className="w-8 h-8 text-green-500" />
+                  <DollarSign className="w-6 h-6 sm:w-8 sm:h-8 text-green-500 flex-shrink-0" />
                 </div>
               </CardContent>
             </Card>
@@ -571,23 +571,23 @@ export default function SystemMenu() {
             return (
               <Card
                 key={item.id}
-                className={`group hover:shadow-xl hover:scale-105 transition-all cursor-pointer dark:bg-gray-800 bg-white`}
+                className={`group hover:shadow-xl hover:scale-105 transition-all cursor-pointer dark:bg-gray-800 bg-white overflow-hidden`}
                 onClick={() => handleNavigate(item.path)}
               >
-                <CardHeader className="p-4 sm:p-6">
+                <CardHeader className="p-3 sm:p-6">
                   {item.id === 'opentill_payments' ? (
                     <div className="flex items-center justify-center mb-4 h-12 group-hover:scale-110 transition-transform">
                       {item.icon}
                     </div>
                   ) : (
-                    <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-gradient-to-r ${item.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                    <div className={`w-9 h-9 sm:w-12 sm:h-12 rounded-lg bg-gradient-to-r ${item.color} flex items-center justify-center mb-3 sm:mb-4 group-hover:scale-110 transition-transform`}>
                       {item.icon}
                     </div>
                   )}
-                  <CardTitle className="font-semibold text-base sm:text-lg text-gray-900 dark:text-white mb-1">
+                  <CardTitle className="font-semibold text-sm sm:text-lg text-gray-900 dark:text-white mb-1 break-words leading-tight">
                     {item.title}
                   </CardTitle>
-                  <CardDescription className="text-sm text-gray-500 dark:text-gray-400">
+                  <CardDescription className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 break-words leading-snug">
                     {item.description}
                   </CardDescription>
                 </CardHeader>
@@ -596,17 +596,17 @@ export default function SystemMenu() {
           })}
 
           <Card
-            className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 hover:border-purple-400 dark:bg-gray-800 bg-white"
+            className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 hover:border-purple-400 dark:bg-gray-800 bg-white overflow-hidden"
             onClick={() => window.open('https://071be2.c.myucm.cloud/liveChat?liveChatAccess=MF83MDA2N2YzNDg5OTQ0OWI0OTdiMzhlMWQyNDhkNTg5Ml8wMDBiODIwNzFiZTImNmI3ODBlYzM4ZThmMWQyYjNiNDcwMTliMWM1OWM2MzA=', '_blank')}
           >
-            <CardHeader className="p-4 sm:p-6">
-              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <MessageCircle className="w-6 h-6 text-white" />
+            <CardHeader className="p-3 sm:p-6">
+              <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-lg bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center mb-3 sm:mb-4 group-hover:scale-110 transition-transform">
+                <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
-              <CardTitle className="font-semibold text-lg text-gray-900 dark:text-white mb-1 group-hover:text-purple-600 transition-colors">
+              <CardTitle className="font-semibold text-sm sm:text-lg text-gray-900 dark:text-white mb-1 group-hover:text-purple-600 transition-colors break-words leading-tight">
                 Live Support
               </CardTitle>
-              <CardDescription className="text-sm text-gray-500 dark:text-gray-400">
+              <CardDescription className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 break-words leading-snug">
                 Chat with our support team
               </CardDescription>
             </CardHeader>
