@@ -220,6 +220,88 @@ Deno.serve(async (req) => {
             console.error('Failed to send welcome email:', emailError.message || emailError);
         }
 
+        // ── Auto-provision a demo merchant for the ambassador ──
+        // Demo merchants have full access with no fees so the ambassador
+        // can immediately explore the POS experience.
+        let demoMerchant = null;
+        try {
+            console.log('Creating demo merchant for ambassador:', dealer.name);
+            const demoMerchantData = {
+                dealer_id: dealer.id,
+                business_name: `${dealer_name.trim()} — Demo Store`,
+                display_name: 'Demo Store',
+                owner_email: owner_email.toLowerCase().trim(),
+                owner_name: owner_name.trim(),
+                phone: contact_phone || '',
+                status: 'active',
+                is_demo: true,
+                onboarding_completed: true,
+                total_revenue: 0,
+                total_orders: 0,
+                features_enabled: ['pos', 'inventory', 'reports'],
+                settings: {
+                    timezone: 'America/New_York',
+                    currency: 'USD',
+                    tax_rate: 0.08,
+                },
+            };
+
+            demoMerchant = await base44.asServiceRole.entities.Merchant.create(demoMerchantData);
+            console.log('Demo merchant created with ID:', demoMerchant.id);
+
+            // Seed demo departments + products
+            const departments = [
+                { name: 'Appetizers', display_order: 1, color: '#f59e0b', icon: '🥟' },
+                { name: 'Entrees', display_order: 2, color: '#ef4444', icon: '🍔' },
+                { name: 'Sides', display_order: 3, color: '#10b981', icon: '🍟' },
+                { name: 'Beverages', display_order: 4, color: '#3b82f6', icon: '🥤' },
+                { name: 'Desserts', display_order: 5, color: '#ec4899', icon: '🍰' },
+            ];
+
+            const createdDepartments = [];
+            for (const dept of departments) {
+                const created = await base44.asServiceRole.entities.Department.create({
+                    merchant_id: demoMerchant.id,
+                    dealer_id: dealer.id,
+                    ...dept,
+                    is_active: true,
+                });
+                createdDepartments.push(created);
+            }
+
+            const products = [
+                { name: 'Buffalo Wings', department: 'Appetizers', price: 12.99, description: 'Spicy chicken wings with ranch', image_url: 'https://images.unsplash.com/photo-1608039829572-78524f79c4c7?w=400', stock_quantity: 100, sku: 'APP001', ebt_eligible: false },
+                { name: 'Mozzarella Sticks', department: 'Appetizers', price: 8.99, description: 'Breaded mozzarella with marinara', image_url: 'https://images.unsplash.com/photo-1531749668029-2db88e4276c7?w=400', stock_quantity: 100, sku: 'APP002', ebt_eligible: false },
+                { name: 'Classic Burger', department: 'Entrees', price: 14.99, description: 'Beef patty with lettuce, tomato, onion', image_url: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400', stock_quantity: 100, sku: 'ENT001', ebt_eligible: true },
+                { name: 'Grilled Chicken Sandwich', department: 'Entrees', price: 13.99, description: 'Marinated chicken breast with veggies', image_url: 'https://images.unsplash.com/photo-1606755962773-d324e0a13086?w=400', stock_quantity: 100, sku: 'ENT002', ebt_eligible: true },
+                { name: 'BBQ Ribs', department: 'Entrees', price: 22.99, description: 'Fall-off-the-bone tender ribs', image_url: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400', stock_quantity: 100, sku: 'ENT003', ebt_eligible: true },
+                { name: 'French Fries', department: 'Sides', price: 4.99, description: 'Crispy golden fries', image_url: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400', stock_quantity: 100, sku: 'SID001', ebt_eligible: true },
+                { name: 'Coleslaw', department: 'Sides', price: 3.99, description: 'Creamy cabbage slaw', image_url: 'https://images.unsplash.com/photo-1625938145312-598e9f0c90d6?w=400', stock_quantity: 100, sku: 'SID002', ebt_eligible: true },
+                { name: 'Coca-Cola', department: 'Beverages', price: 2.99, description: 'Classic Coke', image_url: 'https://images.unsplash.com/photo-1554866585-cd94860890b7?w=400', stock_quantity: 100, sku: 'BEV001', ebt_eligible: true },
+                { name: 'Iced Tea', department: 'Beverages', price: 2.99, description: 'Freshly brewed iced tea', image_url: 'https://images.unsplash.com/photo-1556881286-fc6915169721?w=400', stock_quantity: 100, sku: 'BEV002', ebt_eligible: true },
+                { name: 'Chocolate Cake', department: 'Desserts', price: 6.99, description: 'Rich chocolate layer cake', image_url: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400', stock_quantity: 100, sku: 'DES001', ebt_eligible: false },
+            ];
+
+            for (const prod of products) {
+                await base44.asServiceRole.entities.Product.create({
+                    merchant_id: demoMerchant.id,
+                    dealer_id: dealer.id,
+                    ...prod,
+                    is_active: true,
+                    pos_mode: ['restaurant', 'retail', 'quick_service', 'food_truck'],
+                });
+            }
+
+            console.log('Demo menu seeded for merchant:', demoMerchant.id);
+
+            // Update ambassador merchant count
+            await base44.asServiceRole.entities.Ambassador.update(dealer.id, {
+                total_merchants: 1,
+            });
+        } catch (demoError) {
+            console.error('Failed to create demo merchant (non-fatal):', demoError.message || demoError);
+        }
+
         console.log('Dealer registration completed successfully');
 
         return Response.json({
@@ -236,11 +318,15 @@ Deno.serve(async (req) => {
                 full_name: user.full_name,
                 role: user.role
             },
+            demo_merchant: demoMerchant ? {
+                id: demoMerchant.id,
+                business_name: demoMerchant.business_name,
+            } : null,
             credentials: {
                 pin: pin,
                 email: owner_email.toLowerCase().trim(),
             },
-            message: 'Dealer account created successfully! Check your email for login credentials.'
+            message: 'Dealer account created successfully! A demo store has been provisioned. Check your email for login credentials.'
         });
 
     } catch (error) {

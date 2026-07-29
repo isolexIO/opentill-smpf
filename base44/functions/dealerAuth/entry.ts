@@ -15,6 +15,79 @@ if (!JWT_SECRET) {
 // flows through JWTs, user records, and child-entity foreign keys is the
 // Ambassador's `legacy_dealer_id` (the original Dealer id for migrated records,
 // or the Ambassador's own id for new records).
+
+// Auto-provisions a demo merchant (with sample departments + products) for a
+// newly created ambassador so they can immediately explore the POS experience.
+async function provisionDemoMerchant(base44, dealerId, ambassadorName, ownerEmail, ownerName) {
+  try {
+    const demoMerchant = await base44.asServiceRole.entities.Merchant.create({
+      dealer_id: dealerId,
+      business_name: `${ambassadorName} — Demo Store`,
+      display_name: 'Demo Store',
+      owner_email: ownerEmail.toLowerCase().trim(),
+      owner_name: ownerName || '',
+      status: 'active',
+      is_demo: true,
+      onboarding_completed: true,
+      total_revenue: 0,
+      total_orders: 0,
+      features_enabled: ['pos', 'inventory', 'reports'],
+      settings: {
+        timezone: 'America/New_York',
+        currency: 'USD',
+        tax_rate: 0.08,
+      },
+    });
+
+    const departments = [
+      { name: 'Appetizers', display_order: 1, color: '#f59e0b', icon: '🥟' },
+      { name: 'Entrees', display_order: 2, color: '#ef4444', icon: '🍔' },
+      { name: 'Sides', display_order: 3, color: '#10b981', icon: '🍟' },
+      { name: 'Beverages', display_order: 4, color: '#3b82f6', icon: '🥤' },
+      { name: 'Desserts', display_order: 5, color: '#ec4899', icon: '🍰' },
+    ];
+
+    for (const dept of departments) {
+      await base44.asServiceRole.entities.Department.create({
+        merchant_id: demoMerchant.id,
+        dealer_id: dealerId,
+        ...dept,
+        is_active: true,
+      });
+    }
+
+    const products = [
+      { name: 'Buffalo Wings', department: 'Appetizers', price: 12.99, description: 'Spicy chicken wings with ranch', image_url: 'https://images.unsplash.com/photo-1608039829572-78524f79c4c7?w=400', stock_quantity: 100, sku: 'APP001', ebt_eligible: false },
+      { name: 'Mozzarella Sticks', department: 'Appetizers', price: 8.99, description: 'Breaded mozzarella with marinara', image_url: 'https://images.unsplash.com/photo-1531749668029-2db88e4276c7?w=400', stock_quantity: 100, sku: 'APP002', ebt_eligible: false },
+      { name: 'Classic Burger', department: 'Entrees', price: 14.99, description: 'Beef patty with lettuce, tomato, onion', image_url: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400', stock_quantity: 100, sku: 'ENT001', ebt_eligible: true },
+      { name: 'Grilled Chicken Sandwich', department: 'Entrees', price: 13.99, description: 'Marinated chicken breast with veggies', image_url: 'https://images.unsplash.com/photo-1606755962773-d324e0a13086?w=400', stock_quantity: 100, sku: 'ENT002', ebt_eligible: true },
+      { name: 'BBQ Ribs', department: 'Entrees', price: 22.99, description: 'Fall-off-the-bone tender ribs', image_url: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400', stock_quantity: 100, sku: 'ENT003', ebt_eligible: true },
+      { name: 'French Fries', department: 'Sides', price: 4.99, description: 'Crispy golden fries', image_url: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400', stock_quantity: 100, sku: 'SID001', ebt_eligible: true },
+      { name: 'Coleslaw', department: 'Sides', price: 3.99, description: 'Creamy cabbage slaw', image_url: 'https://images.unsplash.com/photo-1625938145312-598e9f0c90d6?w=400', stock_quantity: 100, sku: 'SID002', ebt_eligible: true },
+      { name: 'Coca-Cola', department: 'Beverages', price: 2.99, description: 'Classic Coke', image_url: 'https://images.unsplash.com/photo-1554866585-cd94860890b!7?w=400', stock_quantity: 100, sku: 'BEV001', ebt_eligible: true },
+      { name: 'Iced Tea', department: 'Beverages', price: 2.99, description: 'Freshly brewed iced tea', image_url: 'https://images.unsplash.com/photo-1556881286-fc6915169721?w=400', stock_quantity: 100, sku: 'BEV002', ebt_eligible: true },
+      { name: 'Chocolate Cake', department: 'Desserts', price: 6.99, description: 'Rich chocolate layer cake', image_url: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400', stock_quantity: 100, sku: 'DES001', ebt_eligible: false },
+    ];
+
+    for (const prod of products) {
+      await base44.asServiceRole.entities.Product.create({
+        merchant_id: demoMerchant.id,
+        dealer_id: dealerId,
+        ...prod,
+        is_active: true,
+        pos_mode: ['restaurant', 'retail', 'quick_service', 'food_truck'],
+      });
+    }
+
+    await base44.asServiceRole.entities.Ambassador.update(dealerId, { total_merchants: 1 });
+    console.log('Demo merchant provisioned for ambassador:', dealerId);
+    return demoMerchant;
+  } catch (err) {
+    console.error('Failed to provision demo merchant (non-fatal):', err.message || err);
+    return null;
+  }
+}
+
 async function generateToken(dealerId, email) {
   const key = await crypto.subtle.importKey(
     'raw',
@@ -262,6 +335,9 @@ Deno.serve(async (req) => {
       // Bridge legacy dealer_id foreign keys to this ambassador.
       await base44.asServiceRole.entities.Ambassador.update(ambassador.id, { legacy_dealer_id: ambassador.id });
 
+      // Auto-provision a demo merchant for the new ambassador
+      await provisionDemoMerchant(base44, ambassador.id, ambassador.name, ambassador.owner_email, ambassador.owner_name);
+
       const dealerId = ambassador.id;
       const token = await generateToken(dealerId, ambassador.owner_email);
 
@@ -331,6 +407,10 @@ Deno.serve(async (req) => {
         await base44.asServiceRole.entities.Ambassador.update(ambassador.id, {
           legacy_dealer_id: ambassador.id
         });
+
+        // Auto-provision a demo merchant for the new ambassador
+        await provisionDemoMerchant(base44, ambassador.id, ambassador.name, ambassador.owner_email, ambassador.owner_name);
+
         isNew = true;
       }
 
