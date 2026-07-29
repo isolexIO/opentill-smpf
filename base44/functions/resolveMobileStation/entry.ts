@@ -36,7 +36,10 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: 'This link has expired. Please ask the cashier to generate a new link.', code: 'link_expired' }, { status: 403 });
     }
 
-    // Check max mobile connections
+    // Check max mobile connections — but first mark stale sessions offline.
+    // A session is considered stale if its last heartbeat is older than 2 minutes,
+    // meaning the mobile device has likely closed the tab or lost connectivity
+    // without cleanly disconnecting.
     if (station.max_mobile_connections && station.max_mobile_connections > 0) {
       try {
         const activeSessions = await base44.asServiceRole.entities.DeviceSession.filter({
@@ -45,8 +48,25 @@ Deno.serve(async (req) => {
           device_type: 'mobile',
           status: 'online'
         });
-        if (activeSessions && activeSessions.length >= station.max_mobile_connections) {
-          return Response.json({ success: false, error: 'Maximum number of mobile devices are connected. Please try again later.', code: 'max_connections' }, { status: 429 });
+
+        if (activeSessions && activeSessions.length > 0) {
+          const staleThreshold = new Date(Date.now() - 2 * 60 * 1000); // 2 minutes
+          const staleSessions = activeSessions.filter(s => {
+            if (!s.last_heartbeat) return true;
+            return new Date(s.last_heartbeat) < staleThreshold;
+          });
+
+          // Mark stale sessions offline so they don't block new connections
+          for (const s of staleSessions) {
+            try {
+              await base44.asServiceRole.entities.DeviceSession.update(s.id, { status: 'offline' });
+            } catch (e) {}
+          }
+
+          const trulyActive = activeSessions.length - staleSessions.length;
+          if (trulyActive >= station.max_mobile_connections) {
+            return Response.json({ success: false, error: 'Maximum number of mobile devices are connected. Please try again later.', code: 'max_connections' }, { status: 429 });
+          }
         }
       } catch (e) {
         console.warn('resolveMobileStation: Could not check active sessions:', e);
