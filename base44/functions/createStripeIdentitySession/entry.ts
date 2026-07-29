@@ -30,7 +30,7 @@ Deno.serve(async (req) => {
         document: {
           allowed_types: ['driving_license', 'passport', 'id_card'],
           require_live_capture: true,
-          require_matching_selfie_photo: true,
+          require_matching_selfie: true,
         },
       },
       metadata: {
@@ -41,7 +41,7 @@ Deno.serve(async (req) => {
         entity_type: entity_type || '',
         entity_id: entity_id || '',
       },
-      provided_info: {
+      provided_details: {
         email: owner_email,
       },
       ...(return_url ? { return_url } : {}),
