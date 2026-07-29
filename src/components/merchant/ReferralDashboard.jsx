@@ -40,7 +40,7 @@ export default function ReferralDashboard() {
         
         if (merchantData.referral_code) {
           setReferralCode(merchantData.referral_code);
-          setShareUrl(`${window.location.origin}/MerchantOnboarding?ref=${merchantData.referral_code}`);
+          setShareUrl(`${window.location.origin}/?ref=${merchantData.referral_code}`);
         }
       }
 

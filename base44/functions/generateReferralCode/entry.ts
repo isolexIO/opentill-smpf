@@ -92,7 +92,7 @@ Deno.serve(async (req) => {
     return Response.json({
       success: true,
       referral_code: referralCode,
-      share_url: `${req.headers.get('origin')}/MerchantOnboarding?ref=${referralCode}`
+      share_url: `${req.headers.get('origin')}/?ref=${referralCode}`
     });
 
   } catch (error) {
