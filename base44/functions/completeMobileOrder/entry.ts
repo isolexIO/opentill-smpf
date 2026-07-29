@@ -58,6 +58,24 @@ Deno.serve(async (req) => {
       },
     });
 
+    // Update customer loyalty
+    if (updated.customer_id) {
+      try {
+        const customers = await base44.asServiceRole.entities.Customer.filter({ id: updated.customer_id });
+        if (customers && customers.length > 0) {
+          const customer = customers[0];
+          const pointsEarned = Math.floor((updated.total || 0) / 10);
+          await base44.asServiceRole.entities.Customer.update(updated.customer_id, {
+            loyalty_points: (customer.loyalty_points || 0) + pointsEarned,
+            total_spent: (customer.total_spent || 0) + (updated.total || 0),
+            visit_count: (customer.visit_count || 0) + 1,
+          });
+        }
+      } catch (e) {
+        console.warn('completeMobileOrder: Could not update customer loyalty:', e);
+      }
+    }
+
     // Update merchant totals
     try {
       const merchants = await base44.asServiceRole.entities.Merchant.filter({ id: station.merchant_id });

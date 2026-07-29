@@ -6,6 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import MobileSolanaPay from '@/components/mobile/MobileSolanaPay';
+import MobileOpenItemDialog from '@/components/mobile/MobileOpenItemDialog';
+import MobileCustomerSheet from '@/components/mobile/MobileCustomerSheet';
+import MobileAgeVerification from '@/components/mobile/MobileAgeVerification';
 import {
   Search,
   ShoppingCart,
@@ -17,24 +20,35 @@ import {
   CreditCard,
   CheckCircle,
   Loader2,
-  X,
   Package,
+  User,
+  Tag,
+  Monitor,
 } from 'lucide-react';
 
-export default function MobilePOS({ merchant, station, sessionId, initialProducts, initialDepartments }) {
+export default function MobilePOS({ merchant, station, sessionId, initialProducts, initialDepartments, initialCustomers }) {
   const { token } = useParams();
   const [products] = useState(initialProducts || []);
   const [departments] = useState(initialDepartments || []);
+  const [customers] = useState(initialCustomers || []);
   const [cart, setCart] = useState([]);
   const [selectedDepartment, setSelectedDepartment] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [view, setView] = useState('products'); // products | cart | checkout | success | solana_pay
+  const [view, setView] = useState('products');
+  const [posProductView, setPosProductView] = useState('departments');
   const [loading, setLoading] = useState(!initialProducts);
   const [processing, setProcessing] = useState(false);
   const [lastOrder, setLastOrder] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState(null);
   const [cashReceived, setCashReceived] = useState('');
-  const [pendingOrder, setPendingOrder] = useState(null); // for solana_pay & stripe flows
+  const [pendingOrder, setPendingOrder] = useState(null);
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [discountPercent, setDiscountPercent] = useState(0);
+  const [tableNumber, setTableNumber] = useState('');
+  const [showOpenItem, setShowOpenItem] = useState(false);
+  const [showCustomerSheet, setShowCustomerSheet] = useState(false);
+  const [showAgeVerification, setShowAgeVerification] = useState(false);
+  const [ageVerificationData, setAgeVerificationData] = useState(null);
   const heartbeatRef = useRef(null);
 
   const settings = merchant?.settings || {};
@@ -42,8 +56,12 @@ export default function MobilePOS({ merchant, station, sessionId, initialProduct
   const merchantId = merchant?.id;
   const solanaPayEnabled = settings?.solana_pay?.enabled && settings?.solana_pay?.wallet_address;
   const stripeEnabled = settings?.stripe_enabled;
+  const isKitchenDisplayEnabled = settings?.kitchen_display?.enabled !== false;
+  const isDualPricingEnabled = settings?.pricing_and_surcharge?.enable_dual_pricing || false;
+  const isAgeVerificationEnabled = settings?.age_verification?.enabled !== false;
 
-  // Heartbeat
+  // --- Effects: heartbeat, cleanup, PWA, Stripe return ---
+
   useEffect(() => {
     if (!sessionId || !merchantId) return;
     heartbeatRef.current = setInterval(async () => {
@@ -54,7 +72,6 @@ export default function MobilePOS({ merchant, station, sessionId, initialProduct
     return () => { if (heartbeatRef.current) clearInterval(heartbeatRef.current); };
   }, [sessionId, merchantId]);
 
-  // Heartbeat cleanup on unmount
   useEffect(() => {
     return () => {
       if (heartbeatRef.current) clearInterval(heartbeatRef.current);
@@ -64,7 +81,6 @@ export default function MobilePOS({ merchant, station, sessionId, initialProduct
     };
   }, []);
 
-  // PWA meta
   useEffect(() => {
     const metas = [
       { name: 'apple-mobile-web-app-capable', content: 'yes' },
@@ -72,7 +88,7 @@ export default function MobilePOS({ merchant, station, sessionId, initialProduct
       { name: 'mobile-web-app-capable', content: 'yes' },
       { name: 'theme-color', content: '#3B82F6' },
     ];
-    const created = metas.map(m => {
+    const created = metas.map((m) => {
       const el = document.createElement('meta');
       el.name = m.name;
       el.content = m.content;
@@ -85,29 +101,136 @@ export default function MobilePOS({ merchant, station, sessionId, initialProduct
       viewport.content = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no';
     }
     return () => {
-      created.forEach(el => el.remove());
+      created.forEach((el) => el.remove());
       if (viewport && originalViewport) viewport.content = originalViewport;
     };
   }, []);
 
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const stripeStatus = urlParams.get('stripe_status');
+    const orderId = urlParams.get('order_id');
+
+    if (stripeStatus === 'success' && orderId) {
+      (async () => {
+        setProcessing(true);
+        try {
+          const res = await base44.functions.invoke('completeMobileOrder', {
+            token,
+            order_id: orderId,
+            payment_method: 'card',
+            payment_details: { stripe_checkout: 'completed' },
+          });
+          if (res.data?.success) {
+            setLastOrder({
+              order_number: res.data.order.order_number,
+              total: res.data.order.total,
+              change_due: 0,
+            });
+            setView('success');
+          } else {
+            alert('Payment could not be verified. Please contact the cashier.');
+          }
+        } catch (e) {
+          console.error('Stripe checkout return error:', e);
+          alert('Payment verification failed. Please contact the cashier.');
+        } finally {
+          setProcessing(false);
+          window.history.replaceState({}, document.title, `/mobile/station/${token}`);
+        }
+      })();
+    } else if (stripeStatus === 'canceled') {
+      window.history.replaceState({}, document.title, `/mobile/station/${token}`);
+    }
+  }, [token]);
+
+  // --- Derived values ---
+
   const filteredProducts = useMemo(() => {
     let filtered = products;
     if (selectedDepartment !== 'all') {
-      filtered = filtered.filter(p => p.department_id === selectedDepartment || p.department === selectedDepartment);
+      filtered = filtered.filter(
+        (p) => p.department_id === selectedDepartment || p.department === selectedDepartment
+      );
     }
     if (searchTerm.trim()) {
       const q = searchTerm.toLowerCase();
-      filtered = filtered.filter(p =>
-        p.name?.toLowerCase().includes(q) ||
-        p.barcode?.includes(q)
+      filtered = filtered.filter(
+        (p) => p.name?.toLowerCase().includes(q) || p.barcode?.includes(q)
       );
     }
     return filtered;
   }, [products, selectedDepartment, searchTerm]);
 
+  const totals = useMemo(() => {
+    const subtotal = cart.reduce((sum, item) => {
+      const itemTotal = item.is_open_item ? item.price : item.price || 0;
+      return sum + itemTotal * item.quantity;
+    }, 0);
+
+    const ebtEligibleTotal = cart.reduce((sum, item) => {
+      if (item.ebt_eligible) {
+        const itemTotal = item.is_open_item ? item.price : item.price || 0;
+        return sum + itemTotal * item.quantity;
+      }
+      return sum;
+    }, 0);
+
+    const discountAmount = subtotal * (discountPercent / 100);
+    const taxableAmount = subtotal - discountAmount;
+    const taxAmount = taxableAmount * taxRate;
+
+    let surchargeAmount = 0;
+    let surchargeLabel = '';
+
+    if (isDualPricingEnabled) {
+      const stripeRate = settings?.stripe_rates?.processing_rate_percent ?? 2.9;
+      const stripeFlat = settings?.stripe_rates?.processing_flat_fee ?? 0.3;
+      const platformFee = settings?.stripe_rates?.platform_fee_percent ?? 0.5;
+      const effectivePercent = stripeRate + platformFee;
+
+      surchargeAmount += stripeFlat;
+      let percent = effectivePercent / 100;
+
+      const region = settings?.pricing_and_surcharge?.region || 'US';
+      if (region === 'US' && percent > 0.04) percent = 0.04;
+      else if (region === 'CA' && percent > 0.024) percent = 0.024;
+
+      surchargeAmount += taxableAmount * percent;
+      surchargeLabel =
+        region === 'CA'
+          ? 'Credit Card Processing Fee'
+          : settings?.pricing_and_surcharge?.pricing_mode === 'cash_discount'
+            ? 'Non-Cash Adjustment'
+            : 'Credit Surcharge';
+    }
+
+    const cashTotal = taxableAmount + taxAmount;
+    const cardTotal = cashTotal + surchargeAmount;
+
+    return {
+      subtotal: subtotal.toFixed(2),
+      discountAmount: discountAmount.toFixed(2),
+      taxAmount: taxAmount.toFixed(2),
+      surchargeAmount: surchargeAmount.toFixed(2),
+      surchargeLabel,
+      cashTotal: cashTotal.toFixed(2),
+      cardTotal: cardTotal.toFixed(2),
+      ebtEligibleTotal: ebtEligibleTotal.toFixed(2),
+      total: cardTotal.toFixed(2),
+    };
+  }, [cart, taxRate, discountPercent, settings, isDualPricingEnabled]);
+
+  const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+  // --- Cart operations ---
+
   const addToCart = (product) => {
-    setCart(current => {
-      const existing = current.findIndex(item => item.id === product.id);
+    setCart((current) => {
+      if (product.is_open_item) {
+        return [...current, { ...product, quantity: 1 }];
+      }
+      const existing = current.findIndex((item) => item.id === product.id);
       if (existing > -1) {
         const newCart = [...current];
         newCart[existing].quantity += 1;
@@ -118,7 +241,7 @@ export default function MobilePOS({ merchant, station, sessionId, initialProduct
   };
 
   const updateQuantity = (index, delta) => {
-    setCart(current => {
+    setCart((current) => {
       const newCart = [...current];
       const newQty = newCart[index].quantity + delta;
       if (newQty <= 0) {
@@ -130,48 +253,95 @@ export default function MobilePOS({ merchant, station, sessionId, initialProduct
   };
 
   const removeFromCart = (index) => {
-    setCart(current => current.filter((_, i) => i !== index));
+    setCart((current) => current.filter((_, i) => i !== index));
   };
 
-  const totals = useMemo(() => {
-    const subtotal = cart.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0);
-    const taxAmount = subtotal * taxRate;
-    const total = subtotal + taxAmount;
-    return {
-      subtotal: subtotal.toFixed(2),
-      taxAmount: taxAmount.toFixed(2),
-      total: total.toFixed(2),
+  const handleBarcodeScanned = (barcode) => {
+    const product = products.find(
+      (p) => p.barcode?.trim() === barcode || p.sku?.trim() === barcode
+    );
+    if (product) {
+      addToCart(product);
+      setPosProductView('products');
+      setSelectedDepartment(product.department || 'all');
+    } else {
+      if (navigator.vibrate) navigator.vibrate(200);
+      alert(`No product found for barcode: ${barcode}`);
+    }
+  };
+
+  // --- Barcode scanner ---
+  useEffect(() => {
+    let barcodeBuffer = '';
+    let lastKeyTime = Date.now();
+
+    const handleKeyDown = (e) => {
+      const currentTime = Date.now();
+      const timeDiff = currentTime - lastKeyTime;
+      lastKeyTime = currentTime;
+
+      if (timeDiff > 150) {
+        barcodeBuffer = '';
+      }
+
+      const activeElement = document.activeElement;
+      const isInputField =
+        activeElement &&
+        (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA');
+
+      if (isInputField) return;
+
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (barcodeBuffer.length >= 3) {
+          handleBarcodeScanned(barcodeBuffer);
+        }
+        barcodeBuffer = '';
+      } else if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
+        e.preventDefault();
+        barcodeBuffer += e.key;
+      }
     };
-  }, [cart, taxRate]);
 
-  const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+    document.addEventListener('keydown', handleKeyDown, true);
+    return () => document.removeEventListener('keydown', handleKeyDown, true);
+  }, [products]);
 
-  const handleCheckout = async () => {
-    if (cart.length === 0) return;
-    setView('checkout');
-  };
+  // --- Order building & checkout ---
 
   const buildOrderData = (paymentMethod, status = 'pending') => {
     const orderNumber = `MOBILE-${Date.now()}`;
-    const total = parseFloat(totals.total);
+    const isCash = paymentMethod === 'cash';
+    const total = isCash ? parseFloat(totals.cashTotal) : parseFloat(totals.cardTotal);
+
     return {
       order_number: orderNumber,
-      customer_name: 'Walk-in Customer',
-      items: cart.map(item => ({
+      customer_id: selectedCustomer?.id || null,
+      customer_name: selectedCustomer?.name || 'Walk-in Customer',
+      items: cart.map((item) => ({
         product_id: item.id,
         product_name: item.name,
         quantity: item.quantity,
-        unit_price: item.price || 0,
-        item_total: (item.price || 0) * item.quantity,
+        unit_price: item.is_open_item ? item.price : item.price || 0,
+        item_total: (item.is_open_item ? item.price : item.price || 0) * item.quantity,
+        is_open_item: item.is_open_item || false,
+        ebt_eligible: item.ebt_eligible || false,
+        age_restricted: item.age_restricted || false,
+        minimum_age: item.minimum_age || null,
       })),
       subtotal: parseFloat(totals.subtotal),
       tax_amount: parseFloat(totals.taxAmount),
-      discount_amount: 0,
+      discount_amount: parseFloat(totals.discountAmount),
+      surcharge_amount: parseFloat(totals.surchargeAmount),
+      surcharge_label: totals.surchargeLabel,
       total,
+      ebt_eligible_total: parseFloat(totals.ebtEligibleTotal),
       payment_method: paymentMethod,
       status,
       pos_mode: 'restaurant',
+      table_number: tableNumber || null,
       sent_to_customer_display: true,
+      age_verification: ageVerificationData,
     };
   };
 
@@ -180,13 +350,63 @@ export default function MobilePOS({ merchant, station, sessionId, initialProduct
     setPaymentMethod(null);
     setCashReceived('');
     setPendingOrder(null);
+    setSelectedCustomer(null);
+    setDiscountPercent(0);
+    setTableNumber('');
+    setAgeVerificationData(null);
+    setPosProductView('departments');
+    setSelectedDepartment('all');
   };
 
-  // Cash: create order + complete immediately
+  const handleCheckout = () => {
+    if (cart.length === 0) return;
+
+    const restrictedItems = cart.filter((item) => item.age_restricted);
+    if (restrictedItems.length > 0 && isAgeVerificationEnabled) {
+      setShowAgeVerification(true);
+      return;
+    }
+
+    setView('checkout');
+  };
+
+  const handleAgeVerified = (verificationData) => {
+    setAgeVerificationData(verificationData);
+    setShowAgeVerification(false);
+    setView('checkout');
+  };
+
+  const sendToKitchen = async () => {
+    if (cart.length === 0) return;
+    setProcessing(true);
+    try {
+      const orderData = buildOrderData('pending', 'pending');
+      orderData.sent_to_kitchen = true;
+      orderData.payment_method = 'pending';
+      orderData.sent_to_customer_display = false;
+
+      const res = await base44.functions.invoke('createMobileOrder', {
+        token,
+        order_data: orderData,
+      });
+
+      if (!res.data?.success) throw new Error(res.data?.error || 'Failed to send to kitchen');
+
+      resetCheckoutState();
+      setView('products');
+      alert('Order sent to kitchen!');
+    } catch (e) {
+      console.error('MobilePOS: Send to kitchen failed', e);
+      alert(`Failed to send to kitchen: ${e.message}`);
+    } finally {
+      setProcessing(false);
+    }
+  };
+
   const processCashOrder = async () => {
     setProcessing(true);
     try {
-      const total = parseFloat(totals.total);
+      const total = parseFloat(totals.cashTotal);
       const cashRecv = parseFloat(cashReceived) || total;
       const changeDue = Math.max(0, cashRecv - total);
 
@@ -203,7 +423,7 @@ export default function MobilePOS({ merchant, station, sessionId, initialProduct
 
       if (!res.data?.success) throw new Error(res.data?.error || 'Failed to create order');
 
-      setLastOrder({ ...orderData, id: res.data.order.id, change_due: changeDue });
+      setLastOrder({ ...orderData, id: res.data.order.id, change_due: changeDue, total });
       resetCheckoutState();
       setView('success');
     } catch (e) {
@@ -214,7 +434,6 @@ export default function MobilePOS({ merchant, station, sessionId, initialProduct
     }
   };
 
-  // Card: create order → create Stripe Checkout session → redirect
   const processCardOrder = async () => {
     setProcessing(true);
     try {
@@ -241,7 +460,6 @@ export default function MobilePOS({ merchant, station, sessionId, initialProduct
 
       if (!stripeRes.data?.success) throw new Error(stripeRes.data?.error || 'Failed to start card payment');
 
-      // Redirect to Stripe Checkout
       window.location.href = stripeRes.data.checkout_url;
     } catch (e) {
       console.error('MobilePOS: Card order failed', e);
@@ -250,7 +468,6 @@ export default function MobilePOS({ merchant, station, sessionId, initialProduct
     }
   };
 
-  // Solana Pay: create order → show QR screen
   const processSolanaOrder = async () => {
     setProcessing(true);
     try {
@@ -266,8 +483,8 @@ export default function MobilePOS({ merchant, station, sessionId, initialProduct
       setPendingOrder({
         id: createRes.data.order.id,
         order_number: createRes.data.order.order_number,
-        total: parseFloat(totals.total),
-        items: cart.map(item => ({
+        total: parseFloat(totals.cardTotal),
+        items: cart.map((item) => ({
           product_name: item.name,
           quantity: item.quantity,
         })),
@@ -281,7 +498,6 @@ export default function MobilePOS({ merchant, station, sessionId, initialProduct
     }
   };
 
-  // Called when SolanaPay confirms payment
   const handleSolanaPaymentComplete = async (success, paymentDetails) => {
     if (!success || !pendingOrder) return;
     setProcessing(true);
@@ -310,48 +526,29 @@ export default function MobilePOS({ merchant, station, sessionId, initialProduct
     }
   };
 
-  // Check for Stripe Checkout return
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const stripeStatus = urlParams.get('stripe_status');
-    const orderId = urlParams.get('order_id');
-
-    if (stripeStatus === 'success' && orderId) {
-      // Complete the order after Stripe Checkout success
-      (async () => {
-        setProcessing(true);
-        try {
-          const res = await base44.functions.invoke('completeMobileOrder', {
-            token,
-            order_id: orderId,
-            payment_method: 'card',
-            payment_details: { stripe_checkout: 'completed' },
-          });
-
-          if (res.data?.success) {
-            setLastOrder({
-              order_number: res.data.order.order_number,
-              total: res.data.order.total,
-              change_due: 0,
-            });
-            setView('success');
-          } else {
-            alert('Payment could not be verified. Please contact the cashier.');
-          }
-        } catch (e) {
-          console.error('Stripe checkout return error:', e);
-          alert('Payment verification failed. Please contact the cashier.');
-        } finally {
-          setProcessing(false);
-          // Clean URL
-          window.history.replaceState({}, document.title, `/mobile/station/${token}`);
-        }
-      })();
-    } else if (stripeStatus === 'canceled') {
-      // Payment canceled — go back to products
-      window.history.replaceState({}, document.title, `/mobile/station/${token}`);
-    }
-  }, [token]);
+  // --- Dialogs (always available in non-special views) ---
+  const dialogs = (
+    <>
+      <MobileOpenItemDialog isOpen={showOpenItem} onClose={() => setShowOpenItem(false)} onAdd={addToCart} />
+      <MobileCustomerSheet
+        isOpen={showCustomerSheet}
+        onClose={() => setShowCustomerSheet(false)}
+        customers={customers}
+        selectedCustomer={selectedCustomer}
+        onSelect={setSelectedCustomer}
+      />
+      <MobileAgeVerification
+        isOpen={showAgeVerification}
+        onClose={() => setShowAgeVerification(false)}
+        onVerify={handleAgeVerified}
+        restrictedItems={cart.filter((item) => item.age_restricted)}
+        requiredAge={Math.max(
+          ...cart.filter((item) => item.age_restricted).map((item) => item.minimum_age || 21),
+          21
+        )}
+      />
+    </>
+  );
 
   // --- Loading ---
   if (loading) {
@@ -381,7 +578,10 @@ export default function MobilePOS({ merchant, station, sessionId, initialProduct
         <Button
           size="lg"
           className="bg-white text-gray-900 hover:bg-gray-100"
-          onClick={() => { setLastOrder(null); setView('products'); }}
+          onClick={() => {
+            setLastOrder(null);
+            setView('products');
+          }}
         >
           New Order
         </Button>
@@ -389,7 +589,7 @@ export default function MobilePOS({ merchant, station, sessionId, initialProduct
     );
   }
 
-  // --- Processing overlay (Stripe redirect, etc.) ---
+  // --- Processing overlay ---
   if (processing && view !== 'checkout') {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
@@ -407,18 +607,24 @@ export default function MobilePOS({ merchant, station, sessionId, initialProduct
         settings={settings}
         merchant={merchant}
         onPaymentComplete={handleSolanaPaymentComplete}
-        onBack={() => { setView('checkout'); setPaymentMethod(null); setPendingOrder(null); }}
+        onBack={() => {
+          setView('checkout');
+          setPaymentMethod(null);
+          setPendingOrder(null);
+        }}
       />
     );
   }
 
   // --- Checkout ---
   if (view === 'checkout') {
-    const total = parseFloat(totals.total);
-    const changeDue = paymentMethod === 'cash' && parseFloat(cashReceived) ? Math.max(0, parseFloat(cashReceived) - total) : 0;
+    const total = parseFloat(totals.cashTotal);
+    const changeDue =
+      paymentMethod === 'cash' && parseFloat(cashReceived)
+        ? Math.max(0, parseFloat(cashReceived) - total)
+        : 0;
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col">
-        {/* Header */}
         <div className="bg-blue-600 text-white px-4 py-3 flex items-center gap-3 sticky top-0 z-10">
           <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={() => setView('cart')}>
             <ArrowLeft className="w-5 h-5" />
@@ -426,13 +632,20 @@ export default function MobilePOS({ merchant, station, sessionId, initialProduct
           <h1 className="text-lg font-bold">Payment</h1>
         </div>
 
-        {/* Total */}
         <div className="bg-white p-6 text-center border-b">
           <p className="text-sm text-gray-500 mb-1">Total Due</p>
-          <p className="text-4xl font-bold text-gray-900">${totals.total}</p>
+          {isDualPricingEnabled && parseFloat(totals.surchargeAmount) > 0 ? (
+            <div>
+              <p className="text-2xl font-bold text-gray-500">${totals.cashTotal}</p>
+              <p className="text-xs text-gray-400">Cash price</p>
+              <p className="text-4xl font-bold text-gray-900 mt-1">${totals.cardTotal}</p>
+              <p className="text-xs text-gray-400">Card price (incl. {totals.surchargeLabel})</p>
+            </div>
+          ) : (
+            <p className="text-4xl font-bold text-gray-900">${totals.total}</p>
+          )}
         </div>
 
-        {/* Payment method selection */}
         {!paymentMethod && (
           <div className="p-4 space-y-3">
             <p className="text-sm font-semibold text-gray-600 mb-2">Select Payment Method</p>
@@ -443,7 +656,10 @@ export default function MobilePOS({ merchant, station, sessionId, initialProduct
               <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
                 <DollarSign className="w-6 h-6 text-green-600" />
               </div>
-              <span className="font-semibold text-lg">Cash</span>
+              <div className="flex-1 text-left">
+                <span className="font-semibold text-lg">Cash</span>
+                {isDualPricingEnabled && <p className="text-xs text-gray-400">${totals.cashTotal}</p>}
+              </div>
             </button>
             {stripeEnabled && (
               <button
@@ -452,9 +668,16 @@ export default function MobilePOS({ merchant, station, sessionId, initialProduct
                 disabled={processing}
               >
                 <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                  {processing ? <Loader2 className="w-6 h-6 text-blue-600 animate-spin" /> : <CreditCard className="w-6 h-6 text-blue-600" />}
+                  {processing ? (
+                    <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
+                  ) : (
+                    <CreditCard className="w-6 h-6 text-blue-600" />
+                  )}
                 </div>
-                <span className="font-semibold text-lg">{processing ? 'Redirecting…' : 'Card'}</span>
+                <div className="flex-1 text-left">
+                  <span className="font-semibold text-lg">{processing ? 'Redirecting…' : 'Card'}</span>
+                  {isDualPricingEnabled && <p className="text-xs text-gray-400">${totals.cardTotal}</p>}
+                </div>
               </button>
             )}
             {solanaPayEnabled && (
@@ -464,11 +687,7 @@ export default function MobilePOS({ merchant, station, sessionId, initialProduct
                 disabled={processing}
               >
                 <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                  <img
-                    src="https://solana.com/src/img/branding/solanaLogoMark.svg"
-                    alt="Solana"
-                    className="w-6 h-6"
-                  />
+                  <img src="https://solana.com/src/img/branding/solanaLogoMark.svg" alt="Solana" className="w-6 h-6" />
                 </div>
                 <span className="font-semibold text-lg">Crypto (Solana Pay)</span>
               </button>
@@ -481,7 +700,6 @@ export default function MobilePOS({ merchant, station, sessionId, initialProduct
           </div>
         )}
 
-        {/* Cash payment */}
         {paymentMethod === 'cash' && (
           <div className="p-4 space-y-4">
             <div>
@@ -496,13 +714,14 @@ export default function MobilePOS({ merchant, station, sessionId, initialProduct
                 autoFocus
               />
             </div>
-            {/* Quick cash buttons */}
             <div className="grid grid-cols-4 gap-2">
-              {[total, Math.ceil(total), Math.ceil(total / 5) * 5, Math.ceil(total / 10) * 10].filter((v, i, arr) => arr.indexOf(v) === i).map(amt => (
-                <Button key={amt} variant="outline" onClick={() => setCashReceived(amt.toFixed(2))}>
-                  ${amt.toFixed(2)}
-                </Button>
-              ))}
+              {[total, Math.ceil(total), Math.ceil(total / 5) * 5, Math.ceil(total / 10) * 10]
+                .filter((v, i, arr) => arr.indexOf(v) === i)
+                .map((amt) => (
+                  <Button key={amt} variant="outline" onClick={() => setCashReceived(amt.toFixed(2))}>
+                    ${amt.toFixed(2)}
+                  </Button>
+                ))}
             </div>
             {parseFloat(cashReceived) >= total && (
               <div className="bg-green-50 rounded-xl p-4 text-center">
@@ -510,13 +729,8 @@ export default function MobilePOS({ merchant, station, sessionId, initialProduct
                 <p className="text-3xl font-bold text-green-600">${changeDue.toFixed(2)}</p>
               </div>
             )}
-            <Button
-              size="lg"
-              className="w-full"
-              disabled={parseFloat(cashReceived) < total || processing}
-              onClick={processCashOrder}
-            >
-              {processing ? <Loader2 className="w-5 h-5 animate-spin" /> : `Confirm – $${totals.total}`}
+            <Button size="lg" className="w-full" disabled={parseFloat(cashReceived) < total || processing} onClick={processCashOrder}>
+              {processing ? <Loader2 className="w-5 h-5 animate-spin" /> : `Confirm – $${totals.cashTotal}`}
             </Button>
           </div>
         )}
@@ -527,181 +741,294 @@ export default function MobilePOS({ merchant, station, sessionId, initialProduct
   // --- Cart View ---
   if (view === 'cart') {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col">
-        <div className="bg-blue-600 text-white px-4 py-3 flex items-center gap-3 sticky top-0 z-10">
-          <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={() => setView('products')}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <h1 className="text-lg font-bold">Cart ({itemCount})</h1>
-        </div>
-
-        {cart.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
-            <ShoppingCart className="w-16 h-16 mb-4" />
-            <p>Cart is empty</p>
+      <>
+        <div className="min-h-screen bg-gray-50 flex flex-col">
+          <div className="bg-blue-600 text-white px-4 py-3 flex items-center gap-3 sticky top-0 z-10">
+            <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={() => setView('products')}>
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <h1 className="text-lg font-bold">Cart ({itemCount})</h1>
           </div>
-        ) : (
-          <>
-            <div className="flex-1 overflow-y-auto p-3 space-y-2">
-              {cart.map((item, index) => (
-                <Card key={index} className="p-3">
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm truncate">{item.name}</p>
-                      <p className="text-sm text-gray-500">${(item.price || 0).toFixed(2)}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => updateQuantity(index, -1)}>
-                        <Minus className="w-4 h-4" />
-                      </Button>
-                      <span className="font-bold w-8 text-center">{item.quantity}</span>
-                      <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => updateQuantity(index, 1)}>
-                        <Plus className="w-4 h-4" />
-                      </Button>
-                    </div>
-                    <span className="font-bold text-sm w-16 text-right">${((item.price || 0) * item.quantity).toFixed(2)}</span>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500" onClick={() => removeFromCart(index)}>
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </Card>
-              ))}
-            </div>
 
-            <div className="bg-white border-t p-4 space-y-2 shadow-lg">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Subtotal</span>
-                <span>${totals.subtotal}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Tax</span>
-                <span>${totals.taxAmount}</span>
-              </div>
-              <div className="flex justify-between text-lg font-bold pt-2 border-t">
-                <span>Total</span>
-                <span>${totals.total}</span>
-              </div>
-              <Button size="lg" className="w-full mt-2" onClick={handleCheckout}>
-                Checkout – ${totals.total}
-              </Button>
+          {cart.length === 0 ? (
+            <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
+              <ShoppingCart className="w-16 h-16 mb-4" />
+              <p>Cart is empty</p>
             </div>
-          </>
-        )}
-      </div>
+          ) : (
+            <>
+              <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                {cart.map((item, index) => (
+                  <Card key={index} className="p-3">
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm truncate">{item.name}</p>
+                        <p className="text-sm text-gray-500">${(item.price || 0).toFixed(2)}</p>
+                        <div className="flex gap-1 mt-1">
+                          {item.ebt_eligible && (
+                            <Badge variant="outline" className="text-xs">EBT</Badge>
+                          )}
+                          {item.age_restricted && (
+                            <Badge variant="outline" className="text-xs text-orange-600 border-orange-300">
+                              18+
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => updateQuantity(index, -1)}>
+                          <Minus className="w-4 h-4" />
+                        </Button>
+                        <span className="font-bold w-8 text-center">{item.quantity}</span>
+                        <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => updateQuantity(index, 1)}>
+                          <Plus className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      <span className="font-bold text-sm w-16 text-right">
+                        ${((item.price || 0) * item.quantity).toFixed(2)}
+                      </span>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500" onClick={() => removeFromCart(index)}>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+
+              {/* Cart controls */}
+              <div className="bg-white border-t p-4 space-y-3 shadow-lg">
+                {/* Customer & Table */}
+                <div className="flex gap-2">
+                  <button
+                    className="flex-1 border rounded-lg p-2 flex items-center gap-2 text-sm"
+                    onClick={() => setShowCustomerSheet(true)}
+                  >
+                    <User className="w-4 h-4 text-gray-500" />
+                    <span className="truncate">{selectedCustomer?.name || 'Walk-in'}</span>
+                  </button>
+                  <Input
+                    placeholder="Table #"
+                    value={tableNumber}
+                    onChange={(e) => setTableNumber(e.target.value)}
+                    className="w-24 h-10"
+                  />
+                </div>
+
+                {/* Discount */}
+                <div className="flex items-center gap-2">
+                  <Tag className="w-4 h-4 text-gray-500" />
+                  <Input
+                    type="number"
+                    placeholder="Discount %"
+                    value={discountPercent || ''}
+                    onChange={(e) => setDiscountPercent(Math.min(100, Math.max(0, parseFloat(e.target.value) || 0)))}
+                    className="h-10"
+                  />
+                  <span className="text-sm text-gray-500">%</span>
+                </div>
+
+                {/* Totals */}
+                <div className="space-y-1">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Subtotal</span>
+                    <span>${totals.subtotal}</span>
+                  </div>
+                  {parseFloat(totals.discountAmount) > 0 && (
+                    <div className="flex justify-between text-sm text-green-600">
+                      <span>Discount</span>
+                      <span>-${totals.discountAmount}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Tax</span>
+                    <span>${totals.taxAmount}</span>
+                  </div>
+                  {isDualPricingEnabled && parseFloat(totals.surchargeAmount) > 0 && (
+                    <div className="flex justify-between text-sm text-orange-600">
+                      <span>{totals.surchargeLabel}</span>
+                      <span>+${totals.surchargeAmount}</span>
+                    </div>
+                  )}
+                  {isDualPricingEnabled && parseFloat(totals.surchargeAmount) > 0 ? (
+                    <div className="pt-2 border-t space-y-1">
+                      <div className="flex justify-between font-bold">
+                        <span>Cash Total</span>
+                        <span>${totals.cashTotal}</span>
+                      </div>
+                      <div className="flex justify-between font-bold text-blue-600">
+                        <span>Card Total</span>
+                        <span>${totals.cardTotal}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex justify-between text-lg font-bold pt-2 border-t">
+                      <span>Total</span>
+                      <span>${totals.total}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Action buttons */}
+                <div className="flex gap-2">
+                  {isKitchenDisplayEnabled && (
+                    <Button
+                      variant="outline"
+                      className="flex-1 bg-orange-500 text-white hover:bg-orange-600 border-orange-500"
+                      onClick={sendToKitchen}
+                    >
+                      <Monitor className="w-4 h-4 mr-2" />
+                      Kitchen
+                    </Button>
+                  )}
+                  <Button size="lg" className="flex-1" onClick={handleCheckout}>
+                    Checkout
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+        {dialogs}
+      </>
     );
   }
 
   // --- Product Grid View ---
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 5rem)' }}>
-      {/* Header */}
-      <div className="bg-blue-600 text-white px-4 py-3 sticky top-0 z-10">
-        <div className="flex items-center justify-between mb-2">
-          <div>
-            <h1 className="text-lg font-bold">{station?.name || 'Mobile POS'}</h1>
-            <p className="text-xs text-white/70">{merchant?.business_name || ''}</p>
+    <>
+      <div className="min-h-screen bg-gray-50 flex flex-col" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 5rem)' }}>
+        {/* Header */}
+        <div className="bg-blue-600 text-white px-4 py-3 sticky top-0 z-10">
+          <div className="flex items-center justify-between mb-2">
+            <div>
+              <h1 className="text-lg font-bold">{station?.name || 'Mobile POS'}</h1>
+              <p className="text-xs text-white/70">{merchant?.business_name || ''}</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" className="text-white hover:bg-white/20" onClick={() => setShowOpenItem(true)}>
+                <Package className="w-5 h-5" />
+              </Button>
+              <Button variant="ghost" className="text-white hover:bg-white/20 relative" onClick={() => setView('cart')}>
+                <ShoppingCart className="w-5 h-5" />
+                {itemCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                    {itemCount}
+                  </span>
+                )}
+              </Button>
+            </div>
           </div>
-          <Button
-            variant="ghost"
-            className="text-white hover:bg-white/20 relative"
-            onClick={() => setView('cart')}
-          >
-            <ShoppingCart className="w-5 h-5" />
-            {itemCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
-                {itemCount}
-              </span>
-            )}
-          </Button>
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search or scan products…"
+              className="w-full pl-9 pr-3 py-2 rounded-lg bg-white/20 text-white placeholder-white/50 border border-white/30 focus:bg-white focus:text-gray-900 focus:outline-none"
+            />
+          </div>
         </div>
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search products…"
-            className="w-full pl-9 pr-3 py-2 rounded-lg bg-white/20 text-white placeholder-white/50 border border-white/30 focus:bg-white focus:text-gray-900 focus:outline-none"
-          />
-        </div>
-      </div>
 
-      {/* Department tabs */}
-      {departments.length > 0 && (
-        <div className="bg-white border-b overflow-x-auto flex gap-1 px-2 py-2 sticky top-[88px] z-10">
-          <button
-            className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-              selectedDepartment === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'
-            }`}
-            onClick={() => setSelectedDepartment('all')}
-          >
-            All
-          </button>
-          {departments.map(dept => (
-            <button
-              key={dept.id}
-              className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                selectedDepartment === dept.id ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'
-              }`}
-              onClick={() => setSelectedDepartment(dept.id)}
-            >
-              {dept.name}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Products */}
-      <div className="flex-1 overflow-y-auto p-3">
-        {filteredProducts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-gray-400">
-            <Package className="w-12 h-12 mb-3" />
-            <p>No products found</p>
+        {/* Department grid or Product grid */}
+        {posProductView === 'departments' && departments.length > 0 && !searchTerm ? (
+          <div className="flex-1 overflow-y-auto p-3">
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                className="bg-white rounded-xl p-4 shadow-sm border-2 border-transparent hover:border-blue-500 transition-colors flex flex-col items-center gap-2"
+                onClick={() => {
+                  setSelectedDepartment('all');
+                  setPosProductView('products');
+                }}
+              >
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                  <Package className="w-6 h-6 text-blue-600" />
+                </div>
+                <span className="font-semibold text-sm">All Products</span>
+              </button>
+              {departments.map((dept) => (
+                <button
+                  key={dept.id}
+                  className="bg-white rounded-xl p-4 shadow-sm border-2 border-transparent hover:border-blue-500 transition-colors flex flex-col items-center gap-2"
+                  onClick={() => {
+                    setSelectedDepartment(dept.name);
+                    setPosProductView('products');
+                  }}
+                >
+                  <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                    <Package className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <span className="font-semibold text-sm">{dept.name}</span>
+                </button>
+              ))}
+            </div>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3">
-            {filteredProducts.map(product => (
-              <Card
-                key={product.id}
-                className="overflow-hidden cursor-pointer hover:shadow-lg active:scale-95 transition-transform"
-                onClick={() => addToCart(product)}
+          <div className="flex-1 overflow-y-auto p-3">
+            {posProductView === 'departments' && departments.length > 0 && (
+              <button
+                className="mb-3 text-sm text-blue-600 font-medium"
+                onClick={() => {
+                  setPosProductView('departments');
+                  setSelectedDepartment('all');
+                  setSearchTerm('');
+                }}
               >
-                {product.image_url && (
-                  <div className="aspect-square bg-gray-100">
-                    <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
-                  </div>
-                )}
-                <CardContent className="p-3">
-                  <p className="font-semibold text-sm truncate">{product.name}</p>
-                  <p className="font-bold text-green-600 mt-1">${(product.price || 0).toFixed(2)}</p>
-                </CardContent>
-              </Card>
-            ))}
+                ← Back to Departments
+              </button>
+            )}
+            {filteredProducts.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+                <Package className="w-12 h-12 mb-3" />
+                <p>No products found</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                {filteredProducts.map((product) => (
+                  <Card
+                    key={product.id}
+                    className="overflow-hidden cursor-pointer hover:shadow-lg active:scale-95 transition-transform"
+                    onClick={() => addToCart(product)}
+                  >
+                    {product.image_url && (
+                      <div className="aspect-square bg-gray-100">
+                        <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                      </div>
+                    )}
+                    <CardContent className="p-3">
+                      <p className="font-semibold text-sm truncate">{product.name}</p>
+                      <div className="flex items-center justify-between mt-1">
+                        <p className="font-bold text-green-600">${(product.price || 0).toFixed(2)}</p>
+                        {product.ebt_eligible && <Badge variant="outline" className="text-xs">EBT</Badge>}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Bottom cart bar */}
+        {cart.length > 0 && (
+          <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-20" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+            <button className="w-full flex items-center justify-between px-4 py-3" onClick={() => setView('cart')}>
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <ShoppingCart className="w-6 h-6 text-blue-600" />
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                    {itemCount}
+                  </span>
+                </div>
+                <span className="font-semibold">View Cart</span>
+              </div>
+              <span className="text-xl font-bold text-blue-600">${totals.total}</span>
+            </button>
           </div>
         )}
       </div>
-
-      {/* Bottom cart bar */}
-      {cart.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-20" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
-          <button
-            className="w-full flex items-center justify-between px-4 py-3"
-            onClick={() => setView('cart')}
-          >
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <ShoppingCart className="w-6 h-6 text-blue-600" />
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
-                  {itemCount}
-                </span>
-              </div>
-              <span className="font-semibold">View Cart</span>
-            </div>
-            <span className="text-xl font-bold text-blue-600">${totals.total}</span>
-          </button>
-        </div>
-      )}
-    </div>
+      {dialogs}
+    </>
   );
 }

@@ -88,6 +88,11 @@ Deno.serve(async (req) => {
     const stripeEnabled = merchant.settings?.enable_opentill_payments || merchant.settings?.payment_gateways?.stripe?.enabled || false;
     safeSettings.solana_pay = merchant.settings?.solana_pay || {};
     safeSettings.stripe_enabled = stripeEnabled;
+    safeSettings.stripe_rates = {
+      processing_rate_percent: merchant.settings?.payment_gateways?.stripe?.processing_rate_percent ?? 2.9,
+      processing_flat_fee: merchant.settings?.payment_gateways?.stripe?.processing_flat_fee ?? 0.3,
+      platform_fee_percent: merchant.settings?.payment_gateways?.stripe?.platform_fee_percent ?? 0.5,
+    };
     delete safeSettings.payment_gateways;
     delete safeSettings.hardware;
 
@@ -160,6 +165,7 @@ Deno.serve(async (req) => {
         price: p.price,
         image_url: p.image_url,
         department: p.department,
+        department_id: p.department_id,
         barcode: p.barcode,
         pos_mode: p.pos_mode,
         ebt_eligible: p.ebt_eligible,
@@ -185,27 +191,31 @@ Deno.serve(async (req) => {
       console.warn('resolveMobileStation: Could not load departments:', e);
     }
 
+    // Fetch customers for mobile POS
+    let customers: any[] = [];
+    try {
+      const allCustomers = await base44.asServiceRole.entities.Customer.filter({
+        merchant_id: station.merchant_id
+      });
+      customers = (allCustomers || []).map(c => ({
+        id: c.id,
+        name: c.name,
+        phone: c.phone,
+        email: c.email,
+        loyalty_points: c.loyalty_points || 0,
+      }));
+    } catch (e) {
+      console.warn('resolveMobileStation: Could not load customers:', e);
+    }
+
     return Response.json({
       success: true,
       pin_required: false,
       station: {
-        id: station.id,
-        name: station.name,
-        station_id: station.station_id,
-        layout_type: station.layout_type,
-        merchant_id: station.merchant_id,
-        customer_display_id: station.customer_display_id || null,
-        mobile_display_timeout: station.mobile_display_timeout || 8,
-        allow_mobile_cashier_controls: station.allow_mobile_cashier_controls || false,
-      },
-      merchant: {
-        id: merchant.id,
-        business_name: merchant.business_name,
-        display_name: merchant.display_name,
-        settings: safeSettings
-      },
+...
       products,
-      departments
+      departments,
+      customers
     });
   } catch (error) {
     console.error('resolveMobileStation error:', error);
