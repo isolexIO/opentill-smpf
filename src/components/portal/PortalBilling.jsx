@@ -1,0 +1,89 @@
+import { useState, useEffect } from 'react';
+import { base44 } from '@/api/base44Client';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
+import { CreditCard, Loader2 } from 'lucide-react';
+
+const STATUS_COLORS = {
+  draft: 'bg-gray-100 text-gray-700',
+  sent: 'bg-blue-100 text-blue-700',
+  paid: 'bg-green-100 text-green-700',
+  overdue: 'bg-red-100 text-red-700',
+  void: 'bg-gray-200 text-gray-500',
+  refunded: 'bg-yellow-100 text-yellow-700',
+};
+
+export default function PortalBilling({ merchantId }) {
+  const [invoices, setInvoices] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!merchantId) return;
+    (async () => {
+      try {
+        const list = await base44.entities.Invoice.filter(
+          { merchant_id: merchantId },
+          '-created_date',
+          5
+        );
+        setInvoices(list || []);
+      } catch (e) {
+        console.error('PortalBilling load error', e);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [merchantId]);
+
+  const totalDue = invoices
+    .filter((i) => i.status === 'sent' || i.status === 'overdue')
+    .reduce((s, i) => s + (i.amount || 0), 0);
+
+  return (
+    <Card className="h-full">
+      <CardHeader>
+        <CardTitle className="text-base flex items-center justify-between">
+          <span className="flex items-center gap-2">
+            <CreditCard className="w-4 h-4 text-purple-600" /> Billing &amp; Invoices
+          </span>
+          <Link to={createPageUrl('Invoices')}>
+            <Button variant="ghost" size="sm">View All</Button>
+          </Link>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <div className="flex justify-center py-6">
+            <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+          </div>
+        ) : invoices.length === 0 ? (
+          <p className="text-sm text-gray-500 text-center py-6">No invoices yet.</p>
+        ) : (
+          <>
+            {totalDue > 0 && (
+              <div className="mb-3 p-3 rounded-lg bg-red-50 text-red-700 text-sm font-medium">
+                Total Due: ${totalDue.toFixed(2)}
+              </div>
+            )}
+            <div className="space-y-2">
+              {invoices.map((inv) => (
+                <div key={inv.id} className="flex items-center justify-between text-sm border-b pb-2">
+                  <div>
+                    <div className="font-medium">{inv.invoice_number}</div>
+                    <div className="text-xs text-gray-500">${(inv.amount || 0).toFixed(2)}</div>
+                  </div>
+                  <Badge className={STATUS_COLORS[inv.status] || 'bg-gray-100'}>
+                    {inv.status}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
