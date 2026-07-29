@@ -439,7 +439,7 @@ export default function HomePage() {
                   settings?.hero?.badge_status === 'coming_soon' ? 'bg-orange-500' : 'bg-green-500'
                 }`}></span>
               </span>
-              <span className="text-sm font-semibold">
+              <span className="text-lg md:text-xl font-bold">
                 {getBadgeText()}
               </span>
             </div>
