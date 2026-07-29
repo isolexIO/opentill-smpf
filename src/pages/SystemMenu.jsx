@@ -61,7 +61,7 @@ const FEATURE_REQUIREMENTS = {
 };
 
 // Items that are always visible (no chip needed)
-const ALWAYS_ENABLED = new Set(['pos', 'products', 'orders', 'settings', 'departments', 'users', 'marketplace', 'motherboard', 'duc_vault', 'referral_program', 'super_admin', 'dealer_dashboard']);
+const ALWAYS_ENABLED = new Set(['pos', 'products', 'orders', 'settings', 'departments', 'users', 'marketplace', 'motherboard', 'duc_vault', 'referral_program', 'super_admin', 'dealer_dashboard', 'opentill_payments']);
 
 export default function SystemMenu() {
   const [user, setUser] = useState(null);
@@ -333,6 +333,15 @@ export default function SystemMenu() {
       permission: 'process_orders'
     },
 
+    {
+      id: 'opentill_payments',
+      icon: <CreditCard className="w-6 h-6" />,
+      title: 'openTILL Payments',
+      description: 'Stripe dashboard, connection & terminal',
+      path: 'OpenTILLPayments',
+      color: 'from-indigo-500 to-purple-600',
+      permission: 'admin_settings'
+    },
     {
       id: 'settings',
       icon: <Settings className="w-6 h-6" />,

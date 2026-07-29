@@ -15,6 +15,7 @@ import PayInvoice from './pages/PayInvoice';
 import ResetPassword from './pages/ResetPassword';
 import Login from './pages/Login';
 import CustomerPortal from './pages/CustomerPortal';
+import OpenTILLPayments from './pages/OpenTILLPayments';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -95,6 +96,11 @@ const AuthenticatedApp = () => {
       <Route path="/CustomerPortal" element={
         <LayoutWrapper currentPageName="CustomerPortal">
           <CustomerPortal />
+        </LayoutWrapper>
+      } />
+      <Route path="/OpenTILLPayments" element={
+        <LayoutWrapper currentPageName="OpenTILLPayments">
+          <OpenTILLPayments />
         </LayoutWrapper>
       } />
       <Route path="*" element={<PageNotFound />} />
