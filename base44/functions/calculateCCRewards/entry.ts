@@ -3,7 +3,18 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { event, data, old_data } = await req.json();
+    const body = await req.json();
+    const { event, data, old_data } = body;
+
+    // SECURITY: Only allow calls from entity automations (payload has `event`)
+    // or authenticated platform admins. Prevents direct unauthenticated calls.
+    let user = null;
+    try { user = await base44.auth.me(); } catch (e) {}
+    const isAdmin = user && ['admin', 'super_admin', 'root_admin'].includes(user.role);
+    const isEntityAutomation = !!(event && event.type);
+    if (!isAdmin && !isEntityAutomation) {
+      return Response.json({ error: 'Unauthorized' }, { status: 403 });
+    }
 
     // Only process completed orders with card payments
     if (event.type !== 'create' && event.type !== 'update') {

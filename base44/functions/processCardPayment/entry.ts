@@ -28,8 +28,15 @@ Deno.serve(async (req) => {
     }
 
     const stripeSettings = merchant.settings?.payment_gateways?.stripe;
-    if (!stripeSettings || !stripeSettings.enabled || !stripeSettings.secret_key) {
+    if (!stripeSettings || !stripeSettings.enabled) {
       return new Response(JSON.stringify({ error: "Stripe not configured for this merchant" }), { status: 400, headers: { "Content-Type": "application/json" } });
+    }
+
+    // SECURITY: Never read API keys from the database entity. Use the platform
+    // secret environment variable instead to avoid exposing secrets at the DB layer.
+    const stripeSecretKey = Deno.env.get('STRIPE_SECRET_KEY');
+    if (!stripeSecretKey) {
+      return new Response(JSON.stringify({ error: "Payment processor not configured" }), { status: 500, headers: { "Content-Type": "application/json" } });
     }
 
     // SECURITY: Never trust a client-supplied amount. Load the authoritative
@@ -52,7 +59,7 @@ Deno.serve(async (req) => {
     }
     const currency = (merchant.settings?.currency || 'usd').toLowerCase();
 
-    const stripe = new Stripe(stripeSettings.secret_key);
+    const stripe = new Stripe(stripeSecretKey);
 
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(billableAmount * 100), // Amount in cents, from DB order total
