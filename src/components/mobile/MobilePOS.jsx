@@ -19,14 +19,14 @@ import {
   Package,
 } from 'lucide-react';
 
-export default function MobilePOS({ merchant, station, sessionId }) {
-  const [products, setProducts] = useState([]);
-  const [departments, setDepartments] = useState([]);
+export default function MobilePOS({ merchant, station, sessionId, initialProducts, initialDepartments }) {
+  const [products] = useState(initialProducts || []);
+  const [departments] = useState(initialDepartments || []);
   const [cart, setCart] = useState([]);
   const [selectedDepartment, setSelectedDepartment] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [view, setView] = useState('products'); // products | cart | checkout | success
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!initialProducts);
   const [processing, setProcessing] = useState(false);
   const [lastOrder, setLastOrder] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState(null);
@@ -38,29 +38,6 @@ export default function MobilePOS({ merchant, station, sessionId }) {
   const settings = merchant?.settings || {};
   const taxRate = settings.tax_rate ?? 0.08;
   const merchantId = merchant?.id;
-
-  // Load products and departments
-  useEffect(() => {
-    if (!merchantId) return;
-    loadData();
-  }, [merchantId]);
-
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      const [productList, deptList] = await Promise.all([
-        base44.entities.Product.filter({ is_active: true }),
-        base44.entities.Department.filter({ merchant_id: merchantId }),
-      ]);
-      setProducts(productList || []);
-      deptList?.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
-      setDepartments(deptList || []);
-    } catch (e) {
-      console.error('MobilePOS: Failed to load data', e);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Heartbeat
   useEffect(() => {

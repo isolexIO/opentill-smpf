@@ -17,6 +17,8 @@ export default function MobileStationDisplay() {
   const [pin, setPin] = useState('');
   const [pinError, setPinError] = useState(null);
   const [sessionId, setSessionId] = useState(null);
+  const [products, setProducts] = useState([]);
+  const [departments, setDepartments] = useState([]);
 
   const resolveStation = async (pinValue) => {
     setLoading(true);
@@ -46,6 +48,8 @@ export default function MobileStationDisplay() {
       setPinRequired(false);
       setStation(res.data.station);
       setMerchant(res.data.merchant);
+      setProducts(res.data.products || []);
+      setDepartments(res.data.departments || []);
 
       // Register device session
       try {
@@ -184,5 +188,5 @@ export default function MobileStationDisplay() {
   }
 
   // --- Full Mobile POS ---
-  return <MobilePOS merchant={merchant} station={station} sessionId={sessionId} />;
+  return <MobilePOS merchant={merchant} station={station} sessionId={sessionId} initialProducts={products} initialDepartments={departments} />;
 }

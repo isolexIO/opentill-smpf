@@ -142,6 +142,46 @@ Deno.serve(async (req) => {
       });
     } catch (e) {}
 
+    // Fetch products and departments with service role (no user session on mobile)
+    let products: any[] = [];
+    let departments: any[] = [];
+    try {
+      const allProducts = await base44.asServiceRole.entities.Product.filter({
+        merchant_id: station.merchant_id,
+        is_active: true
+      });
+      // Strip heavy fields
+      products = (allProducts || []).map(p => ({
+        id: p.id,
+        name: p.name,
+        price: p.price,
+        image_url: p.image_url,
+        department: p.department,
+        barcode: p.barcode,
+        pos_mode: p.pos_mode,
+        ebt_eligible: p.ebt_eligible,
+        age_restricted: p.age_restricted,
+        minimum_age: p.minimum_age,
+        modifiers: p.modifiers,
+        tippable: p.tippable,
+      }));
+    } catch (e) {
+      console.warn('resolveMobileStation: Could not load products:', e);
+    }
+    try {
+      const allDepts = await base44.asServiceRole.entities.Department.filter({
+        merchant_id: station.merchant_id
+      });
+      departments = (allDepts || []).map(d => ({
+        id: d.id,
+        name: d.name,
+        display_order: d.display_order || 0,
+      }));
+      departments.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+    } catch (e) {
+      console.warn('resolveMobileStation: Could not load departments:', e);
+    }
+
     return Response.json({
       success: true,
       pin_required: false,
@@ -160,7 +200,9 @@ Deno.serve(async (req) => {
         business_name: merchant.business_name,
         display_name: merchant.display_name,
         settings: safeSettings
-      }
+      },
+      products,
+      departments
     });
   } catch (error) {
     console.error('resolveMobileStation error:', error);
