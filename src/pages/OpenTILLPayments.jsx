@@ -78,7 +78,7 @@ export default function OpenTILLPayments() {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex-1">
-            <OpenTILLPaymentsLogo height="h-12" width="w-auto" />
+            <OpenTILLPaymentsLogo height="h-20" width="w-auto" scale={2.5} />
           </div>
         </div>
 
