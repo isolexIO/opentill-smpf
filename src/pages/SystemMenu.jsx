@@ -44,6 +44,7 @@ import AdvertisingTile from '../components/system-menu/AdvertisingTile';
 import CommunityLinks from '../components/shared/CommunityLinks';
 import { useMerchantFeatures } from '../components/motherboard/useMerchantFeatures';
 import LockedFeatureTile from '../components/motherboard/LockedFeatureTile';
+import OpenTILLPaymentsLogo from '@/components/payment/OpenTILLPaymentsLogo';
 
 // Map menu item IDs to the feature flag needed to unlock them
 const FEATURE_REQUIREMENTS = {
@@ -335,7 +336,7 @@ export default function SystemMenu() {
 
     {
       id: 'opentill_payments',
-      icon: <CreditCard className="w-6 h-6" />,
+      icon: <OpenTILLPaymentsLogo height="h-10" width="w-12" scale={1.2} />,
       title: 'openTILL Payments',
       description: 'Stripe dashboard, connection & terminal',
       path: 'OpenTILLPayments',
