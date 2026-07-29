@@ -57,7 +57,8 @@ export default function IdentityVerificationCard({
         throw new Error(res.data?.error || 'Verification could not be confirmed');
       }
     } catch (err) {
-      setError(err.message || 'Failed to confirm identity verification');
+      const msg = err?.data?.error || err?.response?.data?.error || err?.message || 'Failed to confirm identity verification';
+      setError(msg);
     } finally {
       setVerifying(false);
     }
@@ -83,7 +84,8 @@ export default function IdentityVerificationCard({
 
       window.location.href = res.data.url;
     } catch (err) {
-      setError(err.message || 'Failed to start identity verification');
+      const msg = err?.data?.error || err?.response?.data?.error || err?.message || 'Failed to start identity verification';
+      setError(msg);
       setLoading(false);
     }
   };

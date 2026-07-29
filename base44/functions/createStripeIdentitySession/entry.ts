@@ -13,6 +13,8 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
+    // Use STRIPE_CONNECT_KEY (restricted key) for Identity. It must have the
+    // identity_product_write permission enabled in the Stripe dashboard.
     const stripeKey = Deno.env.get('STRIPE_CONNECT_KEY') || Deno.env.get('STRIPE_SECRET_KEY');
     if (!stripeKey) {
       return Response.json({ error: 'Stripe not configured' }, { status: 500 });
@@ -53,6 +55,12 @@ Deno.serve(async (req) => {
     });
   } catch (error) {
     console.error('createStripeIdentitySession error:', error);
+    // Surface a clear message when the Stripe key lacks Identity permissions
+    if (error.message?.includes('identity_product_write') || error.message?.includes('identity_product_read')) {
+      return Response.json({
+        error: 'Stripe Identity permissions not enabled. Go to your Stripe Dashboard → API Keys → edit the restricted key and enable "Identity Verification Results" (Read & Write).',
+      }, { status: 500 });
+    }
     return Response.json({ error: error.message }, { status: 500 });
   }
 });

@@ -62,7 +62,8 @@ export default function StepStripeIdentity({ formData, onChange, onNext, onBack 
       // Redirect to Stripe-hosted verification page
       window.location.href = res.data.url;
     } catch (err) {
-      setError(err.message || 'Failed to start identity verification');
+      const msg = err?.data?.error || err?.response?.data?.error || err?.message || 'Failed to start identity verification';
+      setError(msg);
       setLoading(false);
     }
   };
