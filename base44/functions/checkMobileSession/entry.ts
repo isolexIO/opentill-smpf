@@ -20,31 +20,44 @@ Deno.serve(async (req) => {
 
     if (sessions && sessions.length > 0) {
       const session = sessions[0];
-      
-      // Get user data
-      const users = await base44.asServiceRole.entities.User.filter({
-        id: session.user_id
-      });
 
-      if (users && users.length > 0) {
-        const u = users[0];
-        // SECURITY: Never return the raw user record — it contains the hashed
-        // password, PIN, 2FA secret, and potentially third-party API keys /
-        // wallet addresses inside pos_settings. Expose only the non-sensitive
-        // fields needed by the mobile login flow.
-        return Response.json({
-          authenticated: true,
-          user: {
-            id: u.id,
-            email: u.email,
-            full_name: u.full_name,
-            role: u.role,
-            merchant_id: u.merchant_id,
-            dealer_id: u.dealer_id,
-            is_active: u.is_active
-          }
-        });
+      // SECURITY: Only return user details to authenticated callers who own
+      // the session. Unauthenticated callers (e.g. an attacker with a guessed
+      // session_id) only learn whether the session is valid — they never
+      // receive PII such as email, role, or merchant/dealer associations.
+      let authenticatedUser = null;
+      try {
+        authenticatedUser = await base44.auth.me();
+      } catch (_) {
+        // Not authenticated via platform JWT — fall through to boolean-only response
       }
+
+      if (authenticatedUser && authenticatedUser.id === session.user_id) {
+        const users = await base44.asServiceRole.entities.User.filter({
+          id: session.user_id
+        });
+
+        if (users && users.length > 0) {
+          const u = users[0];
+          return Response.json({
+            authenticated: true,
+            user: {
+              id: u.id,
+              email: u.email,
+              full_name: u.full_name,
+              role: u.role,
+              merchant_id: u.merchant_id,
+              dealer_id: u.dealer_id,
+              is_active: u.is_active
+            }
+          });
+        }
+      }
+
+      // Session is valid but caller is unauthenticated or doesn't own it.
+      // Return only the boolean so the mobile app knows its session is active
+      // without disclosing any user record.
+      return Response.json({ authenticated: true });
     }
 
     return Response.json({
