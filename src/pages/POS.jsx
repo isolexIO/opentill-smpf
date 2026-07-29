@@ -699,10 +699,20 @@ export default function POSPage() {
         console.warn('POS: No authenticated session.');
       }
 
+      // Station links carry both merchant_id and station_id so the POS can
+      // restore the exact merchant context after a login redirect. Preserve
+      // BOTH params in the returnTo URL — previously only station_id was kept,
+      // which caused the wrong/missing merchant after redirection.
+      const up = new URLSearchParams(window.location.search);
+      const urlStationId = up.get('station_id') || '';
+      const urlMerchantId = up.get('merchant_id') || '';
+
       if (!sessionUser || !sessionUser.id) {
-        const up = new URLSearchParams(window.location.search);
-        const sId = up.get('station_id') || '';
-        const returnTo = sId ? `${createPageUrl('POS')}?station_id=${encodeURIComponent(sId)}` : createPageUrl('POS');
+        const params = new URLSearchParams();
+        if (urlStationId) params.set('station_id', urlStationId);
+        if (urlMerchantId) params.set('merchant_id', urlMerchantId);
+        const qs = params.toString();
+        const returnTo = qs ? `${createPageUrl('POS')}?${qs}` : createPageUrl('POS');
         try {
           await base44.auth.redirectToLogin(returnTo);
         } catch (err) {
@@ -724,18 +734,22 @@ export default function POSPage() {
       }
       if (!pinUser) pinUser = sessionUser;
       localStorage.setItem('pinLoggedInUser', JSON.stringify(pinUser));
-      if (sessionUser.merchant_id) localStorage.setItem('deviceMerchantId', sessionUser.merchant_id);
+      // Prefer the merchant_id from the station link URL when present (it
+      // identifies the merchant this terminal should operate against);
+      // otherwise fall back to the session user's merchant_id.
+      const effectiveMerchantId = urlMerchantId || pinUser.merchant_id;
+      if (effectiveMerchantId) localStorage.setItem('deviceMerchantId', effectiveMerchantId);
 
       // Proceed based on whether we are in demo mode or a real merchant
-      if (pinUser && pinUser.merchant_id && pinUser.merchant_id !== 'demo') {
-        console.log('POS: Loading merchant with ID:', pinUser.merchant_id);
+      if (pinUser && effectiveMerchantId && effectiveMerchantId !== 'demo') {
+        console.log('POS: Loading merchant with ID:', effectiveMerchantId);
         
         try {
           // Try to fetch merchant - first with user scope, then with service role if needed
           let merchants = [];
           
           try {
-            merchants = await base44.entities.Merchant.filter({ id: pinUser.merchant_id });
+            merchants = await base44.entities.Merchant.filter({ id: effectiveMerchantId });
             console.log('POS: User-scoped merchant fetch returned:', merchants.length, 'results');
           } catch (userScopeError) {
             console.warn('POS: User-scoped merchant fetch failed, trying to invoke repair function if no merchants found:', userScopeError.message);
@@ -749,7 +763,7 @@ export default function POSPage() {
             try {
               const repairResponse = await base44.functions.invoke('repairMerchantConnection', {
                 user_email: pinUser.email,
-                user_merchant_id: pinUser.merchant_id
+                user_merchant_id: effectiveMerchantId
               });
 
               if (repairResponse.data?.success) {
@@ -779,9 +793,8 @@ export default function POSPage() {
             const merchant = merchants[0];
             console.log('POS: Merchant loaded:', merchant.business_name);
 
-            const urlStationId = new URLSearchParams(window.location.search).get('station_id');
             let effectiveStationId = urlStationId || pinUser.pos_settings?.station_id, effectiveStationName = pinUser.pos_settings?.station_name, updatedPinUser = { ...pinUser };
-            if (urlStationId) { try { const st = await base44.entities.Station.filter({ merchant_id: pinUser.merchant_id, station_id: urlStationId }); effectiveStationName = st?.length ? st[0].name : urlStationId; } catch { effectiveStationName = urlStationId; } }
+            if (urlStationId) { try { const st = await base44.entities.Station.filter({ merchant_id: effectiveMerchantId, station_id: urlStationId }); effectiveStationName = st?.length ? st[0].name : urlStationId; } catch { effectiveStationName = urlStationId; } }
 
             if (!effectiveStationId) {
               effectiveStationId = `STATION-${Date.now()}`;
@@ -827,7 +840,7 @@ export default function POSPage() {
             let currentSettings = {
               ...(merchant.settings || {}),
               ...(pinUser.pos_settings || {}), // User's POS settings (now guaranteed to have station_id and name) override
-              merchant_id: pinUser.merchant_id // Ensure merchant_id is present and correct
+              merchant_id: effectiveMerchantId // Ensure merchant_id is present and correct (from station link URL or session)
             };
 
             // Apply hardware defaults
