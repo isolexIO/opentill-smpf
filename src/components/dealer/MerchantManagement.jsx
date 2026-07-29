@@ -53,10 +53,32 @@ export default function MerchantManagement({ dealerId }) {
   const handleImpersonate = async (merchantId) => {
     try {
       const merchant = merchants.find(m => m.id === merchantId);
-      localStorage.setItem('impersonatedMerchantId', merchantId);
-      localStorage.setItem('impersonatedMerchantName', merchant.business_name);
-      localStorage.setItem('impersonatedDealerId', dealerId);
-      window.location.href = createPageUrl('POS');
+      if (!merchant) return;
+
+      // Preserve the current ambassador session so "Exit Impersonation"
+      // can return to the dashboard.
+      const currentUser = JSON.parse(localStorage.getItem('pinLoggedInUser') || '{}');
+      localStorage.setItem('impersonationData', JSON.stringify({
+        originalUser: currentUser,
+        impersonatedMerchant: { id: merchant.id, business_name: merchant.business_name },
+        timestamp: new Date().toISOString()
+      }));
+
+      const impersonationUser = {
+        ...currentUser,
+        merchant_id: merchant.id,
+        dealer_id: dealerId,
+        role: 'merchant_admin',
+        permissions: [
+          'process_orders', 'manage_inventory', 'view_reports', 'manage_customers',
+          'process_refunds', 'admin_settings', 'manage_users', 'access_marketplace',
+          'configure_devices', 'configure_payments', 'manage_subscriptions',
+          'submit_tickets', 'view_all_tickets'
+        ],
+        is_impersonating: true
+      };
+      localStorage.setItem('pinLoggedInUser', JSON.stringify(impersonationUser));
+      window.location.href = createPageUrl('SystemMenu');
     } catch (error) {
       alert('Error impersonating merchant: ' + error.message);
     }
@@ -234,7 +256,6 @@ openTILL POS Team`
                     variant="outline"
                     onClick={() => setImpersonatingId(merchant.id)}
                     className="gap-2"
-                    disabled={merchant.status === 'suspended' || merchant.status === 'inactive'}
                   >
                     <LogIn className="w-4 h-4" />
                     Impersonate

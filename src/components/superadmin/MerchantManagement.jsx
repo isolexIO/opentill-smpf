@@ -39,7 +39,8 @@ import {
   Shield,
   AlertCircle,
   Vault,
-  Sparkles
+  Sparkles,
+  Users
 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import SubdomainManager from './SubdomainManager';
@@ -55,6 +56,8 @@ export default function MerchantManagement({ onUpdate }) {
   const [showAddMerchant, setShowAddMerchant] = useState(false); // New state for add merchant dialog
   const [vaultSettings, setVaultSettings] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [ambassadors, setAmbassadors] = useState([]);
+  const [reassigning, setReassigning] = useState(false);
 
   // New state for new merchant form data
   const [newMerchant, setNewMerchant] = useState({
@@ -70,7 +73,17 @@ export default function MerchantManagement({ onUpdate }) {
 
   useEffect(() => {
     loadMerchants();
+    loadAmbassadors();
   }, []);
+
+  const loadAmbassadors = async () => {
+    try {
+      const list = await base44.entities.Ambassador.list('name');
+      setAmbassadors(list || []);
+    } catch (error) {
+      console.error('Error loading ambassadors:', error);
+    }
+  };
 
   useEffect(() => {
     filterMerchants();
@@ -370,6 +383,29 @@ openTILL Support`
     };
     const config = configs[status] || configs.inactive;
     return <Badge className={config.color}>{config.label}</Badge>;
+  };
+
+  const handleReassignAmbassador = async (merchant, newDealerId) => {
+    if (!newDealerId) return;
+    const ambassador = ambassadors.find(a => a.id === newDealerId);
+    if (!window.confirm(`Reassign "${merchant.business_name}" to ${ambassador?.name || 'this ambassador'}?\n\nThe merchant will immediately move to their network.`)) {
+      return;
+    }
+    try {
+      setReassigning(true);
+      await base44.entities.Merchant.update(merchant.id, { dealer_id: newDealerId });
+      alert(`Merchant reassigned to ${ambassador?.name || 'ambassador'} successfully.`);
+      await loadMerchants();
+      if (selectedMerchant && selectedMerchant.id === merchant.id) {
+        setSelectedMerchant({ ...merchant, dealer_id: newDealerId });
+      }
+      if (onUpdate) onUpdate();
+    } catch (error) {
+      console.error('Error reassigning merchant:', error);
+      alert('Failed to reassign merchant: ' + error.message);
+    } finally {
+      setReassigning(false);
+    }
   };
 
   const handleToggleDemo = async (merchant) => {
@@ -803,6 +839,35 @@ openTILL Support`
                    </div>
                    <p className="text-xs text-gray-500">
                      Status: {(selectedMerchant.duc_stake_required ?? true) ? `✓ Required — ${(selectedMerchant.duc_stake_amount ?? 50000).toLocaleString()} $DUC` : '✗ Not required'}
+                   </p>
+                 </div>
+               </div>
+
+               {/* Ambassador Assignment */}
+               <div className="border-t pt-4">
+                 <div className="flex items-center gap-2 mb-3">
+                   <Users className="w-4 h-4" />
+                   <h4 className="font-semibold">Ambassador Assignment</h4>
+                 </div>
+                 <div className="space-y-2">
+                   <Select
+                     value={selectedMerchant.dealer_id || ''}
+                     onValueChange={(val) => handleReassignAmbassador(selectedMerchant, val)}
+                     disabled={reassigning}
+                   >
+                     <SelectTrigger>
+                       <SelectValue placeholder="Select an ambassador..." />
+                     </SelectTrigger>
+                     <SelectContent>
+                       {ambassadors.map(amb => (
+                         <SelectItem key={amb.id} value={amb.id}>
+                           {amb.name}{amb.legacy_dealer_id !== amb.id ? '' : ''}
+                         </SelectItem>
+                       ))}
+                     </SelectContent>
+                   </Select>
+                   <p className="text-xs text-gray-500">
+                     {reassigning ? 'Reassigning...' : 'Assign or reassign this merchant to a different ambassador network.'}
                    </p>
                  </div>
                </div>
