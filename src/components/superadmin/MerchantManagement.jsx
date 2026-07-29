@@ -512,7 +512,7 @@ openTILL Support`
                     <span className="font-medium">{merchant.total_orders || 0}</span>
                   </div>
                 </div>
-                <div className="flex gap-2 pt-2">
+                <div className="grid grid-cols-2 gap-2 pt-2">
                   <Button
                     variant="outline"
                     size="sm"
@@ -520,7 +520,7 @@ openTILL Support`
                       setSelectedMerchant(merchant);
                       setShowDetails(true);
                     }}
-                    className="flex-1 min-h-[44px]"
+                    className="min-h-[44px] justify-center"
                   >
                     <Eye className="w-4 h-4 mr-1" />
                     Details
@@ -530,7 +530,7 @@ openTILL Support`
                       variant="outline"
                       size="sm"
                       onClick={() => handleStatusChange(merchant, 'suspended')}
-                      className="flex-1 min-h-[44px] text-red-600"
+                      className="min-h-[44px] text-red-600 justify-center"
                     >
                       <Ban className="w-4 h-4 mr-1" />
                       Suspend
@@ -540,7 +540,7 @@ openTILL Support`
                       variant="outline"
                       size="sm"
                       onClick={() => handleStatusChange(merchant, 'active')}
-                      className="flex-1 min-h-[44px] text-green-600"
+                      className="min-h-[44px] text-green-600 justify-center"
                     >
                       <CheckCircle className="w-4 h-4 mr-1" />
                       Activate
@@ -550,9 +550,10 @@ openTILL Support`
                     variant="outline"
                     size="sm"
                     onClick={() => handleDelete(merchant)}
-                    className="min-h-[44px] text-red-600"
+                    className="min-h-[44px] text-red-600 justify-center col-span-2"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-4 h-4 mr-1" />
+                    Delete
                   </Button>
                 </div>
               </div>

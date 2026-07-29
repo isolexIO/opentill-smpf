@@ -389,11 +389,12 @@ export default function DealerManagement() {
             {filteredAmbassadors.map((ambassador) => (
               <div
                 key={ambassador.id}
-                className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                className="flex flex-col gap-3 p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
               >
-                <div className="flex items-center gap-4">
+                <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
                   {ambassador.logo_url ? (
-                    <img src={ambassador.logo_url} alt={ambassador.name} className="h-12 w-12 rounded object-cover" />
+                    <img src={ambassador.logo_url} alt={ambassador.name} className="h-10 w-10 sm:h-12 sm:w-12 rounded object-cover shrink-0" />
                   ) : (
                     <div
                       className="h-12 w-12 rounded flex items-center justify-center text-white font-bold"
@@ -402,10 +403,10 @@ export default function DealerManagement() {
                       {ambassador.name?.charAt(0)}
                     </div>
                   )}
-                  <div>
-                    <h3 className="font-medium text-lg">{ambassador.name}</h3>
-                    <p className="text-sm text-gray-500">{ambassador.owner_email}</p>
-                    <div className="flex gap-2 mt-1">
+                  <div className="min-w-0">
+                    <h3 className="font-medium text-base sm:text-lg truncate">{ambassador.name}</h3>
+                    <p className="text-sm text-gray-500 truncate">{ambassador.owner_email}</p>
+                    <div className="flex flex-wrap gap-2 mt-1">
                       <span className="text-xs text-gray-400">{ambassador.slug}.opentill.app</span>
                       {ambassador.domain && (
                         <span className="text-xs text-blue-600">• {ambassador.domain}</span>
@@ -414,15 +415,7 @@ export default function DealerManagement() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-6">
-                  <div className="text-right">
-                    <p className="text-sm font-medium">{ambassador.total_merchants || 0} merchants</p>
-                    <p className="text-xs text-gray-500">
-                      {ambassador.commission_percent}% commission
-                      {ambassador.bonus_per_active_merchant ? ` • $${ambassador.bonus_per_active_merchant}/merchant bonus` : ''}
-                    </p>
-                  </div>
-
+                <div className="flex flex-col items-end gap-2 shrink-0">
                   <Badge className={
                     ambassador.status === 'active' ? 'bg-green-100 text-green-800' :
                     ambassador.status === 'suspended' ? 'bg-red-100 text-red-800' :
@@ -430,40 +423,50 @@ export default function DealerManagement() {
                   }>
                     {ambassador.status}
                   </Badge>
-
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleCreateAmbassadorAdmin(ambassador)}
-                      title="Add ambassador admin"
-                    >
-                      <UserPlus className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleImpersonateAmbassador(ambassador)}
-                      title="Impersonate ambassador"
-                    >
-                      <UserCheck className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEditAmbassador(ambassador)}
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDeleteAmbassador(ambassador.id)}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                  <div className="text-right">
+                    <p className="text-sm font-medium">{ambassador.total_merchants || 0} merchants</p>
+                    <p className="text-xs text-gray-500">
+                      {ambassador.commission_percent}% commission
+                    </p>
                   </div>
+                </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleCreateAmbassadorAdmin(ambassador)}
+                    title="Add ambassador admin"
+                    className="flex-1 sm:flex-initial justify-center"
+                  >
+                    <UserPlus className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleImpersonateAmbassador(ambassador)}
+                    title="Impersonate ambassador"
+                    className="flex-1 sm:flex-initial justify-center"
+                  >
+                    <UserCheck className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEditAmbassador(ambassador)}
+                    className="flex-1 sm:flex-initial justify-center"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDeleteAmbassador(ambassador.id)}
+                    className="text-red-600 hover:text-red-700 flex-1 sm:flex-initial justify-center"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
                 </div>
               </div>
             ))}

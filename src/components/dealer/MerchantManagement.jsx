@@ -219,13 +219,13 @@ openTILL POS Team`
           filteredMerchants.map(merchant => (
             <Card key={merchant.id} className="hover:shadow-md transition-shadow">
               <CardHeader className="pb-3">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg">{merchant.business_name}</CardTitle>
-                    <CardDescription className="text-sm mt-1">{merchant.owner_email}</CardDescription>
-                    {merchant.address && <CardDescription className="text-xs mt-0.5">{merchant.address}</CardDescription>}
+                <div className="flex justify-between items-start gap-2">
+                  <div className="flex-1 min-w-0">
+                    <CardTitle className="text-base sm:text-lg truncate">{merchant.business_name}</CardTitle>
+                    <CardDescription className="text-sm mt-1 truncate">{merchant.owner_email}</CardDescription>
+                    {merchant.address && <CardDescription className="text-xs mt-0.5 truncate">{merchant.address}</CardDescription>}
                   </div>
-                  <div className="flex flex-col items-end gap-2">
+                  <div className="flex flex-col items-end gap-1 shrink-0">
                     <Badge variant={merchant.status === 'active' ? 'default' : merchant.status === 'suspended' ? 'destructive' : 'secondary'}>
                       {merchant.status}
                     </Badge>
@@ -250,7 +250,7 @@ openTILL POS Team`
                     <p className="font-semibold text-xs">{merchant.created_date ? new Date(merchant.created_date).toLocaleDateString() : 'N/A'}</p>
                   </div>
                 </div>
-                <div className="flex gap-2 flex-wrap">
+                <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
                   <Button
                     size="sm"
                     variant="ghost"
@@ -258,7 +258,7 @@ openTILL POS Team`
                       setSelectedMerchant(merchant);
                       setShowDetailsModal(true);
                     }}
-                    className="gap-2"
+                    className="gap-2 justify-center sm:justify-start"
                   >
                     <Eye className="w-4 h-4" />
                     Details
@@ -267,7 +267,7 @@ openTILL POS Team`
                     size="sm"
                     variant="outline"
                     onClick={() => setImpersonatingId(merchant.id)}
-                    className="gap-2"
+                    className="gap-2 justify-center sm:justify-start"
                   >
                     <LogIn className="w-4 h-4" />
                     Impersonate
