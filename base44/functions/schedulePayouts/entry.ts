@@ -30,7 +30,7 @@ Deno.serve(async (req) => {
       automationToken = parsed?._internal_secret ?? parsed?.args?._internal_secret ?? null;
     } catch (e) {}
 
-    const AUTOMATION_TOKEN = Deno.env.get('AUTOMATION_TOKEN');
+    const AUTOMATION_TOKEN = Deno.env.get('JWT_SECRET');
     const ADMIN_ROLES = ['root_admin', 'admin', 'super_admin'];
     const isAdmin = !!(user && ADMIN_ROLES.includes(user.role));
     const isAutomation = !!(automationToken && automationToken === AUTOMATION_TOKEN);

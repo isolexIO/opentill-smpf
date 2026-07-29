@@ -20,9 +20,6 @@
               "type": "boolean",
               "default": false
             },
-            "api_key": {
-              "type": "string"
-            },
             "test_mode": {
               "type": "boolean",
               "default": true
@@ -63,9 +60,6 @@
               "type": "boolean",
               "default": false
             },
-            "api_key": {
-              "type": "string"
-            },
             "store_id": {
               "type": "string"
             },
@@ -86,10 +80,7 @@
               "type": "boolean",
               "default": false
             },
-            "api_key": {
-              "type": "string"
-            },
-            "restaurant_id": {
+            "store_id": {
               "type": "string"
             },
             "auto_accept": {
@@ -108,12 +99,6 @@
             "enabled": {
               "type": "boolean",
               "default": false
-            },
-            "client_id": {
-              "type": "string"
-            },
-            "client_secret": {
-              "type": "string"
             },
             "store_id": {
               "type": "string"
@@ -134,9 +119,6 @@
             "enabled": {
               "type": "boolean",
               "default": false
-            },
-            "api_key": {
-              "type": "string"
             },
             "store_id": {
               "type": "string"
