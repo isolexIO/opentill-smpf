@@ -50,6 +50,7 @@ import BuilderManagement from '../components/superadmin/BuilderManagement';
 import BuilderSplashEditor from '../components/superadmin/BuilderSplashEditor';
 import PayoutControl from '../components/superadmin/PayoutControl';
 import SupportTicketManager from '../components/superadmin/SupportTicketManager';
+import UserManagement from '../components/superadmin/UserManagement';
 
 export default function SuperAdminPage() {
   const [user, setUser] = useState(null);
@@ -226,6 +227,7 @@ export default function SuperAdminPage() {
         { key: 'merchants', icon: Users, label: 'Merchants' },
         { key: 'dealers', icon: Building2, label: 'Ambassadors' },
         { key: 'builders', icon: Users, label: 'Builders' },
+        { key: 'users', icon: Users, label: 'Users' },
       ],
     },
     {
@@ -270,7 +272,7 @@ export default function SuperAdminPage() {
   const tabLabels = {
     pending: 'Pending Merchants', merchants: 'Merchant Management', dealers: 'Ambassador Management',
     subscriptions: 'Subscription Management', devices: 'Device Shop', amazon: 'Affiliate Links',
-    payouts: 'Payout Management', vault: '$DUC Vault', chips: 'Chip Manager', builders: 'Builder Management', logs: 'System Logs',
+    payouts: 'Payout Management', vault: '$DUC Vault', chips: 'Chip Manager', builders: 'Builder Management', users: 'User Management', logs: 'System Logs',
     reports: 'Global Reports', ads: 'Advertising', notifications: 'Notifications', settings: 'Settings',
     support: 'Support Tickets',
   };
@@ -446,6 +448,10 @@ export default function SuperAdminPage() {
 
           {activeTab === 'builders' && (
             <BuilderManagement />
+          )}
+
+          {activeTab === 'users' && (
+            <UserManagement />
           )}
 
           {activeTab === 'logs' && (
