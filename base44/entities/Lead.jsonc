@@ -1,0 +1,157 @@
+{
+  "name": "Lead",
+  "type": "object",
+  "properties": {
+    "dealer_id": {
+      "type": "string",
+      "description": "Ambassador/dealer ID that owns this lead"
+    },
+    "business_name": {
+      "type": "string",
+      "description": "Prospect business name"
+    },
+    "contact_name": {
+      "type": "string",
+      "description": "Primary contact person name"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "Contact email address"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Contact phone number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "new",
+        "contacted",
+        "qualified",
+        "proposal_sent",
+        "converted",
+        "lost"
+      ],
+      "default": "new",
+      "description": "Lead pipeline status"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "referral",
+        "website",
+        "social_media",
+        "email_campaign",
+        "phone_call",
+        "walk_in",
+        "other"
+      ],
+      "default": "referral",
+      "description": "How the lead was acquired"
+    },
+    "business_type": {
+      "type": "string",
+      "enum": [
+        "restaurant",
+        "retail",
+        "grocery",
+        "cafe",
+        "bar",
+        "other"
+      ],
+      "default": "other",
+      "description": "Type of business the prospect operates"
+    },
+    "estimated_value": {
+      "type": "number",
+      "default": 0,
+      "description": "Estimated monthly revenue or deal value in USD"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Free-form notes about the lead"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Custom tags for categorizing leads"
+    },
+    "last_contacted_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the lead was last contacted"
+    },
+    "next_follow_up": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Scheduled follow-up date"
+    },
+    "converted_merchant_id": {
+      "type": "string",
+      "description": "Merchant ID if the lead converted to a merchant"
+    },
+    "converted_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the lead was converted"
+    }
+  },
+  "required": [
+    "dealer_id",
+    "business_name"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.dealer_id": "{{user.data.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.dealer_id": "{{user.data.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.dealer_id": "{{user.data.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.dealer_id": "{{user.data.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

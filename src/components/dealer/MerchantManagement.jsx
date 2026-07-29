@@ -103,7 +103,7 @@ export default function MerchantManagement({ dealerId, initialMerchants }) {
     }
 
     try {
-      const inviteLink = `${window.location.origin}${createPageUrl('MerchantOnboarding')}?dealer_id=${dealerId}`;
+      const inviteLink = `${window.location.origin}${createPageUrl('Home')}?dealer_id=${dealerId}`;
       
       await base44.functions.invoke('sendEmail', {
         to: inviteEmail,
@@ -112,7 +112,7 @@ export default function MerchantManagement({ dealerId, initialMerchants }) {
 
 You're invited to sign up for openTILL POS and join our merchant network.
 
-Click the link below to get started:
+Click the link below to learn more and get started:
 ${inviteLink}
 
 This link will automatically associate your account with our network.
@@ -130,7 +130,7 @@ openTILL POS Team`
   };
 
   const handleCopyLink = () => {
-    const inviteLink = `${window.location.origin}${createPageUrl('MerchantOnboarding')}?dealer_id=${dealerId}`;
+    const inviteLink = `${window.location.origin}${createPageUrl('Home')}?dealer_id=${dealerId}`;
     navigator.clipboard.writeText(inviteLink);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2000);
@@ -183,7 +183,7 @@ openTILL POS Team`
                   <div className="flex gap-2">
                     <Input
                       readOnly
-                      value={`${window.location.origin}${createPageUrl('MerchantOnboarding')}?dealer_id=${dealerId}`}
+                      value={`${window.location.origin}${createPageUrl('Home')}?dealer_id=${dealerId}`}
                       className="text-xs"
                     />
                     <Button

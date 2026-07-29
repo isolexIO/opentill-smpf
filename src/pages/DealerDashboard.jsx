@@ -7,13 +7,14 @@ import { Badge } from '@/components/ui/badge';
 import { createPageUrl } from '@/utils';
 import {
   Store, DollarSign, TrendingUp, Settings, CreditCard, Sparkles, Users,
-  LogOut, Bell, Globe, BarChart3, Wallet
+  LogOut, Bell, Globe, BarChart3, Wallet, Target
 } from 'lucide-react';
 import StripeConnectSetup from '../components/dealer/StripeConnectSetup.jsx';
 import SNSSubdomainRegistration from '../components/dealer/SNSSubdomainRegistration.jsx';
 import PayoutDashboard from '../components/dealer/PayoutDashboard.jsx';
 import AIMarketingTools from '../components/dealer/AIMarketingTools.jsx';
 import MerchantManagement from '../components/dealer/MerchantManagement.jsx';
+import LeadManagement from '../components/dealer/LeadManagement.jsx';
 import StaffManagement from '../components/dealer/StaffManagement.jsx';
 import MerchantAnalytics from '../components/dealer/MerchantAnalytics.jsx';
 import DealerBrandingSettings from '../components/dealer/DealerBrandingSettings.jsx';
@@ -236,6 +237,7 @@ export default function DealerDashboardPage() {
           <TabsList className="bg-gray-100 dark:bg-gray-800/50 p-1 flex-wrap h-auto gap-1">
             {[
               { value: 'merchants', icon: Store, label: 'Merchants' },
+              { value: 'leads', icon: Target, label: 'Leads' },
               { value: 'analytics', icon: BarChart3, label: 'Analytics' },
               { value: 'marketing', icon: Sparkles, label: 'AI Marketing' },
               { value: 'payouts', icon: Wallet, label: 'Payouts' },
@@ -252,6 +254,9 @@ export default function DealerDashboardPage() {
 
           <TabsContent value="merchants">
             <MerchantManagement dealerId={dealer.legacy_dealer_id} initialMerchants={merchants} />
+          </TabsContent>
+          <TabsContent value="leads">
+            <LeadManagement dealerId={dealer.legacy_dealer_id} />
           </TabsContent>
           <TabsContent value="analytics">
             <MerchantAnalytics dealerId={dealer.legacy_dealer_id} />
