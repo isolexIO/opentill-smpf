@@ -4,13 +4,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Building2, Loader2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/components/ui/use-toast';
+import { Building2, Loader2, CheckCircle2 } from 'lucide-react';
 
 export default function PortalProfile({ merchantId }) {
   const [merchant, setMerchant] = useState(null);
   const [form, setForm] = useState({});
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [saved, setSaved] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!merchantId) return;
@@ -18,12 +22,16 @@ export default function PortalProfile({ merchantId }) {
       try {
         const list = await base44.entities.Merchant.filter({ id: merchantId });
         if (list && list[0]) {
-          setMerchant(list[0]);
+          const m = list[0];
+          setMerchant(m);
           setForm({
-            business_name: list[0].business_name || '',
-            phone: list[0].phone || '',
-            address: list[0].address || '',
-            tax_id: list[0].tax_id || '',
+            business_name: m.business_name || '',
+            display_name: m.display_name || '',
+            owner_name: m.owner_name || '',
+            owner_email: m.owner_email || '',
+            phone: m.phone || '',
+            address: m.address || '',
+            tax_id: m.tax_id || '',
           });
         }
       } catch (e) {
@@ -39,8 +47,11 @@ export default function PortalProfile({ merchantId }) {
     try {
       await base44.entities.Merchant.update(merchant.id, form);
       setMerchant({ ...merchant, ...form });
+      setSaved(true);
+      toast({ title: 'Profile saved', description: 'Your business details have been updated.' });
+      setTimeout(() => setSaved(false), 2500);
     } catch (e) {
-      alert('Failed to save: ' + (e.message || e));
+      toast({ title: 'Save failed', description: e.message || String(e), variant: 'destructive' });
     } finally {
       setSaving(false);
     }
@@ -64,48 +75,50 @@ export default function PortalProfile({ merchantId }) {
     );
   }
 
+  const field = (name, label, opts = {}) => (
+    <div className={opts.className}>
+      <Label className="text-xs text-gray-500">{label}</Label>
+      <Input
+        value={form[name] || ''}
+        onChange={(e) => setForm({ ...form, [name]: e.target.value })}
+        type={opts.type || 'text'}
+      />
+    </div>
+  );
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base flex items-center gap-2">
-          <Building2 className="w-4 h-4 text-blue-600" /> Business Profile
+        <CardTitle className="text-base flex items-center justify-between">
+          <span className="flex items-center gap-2">
+            <Building2 className="w-4 h-4 text-blue-600" /> Business Profile
+          </span>
+          <Badge className="capitalize bg-gray-100 text-gray-700">{merchant.status}</Badge>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        <div>
-          <Label className="text-xs text-gray-500">Business Name</Label>
-          <Input
-            value={form.business_name || ''}
-            onChange={(e) => setForm({ ...form, business_name: e.target.value })}
-          />
+        {field('business_name', 'Business Name')}
+        {field('display_name', 'Display Name (optional)')}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {field('owner_name', 'Owner Name')}
+          {field('owner_email', 'Owner Email', { type: 'email' })}
         </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <Label className="text-xs text-gray-500">Phone</Label>
-            <Input
-              value={form.phone || ''}
-              onChange={(e) => setForm({ ...form, phone: e.target.value })}
-            />
-          </div>
-          <div>
-            <Label className="text-xs text-gray-500">Tax ID</Label>
-            <Input
-              value={form.tax_id || ''}
-              onChange={(e) => setForm({ ...form, tax_id: e.target.value })}
-            />
-          </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {field('phone', 'Phone')}
+          {field('tax_id', 'Tax ID')}
         </div>
-        <div>
-          <Label className="text-xs text-gray-500">Address</Label>
-          <Input
-            value={form.address || ''}
-            onChange={(e) => setForm({ ...form, address: e.target.value })}
-          />
-        </div>
-        <div className="flex items-center justify-between pt-1">
-          <span className="text-xs text-gray-500 capitalize">Status: {merchant.status}</span>
+        {field('address', 'Address')}
+        <div className="flex items-center justify-end pt-1">
           <Button size="sm" onClick={handleSave} disabled={saving}>
-            {saving ? 'Saving…' : 'Save Changes'}
+            {saving ? (
+              'Saving…'
+            ) : saved ? (
+              <>
+                <CheckCircle2 className="w-4 h-4 mr-1" /> Saved
+              </>
+            ) : (
+              'Save Changes'
+            )}
           </Button>
         </div>
       </CardContent>
