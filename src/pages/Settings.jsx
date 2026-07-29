@@ -16,7 +16,6 @@ import PricingTab from '../components/settings/PricingTab';
 import DevicesTab from '../components/settings/DevicesTab';
 import DepartmentsTab from '../components/settings/DepartmentsTab';
 import CustomerDisplayTab from '../components/settings/CustomerDisplayTab';
-import CustomDomainTab from '../components/settings/CustomDomainTab';
 import WalletPaymentsTab from '../components/settings/WalletPaymentsTab';
 import Web3IdentityTab from '../components/settings/Web3IdentityTab';
 import StaffManagementTab from '../components/settings/StaffManagementTab';
@@ -336,7 +335,6 @@ export default function SettingsPage() {
     { id: 'departments', label: 'Departments', icon: Layers },
     { id: 'display', label: 'Customer Display', icon: Monitor },
     { id: 'web3identity', label: 'openTILL Identity', icon: Globe },
-    { id: 'domain', label: 'Custom Domain', icon: Globe },
     { id: 'security', label: 'Security', icon: Shield }
   ];
 
@@ -440,9 +438,6 @@ export default function SettingsPage() {
                 )}
                 {activeTab === 'web3identity' && (
                   <Web3IdentityTab merchant={merchant} />
-                )}
-                {activeTab === 'domain' && (
-                  <CustomDomainTab merchant={merchant} />
                 )}
                 {activeTab === 'security' && (
                   <SecurityTab 
