@@ -356,6 +356,9 @@ export default function HomePage() {
               <a href="#pricing" className="text-white hover:text-green-300 transition-colors">
                 Pricing
               </a>
+              <a href="#support-tiers" className="text-white hover:text-green-300 transition-colors">
+                Support Tiers
+              </a>
               <a href={createPageUrl('About')} className="text-white hover:text-green-300 transition-colors">
                 About
               </a>
@@ -399,6 +402,7 @@ export default function HomePage() {
           <a href={createPageUrl('Marketplace')} className="block text-white hover:text-green-300 py-2">Marketplace</a>
           <a href="#features" onClick={() => setMobileMenuOpen(false)} className="block text-white hover:text-green-300 py-2">Features</a>
           <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="block text-white hover:text-green-300 py-2">Pricing</a>
+          <a href="#support-tiers" onClick={() => setMobileMenuOpen(false)} className="block text-white hover:text-green-300 py-2">Support Tiers</a>
           <a href={createPageUrl('About')} className="block text-white hover:text-green-300 py-2">About</a>
           <a href={createPageUrl('Contact')} className="block text-white hover:text-green-300 py-2">Contact</a>
           <a href={createPageUrl('DeviceShop')} className="block text-white hover:text-green-300 py-2">Device Shop</a>
@@ -989,6 +993,100 @@ export default function HomePage() {
               All merchants start with the free core system. Unlock advanced features through the Motherboard.
             </p>
           </div>
+        </div>
+      </section>
+
+      {/* Support Tiers Section */}
+      <section id="support-tiers" className="py-24 px-6 bg-gray-50 dark:bg-gray-800">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              Support Tiers
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+              Choose the support plan that fits your business needs
+            </p>
+          </div>
+
+          {isLoadingPlans ? (
+            <div className="flex justify-center">
+              <Loader2 className="w-10 h-10 animate-spin text-purple-600" />
+            </div>
+          ) : subscriptionPlans.length === 0 ? (
+            <div className="text-center text-gray-500 dark:text-gray-400">
+              No support tiers available at this time.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {subscriptionPlans.map((plan, index) => (
+                <motion.div
+                  key={plan.plan_id || index}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                >
+                  <Card className={`h-full relative flex flex-col ${plan.is_featured ? 'border-4 border-purple-500 shadow-2xl' : 'border-2 border-gray-200 dark:border-gray-700'}`}>
+                    {plan.is_featured && (
+                      <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                        <Badge className="bg-gradient-to-r from-purple-600 to-green-500 text-white px-4 py-1 text-sm font-semibold">
+                          <Star className="w-3 h-3 mr-1" />
+                          POPULAR
+                        </Badge>
+                      </div>
+                    )}
+                    <CardHeader>
+                      <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">
+                        {plan.name}
+                      </CardTitle>
+                      {plan.tagline && (
+                        <CardDescription>{plan.tagline}</CardDescription>
+                      )}
+                    </CardHeader>
+                    <CardContent className="flex-1 flex flex-col">
+                      <div className="mb-6">
+                        {plan.price_monthly === 0 ? (
+                          <span className="text-5xl font-bold text-green-600">Custom</span>
+                        ) : (
+                          <>
+                            <span className="text-5xl font-bold text-gray-900 dark:text-white">
+                              ${plan.price_monthly}
+                            </span>
+                            <span className="text-gray-600 dark:text-gray-400">/mo</span>
+                          </>
+                        )}
+                        {plan.price_annual && (
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                            or ${plan.price_annual}/year
+                          </p>
+                        )}
+                      </div>
+                      <Button
+                        className={`w-full mb-6 ${plan.is_featured
+                          ? 'bg-gradient-to-r from-purple-600 to-green-500 hover:from-purple-700 hover:to-green-600 text-white'
+                          : 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100'}`}
+                        size="lg"
+                        onClick={() => window.location.href = buildOnboardingUrl()}
+                      >
+                        Choose {plan.name}
+                        <ArrowRight className="ml-2 w-5 h-5" />
+                      </Button>
+                      <ul className="space-y-3 flex-1">
+                        {plan.features && plan.features.map((feat, i) => (
+                          <li key={i} className="flex items-start gap-2">
+                            <CheckCircle className={`w-5 h-5 flex-shrink-0 mt-0.5 ${feat.included ? 'text-green-500' : 'text-gray-300'}`} />
+                            <span className={feat.included ? 'text-gray-700 dark:text-gray-300' : 'text-gray-400 dark:text-gray-500 line-through'}>
+                              {feat.text}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
