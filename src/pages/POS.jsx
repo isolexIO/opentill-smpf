@@ -1247,8 +1247,9 @@ export default function POSPage() {
       const syncEnabled = pricingSettings.sync_with_payments;
       const stripeRate = settings?.payment_gateways?.stripe?.processing_rate_percent ?? 2.9;
       const stripeFlat = settings?.payment_gateways?.stripe?.processing_flat_fee ?? 0.3;
+      const platformFee = settings?.payment_gateways?.stripe?.platform_fee_percent ?? 0;
 
-      const effectivePercent = syncEnabled ? stripeRate : (pricingSettings.cc_surcharge_percent || 0);
+      const effectivePercent = syncEnabled ? (stripeRate + platformFee) : (pricingSettings.cc_surcharge_percent || 0);
       const effectiveFlat = syncEnabled ? stripeFlat : (pricingSettings.flat_fee_amount || 0);
 
       // 1. Apply flat fee

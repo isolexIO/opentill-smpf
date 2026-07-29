@@ -20,7 +20,8 @@ export default function PaymentMethodSelectionScreen({ order, settings, onMethod
   const syncEnabled = pricingSettings.sync_with_payments;
   const stripeRate = settings?.payment_gateways?.stripe?.processing_rate_percent ?? 2.9;
   const stripeFlat = settings?.payment_gateways?.stripe?.processing_flat_fee ?? 0.3;
-  const surchargePercent = syncEnabled ? stripeRate : (pricingSettings.cc_surcharge_percent || 0);
+  const platformFee = settings?.payment_gateways?.stripe?.platform_fee_percent ?? 0;
+  const surchargePercent = syncEnabled ? (stripeRate + platformFee) : (pricingSettings.cc_surcharge_percent || 0);
   const flatFee = syncEnabled ? stripeFlat : (pricingSettings.flat_fee_amount || 0);
 
   // Calculate cash price (no surcharge) and card price (with surcharge)

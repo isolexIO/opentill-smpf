@@ -80,7 +80,7 @@ export default function PricingTab({ settings, onSave }) {
     let surcharge = 0;
     if (pricingSettings.enable_dual_pricing) {
       const effectivePercent = pricingSettings.sync_with_payments
-        ? (settings?.payment_gateways?.stripe?.processing_rate_percent ?? 2.9)
+        ? ((settings?.payment_gateways?.stripe?.processing_rate_percent ?? 2.9) + (settings?.payment_gateways?.stripe?.platform_fee_percent ?? 0))
         : pricingSettings.cc_surcharge_percent;
       const effectiveFlat = pricingSettings.sync_with_payments
         ? (settings?.payment_gateways?.stripe?.processing_flat_fee ?? 0.3)

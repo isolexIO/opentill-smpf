@@ -238,7 +238,7 @@ export default function PaymentGatewaysTab({ gateways, onUpdateGateways }) {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="stripe-rate">Processing Rate (%)</Label>
               <Input
@@ -265,11 +265,24 @@ export default function PaymentGatewaysTab({ gateways, onUpdateGateways }) {
               />
               <p className="text-xs text-gray-500">Standard Stripe flat fee is $0.30</p>
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="platform-fee">Platform Fee (%)</Label>
+              <Input
+                id="platform-fee"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="0.5"
+                value={localGateways.stripe?.platform_fee_percent ?? 0.5}
+                onChange={(e) => handleStripeChange('platform_fee_percent', parseFloat(e.target.value) || 0)}
+              />
+              <p className="text-xs text-gray-500">openTILL platform fee per transaction</p>
+            </div>
           </div>
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              When <strong>Dual Pricing</strong> is enabled with <strong>Sync with openTILL Payments</strong>, the surcharge charged to each card transaction will automatically match these values, ensuring the merchant absorbs zero loss on card processing fees.
+              When <strong>Dual Pricing</strong> is enabled with <strong>Sync with openTILL Payments</strong>, the surcharge charged to each card transaction will automatically match the processing rate + flat fee + platform fee, ensuring the merchant absorbs zero loss on card processing fees.
             </AlertDescription>
           </Alert>
         </CardContent>

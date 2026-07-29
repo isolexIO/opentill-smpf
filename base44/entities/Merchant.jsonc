@@ -190,7 +190,7 @@
             "sync_with_payments": {
               "type": "boolean",
               "default": false,
-              "description": "When true, the surcharge auto-matches the openTILL Payments (Stripe) processing rate instead of using the manually configured percentage"
+              "description": "When true, the surcharge auto-matches the openTILL Payments (Stripe) processing rate plus the platform fee instead of using the manually configured percentage"
             }
           }
         },
@@ -210,6 +210,11 @@
                   "type": "number",
                   "default": 0.3,
                   "description": "The flat per-transaction fee ($) charged by openTILL Payments (Stripe). Used for dual-pricing sync."
+                },
+                "platform_fee_percent": {
+                  "type": "number",
+                  "default": 0.5,
+                  "description": "The openTILL platform fee (%) charged per transaction on top of the Stripe processing fee. Included in dual-pricing sync so the merchant recovers both fees."
                 }
               }
             }
