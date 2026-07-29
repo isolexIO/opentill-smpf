@@ -182,7 +182,7 @@ export default function MerchantOnboarding() {
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center py-10 px-4">
       {/* Logo */}
       <div className="flex items-center gap-2 mb-6">
-        <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6970e2871534100b4ebb8d45/8e45f76fe_DUC3.png" alt="openTILL" className="w-10 h-10" />
+        <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6970e2871534100b4ebb8d45/8e45f76fe_DUC3.png" alt="openTILL" className="w-10 h-10 object-contain" />
         <span className="text-2xl font-black text-slate-900 tracking-tight">openTILL</span>
       </div>
 
