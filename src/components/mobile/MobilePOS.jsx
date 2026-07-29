@@ -1,9 +1,11 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { useParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import MobileSolanaPay from '@/components/mobile/MobileSolanaPay';
 import {
   Search,
   ShoppingCart,
@@ -20,24 +22,26 @@ import {
 } from 'lucide-react';
 
 export default function MobilePOS({ merchant, station, sessionId, initialProducts, initialDepartments }) {
+  const { token } = useParams();
   const [products] = useState(initialProducts || []);
   const [departments] = useState(initialDepartments || []);
   const [cart, setCart] = useState([]);
   const [selectedDepartment, setSelectedDepartment] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [view, setView] = useState('products'); // products | cart | checkout | success
+  const [view, setView] = useState('products'); // products | cart | checkout | success | solana_pay
   const [loading, setLoading] = useState(!initialProducts);
   const [processing, setProcessing] = useState(false);
   const [lastOrder, setLastOrder] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState(null);
   const [cashReceived, setCashReceived] = useState('');
-  const [cardLast4, setCardLast4] = useState('');
-  const [cardApproval, setCardApproval] = useState('');
+  const [pendingOrder, setPendingOrder] = useState(null); // for solana_pay & stripe flows
   const heartbeatRef = useRef(null);
 
   const settings = merchant?.settings || {};
   const taxRate = settings.tax_rate ?? 0.08;
   const merchantId = merchant?.id;
+  const solanaPayEnabled = settings?.solana_pay?.enabled && settings?.solana_pay?.wallet_address;
+  const stripeEnabled = settings?.stripe_enabled;
 
   // Heartbeat
   useEffect(() => {
@@ -147,65 +151,207 @@ export default function MobilePOS({ merchant, station, sessionId, initialProduct
     setView('checkout');
   };
 
-  const processOrder = async () => {
-    if (!paymentMethod) return;
+  const buildOrderData = (paymentMethod, status = 'pending') => {
+    const orderNumber = `MOBILE-${Date.now()}`;
+    const total = parseFloat(totals.total);
+    return {
+      order_number: orderNumber,
+      customer_name: 'Walk-in Customer',
+      items: cart.map(item => ({
+        product_id: item.id,
+        product_name: item.name,
+        quantity: item.quantity,
+        unit_price: item.price || 0,
+        item_total: (item.price || 0) * item.quantity,
+      })),
+      subtotal: parseFloat(totals.subtotal),
+      tax_amount: parseFloat(totals.taxAmount),
+      discount_amount: 0,
+      total,
+      payment_method: paymentMethod,
+      status,
+      pos_mode: 'restaurant',
+      sent_to_customer_display: true,
+    };
+  };
+
+  const resetCheckoutState = () => {
+    setCart([]);
+    setPaymentMethod(null);
+    setCashReceived('');
+    setPendingOrder(null);
+  };
+
+  // Cash: create order + complete immediately
+  const processCashOrder = async () => {
     setProcessing(true);
     try {
-      const orderNumber = `MOBILE-${Date.now()}`;
       const total = parseFloat(totals.total);
+      const cashRecv = parseFloat(cashReceived) || total;
+      const changeDue = Math.max(0, cashRecv - total);
 
-      const orderData = {
-        merchant_id: merchantId,
-        dealer_id: merchant?.dealer_id,
-        order_number: orderNumber,
-        station_id: station?.station_id,
-        station_name: station?.name,
-        customer_name: 'Walk-in Customer',
-        items: cart.map(item => ({
-          product_id: item.id,
-          product_name: item.name,
-          quantity: item.quantity,
-          unit_price: item.price || 0,
-          item_total: (item.price || 0) * item.quantity,
-        })),
-        subtotal: parseFloat(totals.subtotal),
-        tax_amount: parseFloat(totals.taxAmount),
-        discount_amount: 0,
-        total,
-        payment_method: paymentMethod,
-        payment_details: paymentMethod === 'cash'
-          ? { cash_received: parseFloat(cashReceived) || total, change_due: Math.max(0, (parseFloat(cashReceived) || 0) - total) }
-          : { card_last4: cardLast4, approval_code: cardApproval },
-        status: 'completed',
-        pos_mode: 'restaurant',
-        source: 'mobile_pos',
-        sent_to_customer_display: true,
+      const orderData = buildOrderData('cash', 'completed');
+      orderData.payment_details = {
+        cash_received: cashRecv,
+        change_due: changeDue,
       };
 
-      const created = await base44.entities.Order.create(orderData);
+      const res = await base44.functions.invoke('createMobileOrder', {
+        token,
+        order_data: orderData,
+      });
 
-      // Update merchant totals
-      try {
-        await base44.entities.Merchant.update(merchantId, {
-          total_revenue: (merchant.total_revenue || 0) + total,
-          total_orders: (merchant.total_orders || 0) + 1,
-        });
-      } catch (e) { /* non-fatal */ }
+      if (!res.data?.success) throw new Error(res.data?.error || 'Failed to create order');
 
-      setLastOrder({ ...orderData, id: created.id, change_due: paymentMethod === 'cash' ? Math.max(0, (parseFloat(cashReceived) || 0) - total) : 0 });
-      setCart([]);
-      setPaymentMethod(null);
-      setCashReceived('');
-      setCardLast4('');
-      setCardApproval('');
+      setLastOrder({ ...orderData, id: res.data.order.id, change_due: changeDue });
+      resetCheckoutState();
       setView('success');
     } catch (e) {
-      console.error('MobilePOS: Order failed', e);
+      console.error('MobilePOS: Cash order failed', e);
       alert(`Failed to process order: ${e.message}`);
     } finally {
       setProcessing(false);
     }
   };
+
+  // Card: create order → create Stripe Checkout session → redirect
+  const processCardOrder = async () => {
+    setProcessing(true);
+    try {
+      const orderData = buildOrderData('card', 'pending');
+
+      const createRes = await base44.functions.invoke('createMobileOrder', {
+        token,
+        order_data: orderData,
+      });
+
+      if (!createRes.data?.success) throw new Error(createRes.data?.error || 'Failed to create order');
+
+      const orderId = createRes.data.order.id;
+      const origin = window.location.origin;
+      const successUrl = `${origin}/mobile/station/${token}?stripe_status=success&order_id=${orderId}`;
+      const cancelUrl = `${origin}/mobile/station/${token}?stripe_status=canceled&order_id=${orderId}`;
+
+      const stripeRes = await base44.functions.invoke('createMobileStripeCheckout', {
+        token,
+        order_id: orderId,
+        success_url: successUrl,
+        cancel_url: cancelUrl,
+      });
+
+      if (!stripeRes.data?.success) throw new Error(stripeRes.data?.error || 'Failed to start card payment');
+
+      // Redirect to Stripe Checkout
+      window.location.href = stripeRes.data.checkout_url;
+    } catch (e) {
+      console.error('MobilePOS: Card order failed', e);
+      alert(`Failed to start card payment: ${e.message}`);
+      setProcessing(false);
+    }
+  };
+
+  // Solana Pay: create order → show QR screen
+  const processSolanaOrder = async () => {
+    setProcessing(true);
+    try {
+      const orderData = buildOrderData('solana_pay', 'payment_in_progress');
+
+      const createRes = await base44.functions.invoke('createMobileOrder', {
+        token,
+        order_data: orderData,
+      });
+
+      if (!createRes.data?.success) throw new Error(createRes.data?.error || 'Failed to create order');
+
+      setPendingOrder({
+        id: createRes.data.order.id,
+        order_number: createRes.data.order.order_number,
+        total: parseFloat(totals.total),
+        items: cart.map(item => ({
+          product_name: item.name,
+          quantity: item.quantity,
+        })),
+      });
+      setView('solana_pay');
+      setProcessing(false);
+    } catch (e) {
+      console.error('MobilePOS: Solana order failed', e);
+      alert(`Failed to start crypto payment: ${e.message}`);
+      setProcessing(false);
+    }
+  };
+
+  // Called when SolanaPay confirms payment
+  const handleSolanaPaymentComplete = async (success, paymentDetails) => {
+    if (!success || !pendingOrder) return;
+    setProcessing(true);
+    try {
+      const res = await base44.functions.invoke('completeMobileOrder', {
+        token,
+        order_id: pendingOrder.id,
+        payment_method: 'solana_pay',
+        payment_details: paymentDetails,
+      });
+
+      if (!res.data?.success) throw new Error(res.data?.error || 'Failed to complete order');
+
+      setLastOrder({
+        order_number: pendingOrder.order_number,
+        total: pendingOrder.total,
+        change_due: 0,
+      });
+      resetCheckoutState();
+      setView('success');
+    } catch (e) {
+      console.error('MobilePOS: Complete solana order failed', e);
+      alert(`Failed to complete order: ${e.message}`);
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  // Check for Stripe Checkout return
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const stripeStatus = urlParams.get('stripe_status');
+    const orderId = urlParams.get('order_id');
+
+    if (stripeStatus === 'success' && orderId) {
+      // Complete the order after Stripe Checkout success
+      (async () => {
+        setProcessing(true);
+        try {
+          const res = await base44.functions.invoke('completeMobileOrder', {
+            token,
+            order_id: orderId,
+            payment_method: 'card',
+            payment_details: { stripe_checkout: 'completed' },
+          });
+
+          if (res.data?.success) {
+            setLastOrder({
+              order_number: res.data.order.order_number,
+              total: res.data.order.total,
+              change_due: 0,
+            });
+            setView('success');
+          } else {
+            alert('Payment could not be verified. Please contact the cashier.');
+          }
+        } catch (e) {
+          console.error('Stripe checkout return error:', e);
+          alert('Payment verification failed. Please contact the cashier.');
+        } finally {
+          setProcessing(false);
+          // Clean URL
+          window.history.replaceState({}, document.title, `/mobile/station/${token}`);
+        }
+      })();
+    } else if (stripeStatus === 'canceled') {
+      // Payment canceled — go back to products
+      window.history.replaceState({}, document.title, `/mobile/station/${token}`);
+    }
+  }, [token]);
 
   // --- Loading ---
   if (loading) {
@@ -243,6 +389,29 @@ export default function MobilePOS({ merchant, station, sessionId, initialProduct
     );
   }
 
+  // --- Processing overlay (Stripe redirect, etc.) ---
+  if (processing && view !== 'checkout') {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+        <Loader2 className="w-12 h-12 animate-spin text-blue-600 mb-4" />
+        <p className="text-lg font-medium text-gray-600">Processing payment…</p>
+      </div>
+    );
+  }
+
+  // --- Solana Pay ---
+  if (view === 'solana_pay' && pendingOrder) {
+    return (
+      <MobileSolanaPay
+        order={pendingOrder}
+        settings={settings}
+        merchant={merchant}
+        onPaymentComplete={handleSolanaPaymentComplete}
+        onBack={() => { setView('checkout'); setPaymentMethod(null); setPendingOrder(null); }}
+      />
+    );
+  }
+
   // --- Checkout ---
   if (view === 'checkout') {
     const total = parseFloat(totals.total);
@@ -276,15 +445,39 @@ export default function MobilePOS({ merchant, station, sessionId, initialProduct
               </div>
               <span className="font-semibold text-lg">Cash</span>
             </button>
-            <button
-              className="w-full bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border-2 border-transparent hover:border-blue-500 transition-colors"
-              onClick={() => setPaymentMethod('card')}
-            >
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                <CreditCard className="w-6 h-6 text-blue-600" />
-              </div>
-              <span className="font-semibold text-lg">Card (Manual)</span>
-            </button>
+            {stripeEnabled && (
+              <button
+                className="w-full bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border-2 border-transparent hover:border-blue-500 transition-colors"
+                onClick={processCardOrder}
+                disabled={processing}
+              >
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                  {processing ? <Loader2 className="w-6 h-6 text-blue-600 animate-spin" /> : <CreditCard className="w-6 h-6 text-blue-600" />}
+                </div>
+                <span className="font-semibold text-lg">{processing ? 'Redirecting…' : 'Card'}</span>
+              </button>
+            )}
+            {solanaPayEnabled && (
+              <button
+                className="w-full bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border-2 border-transparent hover:border-purple-500 transition-colors"
+                onClick={processSolanaOrder}
+                disabled={processing}
+              >
+                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                  <img
+                    src="https://solana.com/src/img/branding/solanaLogoMark.svg"
+                    alt="Solana"
+                    className="w-6 h-6"
+                  />
+                </div>
+                <span className="font-semibold text-lg">Crypto (Solana Pay)</span>
+              </button>
+            )}
+            {!stripeEnabled && !solanaPayEnabled && (
+              <p className="text-center text-sm text-gray-400 py-4">
+                Only cash payments are available for this merchant.
+              </p>
+            )}
           </div>
         )}
 
@@ -320,41 +513,8 @@ export default function MobilePOS({ merchant, station, sessionId, initialProduct
             <Button
               size="lg"
               className="w-full"
-              disabled={parseFloat(cashReceived) < total}
-              onClick={processOrder}
-            >
-              {processing ? <Loader2 className="w-5 h-5 animate-spin" /> : `Confirm – $${totals.total}`}
-            </Button>
-          </div>
-        )}
-
-        {/* Card payment */}
-        {paymentMethod === 'card' && (
-          <div className="p-4 space-y-4">
-            <div>
-              <label className="text-sm font-semibold text-gray-600 block mb-2">Card Last 4 Digits</label>
-              <Input
-                value={cardLast4}
-                onChange={(e) => setCardLast4(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                placeholder="1234"
-                className="text-xl font-bold h-14 text-center tracking-widest"
-                inputMode="numeric"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-semibold text-gray-600 block mb-2">Approval Code</label>
-              <Input
-                value={cardApproval}
-                onChange={(e) => setCardApproval(e.target.value)}
-                placeholder="Approval code from terminal"
-                className="h-14"
-              />
-            </div>
-            <Button
-              size="lg"
-              className="w-full"
-              disabled={cardLast4.length !== 4 || !cardApproval.trim()}
-              onClick={processOrder}
+              disabled={parseFloat(cashReceived) < total || processing}
+              onClick={processCashOrder}
             >
               {processing ? <Loader2 className="w-5 h-5 animate-spin" /> : `Confirm – $${totals.total}`}
             </Button>

@@ -83,8 +83,11 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: 'This merchant account is not active.', code: 'merchant_inactive' }, { status: 403 });
     }
 
-    // Strip secrets from settings
+    // Strip secrets from settings but keep payment-relevant config for mobile
     const safeSettings = { ...(merchant.settings || {}) };
+    const stripeEnabled = merchant.settings?.payment_gateways?.stripe?.enabled || false;
+    safeSettings.solana_pay = merchant.settings?.solana_pay || {};
+    safeSettings.stripe_enabled = stripeEnabled;
     delete safeSettings.payment_gateways;
     delete safeSettings.hardware;
 
