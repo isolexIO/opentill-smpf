@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { AlertCircle, DollarSign, Info, Zap } from 'lucide-react';
+import { AlertCircle, Info, Zap } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function PricingTab({ settings, onSave }) {
@@ -42,6 +41,7 @@ export default function PricingTab({ settings, onSave }) {
         ...settings,
         pricing_and_surcharge: {
           ...pricingSettings,
+          sync_with_payments: true,
           cc_surcharge_percent: finalPercent
         }
       };
@@ -79,12 +79,8 @@ export default function PricingTab({ settings, onSave }) {
     
     let surcharge = 0;
     if (pricingSettings.enable_dual_pricing) {
-      const effectivePercent = pricingSettings.sync_with_payments
-        ? ((settings?.payment_gateways?.stripe?.processing_rate_percent ?? 2.9) + (settings?.payment_gateways?.stripe?.platform_fee_percent ?? 0))
-        : pricingSettings.cc_surcharge_percent;
-      const effectiveFlat = pricingSettings.sync_with_payments
-        ? (settings?.payment_gateways?.stripe?.processing_flat_fee ?? 0.3)
-        : pricingSettings.flat_fee_amount;
+      const effectivePercent = (settings?.payment_gateways?.stripe?.processing_rate_percent ?? 2.9) + (settings?.payment_gateways?.stripe?.platform_fee_percent ?? 0);
+      const effectiveFlat = settings?.payment_gateways?.stripe?.processing_flat_fee ?? 0.3;
       if (effectiveFlat > 0) {
         surcharge += effectiveFlat;
       }
@@ -203,87 +199,44 @@ export default function PricingTab({ settings, onSave }) {
             </CardContent>
           </Card>
 
-          {/* Sync with openTILL Payments */}
+          {/* Synced Surcharge — locked to openTILL Payments costs */}
           <Card className="border-2 border-blue-300 bg-blue-50/50">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Zap className="w-5 h-5 text-blue-600" />
-                Sync with openTILL Payments
+                Surcharge Rate (Auto-Synced)
               </CardTitle>
               <CardDescription>
-                Automatically match the surcharge to the actual processing fee charged by openTILL Payments (Stripe)
+                The surcharge is automatically synced to your openTILL Payments (Stripe) processing costs. This is not adjustable.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Switch
-                    checked={pricingSettings.sync_with_payments}
-                    onCheckedChange={(checked) => setPricingSettings({ ...pricingSettings, sync_with_payments: checked })}
-                  />
-                  <Label>{pricingSettings.sync_with_payments ? 'Synced' : 'Manual'}</Label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border">
+                  <p className="text-xs text-gray-500 mb-1">Processing Rate</p>
+                  <p className="text-2xl font-bold text-blue-600">
+                    {(settings?.payment_gateways?.stripe?.processing_rate_percent ?? 2.9).toFixed(2)}%
+                  </p>
                 </div>
-                {pricingSettings.sync_with_payments && (
-                  <Badge className="bg-blue-500">Auto-synced</Badge>
-                )}
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border">
+                  <p className="text-xs text-gray-500 mb-1">Platform Fee</p>
+                  <p className="text-2xl font-bold text-blue-600">
+                    {(settings?.payment_gateways?.stripe?.platform_fee_percent ?? 0).toFixed(2)}%
+                  </p>
+                </div>
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border">
+                  <p className="text-xs text-gray-500 mb-1">Flat Fee / Transaction</p>
+                  <p className="text-2xl font-bold text-blue-600">
+                    ${(settings?.payment_gateways?.stripe?.processing_flat_fee ?? 0.3).toFixed(2)}
+                  </p>
+                </div>
               </div>
               <Alert>
                 <Info className="w-4 h-4" />
                 <AlertDescription>
-                  {pricingSettings.sync_with_payments
-                    ? 'The surcharge on each card transaction will automatically match your openTILL Payments processing rate (set in Payment Gateways). This ensures you never absorb processing fees.'
-                    : 'Enable this to automatically sync the surcharge with your openTILL Payments (Stripe) processing rate. The manual percentage and flat fee below will be ignored.'}
+                  The surcharge on each card transaction automatically matches the combined openTILL Payments processing rate, flat fee, and platform fee. This ensures you never absorb processing fees and stays fully compliant with dual-pricing regulations.
                 </AlertDescription>
               </Alert>
-            </CardContent>
-          </Card>
-
-          {/* Surcharge Configuration */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Surcharge Configuration</CardTitle>
-              <CardDescription>
-                {pricingSettings.sync_with_payments
-                  ? 'Synced with openTILL Payments — manual values are overridden'
-                  : 'Set your card processing fees'}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label>Percentage Surcharge (%)</Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    max={getMaxPercent()}
-                    value={pricingSettings.cc_surcharge_percent}
-                    onChange={(e) => setPricingSettings({ 
-                      ...pricingSettings, 
-                      cc_surcharge_percent: Math.min(parseFloat(e.target.value), getMaxPercent()) 
-                    })}
-                    disabled={pricingSettings.sync_with_payments}
-                  />
-                  <span className="text-sm text-gray-500">Max: {getMaxPercent()}%</span>
-                </div>
-              </div>
-
-              <div>
-                <Label>Flat Fee (Optional)</Label>
-                <div className="flex items-center gap-2">
-                  <DollarSign className="w-5 h-5 text-gray-400" />
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={pricingSettings.flat_fee_amount}
-                    onChange={(e) => setPricingSettings({ ...pricingSettings, flat_fee_amount: parseFloat(e.target.value) })}
-                    disabled={pricingSettings.sync_with_payments}
-                  />
-                </div>
-                <p className="text-xs text-gray-500 mt-1">Add a fixed fee per transaction</p>
-              </div>
-
               <div className="flex items-center gap-3">
                 <Switch
                   checked={pricingSettings.show_dual_prices}

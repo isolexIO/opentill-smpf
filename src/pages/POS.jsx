@@ -1244,13 +1244,12 @@ export default function POSPage() {
     if (isDualPricingEnabled && settings?.merchant_id !== 'demo') { // Only apply if not in demo mode
       // When sync_with_payments is enabled, use the actual openTILL Payments (Stripe)
       // processing rate so the surcharge exactly matches the fee charged to the merchant.
-      const syncEnabled = pricingSettings.sync_with_payments;
       const stripeRate = settings?.payment_gateways?.stripe?.processing_rate_percent ?? 2.9;
       const stripeFlat = settings?.payment_gateways?.stripe?.processing_flat_fee ?? 0.3;
       const platformFee = settings?.payment_gateways?.stripe?.platform_fee_percent ?? 0;
 
-      const effectivePercent = syncEnabled ? (stripeRate + platformFee) : (pricingSettings.cc_surcharge_percent || 0);
-      const effectiveFlat = syncEnabled ? stripeFlat : (pricingSettings.flat_fee_amount || 0);
+      const effectivePercent = stripeRate + platformFee;
+      const effectiveFlat = stripeFlat;
 
       // 1. Apply flat fee
       if (effectiveFlat > 0) {
