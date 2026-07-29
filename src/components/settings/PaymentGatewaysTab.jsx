@@ -9,7 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Save, AlertTriangle, ShieldCheck, AlertCircle, Terminal, Lock, Cpu } from 'lucide-react';
 import StripeTerminalCard from '@/components/settings/StripeTerminalCard';
-import StripeConnectOnboarding from '@/components/settings/StripeConnectOnboarding';
 import { useFeatureAccess } from '@/components/motherboard/useFeatureAccess';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
@@ -226,9 +225,6 @@ export default function PaymentGatewaysTab({ gateways, onUpdateGateways }) {
           </CardContent>
         )}
       </Card>
-
-      {/* Stripe Connect — sign up / connect to accept card payments via Terminal */}
-      <StripeConnectOnboarding />
 
       {/* Stripe Terminal — provision location & register/pair readers */}
       <StripeTerminalCard />
