@@ -52,7 +52,7 @@ export default function LandingPageEditor() {
             badge_status: 'now_available', // New field
             badge_text: '', // New field
             headline: 'The Future of Point of Sale',
-            subheadline: 'Accept cash, card, crypto, and EBT with ChainLINK\'s dual-pricing compliant POS system',
+            subheadline: 'Accept cash, card, crypto, and EBT with openTILL SMPF\'s dual-pricing compliant POS system',
             cta_primary_text: 'Start Free Trial',
             cta_secondary_text: 'Watch Demo',
             background_gradient_start: '#7B2FD6',
@@ -74,13 +74,13 @@ export default function LandingPageEditor() {
               name: 'Sarah Johnson',
               business: 'Coastal Coffee & Bakery',
               image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop',
-              text: 'ChainLINK transformed our checkout process. The dual pricing feature alone saved us thousands in processing fees!',
+              text: 'openTILL transformed our checkout process. The dual pricing feature alone saved us thousands in processing fees!',
               rating: 5
             }
           ],
           cta_section: {
             headline: 'Ready to Transform Your Business?',
-            subheadline: 'Join thousands of merchants already using ChainLINK POS',
+            subheadline: 'Join thousands of merchants already using openTILL POS',
             cta_text: 'Get Started Today'
           },
           company_info: {

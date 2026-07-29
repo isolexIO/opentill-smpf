@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
     }
 
     // Calculate reward amount based on card processing volume
-    // Default: 0.1% of card processing volume in $cLINK
+    // Default: 0.1% of card processing volume in $DUC
     const rewardRate = settings.cc_reward_rate || 0.001; // 0.1%
     
     // Calculate card amount (using DB-trusted order values)

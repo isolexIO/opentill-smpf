@@ -95,10 +95,10 @@ export default function DealerMerchantManagement({ dealerId }) {
       
       await base44.functions.invoke('sendEmail', {
         to: inviteEmail,
-        subject: 'Join Our Network - ChainLINK POS',
+        subject: 'Join Our Network - openTILL POS',
         body: `Hi,
 
-You're invited to sign up for ChainLINK POS and join our merchant network.
+You're invited to sign up for openTILL POS and join our merchant network.
 
 Click the link below to get started:
 ${inviteLink}
@@ -106,7 +106,7 @@ ${inviteLink}
 This link will automatically associate your account with our network.
 
 Best regards,
-ChainLINK POS Team`
+openTILL POS Team`
       });
 
       alert('Invitation sent successfully!');

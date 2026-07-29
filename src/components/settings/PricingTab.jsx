@@ -93,7 +93,7 @@ export default function PricingTab({ settings, onSave }) {
 
   return (
     <div className="space-y-6">
-      {/* ChainLINK Branding Header */}
+      {/* openTILL Branding Header */}
       <Card className="border-2 border-purple-500 bg-gradient-to-r from-purple-50 to-green-50 dark:from-purple-900/20 dark:to-green-900/20">
         <CardHeader>
           <div className="flex items-center gap-3">
@@ -101,7 +101,7 @@ export default function PricingTab({ settings, onSave }) {
               <Zap className="w-6 h-6 text-white" />
             </div>
             <div>
-              <CardTitle className="text-2xl">ChainLINK Dual Pricing</CardTitle>
+              <CardTitle className="text-2xl">openTILL Dual Pricing</CardTitle>
               <CardDescription>
                 Show different prices for cash vs. card payments - fully compliant with U.S. and Canadian regulations
               </CardDescription>
@@ -288,7 +288,7 @@ export default function PricingTab({ settings, onSave }) {
             <AlertCircle className="w-4 h-4" />
             <AlertDescription>
               <strong>Compliance Notice:</strong> You must clearly disclose surcharges to customers before payment. 
-              ChainLINK automatically displays pricing on the customer display terminal. Ensure you post visible 
+              openTILL automatically displays pricing on the customer display terminal. Ensure you post visible 
               signage at your store entrance as required by law.
             </AlertDescription>
           </Alert>

@@ -93,7 +93,7 @@ const QuickCreateModal = ({ isOpen, onClose, barcode, onCreateProduct, merchantI
         const offResponse = await fetch(offUrl, {
           method: 'GET',
           headers: {
-            'User-Agent': 'ChainLINK-POS/1.0'
+            'User-Agent': 'openTILL-POS/1.0'
           }
         });
         

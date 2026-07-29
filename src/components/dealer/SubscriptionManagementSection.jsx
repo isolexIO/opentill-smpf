@@ -80,7 +80,7 @@ Plan Details:
 This change will take effect immediately.
 
 Best regards,
-ChainLINK Support`
+openTILL Support`
       });
 
       setInvoice(null);

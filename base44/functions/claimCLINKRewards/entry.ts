@@ -53,13 +53,13 @@ Deno.serve(async (req) => {
     if (claimAmount < minThreshold) {
       return Response.json({
         success: false,
-        error: `Minimum claim amount is ${minThreshold} $cLINK`
+        error: `Minimum claim amount is ${minThreshold} $DUC`
       }, { status: 400 });
     }
 
     // SECURITY NOTICE: On-chain reward claiming requires:
     // 1. Smart contract with reward distribution logic
-    // 2. Treasury wallet with sufficient $cLINK balance
+    // 2. Treasury wallet with sufficient $DUC balance
     // 3. Secure private key management for treasury
     // 4. User wallet signature approval (if user pays gas)
     // 5. Gas fee handling and transaction retry logic
@@ -90,8 +90,8 @@ Deno.serve(async (req) => {
     await base44.asServiceRole.entities.SystemLog.create({
       merchant_id: merchant_id,
       log_type: 'merchant_action',
-      action: '$cLINK Rewards Claimed',
-      description: `Merchant claimed ${claimAmount} $cLINK to wallet ${user.wallet_address}`,
+      action: '$DUC Rewards Claimed',
+      description: `Merchant claimed ${claimAmount} $DUC to wallet ${user.wallet_address}`,
       user_email: user.email,
       user_id: user.id,
       severity: 'info',

@@ -72,7 +72,7 @@ export default function AdvertisingTile({ targetLocation = 'system_menu' }) {
     return (
       <div className="w-full aspect-video bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center p-8 text-white text-center">
         <div>
-          <h3 className="text-2xl font-bold mb-2">Welcome to ChainLINK POS</h3>
+          <h3 className="text-2xl font-bold mb-2">Welcome to openTILL POS</h3>
           <p className="text-white/80">Your modern point of sale solution</p>
         </div>
       </div>

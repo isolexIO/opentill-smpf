@@ -245,7 +245,7 @@ This proposal is valid until ${new Date(invoice.valid_until).toLocaleDateString(
 Please log in to your account to review and approve this change.
 
 Best regards,
-ChainLINK Support`
+openTILL Support`
         });
 
         alert(`Invoice ${invoice.invoice_number} generated and sent to ${merchant.owner_email} for approval.`);

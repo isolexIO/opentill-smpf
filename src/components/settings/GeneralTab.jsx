@@ -445,7 +445,7 @@ export default function GeneralTab({ merchant, onSave, saving }) {
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>ChainLINK Crypto Payments</Label>
+              <Label>openTILL Crypto Payments</Label>
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Accept Solana Pay and other crypto payments
               </p>

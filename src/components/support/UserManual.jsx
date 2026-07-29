@@ -747,7 +747,7 @@ Revenue share defaults to 70% to the builder. Super Admin can adjust the platfor
         },
         {
           title: 'Dealer Registration',
-          content: 'Become a dealer:\n1. Visit dealer landing page\n2. Fill registration form:\n   • Company name\n   • Contact info\n   • Business details\n   • Estimated merchant count\n3. Submit application\n4. Super Admin reviews\n5. Approval + setup:\n   • Dealer account created\n   • Commission rates set\n   • Stripe Connect account created\n6. Access dealer dashboard\n7. Start onboarding merchants'
+          content: 'Become a dealer:\n1. Visit Ambassador Hub\n2. Fill registration form:\n   • Company name\n   • Contact info\n   • Business details\n   • Estimated merchant count\n3. Submit application\n4. Super Admin reviews\n5. Approval + setup:\n   • Dealer account created\n   • Commission rates set\n   • Stripe Connect account created\n6. Access dealer dashboard\n7. Start onboarding merchants'
         },
         {
           title: 'Dealer Dashboard Features',
@@ -770,7 +770,7 @@ All new feature revenue is included in your monthly commission calculations. Tra
         },
         {
           title: 'Onboarding Merchants',
-          content: 'Add merchants to your portfolio:\n\n1. Share your dealer landing page:\n   • yourdomain.opentill-pos.com\n   • Branded registration form\n\n2. Merchant registers:\n   • Fills onboarding form\n   • Automatically assigned to you\n   • No manual assignment needed\n\n3. Super Admin approves:\n   • Account activated\n   • Trial period starts\n\n4. Provide Support:\n   • Help merchant with setup\n   • Configure settings\n   • Train on features\n   • Ongoing support\n\n5. Earn Commissions:\n   • Automatic from day one\n   • Track in dealer dashboard'
+          content: 'Add merchants to your portfolio:\n\n1. Share your Ambassador Hub:\n   • yourdomain.opentill-pos.com\n   • Branded registration form\n\n2. Merchant registers:\n   • Fills onboarding form\n   • Automatically assigned to you\n   • No manual assignment needed\n\n3. Super Admin approves:\n   • Account activated\n   • Trial period starts\n\n4. Provide Support:\n   • Help merchant with setup\n   • Configure settings\n   • Train on features\n   • Ongoing support\n\n5. Earn Commissions:\n   • Automatic from day one\n   • Track in dealer dashboard'
         },
         {
           title: 'White Label Branding',

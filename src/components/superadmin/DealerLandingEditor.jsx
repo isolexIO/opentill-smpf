@@ -50,7 +50,7 @@ export default function DealerLandingEditor() {
         // Create default settings
         const defaultSettings = {
           hero: {
-            headline: "Welcome to ChainLINK Dealer Portal",
+            headline: "Welcome to the openTILL Ambassador Hub",
             subheadline: "Manage your white-label network, merchants, and commissions from one powerful dashboard.",
             badge_text: "White-Label POS Platform"
           },
@@ -310,7 +310,7 @@ export default function DealerLandingEditor() {
                   value={settings.hero.headline}
                   onChange={(e) => updateHero('headline', e.target.value)}
                   rows={2}
-                  placeholder="Welcome to ChainLINK Dealer Portal"
+                  placeholder="Welcome to the openTILL Ambassador Hub"
                 />
               </div>
 

@@ -99,11 +99,11 @@ export default function PendingMerchants() {
       try {
         await base44.functions.invoke('sendEmail', {
           to: selectedMerchant.owner_email,
-          subject: 'ChainLINK POS - Your Account is Ready!',
+          subject: 'openTILL POS - Your Account is Ready!',
           body: `
 Great news, ${selectedMerchant.owner_name}!
 
-Your ChainLINK POS account has been activated and is ready to use.
+Your openTILL POS account has been activated and is ready to use.
 
 Your Login Credentials:
 Email: ${selectedMerchant.owner_email}
@@ -115,7 +115,7 @@ You can now log in at ${window.location.origin}/PinLogin using your 6-digit PIN 
 Your 30-day free trial has started!
 
 Best regards,
-ChainLINK POS Team
+openTILL POS Team
           `
         });
       } catch (emailError) {
@@ -152,18 +152,18 @@ ChainLINK POS Team
       try {
         await base44.functions.invoke('sendEmail', {
           to: merchant.owner_email,
-          subject: 'ChainLINK POS - Registration Update',
+          subject: 'openTILL POS - Registration Update',
           body: `
 Hello ${merchant.owner_name},
 
-Thank you for your interest in ChainLINK POS.
+Thank you for your interest in openTILL POS.
 
 Unfortunately, we are unable to approve your merchant registration at this time.
 
 If you have any questions, please contact our support team.
 
 Best regards,
-ChainLINK POS Team
+openTILL POS Team
           `
         });
       } catch (emailError) {

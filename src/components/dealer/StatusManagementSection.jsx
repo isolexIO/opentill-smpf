@@ -73,7 +73,7 @@ Updated: ${new Date().toLocaleDateString()}
 If you have any questions, please contact our support team.
 
 Best regards,
-ChainLINK Support`
+openTILL Support`
       });
 
       setShowConfirm(false);
