@@ -90,6 +90,15 @@
     "stripe_account_id": {
       "type": "string"
     },
+    "stripe_identity_verified": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the ambassador has completed Stripe Identity verification"
+    },
+    "stripe_verification_session_id": {
+      "type": "string",
+      "description": "Stripe Identity verification session ID"
+    },
     "solana_wallet_address": {
       "type": "string"
     },

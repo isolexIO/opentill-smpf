@@ -65,6 +65,17 @@ Deno.serve(async (req) => {
     }
     const dealer = dealers[0];
 
+    // Block payouts for ambassadors that haven't completed Stripe Identity
+    // verification. This is a hard gate — no payout can leave the platform
+    // until the ambassador's identity is verified.
+    if (!dealer.stripe_identity_verified) {
+      await base44.asServiceRole.entities.DealerPayout.update(payout_id, {
+        status: 'on_hold',
+        error_message: 'Ambassador identity verification not completed. Complete Stripe Identity verification to enable payouts.',
+      });
+      return Response.json({ success: false, message: 'Ambassador identity verification required before payouts' });
+    }
+
     // openTILL payout rule (deterministic — not admin-selectable):
     //   • The platform-percentage commission is paid to the ambassador via Stripe.
     //   • Every ambassador bonus (signup / per-active-merchant / milestone / carryover)

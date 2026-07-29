@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import SolanaWalletInput from '@/components/shared/SolanaWalletInput';
+import IdentityVerificationCard from '@/components/shared/IdentityVerificationCard';
 
 export default function ProfileSettings({ builder, user, onUpdated }) {
   const [editing, setEditing] = useState(false);
@@ -350,9 +351,33 @@ export default function ProfileSettings({ builder, user, onUpdated }) {
         )}
       </div>
 
+      {/* Identity Verification */}
+      <div className="border-t border-gray-200 pt-6">
+        <h4 className="font-bold text-gray-900 mb-4">Identity Verification</h4>
+        {!builder.stripe_identity_verified && (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+            <p className="text-sm text-amber-800 font-medium mb-1">
+              Identity verification required before payouts
+            </p>
+            <p className="text-xs text-amber-700">
+              Complete Stripe Identity verification to unlock payouts for your chip sales.
+            </p>
+          </div>
+        )}
+        <IdentityVerificationCard
+          entityType="builder"
+          entityId={builder.id}
+          businessName={builder.company_name || builder.full_name}
+          ownerEmail={builder.user_email}
+          ownerName={builder.full_name}
+          verified={!!builder.stripe_identity_verified}
+          onVerified={onUpdated}
+        />
+      </div>
+
       {/* Payment Information */}
        <div className="border-t border-gray-200 pt-6">
-         <h4 className="font-bold text-gray-900 mb-4">Payment Information</h4>
+          <h4 className="font-bold text-gray-900 mb-4">Payment Information</h4>
 
          <div className="space-y-2 mb-4">
            <label className="block text-sm font-medium text-gray-700">Payout Method</label>

@@ -61,7 +61,7 @@ Deno.serve(async (req) => {
     try {
       const account = await stripe.accounts.retrieve(accountId);
       connected = !!account.details_submitted;
-      payoutEnabled = !!account.charges_enabled;
+      payoutEnabled = !!account.charges_enabled && !!builder.stripe_identity_verified;
       await base44.asServiceRole.entities.Builder.update(builder.id, {
         stripe_connected: connected,
         payout_enabled: payoutEnabled,

@@ -5,7 +5,7 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const body = await req.json();
-    const { business_name, owner_email, owner_name, return_url } = body;
+    const { business_name, owner_email, owner_name, return_url, entity_type, entity_id } = body;
 
     if (!business_name || !owner_email) {
       return Response.json({
@@ -36,6 +36,8 @@ Deno.serve(async (req) => {
         owner_email,
         owner_name: owner_name || '',
         source: 'opentill_merchant_onboarding',
+        entity_type: entity_type || '',
+        entity_id: entity_id || '',
       },
       provided_info: {
         email: owner_email,

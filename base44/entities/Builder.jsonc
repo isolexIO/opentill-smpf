@@ -62,6 +62,15 @@
       "default": false,
       "description": "Whether Stripe Connect is set up"
     },
+    "stripe_identity_verified": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the builder has completed Stripe Identity verification"
+    },
+    "stripe_verification_session_id": {
+      "type": "string",
+      "description": "Stripe Identity verification session ID"
+    },
     "payout_enabled": {
       "type": "boolean",
       "default": false,
