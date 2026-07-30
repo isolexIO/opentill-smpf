@@ -80,6 +80,83 @@
       "default": [],
       "description": "Custom tags for categorizing leads"
     },
+    "activities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "note",
+              "email",
+              "call",
+              "status_change",
+              "appointment",
+              "meeting"
+            ],
+            "description": "Type of activity"
+          },
+          "text": {
+            "type": "string",
+            "description": "Activity content"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "author": {
+            "type": "string",
+            "description": "Who performed the activity"
+          }
+        }
+      },
+      "default": [],
+      "description": "Activity log / notes timeline"
+    },
+    "appointments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "time": {
+            "type": "string"
+          },
+          "duration_minutes": {
+            "type": "number",
+            "default": 30
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "scheduled",
+              "completed",
+              "cancelled"
+            ],
+            "default": "scheduled"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "default": [],
+      "description": "Scheduled appointments for this lead"
+    },
     "last_contacted_at": {
       "type": "string",
       "format": "date-time",

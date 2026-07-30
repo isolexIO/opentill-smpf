@@ -9,9 +9,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
+import LeadDetailDialog from './LeadDetailDialog';
 import {
   Plus, Search, Mail, Phone, Building2, TrendingUp, Target,
-  Copy, Check, Calendar, Tag, MoreVertical, Trash2, Edit, UserPlus
+  Copy, Check, Calendar, Tag, Trash2, Edit, UserPlus, ChevronRight, Clock
 } from 'lucide-react';
 
 const STATUS_CONFIG = {
@@ -66,16 +67,30 @@ export default function LeadManagement({ dealerId }) {
   const [formData, setFormData] = useState(EMPTY_LEAD);
   const [tagInput, setTagInput] = useState('');
   const [copiedId, setCopiedId] = useState(null);
+  const [selectedLead, setSelectedLead] = useState(null);
+  const [showDetail, setShowDetail] = useState(false);
+  const [quickNote, setQuickNote] = useState({});
+  const [savingNoteId, setSavingNoteId] = useState(null);
+  const token = typeof window !== 'undefined' ? localStorage.getItem('dealerToken') : null;
 
   useEffect(() => { loadLeads(); }, [dealerId]);
 
   const loadLeads = async () => {
     try {
       setLoading(true);
-      const data = await base44.entities.Lead.filter({ dealer_id: dealerId }, '-created_date');
-      setLeads(data || []);
+      const res = await base44.functions.invoke('manageLead', {
+        action: 'list',
+        token,
+        dealer_id: dealerId,
+      });
+      if (res.data?.success) {
+        setLeads(res.data.leads || []);
+      } else {
+        setLeads([]);
+      }
     } catch (error) {
       console.error('Error loading leads:', error);
+      setLeads([]);
     } finally {
       setLoading(false);
     }
@@ -89,14 +104,24 @@ export default function LeadManagement({ dealerId }) {
     try {
       const payload = {
         ...formData,
-        dealer_id: dealerId,
         estimated_value: parseFloat(formData.estimated_value) || 0,
       };
 
       if (editingLead) {
-        await base44.entities.Lead.update(editingLead.id, payload);
+        await base44.functions.invoke('manageLead', {
+          action: 'update',
+          token,
+          dealer_id: dealerId,
+          lead_id: editingLead.id,
+          lead_data: payload,
+        });
       } else {
-        await base44.entities.Lead.create(payload);
+        await base44.functions.invoke('manageLead', {
+          action: 'create',
+          token,
+          dealer_id: dealerId,
+          lead_data: payload,
+        });
       }
       setShowForm(false);
       setEditingLead(null);
@@ -129,7 +154,13 @@ export default function LeadManagement({ dealerId }) {
     try {
       const updates = { status: newStatus, last_contacted_at: new Date().toISOString() };
       if (newStatus === 'converted') updates.converted_at = new Date().toISOString();
-      await base44.entities.Lead.update(leadId, updates);
+      await base44.functions.invoke('manageLead', {
+        action: 'update',
+        token,
+        dealer_id: dealerId,
+        lead_id: leadId,
+        lead_data: updates,
+      });
       await loadLeads();
     } catch (error) {
       alert('Failed to update status: ' + error.message);
@@ -139,23 +170,102 @@ export default function LeadManagement({ dealerId }) {
   const handleDelete = async (leadId) => {
     if (!confirm('Delete this lead? This cannot be undone.')) return;
     try {
-      await base44.entities.Lead.delete(leadId);
+      await base44.functions.invoke('manageLead', {
+        action: 'delete',
+        token,
+        dealer_id: dealerId,
+        lead_id: leadId,
+      });
       await loadLeads();
     } catch (error) {
       alert('Failed to delete lead: ' + error.message);
     }
   };
 
+  const handleAddNote = async (leadId, noteText) => {
+    const res = await base44.functions.invoke('manageLead', {
+      action: 'add_note',
+      token,
+      dealer_id: dealerId,
+      lead_id: leadId,
+      note: noteText,
+    });
+    if (res.data?.success) {
+      await loadLeads();
+      const updated = res.data.lead;
+      if (selectedLead?.id === leadId) setSelectedLead(updated);
+    }
+  };
+
+  const handleQuickNote = async (leadId) => {
+    const note = quickNote[leadId]?.trim();
+    if (!note) return;
+    setSavingNoteId(leadId);
+    try {
+      await handleAddNote(leadId, note);
+      setQuickNote({ ...quickNote, [leadId]: '' });
+    } catch (error) {
+      alert('Failed to add note: ' + error.message);
+    } finally {
+      setSavingNoteId(null);
+    }
+  };
+
+  const handleAddAppointment = async (leadId, appointment) => {
+    const res = await base44.functions.invoke('manageLead', {
+      action: 'add_appointment',
+      token,
+      dealer_id: dealerId,
+      lead_id: leadId,
+      appointment,
+    });
+    if (res.data?.success) {
+      await loadLeads();
+      const updated = res.data.lead;
+      if (selectedLead?.id === leadId) setSelectedLead(updated);
+    }
+  };
+
+  const handleUpdateAppointment = async (leadId, appointment) => {
+    const res = await base44.functions.invoke('manageLead', {
+      action: 'update_appointment',
+      token,
+      dealer_id: dealerId,
+      lead_id: leadId,
+      appointment,
+    });
+    if (res.data?.success) {
+      await loadLeads();
+      const updated = res.data.lead;
+      if (selectedLead?.id === leadId) setSelectedLead(updated);
+    }
+  };
+
+  const handleLogCall = async (leadId) => {
+    const res = await base44.functions.invoke('manageLead', {
+      action: 'log_call',
+      token,
+      dealer_id: dealerId,
+      lead_id: leadId,
+      note: 'Call logged',
+    });
+    if (res.data?.success) {
+      await loadLeads();
+      const updated = res.data.lead;
+      if (selectedLead?.id === leadId) setSelectedLead(updated);
+    }
+  };
+
   const handleAddTag = () => {
     const tag = tagInput.trim();
     if (tag && !formData.tags.includes(tag)) {
-      setFormData(f => ({ ...f, tags: [...f.tags, tag] }));
+      setFormData((f) => ({ ...f, tags: [...f.tags, tag] }));
     }
     setTagInput('');
   };
 
   const handleRemoveTag = (tag) => {
-    setFormData(f => ({ ...f, tags: f.tags.filter(t => t !== tag) }));
+    setFormData((f) => ({ ...f, tags: f.tags.filter((t) => t !== tag) }));
   };
 
   const getInviteLink = () => {
@@ -174,24 +284,12 @@ export default function LeadManagement({ dealerId }) {
       return;
     }
     try {
-      await base44.functions.invoke('sendEmail', {
-        to: lead.email,
-        subject: 'Join Our Network - openTILL POS',
-        text: `Hi ${lead.contact_name || ''},
-
-You're invited to sign up for openTILL POS and join our merchant network.
-
-Click the link below to get started:
-${getInviteLink()}
-
-This link will automatically associate your account with our network.
-
-Best regards,
-openTILL POS Team`
-      });
-      await base44.entities.Lead.update(lead.id, {
-        status: lead.status === 'new' ? 'contacted' : lead.status,
-        last_contacted_at: new Date().toISOString(),
+      await base44.functions.invoke('manageLead', {
+        action: 'send_invite',
+        token,
+        dealer_id: dealerId,
+        lead_id: lead.id,
+        invite_link: getInviteLink(),
       });
       await loadLeads();
       alert('Invitation sent successfully!');
@@ -200,8 +298,14 @@ openTILL POS Team`
     }
   };
 
-  const filteredLeads = leads.filter(lead => {
-    const matchesSearch = !searchTerm ||
+  const handleOpenDetail = (lead) => {
+    setSelectedLead(lead);
+    setShowDetail(true);
+  };
+
+  const filteredLeads = leads.filter((lead) => {
+    const matchesSearch =
+      !searchTerm ||
       lead.business_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       lead.contact_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       lead.email?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -211,9 +315,9 @@ openTILL POS Team`
 
   const stats = {
     total: leads.length,
-    new: leads.filter(l => l.status === 'new').length,
-    qualified: leads.filter(l => l.status === 'qualified' || l.status === 'proposal_sent').length,
-    converted: leads.filter(l => l.status === 'converted').length,
+    new: leads.filter((l) => l.status === 'new').length,
+    qualified: leads.filter((l) => l.status === 'qualified' || l.status === 'proposal_sent').length,
+    converted: leads.filter((l) => l.status === 'converted').length,
     pipelineValue: leads.reduce((sum, l) => sum + (l.estimated_value || 0), 0),
   };
 
@@ -389,6 +493,8 @@ openTILL POS Team`
         ) : (
           filteredLeads.map(lead => {
             const statusCfg = STATUS_CONFIG[lead.status] || STATUS_CONFIG.new;
+            const upcomingAppts = (lead.appointments || []).filter(a => a.status === 'scheduled');
+            const recentActivities = (lead.activities || []).slice(-2).reverse();
             return (
               <Card key={lead.id} className="hover:shadow-md transition-shadow">
                 <CardContent className="p-4">
@@ -398,6 +504,11 @@ openTILL POS Team`
                         <h3 className="font-semibold text-gray-900 truncate">{lead.business_name}</h3>
                         <Badge className={statusCfg.color}>{statusCfg.label}</Badge>
                         <Badge variant="outline" className="text-xs">{BUSINESS_LABELS[lead.business_type] || lead.business_type}</Badge>
+                        {upcomingAppts.length > 0 && (
+                          <Badge variant="outline" className="text-xs text-blue-600 border-blue-300">
+                            <Calendar className="w-2 h-2 mr-1" />{upcomingAppts.length} appt
+                          </Badge>
+                        )}
                       </div>
                       <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500">
                         {lead.contact_name && <span className="flex items-center gap-1"><UserPlus className="w-3 h-3" />{lead.contact_name}</span>}
@@ -411,11 +522,39 @@ openTILL POS Team`
                         </div>
                       )}
                       {lead.notes && <p className="text-sm text-gray-600 mt-2 line-clamp-2">{lead.notes}</p>}
+                      {recentActivities.length > 0 && (
+                        <div className="mt-2 space-y-0.5">
+                          {recentActivities.map((a, i) => (
+                            <p key={i} className="text-xs text-gray-400 flex items-center gap-1">
+                              <Clock className="w-2 h-2" />{a.text}
+                            </p>
+                          ))}
+                        </div>
+                      )}
                       {lead.next_follow_up && (
                         <p className="text-xs text-orange-600 mt-2 flex items-center gap-1">
                           <Calendar className="w-3 h-3" />Follow-up: {new Date(lead.next_follow_up).toLocaleDateString()}
                         </p>
                       )}
+                      {/* Quick note input */}
+                      <div className="flex gap-2 mt-2">
+                        <Input
+                          value={quickNote[lead.id] || ''}
+                          onChange={(e) => setQuickNote({ ...quickNote, [lead.id]: e.target.value })}
+                          onKeyDown={(e) => { if (e.key === 'Enter' && quickNote[lead.id]?.trim()) { e.preventDefault(); handleQuickNote(lead.id); } }}
+                          placeholder="Quick note…"
+                          className="h-8 text-xs"
+                        />
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 shrink-0"
+                          disabled={!quickNote[lead.id]?.trim() || savingNoteId === lead.id}
+                          onClick={() => handleQuickNote(lead.id)}
+                        >
+                          {savingNoteId === lead.id ? '…' : 'Save'}
+                        </Button>
+                      </div>
                     </div>
                     <div className="flex flex-wrap gap-2 lg:flex-col lg:items-end">
                       <Select value={lead.status} onValueChange={(v) => handleStatusChange(lead.id, v)}>
@@ -427,9 +566,12 @@ openTILL POS Team`
                         </SelectContent>
                       </Select>
                       <div className="flex gap-1">
+                        <Button size="sm" variant="outline" onClick={() => handleOpenDetail(lead)} title="Details, notes & appointments" className="gap-1">
+                          <Calendar className="w-4 h-4" />Details
+                        </Button>
                         {lead.email && (
                           <Button size="sm" variant="ghost" onClick={() => handleSendInvite(lead)} title="Send invite email" className="gap-1">
-                            <Mail className="w-4 h-4" />Invite
+                            <Mail className="w-4 h-4" />
                           </Button>
                         )}
                         <Button size="sm" variant="ghost" onClick={() => handleCopyInvite(lead.id)} title="Copy invite link">
@@ -450,6 +592,19 @@ openTILL POS Team`
           })
         )}
       </div>
+
+      {/* Detail Dialog */}
+      <LeadDetailDialog
+        lead={selectedLead}
+        isOpen={showDetail}
+        onClose={() => setShowDetail(false)}
+        onAddNote={handleAddNote}
+        onAddAppointment={handleAddAppointment}
+        onUpdateAppointment={handleUpdateAppointment}
+        onLogCall={handleLogCall}
+        onSendInvite={handleSendInvite}
+        inviteLink={getInviteLink()}
+      />
     </div>
   );
 }
