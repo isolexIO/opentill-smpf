@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
+import nodemailer from 'npm:nodemailer@6.9.7';
 
 const SALT = 'opentill_customer_portal_2024';
 
@@ -14,6 +15,33 @@ function issueOtp(customerId) {
   const code = generateOtp();
   otpStore.set(customerId, { code, expires_at: Date.now() + OTP_TTL_MS });
   return code;
+}
+
+// Deliver the OTP out-of-band to the customer's verified email address.
+// Never return the code in the HTTP response — that would allow an
+// unauthenticated attacker who only knows the identifier to take over
+// the account by calling set_pin with the leaked code.
+async function deliverOtpByEmail(customer, code) {
+  const smtpHost = Deno.env.get('SMTP_HOST');
+  const smtpUser = Deno.env.get('SMTP_USER');
+  const smtpPass = Deno.env.get('SMTP_PASS');
+  if (!smtpHost || !smtpUser || !smtpPass || !customer.email) {
+    return false;
+  }
+  const transporter = nodemailer.createTransport({
+    host: smtpHost,
+    port: parseInt(Deno.env.get('SMTP_PORT') || '465'),
+    secure: true,
+    auth: { user: smtpUser, pass: smtpPass },
+  });
+  await transporter.sendMail({
+    from: `"openTILL Customer Portal" <${smtpUser}>`,
+    to: customer.email,
+    subject: 'Your openTILL PIN setup verification code',
+    text: `Your verification code to set your Customer Portal PIN is: ${code}\n\nThis code expires in 10 minutes. If you did not request this, you can safely ignore this email.`,
+    html: `<p>Your verification code to set your Customer Portal PIN is:</p><p style="font-size:28px;font-weight:bold;letter-spacing:4px">${code}</p><p>This code expires in 10 minutes. If you did not request this, you can safely ignore this email.</p>`,
+  });
+  return true;
 }
 
 function verifyOtp(customerId, code) {
@@ -94,10 +122,24 @@ Deno.serve(async (req) => {
       const pinSet = !!customer.pin_hash;
       const response = { success: true, pin_set: pinSet, customer_name: customer.name };
       if (!pinSet) {
-        // Issue a one-time verification code the customer must present to set_pin.
-        // In production this would be sent via SMS/email; for now it is returned
-        // to the client so the merchant can relay it at the point of sale.
-        response.verification_code = issueOtp(customer.id);
+        // Issue an OTP and deliver it out-of-band to the customer's verified
+        // email. Never return the code in the response — that would let an
+        // unauthenticated attacker who only knows the phone/email set a PIN
+        // and take over the account.
+        const code = issueOtp(customer.id);
+        const delivered = await deliverOtpByEmail(customer, code);
+        if (!delivered) {
+          // No verified email on file (or SMTP not configured): do not issue
+          // an OTP the caller could recover. The customer must set up their
+          // PIN in person with the merchant instead.
+          otpStore.delete(customer.id);
+          return Response.json({
+            success: false,
+            error: 'Please visit your merchant to set up your PIN for the first time.',
+            pin_setup_required: true,
+          });
+        }
+        response.verification_code_sent = true;
       }
       return Response.json(response);
     }

@@ -50,9 +50,12 @@ export default function CustomerPortal() {
       if (data?.success) {
         if (data.pin_set) {
           setStep('pin');
-        } else {
-          setVerificationCode(data.verification_code || '');
+        } else if (data.verification_code_sent) {
+          // OTP was emailed out-of-band by the server; the customer types it in.
+          setVerificationCode('');
           setStep('set_pin');
+        } else {
+          toast({ title: 'Setup required', description: data?.error || 'Please contact your merchant.', variant: 'destructive' });
         }
       } else {
         toast({ title: 'Not found', description: data?.error || 'No account found', variant: 'destructive' });
@@ -277,21 +280,22 @@ export default function CustomerPortal() {
             <h1 className="text-2xl font-bold mb-1">Create Your PIN</h1>
             <p className="text-sm text-white/70">Set a 4+ digit PIN to secure your account</p>
           </div>
-          {verificationCode && (
-            <div className="bg-yellow-100 border border-yellow-300 rounded-lg p-3 mb-4 text-center">
-              <p className="text-xs text-yellow-800 font-medium">Your verification code</p>
-              <p className="text-2xl font-bold tracking-widest text-yellow-900">{verificationCode}</p>
-              <p className="text-xs text-yellow-700 mt-1">Ask the cashier to confirm this code</p>
-            </div>
-          )}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 text-center">
+            <p className="text-sm text-blue-800">A verification code was sent to your email.</p>
+            <p className="text-xs text-blue-700 mt-1">Enter it below to confirm your identity. The code expires in 10 minutes.</p>
+          </div>
           <Card>
             <CardContent className="p-6">
               <form onSubmit={handlePinSubmit} className="space-y-4">
                 <div>
-                  <Label htmlFor="pin">New PIN</Label>
-                  <Input id="pin" type="password" inputMode="numeric" value={pin} onChange={(e) => setPin(e.target.value)} placeholder="••••" className="mt-1" autoFocus />
+                  <Label htmlFor="vcode">Verification Code</Label>
+                  <Input id="vcode" type="text" inputMode="numeric" value={verificationCode} onChange={(e) => setVerificationCode(e.target.value)} placeholder="123456" className="mt-1 tracking-widest text-center text-lg" autoFocus maxLength={6} />
                 </div>
-                <Button type="submit" className="w-full" disabled={authLoading || pin.length < 4}>
+                <div>
+                  <Label htmlFor="pin">New PIN</Label>
+                  <Input id="pin" type="password" inputMode="numeric" value={pin} onChange={(e) => setPin(e.target.value)} placeholder="••••" className="mt-1" />
+                </div>
+                <Button type="submit" className="w-full" disabled={authLoading || pin.length < 4 || verificationCode.length < 4}>
                   {authLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-4 h-4 mr-2" />}
                   {authLoading ? 'Creating…' : 'Create PIN & Continue'}
                 </Button>
