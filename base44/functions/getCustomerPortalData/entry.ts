@@ -1,26 +1,55 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
+const SALT = 'opentill_customer_portal_2024';
+
+async function hashPin(pin) {
+  const data = new TextEncoder().encode(SALT + pin);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function findCustomer(base44, identifier) {
+  const isEmail = identifier.includes('@');
+  const query = isEmail ? { email: identifier.toLowerCase().trim() } : { phone: identifier.trim() };
+  const customers = await base44.asServiceRole.entities.Customer.filter(query);
+  return customers && customers.length > 0 ? customers[0] : null;
+}
+
 Deno.serve(async (req) => {
   try {
     const body = await req.json();
-    const { phone, email, customer_id } = body;
+    const { phone, email, customer_id, pin } = body;
     const base44 = createClientFromRequest(req);
+
+    // Require a PIN for all requests — prevents unauthenticated PII exposure
+    if (!pin) {
+      return Response.json({ success: false, error: 'PIN is required' }, { status: 401 });
+    }
 
     let customer = null;
 
     if (customer_id) {
       const customers = await base44.asServiceRole.entities.Customer.filter({ id: customer_id });
       if (customers && customers.length > 0) customer = customers[0];
-    } else if (phone) {
-      const customers = await base44.asServiceRole.entities.Customer.filter({ phone });
-      if (customers && customers.length > 0) customer = customers[0];
-    } else if (email) {
-      const customers = await base44.asServiceRole.entities.Customer.filter({ email: email.toLowerCase().trim() });
-      if (customers && customers.length > 0) customer = customers[0];
+    } else {
+      const identifier = phone || email;
+      if (identifier) {
+        customer = await findCustomer(base44, identifier);
+      }
     }
 
     if (!customer) {
       return Response.json({ success: false, error: 'Customer not found' }, { status: 404 });
+    }
+
+    // Verify the PIN against the stored hash before returning any data
+    if (!customer.pin_hash) {
+      return Response.json({ success: false, error: 'PIN not set — please contact the merchant' }, { status: 403 });
+    }
+
+    const pinHash = await hashPin(pin);
+    if (pinHash !== customer.pin_hash) {
+      return Response.json({ success: false, error: 'Incorrect PIN' }, { status: 401 });
     }
 
     // Get merchant name
