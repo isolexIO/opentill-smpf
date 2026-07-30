@@ -2,6 +2,32 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 const SALT = 'opentill_customer_portal_2024';
 
+// In-memory OTP store for set_pin verification: customer_id -> { code, expires_at }
+const otpStore = new Map();
+const OTP_TTL_MS = 10 * 60 * 1000; // 10 minutes
+
+function generateOtp() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+function issueOtp(customerId) {
+  const code = generateOtp();
+  otpStore.set(customerId, { code, expires_at: Date.now() + OTP_TTL_MS });
+  return code;
+}
+
+function verifyOtp(customerId, code) {
+  const entry = otpStore.get(customerId);
+  if (!entry) return false;
+  if (Date.now() > entry.expires_at) {
+    otpStore.delete(customerId);
+    return false;
+  }
+  if (entry.code !== code) return false;
+  otpStore.delete(customerId); // single-use
+  return true;
+}
+
 async function hashPin(pin) {
   const data = new TextEncoder().encode(SALT + pin);
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
@@ -66,11 +92,14 @@ Deno.serve(async (req) => {
       if (!customer) return Response.json({ success: false, error: 'No account found' });
 
       const pinSet = !!customer.pin_hash;
-      return Response.json({
-        success: true,
-        pin_set: pinSet,
-        customer_name: customer.name,
-      });
+      const response = { success: true, pin_set: pinSet, customer_name: customer.name };
+      if (!pinSet) {
+        // Issue a one-time verification code the customer must present to set_pin.
+        // In production this would be sent via SMS/email; for now it is returned
+        // to the client so the merchant can relay it at the point of sale.
+        response.verification_code = issueOtp(customer.id);
+      }
+      return Response.json(response);
     }
 
     // --- Login: verify PIN and return full dashboard data ---
@@ -98,13 +127,19 @@ Deno.serve(async (req) => {
       });
     }
 
-    // --- Set PIN: first-time PIN setup ---
+    // --- Set PIN: first-time PIN setup (requires OTP verification) ---
     if (action === 'set_pin') {
+      const { verification_code } = body;
       if (!identifier || !pin) return Response.json({ success: false, error: 'Identifier and PIN required' });
+      if (!verification_code) return Response.json({ success: false, error: 'Verification code required' });
       if (pin.length < 4) return Response.json({ success: false, error: 'PIN must be at least 4 digits' });
       const customer = await findCustomer(base44, identifier);
       if (!customer) return Response.json({ success: false, error: 'No account found' });
       if (customer.pin_hash) return Response.json({ success: false, error: 'PIN already set' });
+
+      if (!verifyOtp(customer.id, verification_code)) {
+        return Response.json({ success: false, error: 'Invalid or expired verification code' });
+      }
 
       const pinHash = await hashPin(pin);
       await base44.asServiceRole.entities.Customer.update(customer.id, { pin_hash: pinHash, last_portal_login: new Date().toISOString() });

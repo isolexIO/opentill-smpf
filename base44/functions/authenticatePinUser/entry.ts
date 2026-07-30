@@ -121,6 +121,8 @@ Deno.serve(async (req) => {
     }
     
     // Return user (without sensitive fields)
+    // SECURITY: Do NOT return pos_settings — it may contain gateway API keys,
+    // wallet addresses, and other private configuration that cashiers must not see.
     return Response.json({
       success: true,
       user: {
@@ -131,7 +133,6 @@ Deno.serve(async (req) => {
         merchant_id: user.merchant_id,
         dealer_id: user.dealer_id,
         is_active: user.is_active,
-        pos_settings: user.pos_settings || {}
       }
     });
     

@@ -93,7 +93,7 @@ Deno.serve(async (req) => {
         email: `${wallet_address.substring(0, 8)}@wallet.chainlink`,
         full_name: `Jupiter User ${wallet_address.substring(0, 6)}`,
         wallet_address: wallet_address,
-        role: 'merchant_admin',
+        role: 'user',
         is_wallet_user: true
       });
     }

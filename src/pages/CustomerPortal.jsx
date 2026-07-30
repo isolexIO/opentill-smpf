@@ -36,6 +36,7 @@ export default function CustomerPortal() {
   const [orders, setOrders] = useState([]);
   const [showQR, setShowQR] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
 
   const handleLookup = async (e) => {
     e?.preventDefault();
@@ -47,7 +48,12 @@ export default function CustomerPortal() {
         identifier: identifier.trim(),
       });
       if (data?.success) {
-        setStep(data.pin_set ? 'pin' : 'set_pin');
+        if (data.pin_set) {
+          setStep('pin');
+        } else {
+          setVerificationCode(data.verification_code || '');
+          setStep('set_pin');
+        }
       } else {
         toast({ title: 'Not found', description: data?.error || 'No account found', variant: 'destructive' });
       }
@@ -63,11 +69,15 @@ export default function CustomerPortal() {
     if (!pin.trim()) return;
     setAuthLoading(true);
     try {
-      const { data } = await base44.functions.invoke('customerAuth', {
+      const payload = {
         action: step === 'set_pin' ? 'set_pin' : 'login',
         identifier: identifier.trim(),
         pin: pin.trim(),
-      });
+      };
+      if (step === 'set_pin') {
+        payload.verification_code = verificationCode;
+      }
+      const { data } = await base44.functions.invoke('customerAuth', payload);
       if (data?.success) {
         setCustomer(data.customer);
         setOrders(data.orders || []);
@@ -103,6 +113,7 @@ export default function CustomerPortal() {
     setStep('lookup');
     setShowQR(false);
     setQrDataUrl('');
+    setVerificationCode('');
   };
 
   // === QR Payment View ===
@@ -266,6 +277,13 @@ export default function CustomerPortal() {
             <h1 className="text-2xl font-bold mb-1">Create Your PIN</h1>
             <p className="text-sm text-white/70">Set a 4+ digit PIN to secure your account</p>
           </div>
+          {verificationCode && (
+            <div className="bg-yellow-100 border border-yellow-300 rounded-lg p-3 mb-4 text-center">
+              <p className="text-xs text-yellow-800 font-medium">Your verification code</p>
+              <p className="text-2xl font-bold tracking-widest text-yellow-900">{verificationCode}</p>
+              <p className="text-xs text-yellow-700 mt-1">Ask the cashier to confirm this code</p>
+            </div>
+          )}
           <Card>
             <CardContent className="p-6">
               <form onSubmit={handlePinSubmit} className="space-y-4">
