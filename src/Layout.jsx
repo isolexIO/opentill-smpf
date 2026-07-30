@@ -80,7 +80,7 @@ export default function Layout({ children, currentPageName }) {
       btnRight: 16,
       btnTop: "",
       btnBottom: 30,
-      liveChatUrl: 'https://071be2.c.myucm.cloud/liveChat?liveChatAccess=MF83MDA2N2YzNDg5OTQ0OWI0OTdiMzhlMWQyNDhkNTg5Ml8wMDBiODIwNzFiZTImNmI3ODBlYzM4ZThmMWQyYjNiNDcwMTliMWM1OWM2MzA=',
+      liveChatUrl: import.meta.env.VITE_LIVE_CHAT_URL || '',
       liveChatWidth: Math.min(400, window.innerWidth - 32),
       liveChatHeight: Math.min(680, window.innerHeight - 100),
       expandDire: ""
@@ -175,7 +175,9 @@ export default function Layout({ children, currentPageName }) {
       });
     };
 
-    initLiveChat(config);
+    if (config.liveChatUrl) {
+      initLiveChat(config);
+    }
   }, [currentPageName]);
 
   useEffect(() => {
