@@ -29,7 +29,8 @@ export default function CustomerPortal() {
     try {
       const u = JSON.parse(localStorage.getItem('pinLoggedInUser') || 'null');
       setPinUser(u);
-      if (!u || !u.merchant_id) {
+      // When impersonating as superadmin, allow access even without merchant_id
+      if (!u || (!u.merchant_id && !u.is_impersonating)) {
         window.location.href = createPageUrl('Login');
       }
     } catch {
@@ -38,7 +39,7 @@ export default function CustomerPortal() {
   }, []);
 
   const merchantId = pinUser?.merchant_id;
-  const merchantName = pinUser?.merchant_name || 'Your Business';
+  const merchantName = pinUser?.merchant_name || pinUser?.target_user_email || 'Your Business';
 
   useEffect(() => {
     if (!merchantId) return;
@@ -59,7 +60,7 @@ export default function CustomerPortal() {
     })();
   }, [merchantId]);
 
-  if (!merchantId) return null;
+  if (!merchantId && !pinUser?.is_impersonating) return null;
 
   const quickLinks = [
     { label: 'POS Terminal', icon: Monitor, page: 'POS' },
