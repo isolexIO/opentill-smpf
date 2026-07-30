@@ -83,6 +83,9 @@ export default function FeedbackButton() {
 
   if (dismissed) return null;
 
+  // Hide on admin pages that have their own feedback management UI
+  if (location.pathname.toLowerCase().includes('superadmin')) return null;
+
   return (
     <>
       <button
