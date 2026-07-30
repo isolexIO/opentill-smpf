@@ -9,6 +9,7 @@ import MobileSolanaPay from '@/components/mobile/MobileSolanaPay';
 import MobileOpenItemDialog from '@/components/mobile/MobileOpenItemDialog';
 import MobileCustomerSheet from '@/components/mobile/MobileCustomerSheet';
 import MobileAgeVerification from '@/components/mobile/MobileAgeVerification';
+import CameraScanner from '@/components/pos/CameraScanner';
 import {
   Search,
   ShoppingCart,
@@ -24,6 +25,7 @@ import {
   User,
   Tag,
   Monitor,
+  ScanLine,
 } from 'lucide-react';
 
 export default function MobilePOS({ merchant, station, sessionId, initialProducts, initialDepartments, initialCustomers }) {
@@ -49,6 +51,7 @@ export default function MobilePOS({ merchant, station, sessionId, initialProduct
   const [showCustomerSheet, setShowCustomerSheet] = useState(false);
   const [showAgeVerification, setShowAgeVerification] = useState(false);
   const [ageVerificationData, setAgeVerificationData] = useState(null);
+  const [showScanner, setShowScanner] = useState(false);
   const heartbeatRef = useRef(null);
 
   const settings = merchant?.settings || {};
@@ -547,6 +550,14 @@ export default function MobilePOS({ merchant, station, sessionId, initialProduct
           21
         )}
       />
+      <CameraScanner
+        isOpen={showScanner}
+        onClose={() => setShowScanner(false)}
+        onScan={(barcode) => {
+          handleBarcodeScanned(barcode);
+          setShowScanner(false);
+        }}
+      />
     </>
   );
 
@@ -905,6 +916,9 @@ export default function MobilePOS({ merchant, station, sessionId, initialProduct
               <p className="text-xs text-white/70">{merchant?.business_name || ''}</p>
             </div>
             <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" className="text-white hover:bg-white/20" onClick={() => setShowScanner(true)}>
+                <ScanLine className="w-5 h-5" />
+              </Button>
               <Button variant="ghost" size="sm" className="text-white hover:bg-white/20" onClick={() => setShowOpenItem(true)}>
                 <Package className="w-5 h-5" />
               </Button>
