@@ -1,0 +1,85 @@
+{
+  "name": "Feedback",
+  "type": "object",
+  "properties": {
+    "page": {
+      "type": "string",
+      "description": "Page path where feedback was submitted"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "bug",
+        "feature_request",
+        "compliment",
+        "complaint",
+        "question",
+        "other"
+      ],
+      "default": "other",
+      "description": "Feedback category"
+    },
+    "rating": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5,
+      "description": "Optional 1-5 star rating"
+    },
+    "message": {
+      "type": "string",
+      "description": "Feedback message content"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Email of the submitter (if authenticated)"
+    },
+    "user_name": {
+      "type": "string",
+      "description": "Name of the submitter (if authenticated)"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "User ID of the submitter (if authenticated)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "new",
+        "reviewed",
+        "resolved",
+        "ignored"
+      ],
+      "default": "new",
+      "description": "Review status managed by admins"
+    },
+    "admin_notes": {
+      "type": "string",
+      "description": "Internal admin notes on this feedback"
+    },
+    "user_agent": {
+      "type": "string",
+      "description": "Browser user agent for debugging context"
+    }
+  },
+  "required": [
+    "message"
+  ],
+  "rls": {
+    "create": {},
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

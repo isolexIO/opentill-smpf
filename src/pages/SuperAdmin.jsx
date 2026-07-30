@@ -24,7 +24,8 @@ import {
   Cpu,
   Vault,
   Wallet,
-  LifeBuoy
+  LifeBuoy,
+  MessageSquare
 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 
@@ -51,6 +52,7 @@ import BuilderSplashEditor from '../components/superadmin/BuilderSplashEditor';
 import PayoutControl from '../components/superadmin/PayoutControl';
 import SupportTicketManager from '../components/superadmin/SupportTicketManager';
 import UserManagement from '../components/superadmin/UserManagement';
+import FeedbackManager from '../components/superadmin/FeedbackManager';
 
 export default function SuperAdminPage() {
   const [user, setUser] = useState(null);
@@ -258,6 +260,7 @@ export default function SuperAdminPage() {
       items: [
         { key: 'ads', icon: Building2, label: 'Ads' },
         { key: 'notifications', icon: AlertCircle, label: 'Notifications' },
+        { key: 'feedback', icon: MessageSquare, label: 'Feedback' },
       ],
     },
     {
@@ -274,7 +277,7 @@ export default function SuperAdminPage() {
     subscriptions: 'Subscription Management', devices: 'Device Shop', amazon: 'Affiliate Links',
     payouts: 'Payout Management', vault: '$DUC Vault', chips: 'Chip Manager', builders: 'Builder Management', users: 'User Management', logs: 'System Logs',
     reports: 'Global Reports', ads: 'Advertising', notifications: 'Notifications', settings: 'Settings',
-    support: 'Support Tickets',
+    support: 'Support Tickets', feedback: 'User Feedback',
   };
 
   return (
@@ -472,6 +475,10 @@ export default function SuperAdminPage() {
 
           {activeTab === 'support' && (
             <SupportTicketManager />
+          )}
+
+          {activeTab === 'feedback' && (
+            <FeedbackManager />
           )}
 
           {activeTab === 'settings' && (

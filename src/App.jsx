@@ -17,6 +17,7 @@ import Login from './pages/Login';
 import CustomerPortal from './pages/CustomerPortal';
 import OpenTILLPayments from './pages/OpenTILLPayments';
 import MobileStationDisplay from './pages/MobileStationDisplay';
+import FeedbackButton from '@/components/feedback/FeedbackButton';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -123,6 +124,7 @@ function App() {
         <Router>
           <NavigationTracker />
           <AuthenticatedApp />
+          <FeedbackButton />
         </Router>
         <Toaster />
         <VisualEditAgent />
