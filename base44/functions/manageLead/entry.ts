@@ -25,9 +25,12 @@ Deno.serve(async (req) => {
 
     const base44 = createClientFromRequest(req);
 
-    // Resolve dealer_id from JWT token or request body
-    let resolvedDealerId = dealer_id;
+    // Resolve dealer_id from a verified identity only — never trust the
+    // client-supplied `dealer_id` directly (would allow cross-dealer access).
+    let resolvedDealerId;
     let authorEmail = 'Admin';
+    let isAdmin = false;
+
     if (token) {
       const payload = await verifyToken(token);
       if (!payload) {
@@ -35,6 +38,26 @@ Deno.serve(async (req) => {
       }
       resolvedDealerId = payload.dealer_id;
       authorEmail = payload.email || 'Ambassador';
+    } else {
+      // Fall back to the authenticated Base44 session.
+      let me = null;
+      try {
+        me = await base44.auth.me();
+      } catch {
+        me = null;
+      }
+      if (!me) {
+        return Response.json({ success: false, error: 'Authentication required' }, { status: 401 });
+      }
+      // Only admins may act on an arbitrary dealer_id; everyone else is
+      // scoped to their own verified dealer_id.
+      isAdmin = me.role === 'admin' || me.role === 'super_admin' || me.role === 'root_admin';
+      if (isAdmin && dealer_id) {
+        resolvedDealerId = dealer_id;
+      } else {
+        resolvedDealerId = me.dealer_id;
+      }
+      authorEmail = me.email || 'Admin';
     }
 
     if (!resolvedDealerId) {
