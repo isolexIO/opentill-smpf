@@ -1,139 +1,219 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import PortalProfile from '@/components/portal/PortalProfile';
-import PortalBilling from '@/components/portal/PortalBilling';
-import PortalSupport from '@/components/portal/PortalSupport';
-import PortalRecentOrders from '@/components/portal/PortalRecentOrders';
-import { base44 } from '@/api/base44Client';
 import { useToast } from '@/components/ui/use-toast';
 import {
-  LayoutDashboard,
-  Settings,
-  Monitor,
-  Package,
-  BarChart3,
-  ShoppingCart,
-  DollarSign,
-  Clock,
+  Search,
+  QrCode,
+  LogOut,
+  Coins,
+  TrendingUp,
+  ShoppingBag,
+  Calendar,
+  ArrowLeft,
+  Loader2,
+  Wallet,
 } from 'lucide-react';
+import QRCode from 'qrcode';
 
 export default function CustomerPortal() {
-  const [pinUser, setPinUser] = useState(null);
-  const [stats, setStats] = useState({ revenue: 0, orders: 0, outstanding: 0, loading: true });
+  const [lookupValue, setLookupValue] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [customer, setCustomer] = useState(null);
+  const [showQR, setShowQR] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState('');
   const { toast } = useToast();
 
-  useEffect(() => {
+  const handleLookup = async (e) => {
+    e?.preventDefault();
+    if (!lookupValue.trim()) return;
+    setLoading(true);
     try {
-      const u = JSON.parse(localStorage.getItem('pinLoggedInUser') || 'null');
-      setPinUser(u);
-      // When impersonating as superadmin, allow access even without merchant_id
-      if (!u || (!u.merchant_id && !u.is_impersonating)) {
-        window.location.href = createPageUrl('Login');
+      const isEmail = lookupValue.includes('@');
+      const { data } = await base44.functions.invoke('getCustomerPortalData', {
+        [isEmail ? 'email' : 'phone']: lookupValue.trim(),
+      });
+      if (data?.success && data.customer) {
+        setCustomer(data.customer);
+      } else {
+        toast({ title: 'Not found', description: 'No account found with that ' + (isEmail ? 'email' : 'phone number'), variant: 'destructive' });
       }
-    } catch {
-      window.location.href = createPageUrl('Login');
+    } catch (err) {
+      toast({ title: 'Lookup failed', description: err.message || 'Please try again', variant: 'destructive' });
+    } finally {
+      setLoading(false);
     }
-  }, []);
+  };
 
-  const merchantId = pinUser?.merchant_id;
-  const merchantName = pinUser?.merchant_name || pinUser?.target_user_email || 'Your Business';
+  const handleShowQR = async () => {
+    if (!customer) return;
+    try {
+      const payload = JSON.stringify({ customer_id: customer.id, merchant_id: customer.merchant_id, type: 'duc_payment' });
+      const url = await QRCode.toDataURL(payload, { width: 280, margin: 1 });
+      setQrDataUrl(url);
+      setShowQR(true);
+    } catch (err) {
+      toast({ title: 'QR Error', description: 'Could not generate QR code', variant: 'destructive' });
+    }
+  };
 
-  useEffect(() => {
-    if (!merchantId) return;
-    (async () => {
-      try {
-        const [orders, invoices] = await Promise.all([
-          base44.entities.Order.filter({ merchant_id: merchantId }, '-created_date', 50),
-          base44.entities.Invoice.filter({ merchant_id: merchantId }, '-created_date', 50),
-        ]);
-        const revenue = (orders || []).reduce((s, o) => s + (o.total || 0), 0);
-        const outstanding = (invoices || [])
-          .filter((i) => i.status === 'sent' || i.status === 'overdue')
-          .reduce((s, i) => s + (i.amount || 0), 0);
-        setStats({ revenue, orders: orders?.length || 0, outstanding, loading: false });
-      } catch (e) {
-        setStats((s) => ({ ...s, loading: false }));
-      }
-    })();
-  }, [merchantId]);
+  const handleSignOut = () => {
+    setCustomer(null);
+    setLookupValue('');
+    setShowQR(false);
+    setQrDataUrl('');
+  };
 
-  if (!merchantId && !pinUser?.is_impersonating) return null;
-
-  const quickLinks = [
-    { label: 'POS Terminal', icon: Monitor, page: 'POS' },
-    { label: 'Inventory', icon: Package, page: 'Inventory' },
-    { label: 'Reports', icon: BarChart3, page: 'Reports' },
-    { label: 'Settings', icon: Settings, page: 'Settings' },
-  ];
-
-  const statCards = [
-    {
-      label: 'Total Revenue',
-      value: stats.loading ? '…' : `$${stats.revenue.toFixed(2)}`,
-      icon: DollarSign,
-      color: 'text-green-600 bg-green-50',
-    },
-    {
-      label: 'Total Orders',
-      value: stats.loading ? '…' : stats.orders.toLocaleString(),
-      icon: ShoppingCart,
-      color: 'text-blue-600 bg-blue-50',
-    },
-    {
-      label: 'Outstanding Balance',
-      value: stats.loading ? '…' : `$${stats.outstanding.toFixed(2)}`,
-      icon: Clock,
-      color: stats.outstanding > 0 ? 'text-red-600 bg-red-50' : 'text-gray-600 bg-gray-50',
-    },
-  ];
-
-  return (
-    <div className="max-w-6xl mx-auto p-4 sm:p-6 space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <LayoutDashboard className="w-6 h-6 text-blue-600" /> Customer Portal
-          </h1>
-          <p className="text-gray-500 text-sm">{merchantName}</p>
+  // QR payment view
+  if (showQR && customer) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-600 to-blue-600 flex flex-col items-center justify-center p-6 text-white">
+        <button onClick={() => setShowQR(false)} className="absolute top-4 left-4 flex items-center gap-1 text-white/80 hover:text-white">
+          <ArrowLeft className="w-5 h-5" /> Back
+        </button>
+        <h2 className="text-xl font-bold mb-1">Pay with $DUC</h2>
+        <p className="text-sm text-white/70 mb-6">Show this QR code to the cashier</p>
+        <div className="bg-white rounded-2xl p-4 shadow-xl">
+          {qrDataUrl && <img src={qrDataUrl} alt="Payment QR" className="w-64 h-64" />}
+        </div>
+        <div className="mt-6 text-center">
+          <p className="text-sm text-white/70">Available Balance</p>
+          <p className="text-3xl font-bold">{customer.duc_balance.toFixed(2)} $DUC</p>
+          <p className="text-xs text-white/50 mt-2">{customer.name}</p>
         </div>
       </div>
+    );
+  }
 
-      {/* Summary Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {statCards.map(({ label, value, icon: Icon, color }) => (
-          <Card key={label}>
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className={`p-3 rounded-lg ${color}`}>
-                <Icon className="w-5 h-5" />
+  // Customer dashboard
+  if (customer) {
+    const stats = [
+      { label: 'Loyalty Points', value: customer.loyalty_points.toLocaleString(), icon: Coins, color: 'text-amber-600 bg-amber-50' },
+      { label: '$DUC Balance', value: customer.duc_balance.toFixed(2), icon: Wallet, color: 'text-purple-600 bg-purple-50' },
+      { label: 'Total Spent', value: `$${customer.total_spent.toFixed(2)}`, icon: TrendingUp, color: 'text-green-600 bg-green-50' },
+      { label: 'Visits', value: customer.visit_count.toLocaleString(), icon: Calendar, color: 'text-blue-600 bg-blue-50' },
+    ];
+
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="bg-gradient-to-br from-blue-600 to-purple-600 text-white px-6 py-6">
+          <div className="max-w-md mx-auto">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h1 className="text-xl font-bold">My Rewards</h1>
+                <p className="text-sm text-white/70">{customer.merchant_name}</p>
+              </div>
+              <button onClick={handleSignOut} className="flex items-center gap-1 text-sm text-white/80 hover:text-white">
+                <LogOut className="w-4 h-4" /> Exit
+              </button>
+            </div>
+            <div className="bg-white/15 backdrop-blur rounded-xl p-4 flex items-center gap-3">
+              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                <ShoppingBag className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-xs text-gray-500 font-medium">{label}</p>
-                <p className="text-xl font-bold text-gray-900">{value}</p>
+                <p className="text-sm text-white/70">Welcome back,</p>
+                <p className="font-semibold">{customer.name}</p>
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+            </div>
+          </div>
+        </div>
 
-      {/* Quick Links */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {quickLinks.map(({ label, icon: Icon, page }) => (
-          <Link key={page} to={createPageUrl(page)}>
-            <Button variant="outline" className="w-full justify-start">
-              <Icon className="w-4 h-4 mr-2" /> {label}
-            </Button>
-          </Link>
-        ))}
-      </div>
+        <div className="max-w-md mx-auto px-4 py-6 space-y-4">
+          {/* Stats */}
+          <div className="grid grid-cols-2 gap-3">
+            {stats.map(({ label, value, icon: Icon, color }) => (
+              <Card key={label}>
+                <CardContent className="p-4">
+                  <div className={`w-9 h-9 rounded-lg ${color} flex items-center justify-center mb-2`}>
+                    <Icon className="w-4 h-4" />
+                  </div>
+                  <p className="text-xs text-gray-500 font-medium">{label}</p>
+                  <p className="text-lg font-bold text-gray-900">{value}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <PortalProfile merchantId={merchantId} />
-        <PortalBilling merchantId={merchantId} />
-        <PortalRecentOrders merchantId={merchantId} />
-        <PortalSupport merchantId={merchantId} />
+          {/* Lifetime $DUC earned */}
+          {customer.duc_lifetime_earned > 0 && (
+            <Card className="bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
+              <CardContent className="p-4 flex items-center gap-3">
+                <Coins className="w-5 h-5 text-purple-600" />
+                <div>
+                  <p className="text-sm text-gray-600">Lifetime $DUC Earned</p>
+                  <p className="text-lg font-bold text-purple-700">{customer.duc_lifetime_earned.toFixed(2)} $DUC</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Pay with $DUC */}
+          <Button
+            size="lg"
+            className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:opacity-90"
+            onClick={handleShowQR}
+            disabled={customer.duc_balance <= 0}
+          >
+            <QrCode className="w-5 h-5 mr-2" />
+            {customer.duc_balance > 0 ? 'Pay with $DUC (QR)' : 'No $DUC Available'}
+          </Button>
+          {customer.duc_balance <= 0 && (
+            <p className="text-center text-xs text-gray-400">
+              Earn $DUC by shopping — loyalty rewards are credited automatically after each purchase.
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Lookup screen
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center p-6">
+      <div className="max-w-md w-full">
+        <div className="text-center text-white mb-8">
+          <div className="w-16 h-16 bg-white/15 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Coins className="w-8 h-8" />
+          </div>
+          <h1 className="text-2xl font-bold mb-1">Customer Portal</h1>
+          <p className="text-sm text-white/70">Track your loyalty rewards and $DUC balance</p>
+        </div>
+
+        <Card className="max-w-md">
+          <CardContent className="p-6">
+            <form onSubmit={handleLookup} className="space-y-4">
+              <div>
+                <Label htmlFor="lookup">Phone or Email</Label>
+                <Input
+                  id="lookup"
+                  value={lookupValue}
+                  onChange={(e) => setLookupValue(e.target.value)}
+                  placeholder="(555) 123-4567 or you@email.com"
+                  className="mt-1"
+                  autoFocus
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={loading || !lookupValue.trim()}>
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4 mr-2" />}
+                {loading ? 'Searching…' : 'Find My Account'}
+              </Button>
+            </form>
+            <p className="text-xs text-gray-400 text-center mt-4">
+              Enter the phone number or email associated with your rewards account.
+            </p>
+          </CardContent>
+        </Card>
+
+        <div className="text-center mt-6">
+          <a href={createPageUrl('Home')} className="text-sm text-white/60 hover:text-white">
+            ← Back to Home
+          </a>
+        </div>
       </div>
     </div>
   );

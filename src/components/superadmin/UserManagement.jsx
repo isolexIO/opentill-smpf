@@ -85,12 +85,8 @@ export default function UserManagement() {
         window.location.href = createPageUrl('DealerDashboard');
       } else if (targetUser.role === 'builder') {
         window.location.href = createPageUrl('BuilderDashboard');
-      } else if (targetUser.role === 'user' && targetUser.merchant_id) {
-        window.location.href = createPageUrl('CustomerPortal');
       } else if (targetUser.merchant_id) {
         window.location.href = createPageUrl('SystemMenu');
-      } else if (targetUser.role === 'user') {
-        window.location.href = createPageUrl('CustomerPortal');
       } else {
         window.location.href = createPageUrl('Home');
       }

@@ -28,7 +28,7 @@ import NotificationBanner from '@/components/notifications/NotificationBanner';
 import MobileBottomNav from '@/components/mobile/MobileBottomNav';
 import { useNavigate } from 'react-router-dom';
 
-const PUBLIC_PAGES = ['Home', 'Login', 'PinLogin', 'EmailLogin', 'WalletLoginPage', 'OnlineMenu', 'CustomerDisplay', 'KitchenDisplay', 'MerchantOnboarding', 'POS', 'PrivacyPolicy', 'TermsOfService', 'License', 'Copyright', 'About', 'Contact', 'DeviceShop', 'DealerLanding', 'DealerDashboard', 'DealerHome', 'SuperAdmin', 'Marketplace', 'ChipDetail', 'Builders', 'BuilderOnboarding', 'DriverDashboard', 'PayInvoice', 'OpenTILLPayments', 'MobileStationDisplay'];
+const PUBLIC_PAGES = ['Home', 'Login', 'PinLogin', 'EmailLogin', 'WalletLoginPage', 'OnlineMenu', 'CustomerDisplay', 'KitchenDisplay', 'MerchantOnboarding', 'POS', 'PrivacyPolicy', 'TermsOfService', 'License', 'Copyright', 'About', 'Contact', 'DeviceShop', 'DealerLanding', 'DealerDashboard', 'DealerHome', 'SuperAdmin', 'Marketplace', 'ChipDetail', 'Builders', 'BuilderOnboarding', 'DriverDashboard', 'PayInvoice', 'OpenTILLPayments', 'MobileStationDisplay', 'CustomerPortal'];
 
 function PublicLayout({ children }) {
   return <div className="min-h-screen">{children}</div>;
@@ -313,7 +313,7 @@ export default function Layout({ children, currentPageName }) {
   // If user is not authenticated (via base44.auth.me) and is trying to access a non-authentication
   // or non-home page, redirect them to the Home page.
   // Allow root_admin to access dealer pages
-  if (!user && !['EmailLogin', 'MerchantOnboarding', 'PinLogin', 'WalletLoginPage', 'Home', 'PrivacyPolicy', 'TermsOfService', 'License', 'Copyright', 'About', 'Contact', 'CustomerDisplay', 'KitchenDisplay', 'OnlineMenu', 'DeviceShop', 'DealerOnboarding', 'DealerDashboard', 'DealerLanding', 'Marketplace', 'ChipDetail', 'DriverDashboard', 'PayInvoice', 'POS', 'MobileStationDisplay'].includes(currentPageName)) {
+  if (!user && !['EmailLogin', 'MerchantOnboarding', 'PinLogin', 'WalletLoginPage', 'Home', 'PrivacyPolicy', 'TermsOfService', 'License', 'Copyright', 'About', 'Contact', 'CustomerDisplay', 'KitchenDisplay', 'OnlineMenu', 'DeviceShop', 'DealerOnboarding', 'DealerDashboard', 'DealerLanding', 'Marketplace', 'ChipDetail', 'DriverDashboard', 'PayInvoice', 'POS', 'MobileStationDisplay', 'CustomerPortal'].includes(currentPageName)) {
     return <Home />;
   }
 
@@ -555,6 +555,10 @@ export default function Layout({ children, currentPageName }) {
             © Isolex Corporation
           </div>
           <div className="text-xs bg-white rounded-full shadow-sm overflow-hidden">
+            <Link to={createPageUrl('CustomerPortal')} className="px-3 py-1 inline-block text-blue-600 hover:text-blue-700 transition-colors">
+              Customer Portal
+            </Link>
+            <span className="text-gray-300">|</span>
             <Link to={createPageUrl('License')} className="px-3 py-1 inline-block text-blue-600 hover:text-blue-700 transition-colors">
               License
             </Link>
