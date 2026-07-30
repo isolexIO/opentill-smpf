@@ -61,9 +61,9 @@ Deno.serve(async (req) => {
 
     // --- Lookup: find customer, check if PIN is set ---
     if (action === 'lookup') {
-      if (!identifier) return Response.json({ success: false, error: 'Phone or email required' }, { status: 400 });
+      if (!identifier) return Response.json({ success: false, error: 'Phone or email required' });
       const customer = await findCustomer(base44, identifier);
-      if (!customer) return Response.json({ success: false, error: 'No account found' }, { status: 404 });
+      if (!customer) return Response.json({ success: false, error: 'No account found' });
 
       const pinSet = !!customer.pin_hash;
       return Response.json({
@@ -75,13 +75,13 @@ Deno.serve(async (req) => {
 
     // --- Login: verify PIN and return full dashboard data ---
     if (action === 'login') {
-      if (!identifier || !pin) return Response.json({ success: false, error: 'Identifier and PIN required' }, { status: 400 });
+      if (!identifier || !pin) return Response.json({ success: false, error: 'Identifier and PIN required' });
       const customer = await findCustomer(base44, identifier);
-      if (!customer) return Response.json({ success: false, error: 'No account found' }, { status: 404 });
-      if (!customer.pin_hash) return Response.json({ success: false, error: 'PIN not set', pin_not_set: true }, { status: 400 });
+      if (!customer) return Response.json({ success: false, error: 'No account found' });
+      if (!customer.pin_hash) return Response.json({ success: false, error: 'PIN not set', pin_not_set: true });
 
       const pinHash = await hashPin(pin);
-      if (pinHash !== customer.pin_hash) return Response.json({ success: false, error: 'Incorrect PIN' }, { status: 401 });
+      if (pinHash !== customer.pin_hash) return Response.json({ success: false, error: 'Incorrect PIN' });
 
       const merchantName = await fetchMerchantName(base44, customer.merchant_id);
       const orders = await fetchOrders(base44, customer.id);
@@ -100,11 +100,11 @@ Deno.serve(async (req) => {
 
     // --- Set PIN: first-time PIN setup ---
     if (action === 'set_pin') {
-      if (!identifier || !pin) return Response.json({ success: false, error: 'Identifier and PIN required' }, { status: 400 });
-      if (pin.length < 4) return Response.json({ success: false, error: 'PIN must be at least 4 digits' }, { status: 400 });
+      if (!identifier || !pin) return Response.json({ success: false, error: 'Identifier and PIN required' });
+      if (pin.length < 4) return Response.json({ success: false, error: 'PIN must be at least 4 digits' });
       const customer = await findCustomer(base44, identifier);
-      if (!customer) return Response.json({ success: false, error: 'No account found' }, { status: 404 });
-      if (customer.pin_hash) return Response.json({ success: false, error: 'PIN already set' }, { status: 400 });
+      if (!customer) return Response.json({ success: false, error: 'No account found' });
+      if (customer.pin_hash) return Response.json({ success: false, error: 'PIN already set' });
 
       const pinHash = await hashPin(pin);
       await base44.asServiceRole.entities.Customer.update(customer.id, { pin_hash: pinHash, last_portal_login: new Date().toISOString() });
@@ -119,7 +119,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    return Response.json({ success: false, error: 'Invalid action' }, { status: 400 });
+    return Response.json({ success: false, error: 'Invalid action' });
   } catch (error) {
     console.error('customerAuth error:', error);
     return Response.json({ success: false, error: error.message }, { status: 500 });
