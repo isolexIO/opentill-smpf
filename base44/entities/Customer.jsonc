@@ -60,6 +60,15 @@
     "notes": {
       "type": "string",
       "description": "Customer notes or preferences"
+    },
+    "pin_hash": {
+      "type": "string",
+      "description": "SHA-256 hash of the customer's portal PIN"
+    },
+    "last_portal_login": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the customer last logged into the portal"
     }
   },
   "required": [

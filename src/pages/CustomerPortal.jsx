@@ -15,37 +15,71 @@ import {
   ShoppingBag,
   Calendar,
   ArrowLeft,
+  ArrowRight,
   Loader2,
   Wallet,
+  Lock,
+  Receipt,
 } from 'lucide-react';
 import QRCode from 'qrcode';
 
 export default function CustomerPortal() {
-  const [lookupValue, setLookupValue] = useState('');
-  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+
+  // Flow: 'lookup' -> 'pin' or 'set_pin' -> 'dashboard'
+  const [step, setStep] = useState('lookup');
+  const [identifier, setIdentifier] = useState('');
+  const [pin, setPin] = useState('');
+  const [lookupLoading, setLookupLoading] = useState(false);
+  const [authLoading, setAuthLoading] = useState(false);
   const [customer, setCustomer] = useState(null);
+  const [orders, setOrders] = useState([]);
   const [showQR, setShowQR] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState('');
-  const { toast } = useToast();
 
   const handleLookup = async (e) => {
     e?.preventDefault();
-    if (!lookupValue.trim()) return;
-    setLoading(true);
+    if (!identifier.trim()) return;
+    setLookupLoading(true);
     try {
-      const isEmail = lookupValue.includes('@');
-      const { data } = await base44.functions.invoke('getCustomerPortalData', {
-        [isEmail ? 'email' : 'phone']: lookupValue.trim(),
+      const { data } = await base44.functions.invoke('customerAuth', {
+        action: 'lookup',
+        identifier: identifier.trim(),
       });
-      if (data?.success && data.customer) {
-        setCustomer(data.customer);
+      if (data?.success) {
+        setStep(data.pin_set ? 'pin' : 'set_pin');
       } else {
-        toast({ title: 'Not found', description: 'No account found with that ' + (isEmail ? 'email' : 'phone number'), variant: 'destructive' });
+        toast({ title: 'Not found', description: data?.error || 'No account found', variant: 'destructive' });
       }
     } catch (err) {
       toast({ title: 'Lookup failed', description: err.message || 'Please try again', variant: 'destructive' });
     } finally {
-      setLoading(false);
+      setLookupLoading(false);
+    }
+  };
+
+  const handlePinSubmit = async (e) => {
+    e?.preventDefault();
+    if (!pin.trim()) return;
+    setAuthLoading(true);
+    try {
+      const { data } = await base44.functions.invoke('customerAuth', {
+        action: step === 'set_pin' ? 'set_pin' : 'login',
+        identifier: identifier.trim(),
+        pin: pin.trim(),
+      });
+      if (data?.success) {
+        setCustomer(data.customer);
+        setOrders(data.orders || []);
+        setStep('dashboard');
+        setPin('');
+      } else {
+        toast({ title: 'Authentication failed', description: data?.error || 'Please try again', variant: 'destructive' });
+      }
+    } catch (err) {
+      toast({ title: 'Login failed', description: err.message || 'Please try again', variant: 'destructive' });
+    } finally {
+      setAuthLoading(false);
     }
   };
 
@@ -56,19 +90,22 @@ export default function CustomerPortal() {
       const url = await QRCode.toDataURL(payload, { width: 280, margin: 1 });
       setQrDataUrl(url);
       setShowQR(true);
-    } catch (err) {
+    } catch {
       toast({ title: 'QR Error', description: 'Could not generate QR code', variant: 'destructive' });
     }
   };
 
   const handleSignOut = () => {
     setCustomer(null);
-    setLookupValue('');
+    setOrders([]);
+    setIdentifier('');
+    setPin('');
+    setStep('lookup');
     setShowQR(false);
     setQrDataUrl('');
   };
 
-  // QR payment view
+  // === QR Payment View ===
   if (showQR && customer) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-600 to-blue-600 flex flex-col items-center justify-center p-6 text-white">
@@ -89,7 +126,7 @@ export default function CustomerPortal() {
     );
   }
 
-  // Customer dashboard
+  // === Dashboard View ===
   if (customer) {
     const stats = [
       { label: 'Loyalty Points', value: customer.loyalty_points.toLocaleString(), icon: Coins, color: 'text-amber-600 bg-amber-50' },
@@ -139,7 +176,7 @@ export default function CustomerPortal() {
             ))}
           </div>
 
-          {/* Lifetime $DUC earned */}
+          {/* Lifetime $DUC */}
           {customer.duc_lifetime_earned > 0 && (
             <Card className="bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
               <CardContent className="p-4 flex items-center gap-3">
@@ -167,12 +204,125 @@ export default function CustomerPortal() {
               Earn $DUC by shopping — loyalty rewards are credited automatically after each purchase.
             </p>
           )}
+
+          {/* Purchase History */}
+          <div className="pt-2">
+            <div className="flex items-center gap-2 mb-3">
+              <Receipt className="w-4 h-4 text-gray-600" />
+              <h3 className="font-semibold text-gray-900">Purchase History</h3>
+            </div>
+            {orders.length === 0 ? (
+              <Card>
+                <CardContent className="p-6 text-center text-sm text-gray-400">
+                  No purchases yet
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-2">
+                {orders.map((order, i) => (
+                  <Card key={i}>
+                    <CardContent className="p-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">Order {order.order_number || `#${i + 1}`}</p>
+                          <p className="text-xs text-gray-400">
+                            {order.item_count} {order.item_count === 1 ? 'item' : 'items'}
+                            {order.payment_method && ` · ${order.payment_method}`}
+                          </p>
+                          {order.items && order.items.length > 0 && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              {order.items.map(it => it.name).join(', ')}
+                              {order.item_count > order.items.length ? '…' : ''}
+                            </p>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-gray-900">${(order.total || 0).toFixed(2)}</p>
+                          <p className="text-xs text-gray-400">
+                            {order.created_date ? new Date(order.created_date).toLocaleDateString() : ''}
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     );
   }
 
-  // Lookup screen
+  // === Set PIN View ===
+  if (step === 'set_pin') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center p-6">
+        <div className="max-w-md w-full">
+          <div className="text-center text-white mb-8">
+            <div className="w-16 h-16 bg-white/15 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Lock className="w-8 h-8" />
+            </div>
+            <h1 className="text-2xl font-bold mb-1">Create Your PIN</h1>
+            <p className="text-sm text-white/70">Set a 4+ digit PIN to secure your account</p>
+          </div>
+          <Card>
+            <CardContent className="p-6">
+              <form onSubmit={handlePinSubmit} className="space-y-4">
+                <div>
+                  <Label htmlFor="pin">New PIN</Label>
+                  <Input id="pin" type="password" inputMode="numeric" value={pin} onChange={(e) => setPin(e.target.value)} placeholder="••••" className="mt-1" autoFocus />
+                </div>
+                <Button type="submit" className="w-full" disabled={authLoading || pin.length < 4}>
+                  {authLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-4 h-4 mr-2" />}
+                  {authLoading ? 'Creating…' : 'Create PIN & Continue'}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+          <button onClick={() => { setStep('lookup'); setPin(''); }} className="flex items-center gap-1 text-sm text-white/60 hover:text-white mx-auto mt-6">
+            <ArrowLeft className="w-4 h-4" /> Back
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // === PIN Login View ===
+  if (step === 'pin') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center p-6">
+        <div className="max-w-md w-full">
+          <div className="text-center text-white mb-8">
+            <div className="w-16 h-16 bg-white/15 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Lock className="w-8 h-8" />
+            </div>
+            <h1 className="text-2xl font-bold mb-1">Enter PIN</h1>
+            <p className="text-sm text-white/70">Enter your PIN to access your rewards</p>
+          </div>
+          <Card>
+            <CardContent className="p-6">
+              <form onSubmit={handlePinSubmit} className="space-y-4">
+                <div>
+                  <Label htmlFor="pin">PIN</Label>
+                  <Input id="pin" type="password" inputMode="numeric" value={pin} onChange={(e) => setPin(e.target.value)} placeholder="••••" className="mt-1" autoFocus />
+                </div>
+                <Button type="submit" className="w-full" disabled={authLoading || !pin}>
+                  {authLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4 mr-2" />}
+                  {authLoading ? 'Verifying…' : 'Sign In'}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+          <button onClick={() => { setStep('lookup'); setPin(''); }} className="flex items-center gap-1 text-sm text-white/60 hover:text-white mx-auto mt-6">
+            <ArrowLeft className="w-4 h-4" /> Use different account
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // === Lookup View ===
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center p-6">
       <div className="max-w-md w-full">
@@ -183,32 +333,23 @@ export default function CustomerPortal() {
           <h1 className="text-2xl font-bold mb-1">Customer Portal</h1>
           <p className="text-sm text-white/70">Track your loyalty rewards and $DUC balance</p>
         </div>
-
-        <Card className="max-w-md">
+        <Card>
           <CardContent className="p-6">
             <form onSubmit={handleLookup} className="space-y-4">
               <div>
                 <Label htmlFor="lookup">Phone or Email</Label>
-                <Input
-                  id="lookup"
-                  value={lookupValue}
-                  onChange={(e) => setLookupValue(e.target.value)}
-                  placeholder="(555) 123-4567 or you@email.com"
-                  className="mt-1"
-                  autoFocus
-                />
+                <Input id="lookup" value={identifier} onChange={(e) => setIdentifier(e.target.value)} placeholder="(555) 123-4567 or you@email.com" className="mt-1" autoFocus />
               </div>
-              <Button type="submit" className="w-full" disabled={loading || !lookupValue.trim()}>
-                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4 mr-2" />}
-                {loading ? 'Searching…' : 'Find My Account'}
+              <Button type="submit" className="w-full" disabled={lookupLoading || !identifier.trim()}>
+                {lookupLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4 mr-2" />}
+                {lookupLoading ? 'Searching…' : 'Continue'}
               </Button>
             </form>
             <p className="text-xs text-gray-400 text-center mt-4">
-              Enter the phone number or email associated with your rewards account.
+              First time? You'll be prompted to create a PIN.
             </p>
           </CardContent>
         </Card>
-
         <div className="text-center mt-6">
           <a href={createPageUrl('Home')} className="text-sm text-white/60 hover:text-white">
             ← Back to Home
