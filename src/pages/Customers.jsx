@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -86,11 +85,16 @@ export default function CustomersPage() {
       if (selectedCustomer) {
         await base44.entities.Customer.update(selectedCustomer.id, customerData);
       } else {
-        // When creating a new customer, ensure merchant_id is set if the user is a merchant
-        const currentUser = await base44.auth.me(); // Re-fetch current user to ensure latest details for creation
+        // Use pinLoggedInUser (supports impersonation) or fall back to auth.me()
+        const pinUserJSON = localStorage.getItem('pinLoggedInUser');
+        const currentUser = pinUserJSON ? JSON.parse(pinUserJSON) : await base44.auth.me();
         const customerToCreate = { ...customerData };
-        if (currentUser.role !== 'admin' && currentUser.merchant_id) {
+        // Always set merchant_id for non-admin (including impersonated) users
+        if (currentUser.merchant_id) {
           customerToCreate.merchant_id = currentUser.merchant_id;
+        }
+        if (currentUser.dealer_id) {
+          customerToCreate.dealer_id = currentUser.dealer_id;
         }
         await base44.entities.Customer.create(customerToCreate);
       }
