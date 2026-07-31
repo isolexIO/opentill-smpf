@@ -88,6 +88,7 @@ Deno.serve(async (req) => {
     const stripeExplicitlyOff = merchant.settings?.enable_opentill_payments === false || merchant.settings?.payment_gateways?.stripe?.enabled === false;
     const stripeEnabled = !stripeExplicitlyOff;
     safeSettings.solana_pay = merchant.settings?.solana_pay || {};
+    safeSettings.is_demo = !!merchant.is_demo;
     safeSettings.stripe_enabled = stripeEnabled;
     safeSettings.stripe_rates = {
       processing_rate_percent: merchant.settings?.payment_gateways?.stripe?.processing_rate_percent ?? 2.9,

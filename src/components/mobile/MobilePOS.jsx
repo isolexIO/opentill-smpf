@@ -59,6 +59,7 @@ export default function MobilePOS({ merchant, station, sessionId, initialProduct
   const merchantId = merchant?.id;
   const solanaPayEnabled = settings?.solana_pay?.enabled && settings?.solana_pay?.wallet_address;
   const stripeEnabled = settings?.stripe_enabled;
+  const isDemo = settings?.is_demo || merchant?.is_demo;
   const isKitchenDisplayEnabled = settings?.kitchen_display?.enabled !== false;
   const isDualPricingEnabled = settings?.pricing_and_surcharge?.enable_dual_pricing || false;
   const isAgeVerificationEnabled = settings?.age_verification?.enabled !== false;
@@ -465,6 +466,27 @@ export default function MobilePOS({ merchant, station, sessionId, initialProduct
       if (!createRes.data?.success) throw new Error(createRes.data?.error || 'Failed to create order');
 
       const orderId = createRes.data.order.id;
+
+      // Demo accounts use a mock payflow — no real Stripe redirect
+      if (isDemo) {
+        await new Promise((r) => setTimeout(r, 1200));
+        const res = await base44.functions.invoke('completeMobileOrder', {
+          token,
+          order_id: orderId,
+          payment_method: 'card',
+          payment_details: { mock: true, demo: true, last4: '4242', brand: 'test_card' },
+        });
+        if (!res.data?.success) throw new Error(res.data?.error || 'Failed to complete order');
+        setLastOrder({
+          order_number: res.data.order.order_number,
+          total: res.data.order.total,
+          change_due: 0,
+        });
+        resetCheckoutState();
+        setView('success');
+        return;
+      }
+
       const origin = window.location.origin;
       const successUrl = `${origin}/mobile/station/${token}?stripe_status=success&order_id=${orderId}`;
       const cancelUrl = `${origin}/mobile/station/${token}?stripe_status=canceled&order_id=${orderId}`;
@@ -708,8 +730,9 @@ export default function MobilePOS({ merchant, station, sessionId, initialProduct
                   )}
                 </div>
                 <div className="flex-1 text-left">
-                  <span className="font-semibold text-lg">{processing ? 'Redirecting…' : 'openTILL Payments'}</span>
+                  <span className="font-semibold text-lg">{processing ? (isDemo ? 'Processing demo payment…' : 'Redirecting…') : 'openTILL Payments'}</span>
                   {isDualPricingEnabled && <p className="text-xs text-gray-400">${totals.cardTotal}</p>}
+                  {isDemo && <p className="text-xs text-blue-500">Demo · no real charge</p>}
                 </div>
               </button>
             )}
