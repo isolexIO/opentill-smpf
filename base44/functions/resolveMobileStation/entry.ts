@@ -216,7 +216,20 @@ Deno.serve(async (req) => {
       success: true,
       pin_required: false,
       station: {
-...
+        id: station.id,
+        station_id: station.station_id,
+        name: station.name,
+        layout_type: station.layout_type,
+        merchant_id: station.merchant_id,
+        mobile_display_timeout: station.mobile_display_timeout ?? 8,
+      },
+      merchant: {
+        id: merchant.id,
+        business_name: merchant.business_name,
+        display_name: merchant.display_name,
+        is_demo: !!merchant.is_demo,
+        settings: safeSettings,
+      },
       products,
       departments,
       customers

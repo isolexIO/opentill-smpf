@@ -58,7 +58,7 @@ export default function MobilePOS({ merchant, station, sessionId, initialProduct
   const taxRate = settings.tax_rate ?? 0.08;
   const merchantId = merchant?.id;
   const solanaPayEnabled = settings?.solana_pay?.enabled && settings?.solana_pay?.wallet_address;
-  const stripeEnabled = settings?.stripe_enabled;
+  const stripeEnabled = settings?.stripe_enabled !== false;
   const isDemo = settings?.is_demo || merchant?.is_demo;
   const isKitchenDisplayEnabled = settings?.kitchen_display?.enabled !== false;
   const isDualPricingEnabled = settings?.pricing_and_surcharge?.enable_dual_pricing || false;
