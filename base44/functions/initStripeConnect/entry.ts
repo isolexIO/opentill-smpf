@@ -33,10 +33,19 @@ Deno.serve(async (req) => {
 
     const builder = builders[0];
 
-    // In production, initiate actual Stripe Connect OAuth
-    // For now, return a placeholder URL
+    // The Stripe Connect OAuth redirect_uri must be configured as an
+    // environment variable so it can be rotated per environment and stays out
+    // of source. It must match a URI registered in the Stripe dashboard.
+    const redirectUri = Deno.env.get('STRIPE_REDIRECT_URI');
+    if (!redirectUri) {
+      return Response.json(
+        { success: false, error: 'Stripe Connect redirect URI is not configured (STRIPE_REDIRECT_URI).' },
+        { status: 500 }
+      );
+    }
+
     const stripeConnectUrl = `https://connect.stripe.com/oauth/authorize?client_id=${Deno.env.get('STRIPE_CLIENT_ID')}&state=${builder.id}&redirect_uri=${encodeURIComponent(
-      'https://yourdomain.com/stripe-callback'
+      redirectUri
     )}&scope=read_write`;
 
     return Response.json({
