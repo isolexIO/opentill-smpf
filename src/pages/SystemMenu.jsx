@@ -336,7 +336,7 @@ export default function SystemMenu() {
 
     {
       id: 'opentill_payments',
-      icon: <OpenTILLPaymentsLogo height="h-16" width="w-24" scale={2.5} />,
+      icon: <OpenTILLPaymentsLogo height="h-auto" width="w-[350px]" scale={2.5} />,
       title: 'openTILL Payments',
       description: 'Stripe dashboard, connection & terminal',
       path: 'OpenTILLPayments',
@@ -576,7 +576,7 @@ export default function SystemMenu() {
               >
                 <CardHeader className="p-3 sm:p-6">
                   {item.id === 'opentill_payments' ? (
-                    <div className="flex items-center justify-center mb-4 h-12 group-hover:scale-110 transition-transform">
+                    <div className="flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                       {item.icon}
                     </div>
                   ) : (
