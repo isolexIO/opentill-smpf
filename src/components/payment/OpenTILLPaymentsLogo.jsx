@@ -7,11 +7,12 @@ const LOGO_URL =
 export default function OpenTILLPaymentsLogo({ className, height = 'h-[150px]', width = 'w-[225px]', subtitle, scale = 1.8 }) {
   return (
     <div className={cn('inline-flex flex-col items-center', className)}>
-      <div className={cn('flex items-center justify-center', height, width)}>
+      <div className={cn('flex items-center justify-center overflow-hidden', height, width)}>
         <img
           src={LOGO_URL}
           alt="openTILL Payments"
           className="max-h-full max-w-full object-contain"
+          style={{ transform: `scale(${scale})` }}
         />
       </div>
       {subtitle && (
