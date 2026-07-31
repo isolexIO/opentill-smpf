@@ -1,0 +1,156 @@
+{
+  "name": "ModifierGroup",
+  "type": "object",
+  "properties": {
+    "dealer_id": {
+      "type": "string",
+      "description": "Dealer ID for multi-tenant isolation"
+    },
+    "merchant_id": {
+      "type": "string",
+      "description": "Merchant ID - REQUIRED"
+    },
+    "name": {
+      "type": "string",
+      "description": "Group name (e.g. Milk Options, Size, Toppings)"
+    },
+    "description": {
+      "type": "string",
+      "description": "Optional description shown to staff/customers"
+    },
+    "selection_type": {
+      "type": "string",
+      "enum": [
+        "single",
+        "multi"
+      ],
+      "default": "single",
+      "description": "single = pick one (radio), multi = pick many (checkboxes)"
+    },
+    "min_required": {
+      "type": "number",
+      "default": 0,
+      "description": "Minimum selections the customer must make"
+    },
+    "max_allowed": {
+      "type": "number",
+      "default": 0,
+      "description": "Maximum selections allowed (0 = unlimited)"
+    },
+    "sort_order": {
+      "type": "number",
+      "default": 0,
+      "description": "Display order"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "apply_to_all_products": {
+      "type": "boolean",
+      "default": false,
+      "description": "If true, this group applies to every product for the merchant"
+    },
+    "applies_to_product_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Product IDs this group applies to (ignored when apply_to_all_products is true)"
+    },
+    "applies_to_department_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Department IDs this group applies to (ignored when apply_to_all_products is true)"
+    },
+    "options": {
+      "type": "array",
+      "default": [],
+      "description": "Modifier options within this group",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "price_adjustment": {
+            "type": "number",
+            "default": 0
+          },
+          "is_default": {
+            "type": "boolean",
+            "default": false
+          },
+          "sort_order": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "merchant_id",
+    "name"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.merchant_id": "{{user.data.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.merchant_id": "{{user.data.merchant_id}}"
+        },
+        {
+          "data.dealer_id": "{{user.data.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.merchant_id": "{{user.data.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.merchant_id": "{{user.data.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

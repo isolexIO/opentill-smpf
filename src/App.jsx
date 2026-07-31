@@ -18,6 +18,7 @@ import CustomerPortal from './pages/CustomerPortal';
 import OpenTILLPayments from './pages/OpenTILLPayments';
 import MobileStationDisplay from './pages/MobileStationDisplay';
 import FeedbackButton from '@/components/feedback/FeedbackButton';
+import Modifiers from './pages/Modifiers';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -103,6 +104,11 @@ const AuthenticatedApp = () => {
       <Route path="/OpenTILLPayments" element={
         <LayoutWrapper currentPageName="OpenTILLPayments">
           <OpenTILLPayments />
+        </LayoutWrapper>
+      } />
+      <Route path="/Modifiers" element={
+        <LayoutWrapper currentPageName="Modifiers">
+          <Modifiers />
         </LayoutWrapper>
       } />
       <Route path="/mobile/station/:token" element={
