@@ -1,7 +1,8 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 import nodemailer from 'npm:nodemailer@6.9.7';
 
-const SALT = 'opentill_customer_portal_2024';
+const PORTAL_SALT = Deno.env.get('OPENTILL_CUSTOMER_PORTAL_SALT');
+const LEGACY_PORTAL_SALT = 'opentill_customer_portal_2024';
 
 // In-memory OTP store for set_pin verification: customer_id -> { code, expires_at }
 const otpStore = new Map();
@@ -74,10 +75,15 @@ function verifyOtp(customerId, code) {
   return true;
 }
 
-async function hashPin(pin) {
-  const data = new TextEncoder().encode(SALT + pin);
+async function hashPinWith(pin, salt) {
+  const data = new TextEncoder().encode(salt + pin);
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
   return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function hashPin(pin) {
+  if (!PORTAL_SALT) throw new Error('OPENTILL_CUSTOMER_PORTAL_SALT not configured');
+  return hashPinWith(pin, PORTAL_SALT);
 }
 
 async function findCustomer(base44, identifier) {
@@ -182,8 +188,20 @@ Deno.serve(async (req) => {
       if (!customer) return Response.json({ success: false, error: 'No account found' });
       if (!customer.pin_hash) return Response.json({ success: false, error: 'PIN not set', pin_not_set: true });
 
-      const pinHash = await hashPin(pin);
-      if (pinHash !== customer.pin_hash) return Response.json({ success: false, error: 'Incorrect PIN' });
+      if (!PORTAL_SALT) return Response.json({ success: false, error: 'PIN verification unavailable' }, { status: 500 });
+      const newHash = await hashPinWith(pin, PORTAL_SALT);
+      if (newHash !== customer.pin_hash) {
+        const legacyHash = await hashPinWith(pin, LEGACY_PORTAL_SALT);
+        if (legacyHash === customer.pin_hash) {
+          try {
+            await base44.asServiceRole.entities.Customer.update(customer.id, { pin_hash: newHash });
+          } catch (e) {
+            console.warn('customerAuth: could not migrate PIN hash:', e);
+          }
+        } else {
+          return Response.json({ success: false, error: 'Incorrect PIN' });
+        }
+      }
 
       const merchantName = await fetchMerchantName(base44, customer.merchant_id);
       const orders = await fetchOrders(base44, customer.id);

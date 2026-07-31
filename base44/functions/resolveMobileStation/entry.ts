@@ -1,7 +1,10 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
-async function hashPin(pin: string): Promise<string> {
-  const data = new TextEncoder().encode(pin + '_opentill_mobile_salt_v1');
+const MOBILE_SALT = Deno.env.get('OPENTILL_MOBILE_SALT');
+const LEGACY_MOBILE_SALT = 'opentill_mobile_salt_v1';
+
+async function hashPinWith(pin: string, salt: string): Promise<string> {
+  const data = new TextEncoder().encode(pin + '_' + salt);
   const hash = await crypto.subtle.digest('SHA-256', data);
   return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
@@ -115,22 +118,34 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Verify PIN if required
+    // Verify PIN if required (with lazy migration of legacy hashes)
     if (station.mobile_pin_hash && pin) {
-      const pinHash = await hashPin(pin);
-      if (pinHash !== station.mobile_pin_hash) {
-        try {
-          await base44.asServiceRole.entities.AuditLog.create({
-            merchant_id: station.merchant_id,
-            action_type: 'device_registered',
-            severity: 'warning',
-            actor_id: 'mobile_display',
-            actor_email: 'mobile_display',
-            description: `Failed mobile PIN attempt for station "${station.name}"`,
-            target_entity: station.id
-          });
-        } catch (e) {}
-        return Response.json({ success: false, error: 'Incorrect PIN', code: 'invalid_pin' }, { status: 401 });
+      if (!MOBILE_SALT) {
+        return Response.json({ success: false, error: 'PIN verification unavailable', code: 'server_error' }, { status: 500 });
+      }
+      const newHash = await hashPinWith(pin, MOBILE_SALT);
+      if (newHash !== station.mobile_pin_hash) {
+        const legacyHash = await hashPinWith(pin, LEGACY_MOBILE_SALT);
+        if (legacyHash === station.mobile_pin_hash) {
+          try {
+            await base44.asServiceRole.entities.Station.update(station.id, { mobile_pin_hash: newHash });
+          } catch (e) {
+            console.warn('resolveMobileStation: could not migrate PIN hash:', e);
+          }
+        } else {
+          try {
+            await base44.asServiceRole.entities.AuditLog.create({
+              merchant_id: station.merchant_id,
+              action_type: 'device_registered',
+              severity: 'warning',
+              actor_id: 'mobile_display',
+              actor_email: 'mobile_display',
+              description: `Failed mobile PIN attempt for station "${station.name}"`,
+              target_entity: station.id
+            });
+          } catch (e) {}
+          return Response.json({ success: false, error: 'Incorrect PIN', code: 'invalid_pin' }, { status: 401 });
+        }
       }
     }
 

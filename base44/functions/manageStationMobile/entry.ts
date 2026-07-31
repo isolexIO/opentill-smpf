@@ -1,7 +1,10 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+const MOBILE_SALT = Deno.env.get('OPENTILL_MOBILE_SALT');
+
 async function hashPin(pin: string): Promise<string> {
-  const data = new TextEncoder().encode(pin + '_opentill_mobile_salt_v1');
+  if (!MOBILE_SALT) throw new Error('OPENTILL_MOBILE_SALT not configured');
+  const data = new TextEncoder().encode(pin + '_' + MOBILE_SALT);
   const hash = await crypto.subtle.digest('SHA-256', data);
   return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
