@@ -7,11 +7,11 @@ import { useToast } from '@/components/ui/use-toast';
 import { Loader2, CreditCard, CheckCircle2, ExternalLink, AlertCircle, Percent, DollarSign } from 'lucide-react';
 import OpenTILLPaymentsLogo from '@/components/payment/OpenTILLPaymentsLogo';
 
-// Standard openTILL Payments pricing — Stripe processing + openTILL platform fee
-const STRIPE_PROCESSING_PERCENT = 2.9;
-const STRIPE_FLAT_FEE = 0.30;
+// Standard openTILL Payments pricing — Stripe in-person (card-present) processing + openTILL platform fee
+const STRIPE_PROCESSING_PERCENT = 2.7;
+const STRIPE_FLAT_FEE = 0.05;
 const PLATFORM_FEE_PERCENT = 0.80;
-const EFFECTIVE_RATE_PERCENT = STRIPE_PROCESSING_PERCENT + PLATFORM_FEE_PERCENT; // 3.70%
+const EFFECTIVE_RATE_PERCENT = STRIPE_PROCESSING_PERCENT + PLATFORM_FEE_PERCENT; // 3.50%
 
 // Lets a merchant sign up for / connect their Stripe Connect account directly
 // from the Payment Gateways settings tab. Payments then route through Stripe Terminal.
