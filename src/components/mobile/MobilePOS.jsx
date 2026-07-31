@@ -163,6 +163,38 @@ export default function MobilePOS({ merchant, station, sessionId, initialProduct
     }
   }, [token]);
 
+  // Restore the cart on a plain page refresh (not a Stripe return)
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('stripe_status')) return; // Stripe-return effect handles it
+    try {
+      const saved = sessionStorage.getItem(`opentill_mobile_cart_${token}`);
+      if (saved) {
+        const ctx = JSON.parse(saved);
+        if (Array.isArray(ctx.cart) && ctx.cart.length > 0) {
+          setCart(ctx.cart);
+          setSelectedCustomer(ctx.selectedCustomer || null);
+          setTableNumber(ctx.tableNumber || '');
+          setDiscountPercent(ctx.discountPercent || 0);
+          setView('cart');
+        }
+      }
+    } catch (e) { /* non-fatal */ }
+  }, [token]);
+
+  // Persist the cart continuously so a refresh keeps it; clear when emptied
+  useEffect(() => {
+    if (!token) return;
+    const key = `opentill_mobile_cart_${token}`;
+    try {
+      if (cart.length > 0) {
+        sessionStorage.setItem(key, JSON.stringify({ cart, selectedCustomer, tableNumber, discountPercent }));
+      } else {
+        sessionStorage.removeItem(key);
+      }
+    } catch (e) { /* non-fatal */ }
+  }, [cart, selectedCustomer, tableNumber, discountPercent, token]);
+
   // --- Derived values ---
 
   const filteredProducts = useMemo(() => {
