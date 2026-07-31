@@ -85,7 +85,8 @@ Deno.serve(async (req) => {
 
     // Strip secrets from settings but keep payment-relevant config for mobile
     const safeSettings = { ...(merchant.settings || {}) };
-    const stripeEnabled = merchant.settings?.enable_opentill_payments || merchant.settings?.payment_gateways?.stripe?.enabled || false;
+    const stripeExplicitlyOff = merchant.settings?.enable_opentill_payments === false || merchant.settings?.payment_gateways?.stripe?.enabled === false;
+    const stripeEnabled = !stripeExplicitlyOff;
     safeSettings.solana_pay = merchant.settings?.solana_pay || {};
     safeSettings.stripe_enabled = stripeEnabled;
     safeSettings.stripe_rates = {

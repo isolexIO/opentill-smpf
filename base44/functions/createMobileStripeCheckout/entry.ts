@@ -56,9 +56,9 @@ Deno.serve(async (req) => {
     }
     const merchant = merchants[0];
 
-    // Check Stripe is enabled
-    const stripeSettings = merchant.settings?.payment_gateways?.stripe;
-    if (!stripeSettings || !stripeSettings.enabled) {
+    // openTILL Payments (card) is enabled by default unless explicitly disabled
+    const stripeExplicitlyOff = merchant.settings?.enable_opentill_payments === false || merchant.settings?.payment_gateways?.stripe?.enabled === false;
+    if (stripeExplicitlyOff) {
       return Response.json({ success: false, error: 'Card payments not enabled for this merchant' }, { status: 400 });
     }
 

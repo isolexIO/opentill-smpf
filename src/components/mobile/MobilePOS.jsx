@@ -708,7 +708,7 @@ export default function MobilePOS({ merchant, station, sessionId, initialProduct
                   )}
                 </div>
                 <div className="flex-1 text-left">
-                  <span className="font-semibold text-lg">{processing ? 'Redirecting…' : 'Card'}</span>
+                  <span className="font-semibold text-lg">{processing ? 'Redirecting…' : 'openTILL Payments'}</span>
                   {isDualPricingEnabled && <p className="text-xs text-gray-400">${totals.cardTotal}</p>}
                 </div>
               </button>
