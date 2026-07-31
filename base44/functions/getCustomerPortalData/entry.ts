@@ -1,10 +1,9 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
-const PORTAL_SALT = Deno.env.get('OPENTILL_CUSTOMER_PORTAL_SALT');
-const LEGACY_PORTAL_SALT = 'opentill_customer_portal_2024';
+const SALT = 'opentill_customer_portal_2024';
 
-async function hashPinWith(pin, salt) {
-  const data = new TextEncoder().encode(salt + pin);
+async function hashPin(pin) {
+  const data = new TextEncoder().encode(SALT + pin);
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
   return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
@@ -48,21 +47,9 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: 'PIN not set — please contact the merchant' }, { status: 403 });
     }
 
-    if (!PORTAL_SALT) {
-      return Response.json({ success: false, error: 'PIN verification unavailable' }, { status: 500 });
-    }
-    const newHash = await hashPinWith(pin, PORTAL_SALT);
-    if (newHash !== customer.pin_hash) {
-      const legacyHash = await hashPinWith(pin, LEGACY_PORTAL_SALT);
-      if (legacyHash === customer.pin_hash) {
-        try {
-          await base44.asServiceRole.entities.Customer.update(customer.id, { pin_hash: newHash });
-        } catch (e) {
-          console.warn('getCustomerPortalData: could not migrate PIN hash:', e);
-        }
-      } else {
-        return Response.json({ success: false, error: 'Incorrect PIN' }, { status: 401 });
-      }
+    const pinHash = await hashPin(pin);
+    if (pinHash !== customer.pin_hash) {
+      return Response.json({ success: false, error: 'Incorrect PIN' }, { status: 401 });
     }
 
     // Get merchant name
