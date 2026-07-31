@@ -1,7 +1,10 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
-async function hashPin(pin: string): Promise<string> {
-  const data = new TextEncoder().encode(pin + '_opentill_mobile_salt_v1');
+const MOBILE_SALT = Deno.env.get('JWT_SECRET') ? `mobile:${Deno.env.get('JWT_SECRET')}` : '';
+const LEGACY_MOBILE_SALT = 'opentill_mobile_salt_v1';
+
+async function hashPinWith(pin: string, salt: string): Promise<string> {
+  const data = new TextEncoder().encode(pin + '_' + salt);
   const hash = await crypto.subtle.digest('SHA-256', data);
   return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
@@ -27,14 +30,26 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: 'Station not available' }, { status: 403 });
     }
 
-    // Verify PIN if required
+    // Verify PIN if required (with lazy migration of legacy hashes)
     if (station.mobile_pin_hash) {
       if (!pin) {
         return Response.json({ success: false, error: 'PIN required', pin_required: true }, { status: 401 });
       }
-      const pinHash = await hashPin(pin);
-      if (pinHash !== station.mobile_pin_hash) {
-        return Response.json({ success: false, error: 'Invalid PIN' }, { status: 401 });
+      if (!MOBILE_SALT) {
+        return Response.json({ success: false, error: 'PIN verification unavailable' }, { status: 500 });
+      }
+      const newHash = await hashPinWith(pin, MOBILE_SALT);
+      if (newHash !== station.mobile_pin_hash) {
+        const legacyHash = await hashPinWith(pin, LEGACY_MOBILE_SALT);
+        if (legacyHash === station.mobile_pin_hash) {
+          try {
+            await base44.asServiceRole.entities.Station.update(station.id, { mobile_pin_hash: newHash });
+          } catch (e) {
+            console.warn('completeMobileOrder: could not migrate PIN hash:', e);
+          }
+        } else {
+          return Response.json({ success: false, error: 'Invalid PIN' }, { status: 401 });
+        }
       }
     }
 
