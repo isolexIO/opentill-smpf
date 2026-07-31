@@ -7,6 +7,24 @@ const SALT = 'opentill_customer_portal_2024';
 const otpStore = new Map();
 const OTP_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
+// In-memory rate limiting to throttle unauthenticated customer enumeration
+// and PIN brute-force. Lookups are keyed by IP; auth actions by (identifier,IP).
+const rlMap = new Map();
+const RL_WINDOW = 15 * 60 * 1000; // 15 minutes
+const LOOKUP_RATE_LIMIT = 20;     // lookups per IP per window
+const IDENTIFIER_RATE_LIMIT = 8;  // auth attempts per (identifier,IP) per window
+function checkRateLimit(key, limit) {
+  const now = Date.now();
+  const attempts = (rlMap.get(key) || []).filter((ts) => now - ts < RL_WINDOW);
+  if (attempts.length >= limit) {
+    rlMap.set(key, attempts);
+    return false;
+  }
+  attempts.push(now);
+  rlMap.set(key, attempts);
+  return true;
+}
+
 function generateOtp() {
   return String(Math.floor(100000 + Math.random() * 900000));
 }
@@ -113,14 +131,24 @@ Deno.serve(async (req) => {
     const { action, identifier, pin } = body;
     const base44 = createClientFromRequest(req);
 
+    // Throttle unauthenticated enumeration / PIN brute-force.
+    const ipAddress = (req.headers.get('x-forwarded-for') || '').split(',')[0].trim() ||
+                       req.headers.get('x-real-ip') || 'unknown';
+    const lookupKey = `lookup:${ipAddress}`;
+    const identKey = `ident:${(identifier || '').toLowerCase()}:${ipAddress}`;
+
     // --- Lookup: find customer, check if PIN is set ---
     if (action === 'lookup') {
       if (!identifier) return Response.json({ success: false, error: 'Phone or email required' });
+      // Throttle per-IP lookups to limit customer enumeration.
+      if (!checkRateLimit(lookupKey, LOOKUP_RATE_LIMIT)) {
+        return Response.json({ success: false, error: 'Too many attempts. Please try again later.' }, { status: 429 });
+      }
       const customer = await findCustomer(base44, identifier);
       if (!customer) return Response.json({ success: false, error: 'No account found' });
 
       const pinSet = !!customer.pin_hash;
-      const response = { success: true, pin_set: pinSet, customer_name: customer.name };
+      const response = { success: true, pin_set: pinSet };
       if (!pinSet) {
         // Issue an OTP and deliver it out-of-band to the customer's verified
         // email. Never return the code in the response — that would let an
@@ -147,6 +175,9 @@ Deno.serve(async (req) => {
     // --- Login: verify PIN and return full dashboard data ---
     if (action === 'login') {
       if (!identifier || !pin) return Response.json({ success: false, error: 'Identifier and PIN required' });
+      if (!checkRateLimit(identKey, IDENTIFIER_RATE_LIMIT)) {
+        return Response.json({ success: false, error: 'Too many attempts. Please try again later.' }, { status: 429 });
+      }
       const customer = await findCustomer(base44, identifier);
       if (!customer) return Response.json({ success: false, error: 'No account found' });
       if (!customer.pin_hash) return Response.json({ success: false, error: 'PIN not set', pin_not_set: true });
@@ -175,6 +206,9 @@ Deno.serve(async (req) => {
       if (!identifier || !pin) return Response.json({ success: false, error: 'Identifier and PIN required' });
       if (!verification_code) return Response.json({ success: false, error: 'Verification code required' });
       if (pin.length < 4) return Response.json({ success: false, error: 'PIN must be at least 4 digits' });
+      if (!checkRateLimit(identKey, IDENTIFIER_RATE_LIMIT)) {
+        return Response.json({ success: false, error: 'Too many attempts. Please try again later.' }, { status: 429 });
+      }
       const customer = await findCustomer(base44, identifier);
       if (!customer) return Response.json({ success: false, error: 'No account found' });
       if (customer.pin_hash) return Response.json({ success: false, error: 'PIN already set' });

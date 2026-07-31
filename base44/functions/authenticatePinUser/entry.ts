@@ -1,30 +1,24 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
-// Simple in-memory rate limiting (in production, use Redis)
-const rateLimitMap = new Map();
-const RATE_LIMIT = 5; // Max attempts
+// In-memory rate limiting (in production, use Redis). Two buckets are tracked
+// so attackers rotating IP addresses cannot brute-force short staff PINs:
+// a per-(merchant,ip) bucket and a per-merchant aggregate bucket.
+const ipAttemptMap = new Map();
+const merchantAttemptMap = new Map();
 const RATE_LIMIT_WINDOW = 15 * 60 * 1000; // 15 minutes
+const IP_RATE_LIMIT = 5;       // max attempts per (merchant, ip)
+const MERCHANT_RATE_LIMIT = 20; // max attempts per merchant across all ips
 
-function checkRateLimit(ipAddress) {
+function checkRateLimit(key, map, limit) {
   const now = Date.now();
-  const key = ipAddress;
-  
-  if (!rateLimitMap.has(key)) {
-    rateLimitMap.set(key, []);
+  const attempts = (map.get(key) || []).filter((ts) => now - ts < RATE_LIMIT_WINDOW);
+  if (attempts.length >= limit) {
+    map.set(key, attempts);
+    return false;
   }
-  
-  const attempts = rateLimitMap.get(key);
-  
-  // Remove old attempts outside the window
-  const recentAttempts = attempts.filter(timestamp => now - timestamp < RATE_LIMIT_WINDOW);
-  rateLimitMap.set(key, recentAttempts);
-  
-  if (recentAttempts.length >= RATE_LIMIT) {
-    return false; // Rate limited
-  }
-  
-  recentAttempts.push(now);
-  return true; // OK
+  attempts.push(now);
+  map.set(key, attempts);
+  return true;
 }
 
 Deno.serve(async (req) => {
@@ -49,13 +43,14 @@ Deno.serve(async (req) => {
     }
     
     // Get client IP for rate limiting
-    const ipAddress = req.headers.get('x-forwarded-for') || 
-                      req.headers.get('x-real-ip') || 
-                      req.remote?.hostname || 
+    const ipAddress = (req.headers.get('x-forwarded-for') || '').split(',')[0].trim() ||
+                      req.headers.get('x-real-ip') ||
                       'unknown';
-    
-    // Check rate limit
-    if (!checkRateLimit(ipAddress)) {
+
+    // Rate limit by (merchant, ip) AND by merchant so attackers rotating IPs
+    // still cannot brute-force short staff PINs.
+    if (!checkRateLimit(`${merchant_id}:${ipAddress}`, ipAttemptMap, IP_RATE_LIMIT) ||
+        !checkRateLimit(merchant_id, merchantAttemptMap, MERCHANT_RATE_LIMIT)) {
       return Response.json(
         { success: false, error: 'Too many login attempts. Please try again later.' },
         { status: 429 }
