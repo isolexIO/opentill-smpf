@@ -214,10 +214,21 @@ export default function OpenTILLPaymentsSection() {
             <Button
               size="lg"
               className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
-              onClick={() => window.location.href = createPageUrl('OpenTILLPayments')}
+              onClick={() => {
+                const params = new URLSearchParams(window.location.search);
+                const ref = params.get('ref') || params.get('referral') || params.get('code');
+                const dealerId = params.get('dealer_id') || params.get('dealerid') || params.get('dealer');
+                const qs = new URLSearchParams();
+                if (ref) qs.set('ref', ref);
+                if (dealerId) qs.set('dealer_id', dealerId);
+                const query = qs.toString();
+                window.location.href = query
+                  ? `${createPageUrl('MerchantOnboarding')}?${query}`
+                  : createPageUrl('MerchantOnboarding');
+              }}
             >
               <Zap className="w-5 h-5 mr-2" />
-              Explore openTILL Payments
+              Get Started with openTILL Payments
               <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
             <Button
