@@ -31,6 +31,7 @@ import { motion } from 'framer-motion';
 import PriceTicker from '@/components/vault/PriceTicker';
 import CommunityLinks from '@/components/shared/CommunityLinks';
 import OpenTILLPaymentsSection from '@/components/home/OpenTILLPaymentsSection';
+import DUCPresaleSection from '@/components/home/DUCPresaleSection';
 
 const FEATURE_ICONS = {
   DollarSign, Wallet, CreditCard, Package, BarChart3, Cpu, Shield,
@@ -366,8 +367,8 @@ export default function HomePage() {
               <a href={createPageUrl('Contact')} className="text-white hover:text-green-300 transition-colors">
                 Contact
               </a>
-              <a href={createPageUrl('DeviceShop')} className="text-white hover:text-green-300 transition-colors">
-                Device Shop
+              <a href="https://ico.opentill.io/" target="_blank" rel="noopener noreferrer" className="text-green-300 font-semibold hover:text-green-200 transition-colors">
+                $DUC Presale
               </a>
               <Button
                 onClick={() => window.location.href = createPageUrl('EmailLogin')}
@@ -406,7 +407,7 @@ export default function HomePage() {
           <a href="#support-tiers" onClick={() => setMobileMenuOpen(false)} className="block text-white hover:text-green-300 py-2">Support Tiers</a>
           <a href={createPageUrl('About')} className="block text-white hover:text-green-300 py-2">About</a>
           <a href={createPageUrl('Contact')} className="block text-white hover:text-green-300 py-2">Contact</a>
-          <a href={createPageUrl('DeviceShop')} className="block text-white hover:text-green-300 py-2">Device Shop</a>
+          <a href="https://ico.opentill.io/" target="_blank" rel="noopener noreferrer" className="block text-green-300 font-semibold py-2">$DUC Presale</a>
           <div className="pt-2 border-t border-white/10">
             <CommunityLinks variant="compact" className="[&_a]:text-gray-300 [&_a]:hover:text-white justify-start" />
           </div>
@@ -1134,6 +1135,9 @@ export default function HomePage() {
       {/* Price Ticker */}
       <PriceTicker />
 
+      {/* $DUC Presale */}
+      <DUCPresaleSection />
+
       {/* Footer */}
       <footer className="bg-black/30 backdrop-blur-md border-t border-white/10 py-12">
         <div className="max-w-7xl mx-auto px-6">
@@ -1162,6 +1166,11 @@ export default function HomePage() {
                 <li><a href="#features" className="text-gray-300 hover:text-white text-sm transition-colors">Features</a></li>
                 <li><a href="#pricing" className="text-gray-300 hover:text-white text-sm transition-colors">Pricing</a></li>
                 <li><a href={createPageUrl('DeviceShop')} className="text-gray-300 hover:text-white text-sm transition-colors">Device Shop</a></li>
+                <li>
+                  <a href="https://ico.opentill.io/" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white text-sm transition-colors">
+                    $DUC Presale
+                  </a>
+                </li>
                 <li>
                   <a href={createPageUrl('DealerLanding')} className="text-gray-300 hover:text-white text-sm transition-colors">
                     Become an Ambassador
