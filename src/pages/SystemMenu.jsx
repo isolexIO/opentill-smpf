@@ -574,9 +574,9 @@ export default function SystemMenu() {
                 className={`group hover:shadow-xl hover:scale-105 transition-all cursor-pointer dark:bg-gray-800 bg-white overflow-hidden`}
                 onClick={() => handleNavigate(item.path)}
               >
-                <CardHeader className="p-3 sm:p-6">
+                <CardHeader className={item.id === 'opentill_payments' ? 'p-3 sm:p-6 pb-[5px]' : 'p-3 sm:p-6'}>
                   {item.id === 'opentill_payments' ? (
-                    <div className="flex items-center justify-center mb-4 group-hover:scale-105 transition-transform overflow-hidden">
+                    <div className="flex items-center justify-center group-hover:scale-105 transition-transform overflow-hidden">
                       {item.icon}
                     </div>
                   ) : (
