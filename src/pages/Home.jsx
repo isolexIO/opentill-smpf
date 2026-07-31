@@ -30,6 +30,7 @@ import {
 import { motion } from 'framer-motion';
 import PriceTicker from '@/components/vault/PriceTicker';
 import CommunityLinks from '@/components/shared/CommunityLinks';
+import OpenTILLPaymentsSection from '@/components/home/OpenTILLPaymentsSection';
 
 const FEATURE_ICONS = {
   DollarSign, Wallet, CreditCard, Package, BarChart3, Cpu, Shield,
@@ -510,6 +511,9 @@ export default function HomePage() {
           </motion.div>
         </div>
       </section>
+
+      {/* openTILL Payments Section */}
+      <OpenTILLPaymentsSection />
 
       {/* Featured Chips Section */}
       <FeaturedChipsSection />
