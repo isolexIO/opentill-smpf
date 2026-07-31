@@ -62,7 +62,17 @@ const FEATURE_REQUIREMENTS = {
 };
 
 // Items that are always visible (no chip needed)
-const ALWAYS_ENABLED = new Set(['pos', 'products', 'orders', 'settings', 'departments', 'users', 'marketplace', 'motherboard', 'duc_vault', 'referral_program', 'super_admin', 'dealer_dashboard', 'opentill_payments']);
+const ALWAYS_ENABLED = new Set(['pos', 'products', 'orders', 'settings', 'departments', 'users', 'marketplace', 'motherboard', 'duc_vault', 'referral_program', 'super_admin', 'dealer_dashboard', 'opentill_payments', 'modifiers']);
+
+// Logical groupings shown as section headers on the System Menu
+const CATEGORIES = [
+  { id: 'selling', label: 'Selling' },
+  { id: 'catalog', label: 'Catalog' },
+  { id: 'customers', label: 'Customers & Online Ordering' },
+  { id: 'payments', label: 'Payments & Rewards' },
+  { id: 'insights', label: 'Insights & Growth' },
+  { id: 'platform', label: 'Platform & Admin' },
+];
 
 export default function SystemMenu() {
   const [user, setUser] = useState(null);
@@ -216,6 +226,7 @@ export default function SystemMenu() {
     if (isDealerAdmin()) {
       return {
         id: 'dealer_dashboard',
+        category: 'platform',
         icon: <Building2 className="w-6 h-6" />,
         title: 'Dealer Dashboard',
         description: 'Manage merchants and commissions',
@@ -231,6 +242,7 @@ export default function SystemMenu() {
     if (isSuperAdmin()) {
       return {
         id: 'super_admin',
+        category: 'platform',
         icon: <Shield className="w-6 h-6" />,
         title: 'Super Admin',
         description: 'Platform management',
@@ -243,8 +255,10 @@ export default function SystemMenu() {
   };
 
   const baseMenuItems = [
+    // Selling
     {
       id: 'pos',
+      category: 'selling',
       icon: <CreditCard className="w-6 h-6" />,
       title: 'Point of Sale',
       description: 'Process orders and payments',
@@ -253,34 +267,8 @@ export default function SystemMenu() {
       permission: 'process_orders'
     },
     {
-      id: 'products',
-      icon: <Package className="w-6 h-6" />,
-      title: 'Products',
-      description: 'Manage product catalog',
-      path: 'Products',
-      color: 'from-purple-500 to-purple-600',
-      permission: 'manage_inventory'
-    },
-    {
-      id: 'customers',
-      icon: <Users className="w-6 h-6" />,
-      title: 'Customers',
-      description: 'Customer management',
-      path: 'Customers',
-      color: 'from-green-500 to-green-600',
-      permission: 'manage_customers'
-    },
-    {
-      id: 'loyalty',
-      icon: <Gift className="w-6 h-6" />,
-      title: 'Loyalty Program',
-      description: 'Rewards and points',
-      path: 'LoyaltyProgram',
-      color: 'from-pink-500 to-rose-600',
-      permission: 'manage_settings'
-    },
-    {
       id: 'orders',
+      category: 'selling',
       icon: <FileText className="w-6 h-6" />,
       title: 'Orders',
       description: 'View order history',
@@ -290,6 +278,7 @@ export default function SystemMenu() {
     },
     {
       id: 'invoices',
+      category: 'selling',
       icon: <FileText className="w-6 h-6" />,
       title: 'Invoices',
       description: 'Send paylinks to customers',
@@ -299,6 +288,7 @@ export default function SystemMenu() {
     },
     {
       id: 'driver',
+      category: 'selling',
       icon: <Truck className="w-6 h-6" />,
       title: 'Delivery Dashboard',
       description: 'Driver jobs & deliveries',
@@ -306,17 +296,71 @@ export default function SystemMenu() {
       color: 'from-amber-500 to-orange-600',
       permission: null
     },
+    // Catalog
     {
-      id: 'reports',
-      icon: <BarChart3 className="w-6 h-6" />,
-      title: 'Reports',
-      description: 'Sales analytics',
-      path: 'Reports',
-      color: 'from-pink-500 to-pink-600',
-      permission: 'view_reports'
+      id: 'products',
+      category: 'catalog',
+      icon: <Package className="w-6 h-6" />,
+      title: 'Products',
+      description: 'Manage product catalog',
+      path: 'Products',
+      color: 'from-purple-500 to-purple-600',
+      permission: 'manage_inventory'
+    },
+    {
+      id: 'departments',
+      category: 'catalog',
+      icon: <LayoutGrid className="w-6 h-6" />,
+      title: 'Departments',
+      description: 'Organize products',
+      path: 'Departments',
+      color: 'from-cyan-500 to-cyan-600',
+      permission: 'manage_inventory'
+    },
+    {
+      id: 'modifiers',
+      category: 'catalog',
+      icon: <Layers className="w-6 h-6" />,
+      title: 'Modifiers',
+      description: 'Grouped options & add-ons',
+      path: 'Modifiers',
+      color: 'from-fuchsia-500 to-purple-600',
+      permission: 'manage_inventory'
+    },
+    {
+      id: 'inventory',
+      category: 'catalog',
+      icon: <Box className="w-6 h-6" />,
+      title: 'Inventory',
+      description: 'Stock management',
+      path: 'Inventory',
+      color: 'from-lime-500 to-lime-600',
+      permission: 'manage_inventory'
+    },
+    // Customers & Online Ordering
+    {
+      id: 'customers',
+      category: 'customers',
+      icon: <Users className="w-6 h-6" />,
+      title: 'Customers',
+      description: 'Customer management',
+      path: 'Customers',
+      color: 'from-green-500 to-green-600',
+      permission: 'manage_customers'
+    },
+    {
+      id: 'loyalty',
+      category: 'customers',
+      icon: <Gift className="w-6 h-6" />,
+      title: 'Loyalty Program',
+      description: 'Rewards and points',
+      path: 'LoyaltyProgram',
+      color: 'from-pink-500 to-rose-600',
+      permission: 'manage_settings'
     },
     {
       id: 'online_menu',
+      category: 'customers',
       icon: <Globe className="w-6 h-6" />,
       title: 'Online Menu',
       description: 'Public ordering page',
@@ -326,6 +370,7 @@ export default function SystemMenu() {
     },
     {
       id: 'online_orders',
+      category: 'customers',
       icon: <ShoppingBag className="w-6 h-6" />,
       title: 'Online Orders',
       description: 'Manage online orders',
@@ -333,9 +378,10 @@ export default function SystemMenu() {
       color: 'from-teal-500 to-teal-600',
       permission: 'process_orders'
     },
-
+    // Payments & Rewards
     {
       id: 'opentill_payments',
+      category: 'payments',
       icon: <OpenTILLPaymentsLogo height="h-[90px]" width="w-[275px]" cover />,
       title: 'openTILL Payments',
       description: 'Stripe dashboard, connection & terminal',
@@ -344,79 +390,8 @@ export default function SystemMenu() {
       permission: 'admin_settings'
     },
     {
-      id: 'settings',
-      icon: <Settings className="w-6 h-6" />,
-      title: 'Settings',
-      description: 'System configuration',
-      path: 'Settings',
-      color: 'from-gray-500 to-gray-600',
-      permission: 'admin_settings'
-    },
-    {
-      id: 'ai_website',
-      icon: <Sparkles className="w-6 h-6" />,
-      title: hasWebsite ? 'Manage Website' : 'AI Website Generator',
-      description: hasWebsite ? 'View analytics & manage your site' : 'Generate a website with AI',
-      path: 'AIWebsiteGenerator',
-      color: 'from-indigo-500 via-purple-500 to-pink-500',
-      permission: 'admin_settings'
-    },
-    {
-      id: 'users',
-      icon: <UserCircle className="w-6 h-6" />,
-      title: 'Employees',
-      description: 'Staff management',
-      path: 'Users',
-      color: 'from-red-500 to-red-600',
-      permission: 'manage_users'
-    },
-    {
-      id: 'departments',
-      icon: <LayoutGrid className="w-6 h-6" />,
-      title: 'Departments',
-      description: 'Organize products',
-      path: 'Departments',
-      color: 'from-cyan-500 to-cyan-600',
-      permission: 'manage_inventory'
-    },
-    {
-      id: 'inventory',
-      icon: <Box className="w-6 h-6" />,
-      title: 'Inventory',
-      description: 'Stock management',
-      path: 'Inventory',
-      color: 'from-lime-500 to-lime-600',
-      permission: 'manage_inventory'
-    },
-    {
-      id: 'device_monitor',
-      icon: <Monitor className="w-6 h-6" />,
-      title: 'Device Monitor',
-      description: 'Track active sessions',
-      path: 'DeviceMonitor',
-      color: 'from-violet-500 to-violet-600',
-      permission: 'admin_settings'
-    },
-    {
-      id: 'marketplace',
-      icon: <Sparkles className="w-6 h-6" />,
-      title: 'Marketplace',
-      description: 'Browse and purchase chips',
-      path: 'Marketplace',
-      color: 'from-purple-600 to-pink-600',
-      permission: null
-      },
-      {
-      id: 'motherboard',
-      icon: <Cpu className="w-6 h-6" />,
-      title: 'Motherboard',
-      description: 'Install and manage chips',
-      path: 'Motherboard',
-      color: 'from-blue-600 to-purple-600',
-      permission: 'admin_settings'
-      },
-    {
       id: 'duc_vault',
+      category: 'payments',
       icon: <Vault className="w-6 h-6" />,
       title: '$DUC Vault',
       description: 'Rewards, staking & swaps',
@@ -426,6 +401,7 @@ export default function SystemMenu() {
     },
     {
       id: 'referral_program',
+      category: 'payments',
       icon: <Gift className="w-6 h-6" />,
       title: 'Referral Program',
       description: 'Refer merchants and earn rewards',
@@ -433,14 +409,87 @@ export default function SystemMenu() {
       color: 'from-purple-500 to-pink-500',
       permission: null
     },
+    // Insights & Growth
+    {
+      id: 'reports',
+      category: 'insights',
+      icon: <BarChart3 className="w-6 h-6" />,
+      title: 'Reports',
+      description: 'Sales analytics',
+      path: 'Reports',
+      color: 'from-pink-500 to-pink-600',
+      permission: 'view_reports'
+    },
     {
       id: 'ai_assistant',
+      category: 'insights',
       icon: <Lightbulb className="w-6 h-6" />,
       title: 'AI Assistant',
       description: 'Business insights & analysis',
       path: 'AIAssistant',
       color: 'from-green-400 to-teal-500',
       permission: 'view_reports'
+    },
+    {
+      id: 'ai_website',
+      category: 'insights',
+      icon: <Sparkles className="w-6 h-6" />,
+      title: hasWebsite ? 'Manage Website' : 'AI Website Generator',
+      description: hasWebsite ? 'View analytics & manage your site' : 'Generate a website with AI',
+      path: 'AIWebsiteGenerator',
+      color: 'from-indigo-500 via-purple-500 to-pink-500',
+      permission: 'admin_settings'
+    },
+    // Platform & Admin
+    {
+      id: 'marketplace',
+      category: 'platform',
+      icon: <Sparkles className="w-6 h-6" />,
+      title: 'Marketplace',
+      description: 'Browse and purchase chips',
+      path: 'Marketplace',
+      color: 'from-purple-600 to-pink-600',
+      permission: null
+    },
+    {
+      id: 'motherboard',
+      category: 'platform',
+      icon: <Cpu className="w-6 h-6" />,
+      title: 'Motherboard',
+      description: 'Install and manage chips',
+      path: 'Motherboard',
+      color: 'from-blue-600 to-purple-600',
+      permission: 'admin_settings'
+    },
+    {
+      id: 'users',
+      category: 'platform',
+      icon: <UserCircle className="w-6 h-6" />,
+      title: 'Employees',
+      description: 'Staff management',
+      path: 'Users',
+      color: 'from-red-500 to-red-600',
+      permission: 'manage_users'
+    },
+    {
+      id: 'device_monitor',
+      category: 'platform',
+      icon: <Monitor className="w-6 h-6" />,
+      title: 'Device Monitor',
+      description: 'Track active sessions',
+      path: 'DeviceMonitor',
+      color: 'from-violet-500 to-violet-600',
+      permission: 'admin_settings'
+    },
+    {
+      id: 'settings',
+      category: 'platform',
+      icon: <Settings className="w-6 h-6" />,
+      title: 'Settings',
+      description: 'System configuration',
+      path: 'Settings',
+      color: 'from-gray-500 to-gray-600',
+      permission: 'admin_settings'
     },
   ];
 
@@ -464,6 +513,37 @@ export default function SystemMenu() {
 
   const handleNavigate = (path) => {
     window.location.href = createPageUrl(path);
+  };
+
+  const renderTile = (item) => {
+    const requiredFlag = FEATURE_REQUIREMENTS[item.id];
+    const isLocked = !featureIsAdmin && requiredFlag && !hasFeature(requiredFlag) && !ALWAYS_ENABLED.has(item.id);
+    if (isLocked) return <LockedFeatureTile key={item.id} item={item} />;
+    return (
+      <Card
+        key={item.id}
+        className={`group hover:shadow-xl hover:scale-105 transition-all cursor-pointer dark:bg-gray-800 bg-white overflow-hidden`}
+        onClick={() => handleNavigate(item.path)}
+      >
+        <CardHeader className={item.id === 'opentill_payments' ? 'p-3 sm:p-6 pb-[5px]' : 'p-3 sm:p-6'}>
+          {item.id === 'opentill_payments' ? (
+            <div className="flex items-center justify-center group-hover:scale-105 transition-transform overflow-hidden">
+              {item.icon}
+            </div>
+          ) : (
+            <div className={`w-9 h-9 sm:w-12 sm:h-12 rounded-lg bg-gradient-to-r ${item.color} flex items-center justify-center mb-3 sm:mb-4 group-hover:scale-110 transition-transform`}>
+              {item.icon}
+            </div>
+          )}
+          <CardTitle className="font-semibold text-sm sm:text-lg text-gray-900 dark:text-white mb-1 break-words leading-tight">
+            {item.title}
+          </CardTitle>
+          <CardDescription className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 break-words leading-snug">
+            {item.description}
+          </CardDescription>
+        </CardHeader>
+      </Card>
+    );
   };
 
   if (loading) {
@@ -558,43 +638,22 @@ export default function SystemMenu() {
           <AdvertisingTile />
         </div>
 
+        {CATEGORIES.map((cat) => {
+          const catItems = visibleItems.filter((i) => i.category === cat.id);
+          if (catItems.length === 0) return null;
+          return (
+            <div key={cat.id} className="mb-8">
+              <h2 className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-3 px-1">
+                {cat.label}
+              </h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6">
+                {catItems.map(renderTile)}
+              </div>
+            </div>
+          );
+        })}
+
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6 mb-8">
-          {visibleItems.map((item) => {
-            // Determine if this item is locked by feature gate
-            const requiredFlag = FEATURE_REQUIREMENTS[item.id];
-            const isLocked = !featureIsAdmin && requiredFlag && !hasFeature(requiredFlag) && !ALWAYS_ENABLED.has(item.id);
-
-            if (isLocked) {
-              return <LockedFeatureTile key={item.id} item={item} />;
-            }
-
-            return (
-              <Card
-                key={item.id}
-                className={`group hover:shadow-xl hover:scale-105 transition-all cursor-pointer dark:bg-gray-800 bg-white overflow-hidden`}
-                onClick={() => handleNavigate(item.path)}
-              >
-                <CardHeader className={item.id === 'opentill_payments' ? 'p-3 sm:p-6 pb-[5px]' : 'p-3 sm:p-6'}>
-                  {item.id === 'opentill_payments' ? (
-                    <div className="flex items-center justify-center group-hover:scale-105 transition-transform overflow-hidden">
-                      {item.icon}
-                    </div>
-                  ) : (
-                    <div className={`w-9 h-9 sm:w-12 sm:h-12 rounded-lg bg-gradient-to-r ${item.color} flex items-center justify-center mb-3 sm:mb-4 group-hover:scale-110 transition-transform`}>
-                      {item.icon}
-                    </div>
-                  )}
-                  <CardTitle className="font-semibold text-sm sm:text-lg text-gray-900 dark:text-white mb-1 break-words leading-tight">
-                    {item.title}
-                  </CardTitle>
-                  <CardDescription className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 break-words leading-snug">
-                    {item.description}
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-            );
-          })}
-
           <Card
             className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 hover:border-purple-400 dark:bg-gray-800 bg-white overflow-hidden"
             onClick={() => window.open('https://071be2.c.myucm.cloud/liveChat?liveChatAccess=MF83MDA2N2YzNDg5OTQ0OWI0OTdiMzhlMWQyNDhkNTg5Ml8wMDBiODIwNzFiZTImNmI3ODBlYzM4ZThmMWQyYjNiNDcwMTliMWM1OWM2MzA=', '_blank')}
