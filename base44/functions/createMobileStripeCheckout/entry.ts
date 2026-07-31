@@ -110,6 +110,7 @@ Deno.serve(async (req) => {
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
+      submit_type: 'pay',
       success_url: success_url || `${req.headers.get('origin') || ''}/mobile/station/${token}?stripe_status=success&order_id=${order_id}`,
       cancel_url: cancel_url || `${req.headers.get('origin') || ''}/mobile/station/${token}?stripe_status=canceled&order_id=${order_id}`,
       metadata: {

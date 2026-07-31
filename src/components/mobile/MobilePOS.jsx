@@ -138,11 +138,26 @@ export default function MobilePOS({ merchant, station, sessionId, initialProduct
           console.error('Stripe checkout return error:', e);
           alert('Payment verification failed. Please contact the cashier.');
         } finally {
+          try { sessionStorage.removeItem(`opentill_mobile_cart_${token}`); } catch (e) { /* non-fatal */ }
           setProcessing(false);
           window.history.replaceState({}, document.title, `/mobile/station/${token}`);
         }
       })();
     } else if (stripeStatus === 'canceled') {
+      // Restore the saved cart so the customer can retry without re-adding items
+      try {
+        const saved = sessionStorage.getItem(`opentill_mobile_cart_${token}`);
+        if (saved) {
+          const ctx = JSON.parse(saved);
+          if (Array.isArray(ctx.cart) && ctx.cart.length > 0) {
+            setCart(ctx.cart);
+            setSelectedCustomer(ctx.selectedCustomer || null);
+            setTableNumber(ctx.tableNumber || '');
+            setDiscountPercent(ctx.discountPercent || 0);
+            setView('cart');
+          }
+        }
+      } catch (e) { /* non-fatal */ }
       window.history.replaceState({}, document.title, `/mobile/station/${token}`);
     }
   }, [token]);
@@ -453,6 +468,13 @@ export default function MobilePOS({ merchant, station, sessionId, initialProduct
       const origin = window.location.origin;
       const successUrl = `${origin}/mobile/station/${token}?stripe_status=success&order_id=${orderId}`;
       const cancelUrl = `${origin}/mobile/station/${token}?stripe_status=canceled&order_id=${orderId}`;
+
+      // Persist cart across the Stripe redirect so a canceled payment restores the order
+      try {
+        sessionStorage.setItem(`opentill_mobile_cart_${token}`, JSON.stringify({
+          cart, selectedCustomer, tableNumber, discountPercent,
+        }));
+      } catch (e) { /* non-fatal */ }
 
       const stripeRes = await base44.functions.invoke('createMobileStripeCheckout', {
         token,
