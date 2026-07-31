@@ -45,15 +45,32 @@ Deno.serve(async (req) => {
             }, { status: 403 });
         }
 
-        // SECURITY: For unauthenticated display-device requests, verify the
-        // target merchant actually exists so an attacker cannot register fake
-        // sessions for arbitrary/non-existent merchant IDs.
+        // SECURITY: Unauthenticated display/mobile device registration is only
+        // allowed when tied to a real station that belongs to the target
+        // merchant. A mere merchant_id is public (it appears in display URLs),
+        // so without this check any anonymous caller could register a
+        // DeviceSession for an arbitrary merchant, receive a valid session_id,
+        // and use it to read or mutate that merchant's orders via
+        // getDisplayOrders / updateDisplayOrder. Requiring a station_id that
+        // resolves to a Station owned by the merchant ties the session (and
+        // thus the order access it grants) to a station the merchant actually
+        // configured, preventing cross-merchant session creation.
         if (!user) {
-            const merchants = await base44.asServiceRole.entities.Merchant.filter({ id: merchant_id });
-            if (!merchants || merchants.length === 0) {
+            if (!station_id) {
                 return Response.json({
                     success: false,
-                    error: 'Forbidden: merchant not found for unauthenticated session'
+                    error: 'Forbidden: station_id is required to register an unauthenticated display session'
+                }, { status: 403 });
+            }
+            const stations = await base44.asServiceRole.entities.Station.filter(
+                { merchant_id, station_id },
+                '-created_date',
+                1
+            );
+            if (!stations || stations.length === 0) {
+                return Response.json({
+                    success: false,
+                    error: 'Forbidden: station does not belong to this merchant'
                 }, { status: 403 });
             }
         }
