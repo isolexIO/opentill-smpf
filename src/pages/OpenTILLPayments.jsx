@@ -77,8 +77,8 @@ export default function OpenTILLPayments() {
           <Button variant="ghost" size="icon" onClick={() => window.location.href = createPageUrl('SystemMenu')}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <div className="flex-1">
-            <OpenTILLPaymentsLogo height="h-20" width="w-auto" scale={2.5} />
+          <div className="flex-1 flex justify-center">
+            <OpenTILLPaymentsLogo height="h-auto" width="w-[250px]" scale={2.5} />
           </div>
         </div>
 
