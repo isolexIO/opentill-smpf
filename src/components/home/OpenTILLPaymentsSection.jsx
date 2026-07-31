@@ -96,7 +96,7 @@ export default function OpenTILLPaymentsSection() {
             viewport={{ once: true }}
             className="flex justify-center mb-6"
           >
-            <OpenTILLPaymentsLogo width="w-[260px]" height="h-[170px]" />
+            <OpenTILLPaymentsLogo width="w-[350px]" height="h-[130px]" cover />
           </motion.div>
 
           <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900 dark:text-white">
