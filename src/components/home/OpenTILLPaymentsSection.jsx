@@ -235,7 +235,7 @@ export default function OpenTILLPaymentsSection() {
               size="lg"
               variant="outline"
               className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
-              onClick={() => window.location.href = createPageUrl('DeviceShop')}
+              onClick={() => window.open('https://dashboard.stripe.com/acct_1ColPxKPXlOKSou1/terminal/shop', '_blank', 'noopener,noreferrer')}
             >
               Shop Terminals
               <ArrowRight className="ml-2 w-5 h-5" />
