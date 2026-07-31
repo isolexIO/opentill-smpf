@@ -235,9 +235,10 @@ export default function MobilePOS({ merchant, station, sessionId, initialProduct
     let surchargeLabel = '';
 
     if (isDualPricingEnabled) {
-      const stripeRate = settings?.stripe_rates?.processing_rate_percent ?? 2.9;
-      const stripeFlat = settings?.stripe_rates?.processing_flat_fee ?? 0.3;
-      const platformFee = settings?.stripe_rates?.platform_fee_percent ?? 0.5;
+      // Hardcoded in-person card-present rate: 2.7% + $0.05 + 0.80% platform fee
+      const stripeRate = 2.7;
+      const stripeFlat = 0.05;
+      const platformFee = 0.8;
       const effectivePercent = stripeRate + platformFee;
 
       surchargeAmount += stripeFlat;
