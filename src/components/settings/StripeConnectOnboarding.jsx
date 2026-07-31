@@ -4,8 +4,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/components/ui/use-toast';
-import { Loader2, CreditCard, CheckCircle2, ExternalLink, AlertCircle } from 'lucide-react';
+import { Loader2, CreditCard, CheckCircle2, ExternalLink, AlertCircle, Percent, DollarSign } from 'lucide-react';
 import OpenTILLPaymentsLogo from '@/components/payment/OpenTILLPaymentsLogo';
+
+// Standard openTILL Payments pricing — Stripe processing + openTILL platform fee
+const STRIPE_PROCESSING_PERCENT = 2.9;
+const STRIPE_FLAT_FEE = 0.30;
+const PLATFORM_FEE_PERCENT = 0.80;
+const EFFECTIVE_RATE_PERCENT = STRIPE_PROCESSING_PERCENT + PLATFORM_FEE_PERCENT; // 3.70%
 
 // Lets a merchant sign up for / connect their Stripe Connect account directly
 // from the Payment Gateways settings tab. Payments then route through Stripe Terminal.
@@ -78,6 +84,53 @@ export default function StripeConnectOnboarding() {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Pricing Summary */}
+        <div className="rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-blue-900">openTILL Payments Pricing</p>
+              <p className="text-xs text-blue-600">Transparent, all-inclusive per-transaction rate</p>
+            </div>
+            <OpenTILLPaymentsLogo height="h-6" />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="rounded-lg bg-white/70 p-3 text-center">
+              <Percent className="w-4 h-4 text-blue-600 mx-auto mb-1" />
+              <p className="text-lg font-black text-blue-900">{EFFECTIVE_RATE_PERCENT.toFixed(2)}%</p>
+              <p className="text-[11px] text-blue-600 leading-tight">Effective rate<br/>(Stripe + platform)</p>
+            </div>
+            <div className="rounded-lg bg-white/70 p-3 text-center">
+              <DollarSign className="w-4 h-4 text-blue-600 mx-auto mb-1" />
+              <p className="text-lg font-black text-blue-900">${STRIPE_FLAT_FEE.toFixed(2)}</p>
+              <p className="text-[11px] text-blue-600 leading-tight">Flat fee<br/>per transaction</p>
+            </div>
+            <div className="rounded-lg bg-white/70 p-3 text-center">
+              <p className="text-lg font-black text-blue-900">$0</p>
+              <p className="text-[11px] text-blue-600 leading-tight">Monthly fees<br/>or hidden costs</p>
+            </div>
+          </div>
+
+          <div className="rounded-lg bg-white/80 p-3 text-xs space-y-1.5">
+            <div className="flex justify-between text-slate-600">
+              <span>Stripe processing</span>
+              <span className="font-medium">{STRIPE_PROCESSING_PERCENT.toFixed(2)}% + ${STRIPE_FLAT_FEE.toFixed(2)}/txn</span>
+            </div>
+            <div className="flex justify-between text-slate-600">
+              <span>openTILL platform fee</span>
+              <span className="font-medium">{PLATFORM_FEE_PERCENT.toFixed(2)}%</span>
+            </div>
+            <div className="border-t border-slate-200 pt-1.5 flex justify-between text-blue-900 font-bold">
+              <span>You pay per card transaction</span>
+              <span>{EFFECTIVE_RATE_PERCENT.toFixed(2)}% + ${STRIPE_FLAT_FEE.toFixed(2)}</span>
+            </div>
+          </div>
+
+          <p className="text-[11px] text-blue-500 leading-tight">
+            Enable Dual Pricing in your settings to automatically pass this fee to card-paying customers, so you absorb zero processing cost.
+          </p>
+        </div>
+
         {loading && (
           <div className="flex items-center gap-2 text-sm text-gray-500">
             <Loader2 className="w-4 h-4 animate-spin" /> Loading...
