@@ -336,7 +336,7 @@ export default function SystemMenu() {
 
     {
       id: 'opentill_payments',
-      icon: <OpenTILLPaymentsLogo height="h-auto" width="w-[275px]" className="-my-2" />,
+      icon: <OpenTILLPaymentsLogo height="h-[90px]" width="w-[275px]" cover />,
       title: 'openTILL Payments',
       description: 'Stripe dashboard, connection & terminal',
       path: 'OpenTILLPayments',

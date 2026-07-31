@@ -4,14 +4,14 @@ import { cn } from '@/lib/utils';
 const LOGO_URL =
   'https://media.base44.com/images/public/6970e2871534100b4ebb8d45/5454b9cac_openTILL-Payments.png';
 
-export default function OpenTILLPaymentsLogo({ className, height = 'h-[150px]', width = 'w-[225px]', subtitle, scale = 1.8 }) {
+export default function OpenTILLPaymentsLogo({ className, height = 'h-[150px]', width = 'w-[225px]', subtitle, scale = 1.8, cover = false }) {
   return (
     <div className={cn('inline-flex flex-col items-center', className)}>
-      <div className={cn('flex items-center justify-center', height, width)}>
+      <div className={cn('flex items-center justify-center overflow-hidden', height, width)}>
         <img
           src={LOGO_URL}
           alt="openTILL Payments"
-          className="max-h-full max-w-full object-contain"
+          className={cn('max-h-full max-w-full', cover ? 'object-cover w-full h-full' : 'object-contain')}
         />
       </div>
       {subtitle && (
