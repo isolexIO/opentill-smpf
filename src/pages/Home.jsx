@@ -283,6 +283,7 @@ export default function HomePage() {
 
   const heroSettings = settings?.hero || {};
   const statsData = settings?.stats || [];
+  const subscriptionPlansEnabled = settings?.subscription_plans_enabled !== false;
 
   const displayStats = [
     {
@@ -358,9 +359,11 @@ export default function HomePage() {
               <a href="#pricing" className="text-white hover:text-green-300 transition-colors">
                 Pricing
               </a>
-              <a href="#support-tiers" className="text-white hover:text-green-300 transition-colors">
-                Support Tiers
-              </a>
+              {subscriptionPlansEnabled && (
+                <a href="#support-tiers" className="text-white hover:text-green-300 transition-colors">
+                  Support Tiers
+                </a>
+              )}
               <a href={createPageUrl('About')} className="text-white hover:text-green-300 transition-colors">
                 About
               </a>
@@ -404,7 +407,9 @@ export default function HomePage() {
           <a href={createPageUrl('Marketplace')} className="block text-white hover:text-green-300 py-2">Marketplace</a>
           <a href="#features" onClick={() => setMobileMenuOpen(false)} className="block text-white hover:text-green-300 py-2">Features</a>
           <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="block text-white hover:text-green-300 py-2">Pricing</a>
-          <a href="#support-tiers" onClick={() => setMobileMenuOpen(false)} className="block text-white hover:text-green-300 py-2">Support Tiers</a>
+          {subscriptionPlansEnabled && (
+            <a href="#support-tiers" onClick={() => setMobileMenuOpen(false)} className="block text-white hover:text-green-300 py-2">Support Tiers</a>
+          )}
           <a href={createPageUrl('About')} className="block text-white hover:text-green-300 py-2">About</a>
           <a href={createPageUrl('Contact')} className="block text-white hover:text-green-300 py-2">Contact</a>
           <a href="https://ico.opentill.io/" target="_blank" rel="noopener noreferrer" className="block text-green-300 font-semibold py-2">$DUC Presale</a>
@@ -1002,6 +1007,7 @@ export default function HomePage() {
       </section>
 
       {/* Support Tiers Section */}
+      {subscriptionPlansEnabled && (
       <section id="support-tiers" className="py-24 px-6 bg-gray-50 dark:bg-gray-800">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
@@ -1094,6 +1100,7 @@ export default function HomePage() {
           )}
         </div>
       </section>
+      )}
 
       {/* CTA Section */}
       <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600 text-white">

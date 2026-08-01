@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { Home, TrendingUp, MessageSquare, ExternalLink, Plus, Trash2 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 
@@ -86,7 +87,8 @@ export default function LandingPageEditor() {
           company_info: {
             copyright_text: '© 2024 Isolex Corporation. All rights reserved.',
             tagline: 'The next-generation point of sale system for modern businesses.'
-          }
+          },
+          subscription_plans_enabled: true
         };
         
         const created = await base44.entities.LandingPageSettings.create(defaultSettings);
@@ -655,6 +657,25 @@ export default function LandingPageEditor() {
 
         <TabsContent value="other">
           <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Subscription Plans</CardTitle>
+                <CardDescription>Toggle subscription plan management on the public landing page</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex-1">
+                    <div className="font-medium mb-1">Show Subscription Plans</div>
+                    <div className="text-sm text-gray-500">When off, hides the Support Tiers section and its header/footer menu links on the home page</div>
+                  </div>
+                  <Switch
+                    checked={settings.subscription_plans_enabled !== false}
+                    onCheckedChange={(checked) => setSettings({ ...settings, subscription_plans_enabled: checked })}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle>CTA Section</CardTitle>

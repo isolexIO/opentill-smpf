@@ -178,6 +178,11 @@
           "default": "The next-generation point of sale system for modern businesses."
         }
       }
+    },
+    "subscription_plans_enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "When false, hides the subscription plans (Support Tiers) section and its header/footer menu links on the public landing page"
     }
   },
   "required": [],
