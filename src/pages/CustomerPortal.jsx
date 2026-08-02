@@ -222,6 +222,14 @@ export default function CustomerPortal() {
 
           <ICOLink />
 
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => window.location.href = createPageUrl('SMPFWallet')}
+          >
+            <Wallet className="w-4 h-4 mr-2" /> Open SMPF Wallet
+          </Button>
+
           {/* Purchase History */}
           <div className="pt-2">
             <div className="flex items-center gap-2 mb-3">

@@ -37,6 +37,7 @@ import {
   Sparkles,
   Cpu,
   Vault,
+  Wallet,
   Lightbulb,
   Truck
 } from 'lucide-react';
@@ -62,7 +63,7 @@ const FEATURE_REQUIREMENTS = {
 };
 
 // Items that are always visible (no chip needed)
-const ALWAYS_ENABLED = new Set(['pos', 'products', 'orders', 'settings', 'departments', 'users', 'marketplace', 'motherboard', 'duc_vault', 'referral_program', 'super_admin', 'dealer_dashboard', 'opentill_payments', 'modifiers']);
+const ALWAYS_ENABLED = new Set(['pos', 'products', 'orders', 'settings', 'departments', 'users', 'marketplace', 'motherboard', 'duc_vault', 'smpf_wallet', 'referral_program', 'super_admin', 'dealer_dashboard', 'opentill_payments', 'modifiers']);
 
 // Logical groupings shown as section headers on the System Menu
 const CATEGORIES = [
@@ -398,6 +399,16 @@ export default function SystemMenu() {
       path: 'DUCVault',
       color: 'from-yellow-500 to-orange-600',
       permission: 'admin_settings'
+    },
+    {
+      id: 'smpf_wallet',
+      category: 'payments',
+      icon: <Wallet className="w-6 h-6" />,
+      title: 'SMPF Wallet',
+      description: 'Your $DUC & Solana wallet',
+      path: 'SMPFWallet',
+      color: 'from-emerald-500 to-teal-600',
+      permission: null
     },
     {
       id: 'referral_program',

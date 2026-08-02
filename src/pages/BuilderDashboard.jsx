@@ -4,7 +4,7 @@ import { createPageUrl } from '@/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { DollarSign, Package, Plus, TrendingUp, Users, AlertCircle, Loader2, BookOpen, Globe } from 'lucide-react';
+import { DollarSign, Package, Plus, TrendingUp, Users, AlertCircle, Loader2, BookOpen, Globe, Wallet } from 'lucide-react';
 import SubmissionManager from '@/components/builders/SubmissionManager.jsx';
 import AnalyticsDashboard from '@/components/builders/AnalyticsDashboard.jsx';
 import ProfileSettings from '@/components/builders/ProfileSettings.jsx';
@@ -124,13 +124,23 @@ export default function BuilderDashboardPage() {
               Welcome back, <span className="font-bold">{builder.company_name}</span>
             </p>
           </div>
-          <Button
-            onClick={() => (window.location.href = createPageUrl('SubmitChip'))}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 h-12 font-bold"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Submit New Chip
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button
+              onClick={() => (window.location.href = createPageUrl('SMPFWallet'))}
+              variant="outline"
+              className="px-6 h-12 font-bold"
+            >
+              <Wallet className="w-4 h-4 mr-2" />
+              SMPF Wallet
+            </Button>
+            <Button
+              onClick={() => (window.location.href = createPageUrl('SubmitChip'))}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 h-12 font-bold"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Submit New Chip
+            </Button>
+          </div>
         </div>
 
         {error && (

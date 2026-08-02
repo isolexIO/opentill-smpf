@@ -189,6 +189,9 @@ export default function DealerDashboardPage() {
                 </Button>
               </a>
             )}
+            <Button variant="ghost" size="sm" onClick={() => window.location.href = createPageUrl('SMPFWallet')} className="text-gray-500 dark:text-gray-400">
+              <Wallet className="w-4 h-4 mr-1" /> Wallet
+            </Button>
             <Button variant="ghost" size="icon" className="text-gray-500 dark:text-gray-400">
               <Bell className="w-4 h-4" />
             </Button>

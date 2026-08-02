@@ -344,6 +344,13 @@ export default function SuperAdminPage() {
               <span className="text-sm font-medium">Home</span>
             </button>
             <button
+              onClick={() => window.location.href = createPageUrl('SMPFWallet')}
+              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+            >
+              <Wallet className="w-4 h-4" />
+              <span className="text-sm font-medium">SMPF Wallet</span>
+            </button>
+            <button
               onClick={handleLogout}
               className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
             >
