@@ -12,6 +12,7 @@ import { Send, Loader2, ShieldAlert, ExternalLink, Coins } from 'lucide-react';
 import { b64ToBuf } from '@/lib/smpfCrypto';
 import { getWallet, getSession } from '@/lib/smpfWalletStore';
 import { decryptWallet } from '@/lib/smpfCrypto';
+import { listContacts } from '@/lib/smpfAddressBook';
 import { useToast } from '@/components/ui/use-toast';
 
 function friendlyError(err) {
@@ -35,11 +36,13 @@ export default function SendScreen({ address, rpc, network }) {
   const [preview, setPreview] = useState(null);
   const [result, setResult] = useState(null);
   const [solBalance, setSolBalance] = useState(0);
+  const [contacts, setContacts] = useState([]);
 
   const conn = React.useMemo(() => new Connection(rpc, 'confirmed'), [rpc]);
   const explorer = network === 'devnet' ? 'https://solana.fm/tx' : 'https://solscan.io/tx';
 
   useEffect(() => { loadAssets(); /* eslint-disable-next-line */ }, [rpc]);
+  useEffect(() => { listContacts().then(setContacts).catch(() => {}); }, []);
 
   async function loadAssets() {
     try {
@@ -170,6 +173,8 @@ export default function SendScreen({ address, rpc, network }) {
     }
   }
 
+  const poison = to.length > 10 && contacts.some((c) => c.address !== to && c.address.slice(0, 4) === to.slice(0, 4) && c.address.slice(-4) === to.slice(-4));
+
   return (
     <div className="max-w-md mx-auto space-y-4">
       <div className="text-center">
@@ -197,6 +202,7 @@ export default function SendScreen({ address, rpc, network }) {
           <div>
             <Label className="text-white">Recipient address</Label>
             <Input value={to} onChange={(e) => setTo(e.target.value)} placeholder="Solana address" className="mt-1 bg-white/10 border-white/20 text-white font-mono text-sm" />
+            {poison && <p className="text-xs text-yellow-300 mt-1 flex items-center gap-1"><ShieldAlert className="w-3 h-3" /> This address resembles a saved contact but doesn't match exactly. Verify carefully.</p>}
           </div>
 
           <div>

@@ -1,0 +1,71 @@
+{
+  "name": "WalletAdminAudit",
+  "type": "object",
+  "properties": {
+    "action_type": {
+      "type": "string",
+      "enum": [
+        "duc_mint_change",
+        "token_verification",
+        "nft_collection",
+        "rpc_config",
+        "security_setting",
+        "admin_role"
+      ],
+      "description": "Type of administrative action"
+    },
+    "admin_email": {
+      "type": "string",
+      "description": "Administrator identity"
+    },
+    "entity": {
+      "type": "string",
+      "default": "DUCWalletSettings"
+    },
+    "previous_value": {
+      "type": "string",
+      "description": "Previous value (JSON string)"
+    },
+    "new_value": {
+      "type": "string",
+      "description": "New value (JSON string)"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Reason for change"
+    },
+    "session_id": {
+      "type": "string",
+      "description": "IP or session identifier"
+    },
+    "note": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "action_type",
+    "admin_email"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import {
   Loader2, Image as ImageIcon, RefreshCw, AlertCircle, BadgeCheck, ExternalLink, ShieldAlert, Send,
 } from 'lucide-react';
+import NFTSendDialog from './NFTSendDialog';
 
 const HIDDEN_KEY = 'smpf_hidden_nfts';
 
@@ -16,7 +17,7 @@ function safeUrl(u) {
   return null;
 }
 
-export default function NFTGallery({ address, settings, network }) {
+export default function NFTGallery({ address, settings, network, rpc }) {
   const [loading, setLoading] = useState(true);
   const [assets, setAssets] = useState([]);
   const [error, setError] = useState('');
@@ -24,6 +25,7 @@ export default function NFTGallery({ address, settings, network }) {
   const [hidden, setHidden] = useState(loadHidden());
   const [showHidden, setShowHidden] = useState(false);
   const [selected, setSelected] = useState(null);
+  const [sending, setSending] = useState(null);
 
   const dasProvider = settings?.das_provider;
   const approvedChips = settings?.approved_chip_collections || [];
@@ -157,7 +159,7 @@ export default function NFTGallery({ address, settings, network }) {
                 </div>
                 {selected.spam && <div className="flex items-center gap-2 text-yellow-300 text-xs"><AlertCircle className="w-4 h-4" /> Flagged as spam by indexer.</div>}
                 <div className="flex gap-2 pt-2">
-                  <Button className="flex-1 bg-white text-purple-700" disabled><Send className="w-4 h-4 mr-2" /> Send NFT (next phase)</Button>
+                  <Button className="flex-1 bg-white text-purple-700" onClick={() => setSending(selected)}><Send className="w-4 h-4 mr-2" /> Send NFT</Button>
                   <Button variant="outline" className="border-white/30 text-white bg-transparent" onClick={() => toggleHide(selected.id)}>{hidden.has(selected.id) ? 'Unhide' : 'Hide'}</Button>
                 </div>
                 <a href={`${explorer}/${selected.mint}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-emerald-300 text-sm">View on explorer <ExternalLink className="w-3 h-3" /></a>
@@ -166,6 +168,9 @@ export default function NFTGallery({ address, settings, network }) {
           )}
         </DialogContent>
       </Dialog>
+      {sending && (
+        <NFTSendDialog asset={sending} address={address} rpc={rpc} network={network} onDone={() => { setSending(null); load(); }} />
+      )}
     </div>
   );
 }

@@ -25,6 +25,7 @@ import DUCMintAdmin from '@/components/smpf/DUCMintAdmin';
 import ActivityScreen from '@/components/smpf/ActivityScreen';
 import NFTGallery from '@/components/smpf/NFTGallery';
 import TokensTab from '@/components/smpf/TokensTab';
+import ExternalWalletConnect from '@/components/smpf/ExternalWalletConnect';
 import AddressBookManager from '@/components/smpf/AddressBookManager';
 import PrivateKeyExport from '@/components/smpf/PrivateKeyExport';
 import { getSolUsdPrice } from '@/lib/smpfPrices';
@@ -385,7 +386,7 @@ export default function SMPFWallet() {
         {activeTab === 'receive' && <ReceiveScreen address={address} />}
 
         {activeTab === 'nfts' && (
-          <NFTGallery address={address} settings={settings} network={network} />
+          <NFTGallery address={address} settings={settings} network={network} rpc={rpc} />
         )}
 
         {activeTab === 'activity' && (
@@ -413,6 +414,8 @@ export default function SMPFWallet() {
 
             <AddressBookManager />
             <PrivateKeyExport address={address} />
+            <ExternalWalletConnect />
+            <a href={createPageUrl('SMPFWalletAdmin')} className="block text-center text-sm text-emerald-300 underline">Admin dashboard</a>
 
             <DUCMintAdmin settings={settings} onSaved={setSettings} />
 

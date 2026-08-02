@@ -21,6 +21,7 @@ import FeedbackButton from '@/components/feedback/FeedbackButton';
 import Modifiers from './pages/Modifiers';
 import SMPFWalletOnboarding from './pages/SMPFWalletOnboarding';
 import SMPFWallet from './pages/SMPFWallet';
+import SMPFWalletAdmin from './pages/SMPFWalletAdmin';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -115,6 +116,7 @@ const AuthenticatedApp = () => {
       } />
       <Route path="/SMPFWalletOnboarding" element={<SMPFWalletOnboarding />} />
       <Route path="/SMPFWallet" element={<SMPFWallet />} />
+      <Route path="/SMPFWalletAdmin" element={<SMPFWalletAdmin />} />
       <Route path="/mobile/station/:token" element={
         <LayoutWrapper currentPageName="MobileStationDisplay">
           <MobileStationDisplay />
