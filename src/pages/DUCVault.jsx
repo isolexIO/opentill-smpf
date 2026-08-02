@@ -14,6 +14,7 @@ import PermissionCheck from '@/components/auth/PermissionCheck';
 import PriceTicker from '@/components/vault/PriceTicker';
 import JupiterChart from '@/components/vault/JupiterChart';
 import ChipPurchase from '@/components/vault/ChipPurchase';
+import ICOLink from '@/components/vault/ICOLink';
 
 export default function DUCVault() {
   const [user, setUser] = useState(null);
@@ -270,6 +271,8 @@ export default function DUCVault() {
                 Refresh
               </Button>
             </div>
+
+            <ICOLink />
 
             {!walletConnected && (
               <Alert className="bg-yellow-50 border-yellow-200">

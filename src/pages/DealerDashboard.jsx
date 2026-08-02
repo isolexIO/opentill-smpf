@@ -18,6 +18,7 @@ import LeadManagement from '../components/dealer/LeadManagement.jsx';
 import StaffManagement from '../components/dealer/StaffManagement.jsx';
 import MerchantAnalytics from '../components/dealer/MerchantAnalytics.jsx';
 import DealerBrandingSettings from '../components/dealer/DealerBrandingSettings.jsx';
+import ICOLink from '../components/vault/ICOLink';
 
 export default function DealerDashboardPage() {
   const [dealer, setDealer] = useState(null);
@@ -231,6 +232,8 @@ export default function DealerDashboardPage() {
             </Card>
           ))}
         </div>
+
+        <ICOLink className="mb-8" />
 
         {/* Main Tabs */}
         <Tabs defaultValue="merchants" className="space-y-6">

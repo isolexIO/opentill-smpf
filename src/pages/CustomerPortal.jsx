@@ -22,6 +22,7 @@ import {
   Receipt,
 } from 'lucide-react';
 import QRCode from 'qrcode';
+import ICOLink from '@/components/vault/ICOLink';
 
 export default function CustomerPortal() {
   const { toast } = useToast();
@@ -218,6 +219,8 @@ export default function CustomerPortal() {
               Earn $DUC by shopping — loyalty rewards are credited automatically after each purchase.
             </p>
           )}
+
+          <ICOLink />
 
           {/* Purchase History */}
           <div className="pt-2">

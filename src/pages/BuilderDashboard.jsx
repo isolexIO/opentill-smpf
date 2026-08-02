@@ -10,6 +10,7 @@ import AnalyticsDashboard from '@/components/builders/AnalyticsDashboard.jsx';
 import ProfileSettings from '@/components/builders/ProfileSettings.jsx';
 import ChipSubmissionDocs from '@/components/builders/ChipSubmissionDocs.jsx';
 import SNSSubdomainRegistration from '@/components/dealer/SNSSubdomainRegistration.jsx';
+import ICOLink from '@/components/vault/ICOLink';
 
 export default function BuilderDashboardPage() {
   const [user, setUser] = useState(null);
@@ -156,6 +157,8 @@ export default function BuilderDashboardPage() {
             );
           })}
         </div>
+
+        <ICOLink className="mb-8" />
 
         {/* Stripe Connection Status */}
         {!builder.stripe_connected && (
