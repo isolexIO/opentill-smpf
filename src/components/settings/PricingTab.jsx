@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle, Info, Zap } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { buildPricing, FUNDING } from '@/lib/pricing';
 
 export default function PricingTab({ settings, onSave }) {
   const [pricingSettings, setPricingSettings] = useState({
@@ -74,22 +75,34 @@ export default function PricingTab({ settings, onSave }) {
 
   const calculateExample = () => {
     const subtotal = 100.0;
-    const tax = subtotal * 0.08; // 8% tax example
+    const taxRate = settings?.tax_rate ?? 0.08;
+    const tax = subtotal * taxRate;
+    // Illustrative approved rule so the preview shows the grossed-up card price.
+    // Real enforcement uses the merchant's loaded ComplianceRule (fail closed otherwise).
+    const exampleRule = {
+      status: 'active',
+      legal_review_status: 'approved',
+      dual_pricing_status: 'allowed',
+      surcharge_status: 'allowed',
+    };
+    const pricing = buildPricing({
+      settings,
+      rule: exampleRule,
+      cardFundingType: FUNDING.UNKNOWN,
+      subtotalDollars: subtotal,
+      taxDollars: 0,
+      tipDollars: 0,
+    });
+    const surcharge = parseFloat(pricing.surchargeAmount) || 0;
     const cashTotal = subtotal + tax;
-    
-    let surcharge = 0;
-    if (pricingSettings.enable_dual_pricing) {
-      const effectivePercent = (settings?.payment_gateways?.stripe?.processing_rate_percent ?? 2.9) + (settings?.payment_gateways?.stripe?.platform_fee_percent ?? 0.5);
-      const effectiveFlat = settings?.payment_gateways?.stripe?.processing_flat_fee ?? 0.3;
-      if (effectiveFlat > 0) {
-        surcharge += effectiveFlat;
-      }
-      surcharge += (subtotal * (effectivePercent / 100));
-    }
-    
     const cardTotal = cashTotal + surcharge;
-
-    return { subtotal, tax, cashTotal, cardTotal, surcharge };
+    return {
+      subtotal, tax, cashTotal, cardTotal, surcharge,
+      program: pricing.program,
+      allowed: pricing.allowed,
+      absorbed: pricing.merchantAbsorbed,
+      calcVersion: pricing.calcVersion,
+    };
   };
 
   const example = calculateExample();
@@ -271,7 +284,7 @@ export default function PricingTab({ settings, onSave }) {
                 {example.surcharge > 0 && (
                   <>
                     <div className="flex justify-between text-blue-600 dark:text-blue-400">
-                      <span>+ Card Processing Fee:</span>
+                      <span>+ Card Price Adjustment:</span>
                       <span>${example.surcharge.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between text-blue-600 dark:text-blue-400 font-bold">

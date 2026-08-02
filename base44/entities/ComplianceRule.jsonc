@@ -1,0 +1,186 @@
+{
+  "name": "ComplianceRule",
+  "type": "object",
+  "properties": {
+    "jurisdiction_country": {
+      "type": "string",
+      "description": "Country code (US, CA) the rule applies to"
+    },
+    "state_or_territory": {
+      "type": "string",
+      "description": "State / province / territory code, or 'ALL' for country-wide"
+    },
+    "effective_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the rule becomes effective"
+    },
+    "expiration_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the rule expires (null = no expiration)"
+    },
+    "transaction_channel": {
+      "type": "string",
+      "enum": [
+        "card_present",
+        "card_not_present",
+        "online",
+        "telephone",
+        "all"
+      ],
+      "default": "all"
+    },
+    "mcc_restrictions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "MCCs this rule applies to (empty = all)"
+    },
+    "surcharge_status": {
+      "type": "string",
+      "enum": [
+        "allowed",
+        "prohibited",
+        "conditional"
+      ],
+      "default": "prohibited"
+    },
+    "cash_discount_status": {
+      "type": "string",
+      "enum": [
+        "allowed",
+        "prohibited",
+        "conditional"
+      ],
+      "default": "allowed"
+    },
+    "dual_pricing_status": {
+      "type": "string",
+      "enum": [
+        "allowed",
+        "prohibited",
+        "conditional"
+      ],
+      "default": "allowed"
+    },
+    "maximum_state_pct": {
+      "type": "number",
+      "description": "Maximum surcharge/differential percentage allowed by this state"
+    },
+    "maximum_network_pct": {
+      "type": "number",
+      "description": "Maximum surcharge percentage allowed by the card network"
+    },
+    "maximum_acquirer_pct": {
+      "type": "number",
+      "description": "Maximum surcharge percentage allowed by the acquirer"
+    },
+    "maximum_processor_pct": {
+      "type": "number",
+      "description": "Maximum surcharge percentage allowed by the processor"
+    },
+    "required_disclosures": {
+      "type": "string",
+      "description": "Customer disclosures required before final confirmation"
+    },
+    "required_signage": {
+      "type": "string",
+      "description": "Signage requirements"
+    },
+    "required_receipt_wording": {
+      "type": "string",
+      "description": "Receipt wording requirements"
+    },
+    "both_prices_required": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether both cash and card prices must be displayed before payment"
+    },
+    "tax_treatment": {
+      "type": "string",
+      "description": "How tax interacts with the adjustment (taxable / not / before / after)"
+    },
+    "gratuity_treatment": {
+      "type": "string",
+      "description": "How voluntary/automatic gratuity is treated for the adjustment"
+    },
+    "online_sales_treatment": {
+      "type": "string"
+    },
+    "telephone_orders_treatment": {
+      "type": "string"
+    },
+    "government_education_exception": {
+      "type": "string"
+    },
+    "utility_exception": {
+      "type": "string"
+    },
+    "processor_acquirer_restrictions": {
+      "type": "string"
+    },
+    "source_reference": {
+      "type": "string",
+      "description": "Authoritative source (statute, network rule, etc.)"
+    },
+    "date_last_reviewed": {
+      "type": "string",
+      "format": "date"
+    },
+    "reviewer": {
+      "type": "string",
+      "description": "Who last reviewed this rule"
+    },
+    "legal_review_status": {
+      "type": "string",
+      "enum": [
+        "approved",
+        "pending",
+        "rejected"
+      ],
+      "default": "pending",
+      "description": "Legal review state. Only 'approved' rules are enforced."
+    },
+    "rule_version": {
+      "type": "string",
+      "description": "Semantic version of this rule"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "retired"
+      ],
+      "default": "active",
+      "description": "Lifecycle status; only 'active' rules are considered"
+    }
+  },
+  "required": [
+    "jurisdiction_country",
+    "surcharge_status",
+    "cash_discount_status",
+    "dual_pricing_status",
+    "legal_review_status"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

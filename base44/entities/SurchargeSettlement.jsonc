@@ -1,0 +1,102 @@
+{
+  "name": "SurchargeSettlement",
+  "type": "object",
+  "properties": {
+    "order_id": {
+      "type": "string"
+    },
+    "merchant_id": {
+      "type": "string"
+    },
+    "calculated_fee_cents": {
+      "type": "number",
+      "description": "Fee calculated before payment (cents)"
+    },
+    "actual_fee_cents": {
+      "type": "number",
+      "description": "Actual fee charged by the processor at settlement (cents)"
+    },
+    "customer_adjustment_cents": {
+      "type": "number",
+      "description": "Customer surcharge / card-price difference collected (cents)"
+    },
+    "recoverable_fee_cents": {
+      "type": "number"
+    },
+    "merchant_absorbed_cents": {
+      "type": "number"
+    },
+    "variance_cents": {
+      "type": "number",
+      "description": "actual - calculated (cents)"
+    },
+    "variance_type": {
+      "type": "string",
+      "enum": [
+        "none",
+        "overcollection",
+        "undercollection",
+        "cap_absorption",
+        "unknown_fee",
+        "changed_interchange",
+        "rounding_variance",
+        "processor_mismatch",
+        "missing_settlement"
+      ]
+    },
+    "calc_version": {
+      "type": "string"
+    },
+    "rule_version": {
+      "type": "string"
+    },
+    "settlement_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "flagged": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "order_id",
+    "merchant_id"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.merchant_id": "{{user.data.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.merchant_id": "{{user.data.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

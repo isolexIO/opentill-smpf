@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { buildPricing, FUNDING } from '@/lib/pricing';
 // Removed: Card, Button components as per new design
 import { CreditCard, Banknote, Loader2, AlertCircle } from 'lucide-react'; // Removed Coins icon, replaced by img
 import OpenTILLPaymentsLogo from '@/components/payment/OpenTILLPaymentsLogo';
@@ -9,32 +10,57 @@ export default function PaymentMethodSelectionScreen({ order, settings, onMethod
   const handleMethodSelected = onMethodSelected || onPaymentMethodSelected;
   const [selecting, setSelecting] = useState(false);
   const [error, setError] = useState(null);
+  const [rule, setRule] = useState(null);
 
-  // Dual pricing / surcharge settings
+  // Load the applicable compliance rule; fail closed until an approved one is found.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const region = settings?.pricing_and_surcharge?.region || 'US';
+        const rules = await base44.entities.ComplianceRule.filter({ jurisdiction_country: region, status: 'active' });
+        if (cancelled) return;
+        const now = Date.now();
+        const valid = (rules || []).filter(r =>
+          r.legal_review_status === 'approved' &&
+          (!r.effective_date || new Date(r.effective_date).getTime() <= now) &&
+          (!r.expiration_date || new Date(r.expiration_date).getTime() >= now)
+        );
+        valid.sort((a, b) => (a.maximum_state_pct ?? Infinity) - (b.maximum_state_pct ?? Infinity));
+        setRule(valid[0] || null);
+      } catch (e) {
+        setRule(null);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [settings?.pricing_and_surcharge?.region]);
+
+  // Dual pricing / surcharge settings — computed via the integer-cents fee engine.
   const pricingSettings = settings?.pricing_and_surcharge || {};
-  const dualPricingEnabled = pricingSettings.enable_dual_pricing || pricingSettings.show_dual_prices;
-  const pricingMode = pricingSettings.pricing_mode || 'surcharge'; // 'surcharge' or 'cash_discount'
+  const program = !pricingSettings.enable_dual_pricing
+    ? 'standard'
+    : (pricingSettings.pricing_mode === 'cash_discount' ? 'dual_pricing' : 'surcharge');
 
-  // When sync_with_payments is enabled, use the actual openTILL Payments (Stripe)
-  // processing rate so the surcharge exactly matches the fee charged to the merchant.
-  const stripeRate = settings?.payment_gateways?.stripe?.processing_rate_percent ?? 2.9;
-  const stripeFlat = settings?.payment_gateways?.stripe?.processing_flat_fee ?? 0.3;
-  const platformFee = settings?.payment_gateways?.stripe?.platform_fee_percent ?? 0.5;
-  const surchargePercent = stripeRate + platformFee;
-  const flatFee = stripeFlat;
+  // Reconstruct the taxable base from the order (surcharge is computed on the
+  // pre-tax subtotal; tax is added to both prices afterward).
+  const taxable = Math.max(0, (order?.subtotal || 0) - (order?.discount_amount || 0));
+  const taxAmt = order?.tax_amount || 0;
 
-  // Calculate cash price (no surcharge) and card price (with surcharge)
-  const baseTotal = order?.total || 0;
-  let cashPrice, cardPrice;
-  if (pricingMode === 'cash_discount') {
-    // Base price is already the card price, cash gets a discount
-    cardPrice = baseTotal;
-    cashPrice = baseTotal - (baseTotal * (surchargePercent / 100)) - flatFee;
-  } else {
-    // Base price is cash price, card adds surcharge
-    cashPrice = baseTotal;
-    cardPrice = baseTotal + (baseTotal * (surchargePercent / 100)) + flatFee;
-  }
+  // Funding type is unknown until the processor confirms a card, so a credit-card
+  // surcharge program fails closed here (no adjustment). Dual pricing discloses
+  // the card price up front and applies to all cards.
+  const pricing = buildPricing({
+    settings,
+    rule,
+    cardFundingType: FUNDING.UNKNOWN,
+    subtotalDollars: taxable,
+    taxDollars: 0,
+    tipDollars: 0,
+  });
+  const cashPrice = parseFloat(pricing.cashTotal) + taxAmt;
+  const cardPrice = parseFloat(pricing.cardTotal) + taxAmt;
+  const showDualPrices = program === 'dual_pricing' && pricing.allowed && cardPrice > cashPrice;
+  const isSurchargeProgram = program === 'surcharge';
 
   // Check which payment methods are available
   const isSolanaPayEnabled = settings?.solana_pay?.enabled && 
@@ -217,7 +243,7 @@ export default function PaymentMethodSelectionScreen({ order, settings, onMethod
 
           {/* Total display */}
           <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-            {dualPricingEnabled && surchargePercent > 0 ? (
+            {showDualPrices ? (
               <div className="flex justify-around items-center">
                 <div className="text-center">
                   <p className="text-gray-500 text-sm font-medium uppercase tracking-wide mb-1">Cash Price</p>
@@ -225,11 +251,15 @@ export default function PaymentMethodSelectionScreen({ order, settings, onMethod
                 </div>
                 <div className="text-gray-300 text-3xl font-light">|</div>
                 <div className="text-center">
-                  <p className="text-gray-500 text-sm font-medium uppercase tracking-wide mb-1">
-                    Card Price {surchargePercent > 0 && <span className="text-xs text-gray-400">(+{surchargePercent}%)</span>}
-                  </p>
+                  <p className="text-gray-500 text-sm font-medium uppercase tracking-wide mb-1">Card Price</p>
                   <p className="text-4xl font-extrabold text-blue-600">${cardPrice.toFixed(2)}</p>
                 </div>
+              </div>
+            ) : isSurchargeProgram ? (
+              <div className="text-center">
+                <p className="text-gray-600 dark:text-gray-400 text-lg mb-2">Total</p>
+                <p className="text-4xl font-extrabold text-gray-900 dark:text-white">${(order.total || cashPrice).toFixed(2)}</p>
+                <p className="text-xs text-gray-500 mt-2">A credit-card surcharge may apply at confirmation. Debit &amp; prepaid cards are never surcharged.</p>
               </div>
             ) : (
               <div className="text-center">
