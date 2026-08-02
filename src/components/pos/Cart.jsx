@@ -12,6 +12,9 @@ import {
   ShieldCheck,
   AlertTriangle,
 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
+import { buildPricing, FUNDING } from "@/lib/pricing";
 
 export default function Cart({
   cart,
@@ -38,10 +41,50 @@ export default function Cart({
     onRemoveItem(index);
   };
 
-  const isDualPricingEnabled = settings?.pricing_and_surcharge?.enable_dual_pricing && settings?.pricing_and_surcharge?.show_dual_prices;
   const hasEbtEligibleItems = parseFloat(totals.ebtEligibleTotal || 0) > 0;
   const hasAgeRestrictedItems = cart.some(item => item?.age_restricted);
   const isKitchenDisplayEnabled = settings?.kitchen_display?.enabled !== false;
+
+  // State-aware fee engine: load the applicable compliance rule (fail closed),
+  // then compute dual/cash/card prices with integer-cents inverse gross-up.
+  const [rule, setRule] = useState(null);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const region = settings?.pricing_and_surcharge?.region || 'US';
+        const rules = await base44.entities.ComplianceRule.filter({ jurisdiction_country: region, status: 'active' });
+        if (cancelled) return;
+        const now = Date.now();
+        const valid = (rules || []).filter(r =>
+          r.legal_review_status === 'approved' &&
+          (!r.effective_date || new Date(r.effective_date).getTime() <= now) &&
+          (!r.expiration_date || new Date(r.expiration_date).getTime() >= now)
+        );
+        valid.sort((a, b) => (a.maximum_state_pct ?? Infinity) - (b.maximum_state_pct ?? Infinity));
+        setRule(valid[0] || null);
+      } catch (e) {
+        setRule(null);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [settings?.pricing_and_surcharge?.region]);
+
+  const subtotalNum = parseFloat(totals.subtotal) || 0;
+  const discountNum = parseFloat(totals.discountAmount) || 0;
+  const taxNum = parseFloat(totals.taxAmount) || 0;
+  const taxable = Math.max(0, subtotalNum - discountNum);
+  const pricing = buildPricing({
+    settings, rule, cardFundingType: FUNDING.UNKNOWN,
+    subtotalDollars: taxable, taxDollars: 0, tipDollars: 0,
+  });
+  const surchargeAmt = parseFloat(pricing.surchargeAmount) || 0;
+  const engineCash = taxable + taxNum;
+  const engineCard = engineCash + surchargeAmt;
+  const program = !settings?.pricing_and_surcharge?.enable_dual_pricing
+    ? 'standard'
+    : (settings?.pricing_and_surcharge?.pricing_mode === 'cash_discount' ? 'dual_pricing' : 'surcharge');
+  const showDualPrices = program === 'dual_pricing' && pricing.allowed && surchargeAmt > 0;
 
   return (
     <div className="flex flex-col h-full">
@@ -180,21 +223,21 @@ export default function Cart({
           </div>
           
           <div className="mt-4 pt-4 border-t">
-            {isDualPricingEnabled ? (
+            {showDualPrices ? (
                  <div className="space-y-2">
                     <div className="flex justify-between text-lg font-bold text-green-600">
                         <span>Cash Price</span>
-                        <span>${totals.cashTotal}</span>
+                        <span>${engineCash.toFixed(2)}</span>
                     </div>
                      <div className="flex justify-between text-xl font-bold">
-                        <span>Non-Cash Price</span>
-                        <span>${totals.cardTotal}</span>
+                        <span>Card Price</span>
+                        <span>${engineCard.toFixed(2)}</span>
                     </div>
                 </div>
             ) : (
                  <div className="flex justify-between text-2xl font-bold">
                     <span>Total</span>
-                    <span>${totals.cardTotal}</span>
+                    <span>${(parseFloat(totals.cardTotal) || engineCard).toFixed(2)}</span>
                 </div>
             )}
           </div>
