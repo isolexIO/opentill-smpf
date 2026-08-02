@@ -2,8 +2,30 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 const MOBILE_SALT = Deno.env.get('JWT_SECRET') ? `mobile:${Deno.env.get('JWT_SECRET')}` : '';
 const LEGACY_MOBILE_SALT = 'opentill_mobile_salt_v1';
+const PBKDF2_ITERATIONS = 200_000;
 
-async function hashPinWith(pin: string, salt: string): Promise<string> {
+// Slow, salted KDF for new PIN hashes. A high iteration count makes brute-
+// forcing short numeric PINs infeasible even if the salt becomes known
+// (mitigates CWE-916 / static-salt brute-force).
+async function pbkdf2PinHash(pin: string, salt: string): Promise<string> {
+  const enc = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw',
+    enc.encode(pin),
+    { name: 'PBKDF2' },
+    false,
+    ['deriveBits']
+  );
+  const bits = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt: enc.encode(salt), iterations: PBKDF2_ITERATIONS, hash: 'SHA-256' },
+    keyMaterial,
+    256
+  );
+  return Array.from(new Uint8Array(bits)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// Single-pass SHA-256 retained only to verify (and migrate) pre-upgrade hashes.
+async function legacySha256Pin(pin: string, salt: string): Promise<string> {
   const data = new TextEncoder().encode(pin + '_' + salt);
   const hash = await crypto.subtle.digest('SHA-256', data);
   return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
@@ -123,10 +145,13 @@ Deno.serve(async (req) => {
       if (!MOBILE_SALT) {
         return Response.json({ success: false, error: 'PIN verification unavailable', code: 'server_error' }, { status: 500 });
       }
-      const newHash = await hashPinWith(pin, MOBILE_SALT);
+      const newHash = await pbkdf2PinHash(pin, MOBILE_SALT);
       if (newHash !== station.mobile_pin_hash) {
-        const legacyHash = await hashPinWith(pin, LEGACY_MOBILE_SALT);
-        if (legacyHash === station.mobile_pin_hash) {
+        // Migrate any pre-upgrade single-pass SHA-256 hash (JWT-derived or
+        // legacy static salt) to the new PBKDF2 hash on a successful login.
+        const jwtLegacy = await legacySha256Pin(pin, MOBILE_SALT);
+        const constLegacy = await legacySha256Pin(pin, LEGACY_MOBILE_SALT);
+        if (jwtLegacy === station.mobile_pin_hash || constLegacy === station.mobile_pin_hash) {
           try {
             await base44.asServiceRole.entities.Station.update(station.id, { mobile_pin_hash: newHash });
           } catch (e) {
