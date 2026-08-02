@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Download, ShieldCheck, AlertTriangle, Loader2 } from 'lucide-react';
 import { encryptWallet, b64ToBuf, bufToB64, verifyBackupFile } from '@/lib/smpfCrypto';
-import { saveWallet } from '@/lib/smpfWalletStore';
+import { saveWallet, getCurrentUserId } from '@/lib/smpfWalletStore';
 
 export default function BackupScreen({ secretKeyB64, address, onDone, onBack }) {
   const [password, setPassword] = useState('');
@@ -35,7 +35,8 @@ export default function BackupScreen({ secretKeyB64, address, onDone, onBack }) 
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      await saveWallet(address, backup);
+      const userId = await getCurrentUserId();
+      await saveWallet(address, backup, userId);
       setSaved(true);
     } catch (e) {
       setError('Could not create encrypted backup: ' + (e.message || e));

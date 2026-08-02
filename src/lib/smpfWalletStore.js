@@ -14,14 +14,26 @@ function openDB() {
   });
 }
 
-export async function saveWallet(address, backup) {
+export async function saveWallet(address, backup, userId) {
   const db = await openDB();
   const tx = db.transaction(STORE, 'readwrite');
-  tx.objectStore(STORE).put({ address, backup, created_date: Date.now() });
+  tx.objectStore(STORE).put({ address, backup, user_id: userId || null, created_date: Date.now() });
   return new Promise((resolve, reject) => {
     tx.oncomplete = () => resolve(true);
     tx.onerror = () => reject(tx.error);
   });
+}
+
+// Resolve the current authenticated user's id (or null when not logged in).
+// Used to isolate each user's non-custodial wallet on a shared device.
+export async function getCurrentUserId() {
+  try {
+    const { base44 } = await import('@/api/base44Client');
+    const u = await base44.auth.me();
+    return u?.id || null;
+  } catch {
+    return null;
+  }
 }
 
 export async function getWallet(address) {
@@ -34,12 +46,15 @@ export async function getWallet(address) {
   });
 }
 
-export async function listWallets() {
+export async function listWallets(userId) {
   const db = await openDB();
   const tx = db.transaction(STORE, 'readonly');
   return new Promise((resolve, reject) => {
     const r = tx.objectStore(STORE).getAll();
-    r.onsuccess = () => resolve(r.result || []);
+    r.onsuccess = () => {
+      const all = r.result || [];
+      resolve(userId ? all.filter((w) => w.user_id === userId) : all);
+    };
     r.onerror = () => reject(r.error);
   });
 }

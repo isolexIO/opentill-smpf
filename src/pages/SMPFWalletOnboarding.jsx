@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Wallet, Plus, Link2, ArrowLeft, ArrowRight } from 'lucide-react';
-import { listWallets } from '@/lib/smpfWalletStore';
+import { listWallets, getCurrentUserId } from '@/lib/smpfWalletStore';
 import GenerationScreen from '@/components/smpf/GenerationScreen';
 import BackupScreen from '@/components/smpf/BackupScreen';
 import ActivationScreen from '@/components/smpf/ActivationScreen';
@@ -18,7 +18,11 @@ export default function SMPFWalletOnboarding() {
   const [existingWallet, setExistingWallet] = useState(null);
 
   useEffect(() => {
-    listWallets().then((w) => { if (w.length) setExistingWallet(w[0]); }).catch(() => {});
+    (async () => {
+      const userId = await getCurrentUserId();
+      const w = await listWallets(userId).catch(() => []);
+      if (w.length) setExistingWallet(w[0]);
+    })();
   }, []);
 
   function handleFound(keypair) {

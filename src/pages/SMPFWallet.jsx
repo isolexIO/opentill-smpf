@@ -15,7 +15,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { createPageUrl } from '@/utils';
 import {
   listWallets, getWallet, removeWallet as removeWalletStore,
-  getSession, setSession, clearSession,
+  getSession, setSession, clearSession, getCurrentUserId,
 } from '@/lib/smpfWalletStore';
 import { decryptWallet, b64ToBuf } from '@/lib/smpfCrypto';
 import WalletBottomNav, { NAV_ITEMS } from '@/components/smpf/WalletBottomNav';
@@ -71,7 +71,8 @@ export default function SMPFWallet() {
 
   useEffect(() => {
     (async () => {
-      const wallets = await listWallets().catch(() => []);
+      const userId = await getCurrentUserId();
+      const wallets = await listWallets(userId).catch(() => []);
       if (!wallets.length) {
         setBootState('none');
         return;
