@@ -22,6 +22,7 @@ import WalletBottomNav, { NAV_ITEMS } from '@/components/smpf/WalletBottomNav';
 import ReceiveScreen from '@/components/smpf/ReceiveScreen';
 import SendScreen from '@/components/smpf/SendScreen';
 import DUCMintAdmin from '@/components/smpf/DUCMintAdmin';
+import ActivityScreen from '@/components/smpf/ActivityScreen';
 
 const DUC_LOGO =
   'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6970e2871534100b4ebb8d45/8e45f76fe_DUC3.png';
@@ -404,13 +405,7 @@ export default function SMPFWallet() {
         )}
 
         {activeTab === 'activity' && (
-          <div className="space-y-4">
-            <h1 className="text-xl font-black">Activity</h1>
-            <Card className="bg-white/10 border-white/20"><CardContent className="p-8 text-center space-y-2">
-              <Activity className="w-10 h-10 mx-auto text-white/30" />
-              <p className="text-white/60 text-sm">On-chain transaction history is part of the next build phase.</p>
-            </CardContent></Card>
-          </div>
+          <ActivityScreen address={address} rpc={rpc} network={network} />
         )}
 
         {activeTab === 'settings' && (
