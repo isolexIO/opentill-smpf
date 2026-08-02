@@ -49,6 +49,22 @@
       "type": "number",
       "default": 6
     },
+    "approved_chip_collections": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Admin-approved openTILL Chip NFT collection addresses"
+    },
+    "approved_token_mints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Admin-approved/verified token mint addresses"
+    },
     "default_network": {
       "type": "string",
       "enum": [

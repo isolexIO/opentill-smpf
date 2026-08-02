@@ -23,6 +23,8 @@ import ReceiveScreen from '@/components/smpf/ReceiveScreen';
 import SendScreen from '@/components/smpf/SendScreen';
 import DUCMintAdmin from '@/components/smpf/DUCMintAdmin';
 import ActivityScreen from '@/components/smpf/ActivityScreen';
+import NFTGallery from '@/components/smpf/NFTGallery';
+import TokensTab from '@/components/smpf/TokensTab';
 import AddressBookManager from '@/components/smpf/AddressBookManager';
 import PrivateKeyExport from '@/components/smpf/PrivateKeyExport';
 import { getSolUsdPrice } from '@/lib/smpfPrices';
@@ -376,38 +378,14 @@ export default function SMPFWallet() {
         )}
 
         {activeTab === 'tokens' && (
-          <div className="space-y-4">
-            <h1 className="text-xl font-black">Tokens</h1>
-            {ducMintMissing && <p className="text-sm text-red-300">$DUC mint not configured — $DUC hidden.</p>}
-            <Card className="bg-white/10 border-white/20">
-              <CardContent className="p-4 space-y-2">
-                <div className="flex items-center justify-between py-2 border-b border-white/10">
-                  <div className="flex items-center gap-2"><Coins className="w-4 h-4 text-white/60" /><span>SOL</span></div>
-                  <span className="font-bold">{sol !== null ? sol.toFixed(4) : '…'}</span>
-                </div>
-                {tokens.map((t) => (
-                  <div key={t.pubkey} className="flex items-center justify-between py-2 border-b border-white/10">
-                    <div className="min-w-0"><p className="font-mono text-xs break-all">{t.mint}</p><p className="text-[10px] text-white/40">SPL Token</p></div>
-                    <span className="text-xs text-white/40">Token account</span>
-                  </div>
-                ))}
-                {!tokens.length && <p className="text-sm text-white/40 py-3 text-center">No SPL token accounts found.</p>}
-              </CardContent>
-            </Card>
-          </div>
+          <TokensTab address={address} rpc={rpc} settings={settings} />
         )}
 
         {activeTab === 'send' && <SendScreen address={address} rpc={rpc} network={network} />}
         {activeTab === 'receive' && <ReceiveScreen address={address} />}
 
         {activeTab === 'nfts' && (
-          <div className="space-y-4">
-            <h1 className="text-xl font-black">NFTs</h1>
-            <Card className="bg-white/10 border-white/20"><CardContent className="p-8 text-center space-y-2">
-              <ImageIcon className="w-10 h-10 mx-auto text-white/30" />
-              <p className="text-white/60 text-sm">NFT gallery (Metaplex, Core, compressed NFTs, and openTILL Chips) is part of the next build phase.</p>
-            </CardContent></Card>
-          </div>
+          <NFTGallery address={address} settings={settings} network={network} />
         )}
 
         {activeTab === 'activity' && (
