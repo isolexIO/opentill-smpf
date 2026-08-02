@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { Loader2, ArrowRight, Check, QrCode as QrIcon } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import QRCode from 'qrcode';
 import {
   ShoppingCart,
@@ -31,7 +32,7 @@ import {
 const DUC_LOGO =
   'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6970e2871534100b4ebb8d45/8e45f76fe_DUC3.png';
 
-const DEFAULT_SECTIONS = [
+export const DEFAULT_SECTIONS = [
   {
     icon: 'ShoppingCart',
     title: 'POS & Checkout',
@@ -154,7 +155,7 @@ const DEFAULT_SECTIONS = [
   },
 ];
 
-const ICONS = {
+export const ICONS = {
   ShoppingCart,
   DollarSign,
   CreditCard,
@@ -308,10 +309,12 @@ export default function Brochure() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {sections.map((sec, i) => {
             const Icon = ICONS[sec.icon] || Sparkles;
+            const key = sec.id || i;
             return (
-              <div
-                key={sec.id || i}
-                className="group rounded-2xl border border-white/10 bg-white/5 p-5 hover:border-white/25 hover:bg-white/[0.07] transition-colors"
+              <Link
+                key={key}
+                to={`/Brochure/feature/${key}`}
+                className="group block rounded-2xl border border-white/10 bg-white/5 p-5 hover:border-white/25 hover:bg-white/[0.07] transition-colors"
               >
                 <div
                   className="w-11 h-11 rounded-xl flex items-center justify-center mb-3"
@@ -331,7 +334,7 @@ export default function Brochure() {
                     ))}
                   </ul>
                 )}
-              </div>
+              </Link>
             );
           })}
         </div>
