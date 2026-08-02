@@ -23,7 +23,7 @@ export default function SMPFWalletAdmin() {
     try {
       const u = await base44.auth.me();
       setMe(u);
-      if (!['admin', 'super_admin', 'root_admin'].includes(u?.role)) { setLoading(false); return; }
+      if (!['super_admin', 'root_admin'].includes(u?.role)) { setLoading(false); return; }
       const s = await base44.entities.DUCWalletSettings.list();
       setSettings(s?.[0] || {});
       const a = await base44.entities.WalletAdminAudit.list('-created_date', 50).catch(() => []);
@@ -75,7 +75,7 @@ export default function SMPFWalletAdmin() {
   if (loading) {
     return <div className="min-h-screen bg-slate-950 flex items-center justify-center"><Loader2 className="w-10 h-10 animate-spin text-emerald-400" /></div>;
   }
-  if (!['admin', 'super_admin', 'root_admin'].includes(me?.role)) {
+  if (!['super_admin', 'root_admin'].includes(me?.role)) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
         <Card className="max-w-md bg-white/10 border-white/20">
