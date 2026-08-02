@@ -41,8 +41,10 @@ export default function PaymentMethodSelectionScreen({ order, settings, onMethod
     ? 'standard'
     : (pricingSettings.pricing_mode === 'cash_discount' ? 'dual_pricing' : 'surcharge');
 
-  // Reconstruct the taxable base from the order (surcharge is computed on the
-  // pre-tax subtotal; tax is added to both prices afterward).
+  // Reconstruct the cash base from the order (subtotal after discount + tax).
+  // The engine grosses up this full cash base so the merchant nets exactly the
+  // cash price on a card transaction — the fee on the tax portion is recovered,
+  // not absorbed.
   const taxable = Math.max(0, (order?.subtotal || 0) - (order?.discount_amount || 0));
   const taxAmt = order?.tax_amount || 0;
 
@@ -54,11 +56,11 @@ export default function PaymentMethodSelectionScreen({ order, settings, onMethod
     rule,
     cardFundingType: FUNDING.UNKNOWN,
     subtotalDollars: taxable,
-    taxDollars: 0,
+    taxDollars: taxAmt,
     tipDollars: 0,
   });
-  const cashPrice = parseFloat(pricing.cashTotal) + taxAmt;
-  const cardPrice = parseFloat(pricing.cardTotal) + taxAmt;
+  const cashPrice = parseFloat(pricing.cashTotal);
+  const cardPrice = parseFloat(pricing.cardTotal);
   const showDualPrices = program === 'dual_pricing' && pricing.allowed && cardPrice > cashPrice;
   const isSurchargeProgram = program === 'surcharge';
 

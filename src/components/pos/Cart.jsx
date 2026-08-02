@@ -76,7 +76,7 @@ export default function Cart({
   const taxable = Math.max(0, subtotalNum - discountNum);
   const pricing = buildPricing({
     settings, rule, cardFundingType: FUNDING.UNKNOWN,
-    subtotalDollars: taxable, taxDollars: 0, tipDollars: 0,
+    subtotalDollars: taxable, taxDollars: taxNum, tipDollars: 0,
   });
   const surchargeAmt = parseFloat(pricing.surchargeAmount) || 0;
   const pendingSurchargeAmt = parseFloat(pricing.pendingSurcharge) || 0;

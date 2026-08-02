@@ -90,7 +90,7 @@ export default function PricingTab({ settings, onSave }) {
       rule: exampleRule,
       cardFundingType: FUNDING.UNKNOWN,
       subtotalDollars: subtotal,
-      taxDollars: 0,
+      taxDollars: tax,
       tipDollars: 0,
     });
     const surcharge = parseFloat(pricing.surchargeAmount) || 0;
