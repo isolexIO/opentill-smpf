@@ -1,5 +1,16 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+// Escape user-supplied strings before interpolating into HTML email bodies
+// to prevent HTML injection / content spoofing (CWE-79).
+function escapeHtml(value: string): string {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -68,13 +79,13 @@ Deno.serve(async (req) => {
         to: user_email,
         subject: 'Welcome to the openTILL Builder Program!',
         body: `
-          <h2>Welcome to the openTILL Builder Program, ${full_name}!</h2>
-          <p>Your builder profile for <strong>${company_name}</strong> has been submitted and is under review.</p>
+          <h2>Welcome to the openTILL Builder Program, ${escapeHtml(full_name)}!</h2>
+          <p>Your builder profile for <strong>${escapeHtml(company_name)}</strong> has been submitted and is under review.</p>
           <h3>How to Log In</h3>
           <p>Use the same account you signed up with to access your Builder Dashboard:</p>
           <ul>
             <li><strong>Google Sign-In</strong> (recommended), or</li>
-            <li><strong>Email magic link</strong> sent to ${user_email}</li>
+            <li><strong>Email magic link</strong> sent to ${escapeHtml(user_email)}</li>
           </ul>
           <p>Visit: <a href="https://chainlinkpos.isolex.io/builder-dashboard">Your Builder Dashboard</a></p>
           <p>Our team will review your application and you'll be notified once verified.</p>
