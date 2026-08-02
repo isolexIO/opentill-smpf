@@ -7,10 +7,25 @@ async function hashPin(pin: string): Promise<string> {
   return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+// Only allow same-origin or relative redirect targets; reject anything else to prevent open-redirect phishing.
+function sanitizeRedirectUrl(url: unknown, origin: string): string | null {
+  if (typeof url !== 'string' || !url.trim()) return null;
+  try {
+    // Relative paths (starting with '/') are always safe.
+    if (url.startsWith('/')) return `${origin}${url}`;
+    const parsed = new URL(url);
+    if (parsed.origin === origin) return url;
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 Deno.serve(async (req) => {
   try {
     const body = await req.json();
     const { token, pin, order_id, success_url, cancel_url } = body;
+    const requestOrigin = req.headers.get('origin') || '';
 
     if (!token || !order_id) {
       return Response.json({ success: false, error: 'Missing required fields' }, { status: 400 });
@@ -111,8 +126,8 @@ Deno.serve(async (req) => {
       line_items: lineItems,
       mode: 'payment',
       submit_type: 'pay',
-      success_url: success_url || `${req.headers.get('origin') || ''}/mobile/station/${token}?stripe_status=success&order_id=${order_id}`,
-      cancel_url: cancel_url || `${req.headers.get('origin') || ''}/mobile/station/${token}?stripe_status=canceled&order_id=${order_id}`,
+      success_url: sanitizeRedirectUrl(success_url, requestOrigin) || `${requestOrigin}/mobile/station/${token}?stripe_status=success&order_id=${order_id}`,
+      cancel_url: sanitizeRedirectUrl(cancel_url, requestOrigin) || `${requestOrigin}/mobile/station/${token}?stripe_status=canceled&order_id=${order_id}`,
       metadata: {
         order_id,
         merchant_id: station.merchant_id,
