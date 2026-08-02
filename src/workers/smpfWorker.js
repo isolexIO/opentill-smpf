@@ -4,6 +4,7 @@
 // plain standard keypair (no vanity). Runs off the main thread so the UI
 // stays responsive. Private keys never leave the user's device.
 import { Keypair } from '@solana/web3.js';
+import nacl from 'tweetnacl';
 
 let running = false;
 
@@ -40,10 +41,12 @@ self.onmessage = async (e) => {
           if (!matches(pub)) continue;
 
           // Integrity: round-trip the secret key and confirm the address matches,
-          // and confirm the keypair can sign a test message.
+          // and confirm the keypair can sign a test message via tweetnacl
+          // (Keypair.sign is not exposed in the worker bundle).
           const roundTrip = Keypair.fromSecretKey(kp.secretKey);
           if (roundTrip.publicKey.toBase58() !== pub) continue;
-          const sig = kp.sign(new TextEncoder().encode('openTILL-SMPF-verify'));
+          const msg = new TextEncoder().encode('openTILL-SMPF-verify');
+          const sig = nacl.sign.detached(msg, kp.secretKey);
           if (!sig || sig.length !== 64) continue;
 
           self.postMessage({
