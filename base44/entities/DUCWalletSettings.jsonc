@@ -1,0 +1,81 @@
+{
+  "name": "DUCWalletSettings",
+  "type": "object",
+  "properties": {
+    "verified_duc_mint": {
+      "type": "string",
+      "description": "Verified $DUC mainnet mint address (Solana public key). Null until an admin verifies it."
+    },
+    "previous_duc_mint": {
+      "type": "string",
+      "description": "Last verified mint before the most recent change (audit trail)"
+    },
+    "mint_changed_by": {
+      "type": "string",
+      "description": "Admin email that last changed the verified mint"
+    },
+    "mint_changed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the verified mint was last changed"
+    },
+    "rpc_mainnet": {
+      "type": "string",
+      "default": "https://api.mainnet-beta.solana.com",
+      "description": "Mainnet RPC endpoint"
+    },
+    "rpc_devnet": {
+      "type": "string",
+      "default": "https://api.devnet.solana.com",
+      "description": "Devnet RPC endpoint"
+    },
+    "das_provider": {
+      "type": "string",
+      "description": "DAS-compatible NFT/token indexing provider URL"
+    },
+    "price_api_url": {
+      "type": "string",
+      "description": "Reputable price API base URL"
+    },
+    "duc_name": {
+      "type": "string",
+      "default": "Digital Utility Credit"
+    },
+    "duc_symbol": {
+      "type": "string",
+      "default": "DUC"
+    },
+    "duc_decimals": {
+      "type": "number",
+      "default": 6
+    },
+    "default_network": {
+      "type": "string",
+      "enum": [
+        "mainnet",
+        "devnet"
+      ],
+      "default": "devnet",
+      "description": "Production default is mainnet only after testing is complete."
+    }
+  },
+  "required": [],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

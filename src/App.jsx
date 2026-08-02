@@ -19,6 +19,8 @@ import OpenTILLPayments from './pages/OpenTILLPayments';
 import MobileStationDisplay from './pages/MobileStationDisplay';
 import FeedbackButton from '@/components/feedback/FeedbackButton';
 import Modifiers from './pages/Modifiers';
+import SMPFWalletOnboarding from './pages/SMPFWalletOnboarding';
+import SMPFWallet from './pages/SMPFWallet';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -111,6 +113,8 @@ const AuthenticatedApp = () => {
           <Modifiers />
         </LayoutWrapper>
       } />
+      <Route path="/SMPFWalletOnboarding" element={<SMPFWalletOnboarding />} />
+      <Route path="/SMPFWallet" element={<SMPFWallet />} />
       <Route path="/mobile/station/:token" element={
         <LayoutWrapper currentPageName="MobileStationDisplay">
           <MobileStationDisplay />
