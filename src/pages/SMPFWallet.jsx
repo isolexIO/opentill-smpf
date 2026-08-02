@@ -23,6 +23,9 @@ import ReceiveScreen from '@/components/smpf/ReceiveScreen';
 import SendScreen from '@/components/smpf/SendScreen';
 import DUCMintAdmin from '@/components/smpf/DUCMintAdmin';
 import ActivityScreen from '@/components/smpf/ActivityScreen';
+import AddressBookManager from '@/components/smpf/AddressBookManager';
+import PrivateKeyExport from '@/components/smpf/PrivateKeyExport';
+import { getSolUsdPrice } from '@/lib/smpfPrices';
 
 const DUC_LOGO =
   'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6970e2871534100b4ebb8d45/8e45f76fe_DUC3.png';
@@ -60,6 +63,7 @@ export default function SMPFWallet() {
   const [tokens, setTokens] = useState([]);
   const [copied, setCopied] = useState(false);
   const [qr, setQr] = useState('');
+  const [solUsd, setSolUsd] = useState(null);
   const lastActivity = useRef(Date.now());
 
   useEffect(() => {
@@ -181,6 +185,7 @@ export default function SMPFWallet() {
   useEffect(() => {
     if (address) QRCode.toDataURL(address, { margin: 1, width: 220, color: { dark: '#0f172a', light: '#ffffff' } }).then(setQr).catch(() => {});
   }, [address]);
+  useEffect(() => { getSolUsdPrice().then(setSolUsd).catch(() => {}); }, []);
 
   function copyAddress() {
     if (!address) return;
@@ -332,11 +337,12 @@ export default function SMPFWallet() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <div className="bg-black/30 rounded-xl p-4">
                 <p className="text-xs text-white/50 uppercase tracking-wide">Total value (est.)</p>
-                <p className="text-xl font-bold">{sol !== null ? `$${(sol * 0).toFixed(2)}` : '—'}</p>
+                <p className="text-xl font-bold">{sol !== null ? (solUsd !== null ? `$${(sol * solUsd).toFixed(2)}` : `${sol.toFixed(4)}`) : '—'}</p>
               </div>
               <div className="bg-black/30 rounded-xl p-4">
                 <p className="text-xs text-white/50 uppercase tracking-wide">SOL</p>
                 <p className="text-xl font-bold">{sol !== null ? sol.toFixed(4) : '…'}</p>
+                {solUsd !== null && sol !== null && <p className="text-xs text-white/40">≈ ${(sol * solUsd).toFixed(2)}</p>}
               </div>
               <div className="bg-gradient-to-br from-yellow-500/20 to-orange-600/10 border border-yellow-400/30 rounded-xl p-4">
                 <p className="text-xs text-yellow-200/70 uppercase tracking-wide">$DUC</p>
@@ -426,6 +432,9 @@ export default function SMPFWallet() {
                 <Button variant="outline" className="w-full border-white/20 text-red-300 bg-transparent" onClick={removeWallet}><Trash2 className="w-4 h-4 mr-2" /> Remove wallet from this device</Button>
               </CardContent>
             </Card>
+
+            <AddressBookManager />
+            <PrivateKeyExport address={address} />
 
             <DUCMintAdmin settings={settings} onSaved={setSettings} />
 
