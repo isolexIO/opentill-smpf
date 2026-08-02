@@ -79,12 +79,18 @@ export default function Cart({
     subtotalDollars: taxable, taxDollars: 0, tipDollars: 0,
   });
   const surchargeAmt = parseFloat(pricing.surchargeAmount) || 0;
+  const pendingSurchargeAmt = parseFloat(pricing.pendingSurcharge) || 0;
   const engineCash = taxable + taxNum;
-  const engineCard = engineCash + surchargeAmt;
   const program = !settings?.pricing_and_surcharge?.enable_dual_pricing
     ? 'standard'
     : (settings?.pricing_and_surcharge?.pricing_mode === 'cash_discount' ? 'dual_pricing' : 'surcharge');
-  const showDualPrices = program === 'dual_pricing' && pricing.allowed && surchargeAmt > 0;
+  // For a surcharge program the card funding type is unknown at cart time, so the
+  // engine discloses the would-be surcharge (pendingSurcharge) rather than
+  // applying it. Dual pricing applies the adjustment to all cards up front.
+  const surchargeLine = surchargeAmt > 0 ? surchargeAmt : (program === 'surcharge' ? pendingSurchargeAmt : 0);
+  const engineCard = engineCash + (surchargeAmt > 0 ? surchargeAmt : surchargeLine);
+  const showDualPrices = (program === 'dual_pricing' && surchargeAmt > 0) || (program === 'surcharge' && surchargeLine > 0);
+  const surchargeLabelText = pricing.surchargeLabel || (program === 'dual_pricing' ? 'Card Price Adjustment' : 'Credit Card Surcharge');
 
   return (
     <div className="flex flex-col h-full">
@@ -220,6 +226,12 @@ export default function Cart({
               <span>Tax</span>
               <span>${totals.taxAmount}</span>
             </div>
+            {surchargeLine > 0 && (
+              <div className="flex justify-between text-sm">
+                <span>{surchargeLabelText}{program === 'surcharge' ? ' (may apply)' : ''}</span>
+                <span>${surchargeLine.toFixed(2)}</span>
+              </div>
+            )}
           </div>
           
           <div className="mt-4 pt-4 border-t">

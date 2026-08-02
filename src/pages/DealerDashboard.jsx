@@ -13,6 +13,7 @@ import StripeConnectSetup from '../components/dealer/StripeConnectSetup.jsx';
 import SNSSubdomainRegistration from '../components/dealer/SNSSubdomainRegistration.jsx';
 import PayoutDashboard from '../components/dealer/PayoutDashboard.jsx';
 import AIMarketingTools from '../components/dealer/AIMarketingTools.jsx';
+import BrochureMarketingCard from '../components/dealer/BrochureMarketingCard.jsx';
 import MerchantManagement from '../components/dealer/MerchantManagement.jsx';
 import LeadManagement from '../components/dealer/LeadManagement.jsx';
 import StaffManagement from '../components/dealer/StaffManagement.jsx';
@@ -267,7 +268,8 @@ export default function DealerDashboardPage() {
           <TabsContent value="analytics">
             <MerchantAnalytics dealerId={dealer.legacy_dealer_id} />
           </TabsContent>
-          <TabsContent value="marketing">
+          <TabsContent value="marketing" className="space-y-6">
+            <BrochureMarketingCard dealer={dealer} />
             <AIMarketingTools dealerId={dealer.legacy_dealer_id} />
           </TabsContent>
           <TabsContent value="payouts">
