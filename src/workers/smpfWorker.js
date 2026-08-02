@@ -1,10 +1,10 @@
 // SMPF vanity keypair generation worker.
 // Generates real Solana Ed25519 keypairs until the base58 public address
-// ends with the exact suffix "SMPF". Runs off the main thread so the UI stays
-// responsive. Private keys never leave the user's device.
+// matches the requested vanity pattern. Supports a prefix, a suffix, or a
+// plain standard keypair (no vanity). Runs off the main thread so the UI
+// stays responsive. Private keys never leave the user's device.
 import { Keypair } from '@solana/web3.js';
 
-const SUFFIX = 'SMPF';
 let running = false;
 
 function toB64(bytes) {
@@ -20,17 +20,24 @@ self.onmessage = async (e) => {
   if (msg.type === 'start') {
     if (running) return;
     running = true;
+    const mode = msg.mode || 'suffix';            // 'none' | 'prefix' | 'suffix'
+    const value = String(msg.value || '').toUpperCase();
     const startedAt = Date.now();
     let tested = 0;
+
+    const matches = (pub) => {
+      if (mode === 'none') return true;
+      if (!value) return true;
+      return mode === 'prefix' ? pub.startsWith(value) : pub.endsWith(value);
+    };
+
     try {
       while (running) {
-        // Generate in batches, then yield to the event loop so cancel messages
-        // can be processed and progress can be posted without blocking.
         for (let i = 0; i < 2000 && running; i++) {
           const kp = Keypair.generate();
           tested++;
           const pub = kp.publicKey.toBase58();
-          if (!pub.endsWith(SUFFIX)) continue;
+          if (!matches(pub)) continue;
 
           // Integrity: round-trip the secret key and confirm the address matches,
           // and confirm the keypair can sign a test message.

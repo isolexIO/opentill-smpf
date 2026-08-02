@@ -63,7 +63,7 @@ export default function SMPFWalletOnboarding() {
                     <Wallet className="w-7 h-7 text-white" />
                   </div>
                   <h2 className="text-xl font-bold text-white">Choose your wallet</h2>
-                  <p className="text-white/60 text-sm mt-1">Create a custom SMPF address or connect an existing wallet.</p>
+                  <p className="text-white/60 text-sm mt-1">Create a custom $DUC, SMPF, or TILL address — or a standard Solana keypair.</p>
                 </div>
 
                 <button
@@ -79,7 +79,7 @@ export default function SMPFWalletOnboarding() {
                         <span className="text-white font-bold">Create My SMPF Wallet</span>
                         <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-400/20 text-emerald-200 font-semibold">Recommended</span>
                       </div>
-                      <p className="text-white/60 text-xs mt-1">A real Solana wallet whose address ends in SMPF.</p>
+                      <p className="text-white/60 text-xs mt-1">A real Solana wallet with a custom $DUC, SMPF, or TILL address — or a standard keypair.</p>
                     </div>
                     <ArrowRight className="w-5 h-5 text-white/60" />
                   </div>
