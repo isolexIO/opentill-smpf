@@ -38,6 +38,21 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Customer-display fallback: a public customer-display terminal opened via
+    // its station link may not hold a live device session (registration can fail
+    // or expire mid-shift). For customer-mode pending-order lookups only, authorize
+    // when the caller supplies a station_id that resolves to a Station owned by the
+    // target merchant. The orders returned here are pre-payment (no card/PII data)
+    // and the station binding scopes access to a station the merchant configured.
+    if (!authorized && mode === 'customer' && station_id) {
+      try {
+        const stations = await base44.asServiceRole.entities.Station.filter({ merchant_id, station_id }, '-created_date', 1);
+        if (stations && stations.length > 0) {
+          authorized = true;
+        }
+      } catch (e) { /* fall through to 401 */ }
+    }
+
     if (!authorized) {
       return Response.json({ success: false, error: 'Unauthorized: authentication or valid device session required' }, { status: 401 });
     }

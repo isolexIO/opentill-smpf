@@ -259,43 +259,50 @@ export default function CustomerDisplayPage() {
             currentScreen
           });
 
-          // Check if order has been updated
+          // Check if order has been updated — refresh on ANY meaningful change so
+          // the display always reflects the cart the cashier is ringing up (items
+          // and total), not just status/tip/payment transitions. This keeps the
+          // pushed ticket in sync instead of freezing on the first preview snapshot.
           const statusChanged = updatedOrder.status !== currentOrder.status;
           const tipChanged = updatedOrder.tip_amount !== currentOrder.tip_amount;
           const paymentMethodChanged = updatedOrder.payment_method !== currentOrder.payment_method;
+          const totalChanged = updatedOrder.total !== currentOrder.total;
+          const itemsChanged = JSON.stringify(updatedOrder.items || []) !== JSON.stringify(currentOrder.items || []);
 
-          if (statusChanged || tipChanged || paymentMethodChanged) {
+          if (statusChanged || tipChanged || paymentMethodChanged || totalChanged || itemsChanged) {
             console.log('CustomerDisplay: Order updated, refreshing');
             setCurrentOrder(updatedOrder); // Update local order state immediately
 
-            // Handle status transitions
-            if (updatedOrder.status === 'tip_selection') {
-              console.log('CustomerDisplay: → Tip screen');
-              setCurrentScreen('tip');
-            } 
-            else if (updatedOrder.status === 'ready_for_payment') {
-              console.log('CustomerDisplay: → Payment method screen');
-              setCurrentScreen('payment_method');
-            } 
-            else if (updatedOrder.status === 'payment_in_progress') {
-              console.log('CustomerDisplay: → Payment processing, method:', updatedOrder.payment_method);
-              
-              if (updatedOrder.payment_method === 'solana_pay' || updatedOrder.payment_method === 'chain_link') {
-                setCurrentScreen('solana_pay');
-              } else if (updatedOrder.payment_method === 'card') {
-                setCurrentScreen('card_payment');
-              } else if (updatedOrder.payment_method === 'ebt') {
-                setCurrentScreen('ebt_payment');
+            // Handle status transitions (only when the status itself changed)
+            if (statusChanged) {
+              if (updatedOrder.status === 'tip_selection') {
+                console.log('CustomerDisplay: → Tip screen');
+                setCurrentScreen('tip');
+              } 
+              else if (updatedOrder.status === 'ready_for_payment') {
+                console.log('CustomerDisplay: → Payment method screen');
+                setCurrentScreen('payment_method');
+              } 
+              else if (updatedOrder.status === 'payment_in_progress') {
+                console.log('CustomerDisplay: → Payment processing, method:', updatedOrder.payment_method);
+                
+                if (updatedOrder.payment_method === 'solana_pay' || updatedOrder.payment_method === 'chain_link') {
+                  setCurrentScreen('solana_pay');
+                } else if (updatedOrder.payment_method === 'card') {
+                  setCurrentScreen('card_payment');
+                } else if (updatedOrder.payment_method === 'ebt') {
+                  setCurrentScreen('ebt_payment');
+                }
+              } 
+              else if (updatedOrder.status === 'completed' || (updatedOrder.status === 'pending' && updatedOrder.payment_method && updatedOrder.payment_method !== 'pending')) {
+                console.log('CustomerDisplay: → Success screen');
+                setCurrentScreen('success');
+                setTimeout(() => returnToWelcome(), 5000);
               }
-            } 
-            else if (updatedOrder.status === 'completed' || (updatedOrder.status === 'pending' && updatedOrder.payment_method && updatedOrder.payment_method !== 'pending')) {
-              console.log('CustomerDisplay: → Success screen');
-              setCurrentScreen('success');
-              setTimeout(() => returnToWelcome(), 5000);
-            }
-            else if (updatedOrder.status === 'cancelled') {
-              console.log('CustomerDisplay: Order cancelled');
-              returnToWelcome();
+              else if (updatedOrder.status === 'cancelled') {
+                console.log('CustomerDisplay: Order cancelled');
+                returnToWelcome();
+              }
             }
           }
         } catch (orderError) {
