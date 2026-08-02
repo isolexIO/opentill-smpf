@@ -1,0 +1,103 @@
+{
+  "name": "BrochureSettings",
+  "type": "object",
+  "properties": {
+    "enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether the public brochure page is accessible"
+    },
+    "title": {
+      "type": "string",
+      "default": "openTILL SMPF"
+    },
+    "tagline": {
+      "type": "string",
+      "default": "The blockchain-integrated Point of Sale for modern commerce."
+    },
+    "description": {
+      "type": "string",
+      "description": "Short intro paragraph shown under the hero"
+    },
+    "hero_image_url": {
+      "type": "string",
+      "description": "Optional hero background image URL"
+    },
+    "accent_color": {
+      "type": "string",
+      "default": "#7B2FD6"
+    },
+    "secondary_color": {
+      "type": "string",
+      "default": "#0FD17A"
+    },
+    "cta_text": {
+      "type": "string",
+      "default": "Start Free Trial"
+    },
+    "cta_url": {
+      "type": "string",
+      "default": "/"
+    },
+    "contact_email": {
+      "type": "string"
+    },
+    "website": {
+      "type": "string"
+    },
+    "show_qr": {
+      "type": "boolean",
+      "default": true,
+      "description": "Show a QR code linking to the brochure on the page"
+    },
+    "sections": {
+      "type": "array",
+      "default": [],
+      "description": "Brochure feature sections. When empty, built-in platform defaults are shown.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string",
+            "description": "Lucide icon name"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "bullets": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": []
+          }
+        }
+      }
+    }
+  },
+  "required": [],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

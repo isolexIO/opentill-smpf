@@ -53,6 +53,7 @@ import PayoutControl from '../components/superadmin/PayoutControl';
 import SupportTicketManager from '../components/superadmin/SupportTicketManager';
 import UserManagement from '../components/superadmin/UserManagement';
 import FeedbackManager from '../components/superadmin/FeedbackManager';
+import BrochureManager from '../components/superadmin/BrochureManager';
 
 export default function SuperAdminPage() {
   const [user, setUser] = useState(null);
@@ -261,6 +262,7 @@ export default function SuperAdminPage() {
         { key: 'ads', icon: Building2, label: 'Ads' },
         { key: 'notifications', icon: AlertCircle, label: 'Notifications' },
         { key: 'feedback', icon: MessageSquare, label: 'Feedback' },
+        { key: 'brochure', icon: FileText, label: 'Brochure' },
       ],
     },
     {
@@ -277,7 +279,7 @@ export default function SuperAdminPage() {
     subscriptions: 'Subscription Management', devices: 'Device Shop', amazon: 'Affiliate Links',
     payouts: 'Payout Management', vault: '$DUC Vault', chips: 'Chip Manager', builders: 'Builder Management', users: 'User Management', logs: 'System Logs',
     reports: 'Global Reports', ads: 'Advertising', notifications: 'Notifications', settings: 'Settings',
-    support: 'Support Tickets', feedback: 'User Feedback',
+    support: 'Support Tickets', feedback: 'User Feedback', brochure: 'Interactive Brochure',
   };
 
   return (
@@ -486,6 +488,10 @@ export default function SuperAdminPage() {
 
           {activeTab === 'feedback' && (
             <FeedbackManager />
+          )}
+
+          {activeTab === 'brochure' && (
+            <BrochureManager />
           )}
 
           {activeTab === 'settings' && (
