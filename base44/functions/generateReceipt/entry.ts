@@ -63,7 +63,7 @@ function generateReceiptText(order, merchant) {
   let receipt = '';
   
   // Header
-  receipt += centerText('ChainLINK POS', width) + '\n';
+  receipt += centerText('openTILL SMPF', width) + '\n';
   receipt += centerText(merchant.business_name || 'Store', width) + '\n';
   receipt += centerText(merchant.address || '', width) + '\n';
   receipt += centerText(merchant.phone || '', width) + '\n';
@@ -149,7 +149,7 @@ function generateReceiptText(order, merchant) {
   // Footer
   receipt += line + '\n';
   receipt += centerText('Thank you for your business!', width) + '\n';
-  receipt += centerText('Powered by ChainLINK POS', width) + '\n';
+  receipt += centerText('Powered by openTILL SMPF', width) + '\n';
   
   return receipt;
 }
@@ -200,7 +200,7 @@ function generateReceiptHtml(order, merchant) {
 </head>
 <body>
   <div class="receipt">
-    <div class="center header">ChainLINK POS</div>
+    <div class="center header">openTILL SMPF</div>
     <div class="center">${e(merchant.business_name || 'Store')}</div>
     <div class="center">${e(merchant.address || '')}</div>
     <div class="center">${e(merchant.phone || '')}</div>
@@ -275,7 +275,7 @@ function generateReceiptHtml(order, merchant) {
     
     <div class="line"></div>
     <div class="center">Thank you for your business!</div>
-    <div class="center">Powered by ChainLINK POS</div>
+    <div class="center">Powered by openTILL SMPF</div>
   </div>
   
   <div class="center no-print" style="margin-top: 20px;">

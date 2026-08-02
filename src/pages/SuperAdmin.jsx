@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Shield,
+  ShieldAlert,
   Users,
   Building2,
   CreditCard,
@@ -54,6 +55,7 @@ import SupportTicketManager from '../components/superadmin/SupportTicketManager'
 import UserManagement from '../components/superadmin/UserManagement';
 import FeedbackManager from '../components/superadmin/FeedbackManager';
 import BrochureManager from '../components/superadmin/BrochureManager';
+import ComplianceRuleManager from '../components/superadmin/ComplianceRuleManager';
 
 export default function SuperAdminPage() {
   const [user, setUser] = useState(null);
@@ -269,6 +271,7 @@ export default function SuperAdminPage() {
       label: 'System',
       items: [
         { key: 'settings', icon: Settings, label: 'Settings' },
+        { key: 'compliance', icon: ShieldAlert, label: 'Compliance Rules' },
         { key: 'support', icon: LifeBuoy, label: 'Support' },
       ],
     },
@@ -280,6 +283,7 @@ export default function SuperAdminPage() {
     payouts: 'Payout Management', vault: '$DUC Vault', chips: 'Chip Manager', builders: 'Builder Management', users: 'User Management', logs: 'System Logs',
     reports: 'Global Reports', ads: 'Advertising', notifications: 'Notifications', settings: 'Settings',
     support: 'Support Tickets', feedback: 'User Feedback', brochure: 'Interactive Brochure',
+    compliance: 'Compliance Rules',
   };
 
   return (
@@ -492,6 +496,10 @@ export default function SuperAdminPage() {
 
           {activeTab === 'brochure' && (
             <BrochureManager />
+          )}
+
+          {activeTab === 'compliance' && (
+            <ComplianceRuleManager />
           )}
 
           {activeTab === 'settings' && (

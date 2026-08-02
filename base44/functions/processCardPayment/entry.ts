@@ -76,14 +76,53 @@ Deno.serve(async (req) => {
       }
     });
 
-    // Update the order with payment intent details
+    // Confirmation-time funding-type capture + surcharge settlement snapshot.
+    // The cart-time calculation used UNKNOWN funding (fail-closed for credit-only
+    // surcharge programs); the processor reports the real card funding type here,
+    // which is recorded for audit and later reconciliation against settlement.
+    let cardFundingType = 'unknown';
+    let cardLast4 = null;
+    try {
+      if (paymentIntent.payment_method) {
+        const pm = await stripe.paymentMethods.retrieve(paymentIntent.payment_method);
+        cardFundingType = pm?.card?.funding || 'unknown'; // 'credit' | 'debit' | 'prepaid' | 'unknown'
+        cardLast4 = pm?.card?.last4 || null;
+      }
+    } catch (e) {
+      console.warn('Could not retrieve card funding type:', e.message);
+    }
+
+    // Update the order with payment intent details + the real funding type.
     await base44.asServiceRole.entities.Order.update(orderId, {
       payment_details: {
-        ...(merchant.payment_details || {}),
+        ...(order.payment_details || {}),
         stripe_payment_intent_id: paymentIntent.id,
         status: paymentIntent.status,
+        card_funding_type: cardFundingType,
+        card_last_4: cardLast4,
       },
     });
+
+    // Snapshot a SurchargeSettlement record for reconciliation/audit.
+    try {
+      const calculatedFeeCents = Math.round(Number(order.surcharge_amount || 0) * 100);
+      await base44.asServiceRole.entities.SurchargeSettlement.create({
+        order_id: orderId,
+        merchant_id: merchantId,
+        calculated_fee_cents: calculatedFeeCents,
+        actual_fee_cents: calculatedFeeCents,
+        customer_adjustment_cents: calculatedFeeCents,
+        recoverable_fee_cents: calculatedFeeCents,
+        merchant_absorbed_cents: 0,
+        variance_cents: 0,
+        variance_type: cardFundingType === 'credit' ? 'none' : 'cap_absorption',
+        calc_version: 'engine-v1',
+        settlement_date: new Date().toISOString(),
+        flagged: false,
+      });
+    } catch (e) {
+      console.warn('Could not create surcharge settlement snapshot:', e.message);
+    }
 
     return new Response(JSON.stringify({
       status: paymentIntent.status,
