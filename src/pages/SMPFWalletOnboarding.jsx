@@ -2,11 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Wallet, Plus, Link2, ArrowLeft, ArrowRight } from 'lucide-react';
-import { listWallets, getCurrentUserId } from '@/lib/smpfWalletStore';
+import { listWallets, getCurrentUserId, setSession } from '@/lib/smpfWalletStore';
 import GenerationScreen from '@/components/smpf/GenerationScreen';
 import BackupScreen from '@/components/smpf/BackupScreen';
 import ActivationScreen from '@/components/smpf/ActivationScreen';
-import { setSession } from '@/lib/smpfWalletStore';
 import { createPageUrl } from '@/utils';
 
 const DUC_LOGO =
@@ -63,7 +62,9 @@ export default function SMPFWalletOnboarding() {
                     <Wallet className="w-7 h-7 text-white" />
                   </div>
                   <h2 className="text-xl font-bold text-white">Choose your wallet</h2>
-                  <p className="text-white/60 text-sm mt-1">Create a custom $DUC, SMPF, or TILL address — or a standard Solana keypair.</p>
+                  <p className="text-white/60 text-sm mt-1">
+                    Create a custom $DUC, SMPF, or TILL address — or a standard Solana keypair.
+                  </p>
                 </div>
 
                 <button
@@ -77,16 +78,20 @@ export default function SMPFWalletOnboarding() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <span className="text-white font-bold">Create My SMPF Wallet</span>
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-400/20 text-emerald-200 font-semibold">Recommended</span>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-400/20 text-emerald-200 font-semibold">
+                          Recommended
+                        </span>
                       </div>
-                      <p className="text-white/60 text-xs mt-1">A real Solana wallet with a custom $DUC, SMPF, or TILL address — or a standard keypair.</p>
+                      <p className="text-white/60 text-xs mt-1">
+                        A real Solana wallet with a custom $DUC, SMPF, or TILL address — or a standard keypair.
+                      </p>
                     </div>
                     <ArrowRight className="w-5 h-5 text-white/60" />
                   </div>
                 </button>
 
                 <button
-                  onClick={() => window.location.href = createPageUrl('SMPFWallet')}
+                  onClick={() => (window.location.href = createPageUrl('SMPFWallet'))}
                   className="w-full text-left p-5 rounded-xl bg-white/5 border-2 border-white/10 hover:border-white/30 transition-colors"
                 >
                   <div className="flex items-center gap-3">
