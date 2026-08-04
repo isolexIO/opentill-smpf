@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, X, AlertTriangle, Zap, ArrowLeft, Copy, Check, ShieldCheck, Key } from 'lucide-react';
 import { Keypair } from '@solana/web3.js';
 import bs58 from 'bs58';
+import { bufToB64 } from '@/lib/smpfCrypto';
 
 const VANITY_VALUES = ['SMPF', 'DUc', 'TILL'];
 
@@ -49,6 +50,7 @@ export default function GenerationScreen({ onFound, onBack, currentUserEmail = '
 
         const pubKey = matchedKeypair.publicKey.toBase58();
         const secretKeyBs58 = bs58.encode(matchedKeypair.secretKey);
+        const secretKeyB64 = bufToB64(matchedKeypair.secretKey);
 
         // Store directly in local browser storage
         const payload = {
@@ -68,6 +70,7 @@ export default function GenerationScreen({ onFound, onBack, currentUserEmail = '
         if (onFound) {
           onFound({
             address: pubKey,
+            secretKeyB64,
             privateKeyBs58: secretKeyBs58
           });
         }
