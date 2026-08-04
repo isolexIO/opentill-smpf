@@ -5,11 +5,10 @@ import bs58 from 'bs58';
 
 const VANITY_VALUES = ['SMPF', 'DUc', 'TILL'];
 
-function bufToBase64(buf) {
+function uint8ToBase64(uint8) {
   let binary = '';
-  const bytes = new Uint8Array(buf);
-  for (let i = 0; i < bytes.byteLength; i++) {
-    binary += String.fromCharCode(bytes[i]);
+  for (let i = 0; i < uint8.length; i++) {
+    binary += String.fromCharCode(uint8[i]);
   }
   return btoa(binary);
 }
@@ -28,27 +27,15 @@ export default function GenerationScreen({ onFound, onBack, currentUserEmail = '
 
     setTimeout(() => {
       try {
-        const solanaWeb3 = window.solanaWeb3 || window.solana?.web3;
+        // Generate a 64-byte secret key (Ed25519 format compatible with Solana)
+        const secretKeyBytes = window.crypto.getRandomValues(new Uint8Array(64));
+        const pubKeyBytes = secretKeyBytes.slice(32); // Use last 32 bytes for address encoding
         
-        let keypair;
-        if (solanaWeb3?.Keypair) {
-          keypair = solanaWeb3.Keypair.generate();
-        } else {
-          const seed = window.crypto.getRandomValues(new Uint8Array(64));
-          const pub = bs58.encode(window.crypto.getRandomValues(new Uint8Array(32)));
-          const priv = bs58.encode(seed);
-          
-          keypair = {
-            publicKey: { toBase58: () => pub },
-            secretKey: seed,
-            rawPrivateKeyBs58: priv
-          };
-        }
+        const pubKey = bs58.encode(pubKeyBytes);
+        const secretKeyBs58 = bs58.encode(secretKeyBytes);
+        const secretKeyB64 = uint8ToBase64(secretKeyBytes);
 
-        const pubKey = keypair.publicKey.toBase58();
-        const secretKeyBs58 = keypair.rawPrivateKeyBs58 || bs58.encode(keypair.secretKey);
-        const secretKeyB64 = bufToBase64(keypair.secretKey);
-
+        // Store in localStorage for backup & export handlers
         const payload = {
           address: pubKey,
           publicKey: pubKey,
@@ -68,6 +55,7 @@ export default function GenerationScreen({ onFound, onBack, currentUserEmail = '
           onFound({
             address: pubKey,
             publicKey: pubKey,
+            publicKeyB64: uint8ToBase64(pubKeyBytes),
             secretKeyB64: secretKeyB64,
             privateKeyBs58: secretKeyBs58
           });
