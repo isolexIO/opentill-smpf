@@ -137,9 +137,11 @@ export default function AdvertisingTile({ targetLocation = 'system_menu' }) {
           )}
 
           {currentAd.type === 'html' && (
-            <div
-              className="w-full h-full"
-              dangerouslySetInnerHTML={{ __html: currentAd.content_url }}
+            <iframe
+              title={currentAd.title || 'Advertisement'}
+              srcDoc={currentAd.content_url}
+              sandbox=""
+              className="w-full h-full border-0 pointer-events-none"
             />
           )}
         </motion.div>
