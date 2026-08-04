@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Keypair } from '@solana/web3.js';
 import bs58 from 'bs58';
-import { getWallet } from '@/lib/smpfWalletStore';
+import { base44 } from '@/api/base44Client';
+import { listWallets, getWallet } from '@/lib/smpfWalletStore';
 import { decryptWallet } from '@/lib/smpfCrypto';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -31,16 +32,28 @@ export default function PrivateKeyExport({ wallet }) {
 
     setBusy(true);
     try {
-      // 1. Fetch wallet entry from local store
-      const localWallet = wallet?.id ? wallet : await getWallet(wallet?.address);
-      if (!localWallet || !localWallet.encryptedSecretKey) {
-        throw new Error('No encrypted secret key stored for this wallet.');
+      // 1. Get current user
+      const currentUser = await base44.auth.me();
+
+      // 2. Fetch full local wallet entry with encryptedSecretKey
+      let targetWallet = wallet?.encryptedSecretKey ? wallet : null;
+
+      if (!targetWallet) {
+        const userWallets = await listWallets(currentUser?.id).catch(() => []);
+        targetWallet = userWallets?.[0] || null;
       }
 
-      // 2. Decrypt wallet secret key using passphrase
-      const decrypted = await decryptWallet(localWallet, passphrase);
+      if (!targetWallet && wallet?.address) {
+        targetWallet = await getWallet(wallet.address).catch(() => null);
+      }
+
+      if (!targetWallet || !targetWallet.encryptedSecretKey) {
+        throw new Error('No encrypted secret key stored locally in browser storage for this account.');
+      }
+
+      // 3. Decrypt wallet secret key using passphrase
+      const decrypted = await decryptWallet(targetWallet, passphrase);
       
-      // Handle both raw Uint8Array, secretKeyB64 string, or base64 object outputs
       let secretKeyBytes;
       if (decrypted instanceof Uint8Array) {
         secretKeyBytes = decrypted;
@@ -54,10 +67,10 @@ export default function PrivateKeyExport({ wallet }) {
         throw new Error('Invalid secret key structure returned from decryption.');
       }
 
-      // 3. Verify keypair validity with Solana Web3 Keypair
+      // 4. Verify keypair validity with Solana Web3 Keypair
       const keypair = Keypair.fromSecretKey(secretKeyBytes);
 
-      // 4. Format for Solflare / Phantom imports
+      // 5. Format for Solflare / Phantom imports
       const base58Key = bs58.encode(keypair.secretKey);
       const byteArrayKey = JSON.stringify(Array.from(keypair.secretKey));
 
@@ -153,7 +166,7 @@ export default function PrivateKeyExport({ wallet }) {
               </p>
             </div>
 
-            {/* Byte Array Format (Solflare Alternate / CLI) */}
+            {/* Byte Array Format */}
             <div className="space-y-1.5 p-3 bg-slate-950 border border-white/10 rounded-lg">
               <div className="flex justify-between items-center">
                 <span className="text-[10px] text-indigo-400 font-mono uppercase font-semibold">
