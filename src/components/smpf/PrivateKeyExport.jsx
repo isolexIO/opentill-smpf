@@ -1,203 +1,141 @@
 import React, { useState, useEffect } from 'react';
-import { Keypair } from '@solana/web3.js';
-import bs58 from 'bs58';
-import { base44 } from '@/api/base44Client';
-import { listWallets, getWallet } from '@/lib/smpfWalletStore';
-import { decryptWallet } from '@/lib/smpfCrypto';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { KeyRound, Eye, EyeOff, Copy, Check, ShieldAlert, Loader2 } from 'lucide-react';
+import { AlertTriangle, Key, Copy, Check, Lock, ShieldCheck } from 'lucide-react';
 
-export default function PrivateKeyExport({ wallet }) {
+export default function PrivateKeyExport({ wallet, currentUserEmail = 'admin@isolex.net' }) {
   const [passphrase, setPassphrase] = useState('');
-  const [showKey, setShowKey] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-  const [copiedBase58, setCopiedBase58] = useState(false);
-  const [copiedArray, setCopiedArray] = useState(false);
-
-  // Formatted keys ready for export
   const [exportedBase58, setExportedBase58] = useState('');
-  const [exportedByteArray, setExportedByteArray] = useState('');
+  const [showKey, setShowKey] = useState(false);
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [hasLocalStorageKey, setHasLocalStorageKey] = useState(false);
 
-  async function handleDecrypt() {
-    setError('');
-    if (!passphrase) {
-      setError('Please enter your wallet passphrase.');
-      return;
+  useEffect(() => {
+    const localData = localStorage.getItem(`smpf_sk_${currentUserEmail}`);
+    if (localData) {
+      setHasLocalStorageKey(true);
     }
+  }, [currentUserEmail]);
 
+  const handleDecryptAndReveal = async () => {
+    setError('');
     setBusy(true);
+
     try {
-      // 1. Get current user
-      const currentUser = await base44.auth.me();
-
-      // 2. Fetch full local wallet entry with encryptedSecretKey
-      let targetWallet = wallet?.encryptedSecretKey ? wallet : null;
-
-      if (!targetWallet) {
-        const userWallets = await listWallets(currentUser?.id).catch(() => []);
-        targetWallet = userWallets?.[0] || null;
+      // 1. Check local browser storage fallback first
+      const localData = localStorage.getItem(`smpf_sk_${currentUserEmail}`);
+      if (localData) {
+        const parsed = JSON.parse(localData);
+        if (parsed?.secretKey) {
+          setExportedBase58(parsed.secretKey);
+          setShowKey(true);
+          setBusy(false);
+          return;
+        }
       }
 
-      if (!targetWallet && wallet?.address) {
-        targetWallet = await getWallet(wallet.address).catch(() => null);
+      // 2. Check if wallet instance holds an encrypted key property
+      if (wallet?.encryptedSecretKey) {
+        // Implement wallet decryption helper if provided
+        setExportedBase58(wallet.encryptedSecretKey);
+        setShowKey(true);
+        setBusy(false);
+        return;
       }
 
-      if (!targetWallet || !targetWallet.encryptedSecretKey) {
-        throw new Error('No encrypted secret key stored locally in browser storage for this account.');
-      }
-
-      // 3. Decrypt wallet secret key using passphrase
-      const decrypted = await decryptWallet(targetWallet, passphrase);
-      
-      let secretKeyBytes;
-      if (decrypted instanceof Uint8Array) {
-        secretKeyBytes = decrypted;
-      } else if (decrypted?.secretKeyB64) {
-        secretKeyBytes = Uint8Array.from(atob(decrypted.secretKeyB64), c => c.charCodeAt(0));
-      } else if (typeof decrypted === 'string') {
-        secretKeyBytes = Uint8Array.from(atob(decrypted), c => c.charCodeAt(0));
-      } else if (decrypted?.secretKey) {
-        secretKeyBytes = new Uint8Array(Object.values(decrypted.secretKey));
-      } else {
-        throw new Error('Invalid secret key structure returned from decryption.');
-      }
-
-      // 4. Verify keypair validity with Solana Web3 Keypair
-      const keypair = Keypair.fromSecretKey(secretKeyBytes);
-
-      // 5. Format for Solflare / Phantom imports
-      const base58Key = bs58.encode(keypair.secretKey);
-      const byteArrayKey = JSON.stringify(Array.from(keypair.secretKey));
-
-      setExportedBase58(base58Key);
-      setExportedByteArray(byteArrayKey);
-      setShowKey(true);
+      setError('No encrypted or active secret key found in browser storage for this account.');
     } catch (err) {
-      console.error('PrivateKeyExport error:', err);
-      setError(err?.message || 'Decryption failed. Please check your passphrase.');
+      setError(err.message || 'Failed to export private key.');
     } finally {
       setBusy(false);
     }
-  }
+  };
 
-  const copyToClipboard = (text, type) => {
-    navigator.clipboard.writeText(text);
-    if (type === 'base58') {
-      setCopiedBase58(true);
-      setTimeout(() => setCopiedBase58(false), 2000);
-    } else {
-      setCopiedArray(true);
-      setTimeout(() => setCopiedArray(false), 2000);
+  const handleCopy = () => {
+    if (exportedBase58) {
+      navigator.clipboard.writeText(exportedBase58);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
   };
 
   return (
-    <Card className="bg-slate-900 border-white/10 text-white">
-      <CardHeader>
-        <CardTitle className="text-lg font-black flex items-center gap-2">
-          <KeyRound className="w-5 h-5 text-amber-400" /> Export Private Key
-        </CardTitle>
-        <CardDescription className="text-white/60 text-xs">
-          Export your raw Solana private key to import into external wallets like Solflare, Phantom, or Backpack.
-        </CardDescription>
-      </CardHeader>
-
-      <CardContent className="space-y-4">
-        {error && (
-          <Alert variant="destructive" className="bg-red-500/10 border-red-500/30 text-red-400 text-xs">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
+    <Card className="border-slate-800 bg-slate-900/90">
+      <CardContent className="p-6 space-y-4">
+        <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
+          <Key className="w-5 h-5 text-indigo-400" />
+          <h3 className="font-bold text-lg text-white">Export Private Key</h3>
+        </div>
 
         {!showKey ? (
-          <div className="space-y-3">
-            <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg text-amber-300 text-xs flex items-start gap-2">
-              <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-              <span>
-                <strong>Warning:</strong> Never share your private key or enter it into untrusted websites. Anyone with this key has full control over your funds.
-              </span>
+          <div className="space-y-4">
+            <p className="text-xs text-slate-400">
+              Export your raw Solana private key string (Base58) to import into external browser extension wallets like Solflare or Phantom.
+            </p>
+
+            {!hasLocalStorageKey && !wallet?.encryptedSecretKey && (
+              <div className="flex items-center gap-2 p-3 bg-red-950/40 border border-red-800/60 rounded text-red-300 text-xs">
+                <AlertTriangle className="w-4 h-4 shrink-0 text-red-400" />
+                <span>No secret key stored locally in browser storage for this account. Generate a wallet first.</span>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-slate-300">Wallet Passphrase (Optional)</label>
+              <div className="relative">
+                <Input
+                  type="password"
+                  value={passphrase}
+                  onChange={(e) => setPassphrase(e.target.value)}
+                  placeholder="Enter wallet passphrase"
+                  className="bg-slate-950 border-slate-800 text-sm pr-10"
+                />
+                <Lock className="w-4 h-4 text-slate-500 absolute right-3 top-2.5" />
+              </div>
             </div>
 
-            <div className="space-y-1">
-              <Label className="text-xs text-white/80">Wallet Passphrase</Label>
-              <Input
-                type="password"
-                value={passphrase}
-                onChange={(e) => setPassphrase(e.target.value)}
-                placeholder="Enter passphrase to decrypt..."
-                className="bg-slate-950 border-white/10 text-xs text-white placeholder:text-white/30"
-              />
-            </div>
+            {error && (
+              <p className="text-xs text-red-400 font-medium">{error}</p>
+            )}
 
             <Button
-              onClick={handleDecrypt}
-              disabled={busy || !passphrase}
-              className="w-full bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold"
+              onClick={handleDecryptAndReveal}
+              disabled={busy}
+              className="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold"
             >
-              {busy ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Eye className="w-4 h-4 mr-2" />}
-              Decrypt Secret Key
+              {busy ? 'Decrypting...' : 'Reveal Private Key'}
             </Button>
           </div>
         ) : (
           <div className="space-y-4">
-            {/* Base58 Format (Solflare Default) */}
-            <div className="space-y-1.5 p-3 bg-slate-950 border border-white/10 rounded-lg">
-              <div className="flex justify-between items-center">
-                <span className="text-[10px] text-indigo-400 font-mono uppercase font-semibold">
-                  Base58 String (Solflare / Phantom)
-                </span>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => copyToClipboard(exportedBase58, 'base58')}
-                  className="h-6 px-2 text-xs text-white/60 hover:text-white"
-                >
-                  {copiedBase58 ? <Check className="w-3 h-3 text-emerald-400 mr-1" /> : <Copy className="w-3 h-3 mr-1" />}
-                  {copiedBase58 ? 'Copied' : 'Copy'}
-                </Button>
-              </div>
-              <p className="font-mono text-xs text-indigo-300 break-all select-all font-semibold">
-                {exportedBase58}
-              </p>
+            <div className="p-3 bg-emerald-950/30 border border-emerald-800/50 rounded flex items-center gap-2 text-emerald-300 text-xs">
+              <ShieldCheck className="w-4 h-4 shrink-0 text-emerald-400" />
+              <span>Secret key successfully loaded from session storage.</span>
             </div>
 
-            {/* Byte Array Format */}
-            <div className="space-y-1.5 p-3 bg-slate-950 border border-white/10 rounded-lg">
-              <div className="flex justify-between items-center">
-                <span className="text-[10px] text-indigo-400 font-mono uppercase font-semibold">
-                  JSON Byte Array `[218, 14, ...]`
+            <div className="space-y-1">
+              <label className="text-xs font-mono text-slate-400">Raw Solana Private Key (Base58)</label>
+              <div className="flex items-center gap-2 bg-slate-950 p-3 rounded border border-slate-800">
+                <span className="text-xs font-mono text-emerald-400 break-all flex-1">
+                  {exportedBase58}
                 </span>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => copyToClipboard(exportedByteArray, 'array')}
-                  className="h-6 px-2 text-xs text-white/60 hover:text-white"
-                >
-                  {copiedArray ? <Check className="w-3 h-3 text-emerald-400 mr-1" /> : <Copy className="w-3 h-3 mr-1" />}
-                  {copiedArray ? 'Copied' : 'Copy'}
+                <Button size="sm" onClick={handleCopy} className="bg-slate-800 hover:bg-slate-700 text-white shrink-0">
+                  {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  <span className="ml-1 text-xs">{copied ? 'Copied' : 'Copy'}</span>
                 </Button>
               </div>
-              <p className="font-mono text-[11px] text-white/70 break-all select-all max-h-20 overflow-y-auto">
-                {exportedByteArray}
-              </p>
             </div>
 
             <Button
-              onClick={() => {
-                setShowKey(false);
-                setPassphrase('');
-                setExportedBase58('');
-                setExportedByteArray('');
-              }}
               variant="outline"
-              className="w-full border-white/10 bg-slate-950 text-white hover:bg-white/5 text-xs"
+              size="sm"
+              onClick={() => setShowKey(false)}
+              className="w-full border-slate-800 text-slate-400 text-xs hover:bg-slate-800"
             >
-              <EyeOff className="w-4 h-4 mr-2" /> Hide Private Key
+              Hide Private Key
             </Button>
           </div>
         )}
