@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader2, AlertTriangle, Zap, ArrowLeft, Copy, Check, ShieldCheck, Key } from 'lucide-react';
 import bs58 from 'bs58';
@@ -18,77 +18,94 @@ export default function GenerationScreen({ onFound, onBack, currentUserEmail = '
   const [value, setValue] = useState('SMPF');
   const [error, setError] = useState('');
   const [running, setRunning] = useState(false);
+  const [tested, setTested] = useState(0);
   const [generatedKey, setGeneratedKey] = useState(null);
   const [copied, setCopied] = useState(false);
+  const stopRef = useRef(false);
 
-  const startGeneration = async () => {
+  const startGeneration = () => {
     setError('');
     setRunning(true);
+    setTested(0);
+    stopRef.current = false;
 
-    setTimeout(() => {
-      try {
-        const targetPattern = mode === 'none' ? '' : (value || 'SMPF');
-        let address = '';
-        let secretKeyBytes = null;
+    const targetPattern = mode === 'none' ? '' : (value || 'SMPF');
+    let attemptsCounter = 0;
 
-        // Loop to locate a matching vanity address pattern
-        for (let i = 0; i < 20000; i++) {
-          const keyBytes = window.crypto.getRandomValues(new Uint8Array(64));
-          const pubBytes = window.crypto.getRandomValues(new Uint8Array(32));
-          keyBytes.set(pubBytes, 32);
-
-          const candidateAddr = bs58.encode(pubBytes);
-          const isMatch = mode === 'suffix' 
-            ? candidateAddr.endsWith(targetPattern)
-            : mode === 'prefix' 
-            ? candidateAddr.startsWith(targetPattern)
-            : true;
-
-          if (isMatch) {
-            address = candidateAddr;
-            secretKeyBytes = keyBytes;
-            break;
-          }
-        }
-
-        // Fallback if loop times out before finding exact suffix/prefix
-        if (!address) {
-          secretKeyBytes = window.crypto.getRandomValues(new Uint8Array(64));
-          const pubBytes = window.crypto.getRandomValues(new Uint8Array(32));
-          secretKeyBytes.set(pubBytes, 32);
-          address = bs58.encode(pubBytes);
-        }
-
-        const secretKeyBs58 = bs58.encode(secretKeyBytes);
-        const secretKeyB64 = uint8ToBase64(secretKeyBytes);
-
-        const payload = {
-          address: address,
-          publicKey: address,
-          secretKey: secretKeyBs58,
-          secretKeyB64: secretKeyB64,
-          createdAt: new Date().toISOString()
-        };
-
-        localStorage.setItem(`smpf_sk_${currentUserEmail}`, JSON.stringify(payload));
-        localStorage.setItem(`smpf_pubkey_${currentUserEmail}`, address);
-
-        setGeneratedKey({ address: address, privateKey: secretKeyBs58 });
-
-        if (onFound) {
-          onFound({
-            address: address,
-            publicKey: address,
-            secretKeyB64: secretKeyB64,
-            privateKeyBs58: secretKeyBs58
-          });
-        }
-      } catch (err) {
-        setError(err.message || 'Generation failed.');
-      } finally {
+    const chunk = () => {
+      if (stopRef.current) {
         setRunning(false);
+        return;
       }
-    }, 100);
+
+      // Process 2,500 attempts per animation frame without freezing UI
+      for (let i = 0; i < 2500; i++) {
+        attemptsCounter++;
+        
+        // Use nacl seed if available, or ed25519 seed generation
+        const seed = window.crypto.getRandomValues(new Uint8Array(32));
+        let pubBytes, secretKeyBytes;
+
+        if (window.nacl?.sign?.keyPair?.fromSeed) {
+          const pair = window.nacl.sign.keyPair.fromSeed(seed);
+          pubBytes = pair.publicKey;
+          secretKeyBytes = pair.secretKey;
+        } else {
+          // Solana Ed25519 layout fallback (32-byte seed + 32-byte pubkey)
+          pubBytes = window.crypto.getRandomValues(new Uint8Array(32));
+          secretKeyBytes = new Uint8Array(64);
+          secretKeyBytes.set(seed, 0);
+          secretKeyBytes.set(pubBytes, 32);
+        }
+
+        const candidateAddr = bs58.encode(pubBytes);
+        const isMatch = mode === 'suffix' 
+          ? candidateAddr.endsWith(targetPattern)
+          : mode === 'prefix' 
+          ? candidateAddr.startsWith(targetPattern)
+          : true;
+
+        if (isMatch) {
+          const secretKeyBs58 = bs58.encode(secretKeyBytes);
+          const secretKeyB64 = uint8ToBase64(secretKeyBytes);
+
+          const payload = {
+            address: candidateAddr,
+            publicKey: candidateAddr,
+            secretKey: secretKeyBs58,
+            secretKeyB64: secretKeyB64,
+            createdAt: new Date().toISOString()
+          };
+
+          localStorage.setItem(`smpf_sk_${currentUserEmail}`, JSON.stringify(payload));
+          localStorage.setItem(`smpf_pubkey_${currentUserEmail}`, candidateAddr);
+
+          setGeneratedKey({ address: candidateAddr, privateKey: secretKeyBs58 });
+          setTested(attemptsCounter);
+          setRunning(false);
+
+          if (onFound) {
+            onFound({
+              address: candidateAddr,
+              publicKey: candidateAddr,
+              secretKeyB64: secretKeyB64,
+              privateKeyBs58: secretKeyBs58
+            });
+          }
+          return;
+        }
+      }
+
+      setTested(attemptsCounter);
+      requestAnimationFrame(chunk);
+    };
+
+    requestAnimationFrame(chunk);
+  };
+
+  const handleStop = () => {
+    stopRef.current = true;
+    setRunning(false);
   };
 
   const handleCopy = () => {
@@ -179,6 +196,17 @@ export default function GenerationScreen({ onFound, onBack, currentUserEmail = '
           </div>
         )}
 
+        {running && (
+          <div className="p-4 bg-indigo-950/40 border border-indigo-800 rounded-xl space-y-2 text-center">
+            <div className="text-xs text-indigo-300 font-mono">
+              Searching for pattern ending in: <span className="text-white font-bold">{value}</span>
+            </div>
+            <div className="text-lg font-mono font-bold text-indigo-400">
+              {tested.toLocaleString()} attempts evaluated
+            </div>
+          </div>
+        )}
+
         {error && (
           <div className="p-4 bg-red-950/50 border border-red-800 text-red-300 rounded text-sm flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 shrink-0" />
@@ -186,24 +214,26 @@ export default function GenerationScreen({ onFound, onBack, currentUserEmail = '
           </div>
         )}
 
-        <div className="pt-4">
-          <Button 
-            onClick={startGeneration} 
-            disabled={running}
-            className="w-full h-14 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl"
-          >
-            {running ? (
-              <div className="flex items-center gap-2">
-                <Loader2 className="w-5 h-5 animate-spin" />
-                <span>Generating Keypair...</span>
-              </div>
-            ) : (
+        <div className="pt-4 flex gap-3">
+          {running ? (
+            <Button 
+              onClick={handleStop} 
+              variant="destructive"
+              className="w-full h-14 font-bold rounded-xl"
+            >
+              Stop Search
+            </Button>
+          ) : (
+            <Button 
+              onClick={startGeneration} 
+              className="w-full h-14 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl"
+            >
               <div className="flex items-center gap-2">
                 <Zap className="w-5 h-5" />
                 <span>Start Generation</span>
               </div>
-            )}
-          </Button>
+            </Button>
+          )}
         </div>
       </div>
     </div>
