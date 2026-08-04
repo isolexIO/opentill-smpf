@@ -4,7 +4,8 @@ import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, Lock, LogIn, Wallet, ShieldCheck, RefreshCw, Send, ArrowDownLeft, Coins, Cpu, KeyRound } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Loader2, Lock, LogIn, Wallet, ShieldCheck, Send, ArrowDownLeft, Coins, Cpu, KeyRound, Copy, Check, QrCode } from 'lucide-react';
 
 // Import your SMPF sub-components
 import PrivateKeyExport from '@/components/smpf/PrivateKeyExport';
@@ -17,6 +18,10 @@ export default function SMPFWallet() {
   const [loading, setLoading] = useState(true);
   const [balance, setBalance] = useState(0);
   const [activeTab, setActiveTab] = useState('overview');
+
+  // Receive Modal States
+  const [isReceiveOpen, setIsReceiveOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     initWallet();
@@ -52,6 +57,16 @@ export default function SMPFWallet() {
     }
   }
 
+  // Handle address copy
+  const handleCopyAddress = () => {
+    const address = wallet?.public_key || wallet?.solana_address || user?.id || '';
+    if (address) {
+      navigator.clipboard.writeText(address);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-4">
@@ -63,7 +78,7 @@ export default function SMPFWallet() {
     );
   }
 
-  // Authentication Fallback Screen (Matching openTILL theme)
+  // Authentication Fallback Screen
   if (!user) {
     return (
       <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-4">
@@ -84,6 +99,8 @@ export default function SMPFWallet() {
       </div>
     );
   }
+
+  const walletAddress = wallet?.public_key || wallet?.solana_address || user?.id || 'No public address assigned';
 
   return (
     <div className="min-h-screen bg-slate-950 text-white p-4 md:p-8 space-y-6">
@@ -121,16 +138,6 @@ export default function SMPFWallet() {
           </div>
         </div>
 
-        {/* System Paused Warning Banner */}
-        {settings?.is_paused && (
-          <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-300 text-xs flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Lock className="w-4 h-4 text-amber-400 shrink-0" />
-              <span><strong>Circuit Breaker Active:</strong> Wallet outgoing transfers are temporarily paused by the administrator.</span>
-            </div>
-          </div>
-        )}
-
         {/* Main Wallet Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="bg-slate-900 border border-white/10 p-1 rounded-xl">
@@ -162,7 +169,11 @@ export default function SMPFWallet() {
                   <Button disabled={settings?.is_paused} className="bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold">
                     <Send className="w-3.5 h-3.5 mr-1.5" /> Send SOL / Token
                   </Button>
-                  <Button variant="outline" className="border-white/10 bg-slate-950 text-white hover:bg-white/5 text-xs font-semibold">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsReceiveOpen(true)}
+                    className="border-white/10 bg-slate-950 text-white hover:bg-white/5 text-xs font-semibold"
+                  >
                     <ArrowDownLeft className="w-3.5 h-3.5 mr-1.5" /> Receive
                   </Button>
                 </CardContent>
@@ -186,14 +197,11 @@ export default function SMPFWallet() {
             </div>
           </TabsContent>
 
-          {/* Featured Tokens Tab */}
           <TabsContent value="tokens">
             <Card className="bg-slate-900 border-white/10 text-white">
               <CardHeader>
                 <CardTitle className="text-lg">Whitelisted Tokens</CardTitle>
-                <CardDescription className="text-white/60 text-xs">
-                  Tokens configured by the network administrator.
-                </CardDescription>
+                <CardDescription className="text-white/60 text-xs">Tokens configured by the network administrator.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-2">
                 {(settings?.featured_tokens || []).map((mint) => (
@@ -209,19 +217,15 @@ export default function SMPFWallet() {
             </Card>
           </TabsContent>
 
-          {/* Security & Keys Tab */}
           <TabsContent value="keys">
             <PrivateKeyExport />
           </TabsContent>
 
-          {/* Hardware Chips Tab */}
           <TabsContent value="chips">
             <Card className="bg-slate-900 border-white/10 text-white">
               <CardHeader>
                 <CardTitle className="text-lg">Hardware & NFC Chips</CardTitle>
-                <CardDescription className="text-white/60 text-xs">
-                  Registered openTILL chips linked to your POS workspace.
-                </CardDescription>
+                <CardDescription className="text-white/60 text-xs">Registered openTILL chips linked to your POS workspace.</CardDescription>
               </CardHeader>
               <CardContent>
                 <p className="text-xs text-white/40 italic">Scan or attach an openTILL NFC chip to link hardware credentials.</p>
@@ -229,6 +233,32 @@ export default function SMPFWallet() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Receive Assets Modal */}
+        <Dialog open={isReceiveOpen} onOpenChange={setIsReceiveOpen}>
+          <DialogContent className="bg-slate-900 border-white/10 text-white max-w-sm rounded-xl">
+            <DialogHeader>
+              <DialogTitle className="text-lg font-black flex items-center gap-2">
+                <ArrowDownLeft className="w-5 h-5 text-indigo-400" /> Receive Assets
+              </DialogTitle>
+              <DialogDescription className="text-white/60 text-xs">
+                Scan or copy your Solana public address to receive SOL, $DUC, or whitelisted tokens.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 py-2">
+              <div className="p-3 bg-slate-950 border border-white/10 rounded-lg text-center space-y-2">
+                <span className="text-[10px] text-white/40 font-mono uppercase tracking-wider block">Your Public Address</span>
+                <p className="font-mono text-xs text-indigo-300 break-all select-all px-2">{walletAddress}</p>
+              </div>
+
+              <Button onClick={handleCopyAddress} className="w-full bg-indigo-600 hover:bg-indigo-500 font-semibold text-xs">
+                {copied ? <Check className="w-4 h-4 mr-2 text-emerald-300" /> : <Copy className="w-4 h-4 mr-2" />}
+                {copied ? 'Copied Address!' : 'Copy Wallet Address'}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
       </div>
     </div>
