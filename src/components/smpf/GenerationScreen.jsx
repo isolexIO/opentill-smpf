@@ -185,4 +185,4 @@ export default function GenerationScreen({ onFound, onBack, currentUserEmail = '
       </div>
     </div>
   );
-}
+} 
