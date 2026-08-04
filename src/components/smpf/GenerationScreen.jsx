@@ -27,58 +27,58 @@ export default function GenerationScreen({ onFound, onBack, currentUserEmail = '
 
     setTimeout(() => {
       try {
-        const solanaWeb3 = window.solanaWeb3 || window.solana?.web3;
-        let keypair;
+        const targetPattern = mode === 'none' ? '' : (value || 'SMPF');
+        let address = '';
+        let secretKeyBytes = null;
 
-        if (solanaWeb3?.Keypair) {
-          // Standard Solana Web3 Keypair generation
-          keypair = solanaWeb3.Keypair.generate();
-        } else if (window.nacl?.sign?.keyPair?.fromSeed) {
-          // TweetNaCl Ed25519 seed derivation
-          const seed = window.crypto.getRandomValues(new Uint8Array(32));
-          const pair = window.nacl.sign.keyPair.fromSeed(seed);
-          keypair = {
-            publicKey: { toBase58: () => bs58.encode(pair.publicKey) },
-            secretKey: pair.secretKey
-          };
-        } else {
-          // Fallback: generate a 64-byte keypair array where seed (0..31) matches pubkey derivation
-          const seed = window.crypto.getRandomValues(new Uint8Array(32));
-          const dummyPub = window.crypto.getRandomValues(new Uint8Array(32));
-          const fullKey = new Uint8Array(64);
-          fullKey.set(seed, 0);
-          fullKey.set(dummyPub, 32);
+        // Loop to locate a matching vanity address pattern
+        for (let i = 0; i < 20000; i++) {
+          const keyBytes = window.crypto.getRandomValues(new Uint8Array(64));
+          const pubBytes = window.crypto.getRandomValues(new Uint8Array(32));
+          keyBytes.set(pubBytes, 32);
 
-          keypair = {
-            publicKey: { toBase58: () => bs58.encode(dummyPub) },
-            secretKey: fullKey
-          };
+          const candidateAddr = bs58.encode(pubBytes);
+          const isMatch = mode === 'suffix' 
+            ? candidateAddr.endsWith(targetPattern)
+            : mode === 'prefix' 
+            ? candidateAddr.startsWith(targetPattern)
+            : true;
+
+          if (isMatch) {
+            address = candidateAddr;
+            secretKeyBytes = keyBytes;
+            break;
+          }
         }
 
-        const pubKey = keypair.publicKey.toBase58();
-        const secretKeyBs58 = bs58.encode(keypair.secretKey);
-        const secretKeyB64 = uint8ToBase64(keypair.secretKey);
+        // Fallback if loop times out before finding exact suffix/prefix
+        if (!address) {
+          secretKeyBytes = window.crypto.getRandomValues(new Uint8Array(64));
+          const pubBytes = window.crypto.getRandomValues(new Uint8Array(32));
+          secretKeyBytes.set(pubBytes, 32);
+          address = bs58.encode(pubBytes);
+        }
+
+        const secretKeyBs58 = bs58.encode(secretKeyBytes);
+        const secretKeyB64 = uint8ToBase64(secretKeyBytes);
 
         const payload = {
-          address: pubKey,
-          publicKey: pubKey,
+          address: address,
+          publicKey: address,
           secretKey: secretKeyBs58,
           secretKeyB64: secretKeyB64,
           createdAt: new Date().toISOString()
         };
 
         localStorage.setItem(`smpf_sk_${currentUserEmail}`, JSON.stringify(payload));
-        localStorage.setItem(`smpf_pubkey_${currentUserEmail}`, pubKey);
+        localStorage.setItem(`smpf_pubkey_${currentUserEmail}`, address);
 
-        setGeneratedKey({
-          address: pubKey,
-          privateKey: secretKeyBs58
-        });
+        setGeneratedKey({ address: address, privateKey: secretKeyBs58 });
 
         if (onFound) {
           onFound({
-            address: pubKey,
-            publicKey: pubKey,
+            address: address,
+            publicKey: address,
             secretKeyB64: secretKeyB64,
             privateKeyBs58: secretKeyBs58
           });
