@@ -1,188 +1,235 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Loader2, AlertTriangle, Zap, ArrowLeft, Copy, Check, ShieldCheck, Key } from 'lucide-react';
-import bs58 from 'bs58';
+import { Card, CardContent } from '@/components/ui/card';
+import { Loader2, X, AlertTriangle, Zap, ArrowLeft } from 'lucide-react';
 
-const VANITY_VALUES = ['SMPF', 'DUc', 'TILL'];
+const VANITY_VALUES = ['SMPF', 'DUC', 'TILL'];
 
-function uint8ToBase64(uint8) {
-  let binary = '';
-  for (let i = 0; i < uint8.length; i++) {
-    binary += String.fromCharCode(uint8[i]);
-  }
-  return btoa(binary);
-}
-
-export default function GenerationScreen({ onFound, onBack, currentUserEmail = 'admin@isolex.net' }) {
-  const [mode, setMode] = useState('suffix');
+// Generates a real Solana keypair whose base58 address matches the user's
+// chosen vanity pattern (prefix, suffix, or a standard keypair) inside a
+// Web Worker so the UI stays responsive.
+export default function GenerationScreen({ onFound, onBack }) {
+  const [mode, setMode] = useState('suffix'); // 'suffix' | 'prefix' | 'none'
   const [value, setValue] = useState('SMPF');
+  const [tested, setTested] = useState(0);
+  const [elapsed, setElapsed] = useState(0);
   const [error, setError] = useState('');
   const [running, setRunning] = useState(false);
-  const [generatedKey, setGeneratedKey] = useState(null);
-  const [copied, setCopied] = useState(false);
+  const [started, setStarted] = useState(false);
+  const workerRef = useRef(null);
 
-  const startGeneration = async () => {
+  useEffect(() => () => stopWorker(), []);
+
+  function start() {
     setError('');
+    setTested(0);
+    setElapsed(0);
     setRunning(true);
-
-    setTimeout(() => {
-      try {
-        // Generate a 64-byte secret key (Ed25519 format compatible with Solana)
-        const secretKeyBytes = window.crypto.getRandomValues(new Uint8Array(64));
-        const pubKeyBytes = secretKeyBytes.slice(32); // Use last 32 bytes for address encoding
-        
-        const pubKey = bs58.encode(pubKeyBytes);
-        const secretKeyBs58 = bs58.encode(secretKeyBytes);
-        const secretKeyB64 = uint8ToBase64(secretKeyBytes);
-
-        // Store in localStorage for backup & export handlers
-        const payload = {
-          address: pubKey,
-          publicKey: pubKey,
-          secretKey: secretKeyBs58,
-          secretKeyB64: secretKeyB64,
-          createdAt: new Date().toISOString()
-        };
-        localStorage.setItem(`smpf_sk_${currentUserEmail}`, JSON.stringify(payload));
-        localStorage.setItem(`smpf_pubkey_${currentUserEmail}`, pubKey);
-
-        setGeneratedKey({
-          address: pubKey,
-          privateKey: secretKeyBs58
-        });
-
-        if (onFound) {
-          onFound({
-            address: pubKey,
-            publicKey: pubKey,
-            publicKeyB64: uint8ToBase64(pubKeyBytes),
-            secretKeyB64: secretKeyB64,
-            privateKeyBs58: secretKeyBs58
-          });
-        }
-      } catch (err) {
-        setError(err.message || 'Generation failed.');
-      } finally {
+    setStarted(true);
+    const worker = new Worker(new URL('../../workers/smpfWorker.js', import.meta.url), { type: 'module' });
+    workerRef.current = worker;
+    worker.onmessage = (e) => {
+      const msg = e.data;
+      if (msg.type === 'progress') {
+        setTested(msg.tested);
+        setElapsed(msg.elapsed);
+      } else if (msg.type === 'found') {
         setRunning(false);
+        setTested(msg.tested);
+        setElapsed(msg.elapsed);
+        worker.terminate();
+        workerRef.current = null;
+        onFound({
+          address: msg.address,
+          secretKeyB64: msg.secretKeyB64,
+          publicKeyB64: msg.publicKeyB64,
+          tested: msg.tested,
+          elapsed: msg.elapsed,
+        });
+      } else if (msg.type === 'cancelled') {
+        setRunning(false);
+      } else if (msg.type === 'error') {
+        setRunning(false);
+        setError(msg.error);
       }
-    }, 100);
-  };
+    };
+    worker.postMessage({ type: 'start', mode, value: mode === 'none' ? '' : value });
+  }
 
-  const handleCopy = () => {
-    if (generatedKey?.privateKey) {
-      navigator.clipboard.writeText(generatedKey.privateKey);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+  function stopWorker() {
+    if (workerRef.current) {
+      workerRef.current.postMessage({ type: 'cancel' });
+      workerRef.current.terminate();
+      workerRef.current = null;
     }
-  };
+  }
 
-  return (
-    <div className="min-h-[80vh] flex flex-col justify-center items-center px-4 py-8 max-w-4xl mx-auto w-full">
-      <div className="w-full flex items-center justify-between mb-8 border-b border-slate-800 pb-4">
-        <Button variant="ghost" onClick={onBack} className="text-slate-400 hover:text-white gap-2">
-          <ArrowLeft className="w-4 h-4" /> Back to Dashboard
-        </Button>
-        <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
-          <Key className="w-6 h-6 text-indigo-400" /> Generate Keypair
-        </h1>
-      </div>
+  function handleCancel() {
+    stopWorker();
+    setRunning(false);
+  }
 
-      {generatedKey && (
-        <div className="w-full mb-8 p-6 bg-amber-950/40 border border-amber-500/50 rounded-xl space-y-4">
-          <div className="flex items-center gap-2 text-amber-400 font-bold text-lg">
-            <ShieldCheck className="w-6 h-6 shrink-0" />
-            <span>Wallet Generated Successfully!</span>
-          </div>
-          <p className="text-xs text-amber-200/80">
-            Keypair saved locally in browser storage. Copy the private key below to import into external wallets:
+  function handleRestart() {
+    stopWorker();
+    start();
+  }
+
+  function handleEditConfig() {
+    stopWorker();
+    setRunning(false);
+    setStarted(false);
+  }
+
+  const secs = (elapsed / 1000).toFixed(1);
+  const rate = elapsed > 0 ? Math.round(tested / (elapsed / 1000)).toLocaleString() : '0';
+  const targetLabel =
+    mode === 'none'
+      ? 'Standard Solana keypair'
+      : mode === 'prefix'
+      ? `Address starting with ${value}`
+      : `Address ending with ${value}`;
+
+  if (!started) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-white">Customize your wallet</h2>
+          <p className="text-white/70 mt-2">
+            Choose a vanity pattern for your Solana address, or generate a standard keypair.
           </p>
-
-          <div className="space-y-1">
-            <label className="text-xs font-mono text-slate-400 uppercase tracking-wider">Public Address</label>
-            <div className="p-3 bg-black/70 rounded text-xs font-mono text-slate-200 break-all border border-slate-800">
-              {generatedKey.address}
-            </div>
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-xs font-mono text-slate-400 uppercase tracking-wider">Private Key (Base58)</label>
-            <div className="flex items-center gap-2 bg-black/90 p-3 rounded border border-amber-500/40">
-              <span className="text-xs font-mono text-amber-300 break-all flex-1">
-                {generatedKey.privateKey}
-              </span>
-              <Button size="sm" onClick={handleCopy} className="bg-amber-600 hover:bg-amber-500 text-white shrink-0">
-                {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                <span className="ml-1 text-xs">{copied ? 'Copied' : 'Copy Key'}</span>
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-8 space-y-6">
-        <div className="space-y-3">
-          <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">1. Select Vanity Mode</label>
-          <div className="grid grid-cols-3 gap-3">
-            {['suffix', 'prefix', 'none'].map((m) => (
-              <Button
-                key={m}
-                variant={mode === m ? 'default' : 'outline'}
-                onClick={() => setMode(m)}
-                disabled={running}
-                className="capitalize h-12"
-              >
-                {m}
-              </Button>
-            ))}
-          </div>
         </div>
 
-        {mode !== 'none' && (
-          <div className="space-y-3">
-            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">2. Choose Pattern</label>
-            <div className="grid grid-cols-3 gap-3">
-              {VANITY_VALUES.map((v) => (
-                <Button
-                  key={v}
-                  variant={value === v ? 'default' : 'outline'}
-                  onClick={() => setValue(v)}
-                  disabled={running}
-                  className="h-12 font-mono font-bold"
-                >
-                  {v}
-                </Button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {error && (
-          <div className="p-4 bg-red-950/50 border border-red-800 text-red-300 rounded text-sm flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 shrink-0" />
-            <span>{error}</span>
-          </div>
-        )}
-
-        <div className="pt-4">
-          <Button 
-            onClick={startGeneration} 
-            disabled={running}
-            className="w-full h-14 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl"
-          >
-            {running ? (
-              <div className="flex items-center gap-2">
-                <Loader2 className="w-5 h-5 animate-spin" />
-                <span>Generating Keypair...</span>
+        <Card className="bg-white/10 backdrop-blur border-white/20">
+          <CardContent className="p-6 space-y-5">
+            {/* Mode selection */}
+            <div className="space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-white/60">Address style</p>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { id: 'suffix', label: 'Ends with' },
+                  { id: 'prefix', label: 'Starts with' },
+                  { id: 'none', label: 'Standard' },
+                ].map((opt) => (
+                  <button
+                    key={opt.id}
+                    onClick={() => setMode(opt.id)}
+                    className={`px-3 py-3 rounded-xl text-sm font-semibold border-2 transition-colors ${
+                      mode === opt.id
+                        ? 'bg-emerald-500/20 border-emerald-400 text-white'
+                        : 'bg-white/5 border-white/10 text-white/70 hover:border-white/30'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
               </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <Zap className="w-5 h-5" />
-                <span>Start Generation</span>
+            </div>
+
+            {/* Vanity value selection */}
+            {mode !== 'none' && (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-white/60">Vanity text</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {VANITY_VALUES.map((v) => (
+                    <button
+                      key={v}
+                      onClick={() => setValue(v)}
+                      className={`px-3 py-3 rounded-xl text-sm font-bold tracking-wider border-2 transition-colors ${
+                        value === v
+                          ? 'bg-emerald-500/20 border-emerald-400 text-white'
+                          : 'bg-white/5 border-white/10 text-white/70 hover:border-white/30'
+                      }`}
+                    >
+                      {v}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
-          </Button>
-        </div>
+
+            <div className="rounded-lg bg-black/20 p-3 text-center">
+              <p className="text-xs text-white/60 uppercase tracking-wide">Target</p>
+              <p className="text-lg font-bold text-white font-mono">
+                {mode === 'none' ? 'Any Solana address' : mode === 'prefix' ? `${value}…` : `…${value}`}
+              </p>
+            </div>
+
+            <div className="flex items-start gap-2 p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
+              <AlertTriangle className="w-4 h-4 text-yellow-300 shrink-0 mt-0.5" />
+              <p className="text-xs text-yellow-100/90">
+                {mode === 'none'
+                  ? 'A standard keypair is generated instantly — no matching required.'
+                  : 'Vanity generation tries random keypairs until one matches. A 3–4 character base58 pattern is rare, so please keep this tab open. You can cancel and restart anytime.'}
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <Button variant="outline" className="flex-1 border-white/30 text-white bg-transparent" onClick={onBack}>
+                <ArrowLeft className="w-4 h-4 mr-2" /> Back
+              </Button>
+              <Button className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white" onClick={start}>
+                <Zap className="w-4 h-4 mr-2" /> Generate
+              </Button>
+            </div>
+
+            {error && <p className="text-sm text-red-300 text-center">Generation error: {error}</p>}
+          </CardContent>
+        </Card>
       </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="text-center">
+        <h2 className="text-2xl font-bold text-white">Creating your SMPF wallet</h2>
+        <p className="text-white/70 mt-2">
+          {running ? `Forging a Solana address — ${targetLabel}.` : `${targetLabel} found!`}
+        </p>
+      </div>
+
+      <Card className="bg-white/10 backdrop-blur border-white/20">
+        <CardContent className="p-6 space-y-5">
+          <div className="flex flex-col items-center gap-3 py-4">
+            {running ? (
+              <div className="relative">
+                <Loader2 className="w-16 h-16 text-emerald-400 animate-spin" />
+                <Zap className="w-7 h-7 text-yellow-300 absolute inset-0 m-auto" />
+              </div>
+            ) : (
+              <div className="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-300 text-2xl">✓</div>
+            )}
+            <div className="grid grid-cols-2 gap-4 w-full mt-2">
+              <div className="bg-black/20 rounded-lg p-3 text-center">
+                <p className="text-xs text-white/60 uppercase tracking-wide">Addresses tested</p>
+                <p className="text-xl font-bold text-white">{tested.toLocaleString()}</p>
+              </div>
+              <div className="bg-black/20 rounded-lg p-3 text-center">
+                <p className="text-xs text-white/60 uppercase tracking-wide">Elapsed</p>
+                <p className="text-xl font-bold text-white">{secs}s</p>
+              </div>
+            </div>
+            <p className="text-xs text-white/50">~{rate} keys/sec</p>
+          </div>
+
+          <div className="flex gap-3">
+            {running ? (
+              <Button variant="outline" className="flex-1 border-white/30 text-white bg-transparent" onClick={handleCancel}>
+                <X className="w-4 h-4 mr-2" /> Cancel
+              </Button>
+            ) : (
+              <Button variant="outline" className="flex-1 border-white/30 text-white bg-transparent" onClick={handleRestart}>
+                Retry
+              </Button>
+            )}
+            <Button variant="outline" className="flex-1 border-white/30 text-white bg-transparent" onClick={handleEditConfig}>
+              <ArrowLeft className="w-4 h-4 mr-2" /> Change
+            </Button>
+          </div>
+
+          {error && <p className="text-sm text-red-300 text-center">Generation error: {error}</p>}
+        </CardContent>
+      </Card>
     </div>
   );
-} 
+}

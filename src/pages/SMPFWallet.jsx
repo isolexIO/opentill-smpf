@@ -120,9 +120,9 @@ export default function SMPFWallet() {
             </div>
             <div>
               <h1 className="text-2xl font-black tracking-tight flex items-center gap-2">
-                openTILL SMPF Wallet
+                openTILL Wallet
               </h1>
-              <p className="text-xs text-white/60 font-mono">Structured Merchant Participation Framework (SMPF)</p>
+              <p className="text-xs text-white/60 font-mono">Solana Multi-Purpose Framework (SMPF)</p>
             </div>
           </div>
 

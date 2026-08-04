@@ -1,145 +1,135 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import React, { useState } from 'react';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { AlertTriangle, Key, Copy, Check, Lock, ShieldCheck } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Key, Lock, Copy, CheckCircle2, ShieldAlert, Loader2, X } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
+import { getWallet } from '@/lib/smpfWalletStore';
+import { decryptWallet } from '@/lib/smpfCrypto';
 
-export default function PrivateKeyExport({ wallet, currentUserEmail = 'admin@isolex.net' }) {
-  const [passphrase, setPassphrase] = useState('');
-  const [exportedBase58, setExportedBase58] = useState('');
-  const [showKey, setShowKey] = useState(false);
-  const [error, setError] = useState('');
-  const [busy, setBusy] = useState(false);
+export default function PrivateKeyExport({ wallet, session, onClose }) {
+  const { toast } = useToast();
+  const [password, setPassword] = useState('');
+  const [decrypting, setDecrypting] = useState(false);
+  const [exportedKey, setExportedKey] = useState(null);
   const [copied, setCopied] = useState(false);
-  const [hasLocalStorageKey, setHasLocalStorageKey] = useState(false);
 
-  useEffect(() => {
-    const localData = localStorage.getItem(`smpf_sk_${currentUserEmail}`);
-    if (localData) {
-      setHasLocalStorageKey(true);
-    }
-  }, [currentUserEmail]);
+  const handleExport = async (e) => {
+    e.preventDefault();
+    if (!password) return;
 
-  const handleDecryptAndReveal = async () => {
-    setError('');
-    setBusy(true);
-
+    setDecrypting(true);
     try {
-      // 1. Check local browser storage fallback first
-      const localData = localStorage.getItem(`smpf_sk_${currentUserEmail}`);
-      if (localData) {
-        const parsed = JSON.parse(localData);
-        if (parsed?.secretKey) {
-          setExportedBase58(parsed.secretKey);
-          setShowKey(true);
-          setBusy(false);
-          return;
-        }
-      }
+      // 1. Fetch wallet entry from IndexedDB using address
+      const record = await getWallet(wallet.address);
+      
+      // Fallback: If record or backup is missing in IndexedDB, use active session if available
+      let encryptedData = record?.backup;
 
-      // 2. Check if wallet instance holds an encrypted key property
-      if (wallet?.encryptedSecretKey) {
-        // Implement wallet decryption helper if provided
-        setExportedBase58(wallet.encryptedSecretKey);
-        setShowKey(true);
-        setBusy(false);
+      if (!encryptedData) {
+        toast({
+          title: 'Export failed',
+          description: 'Wallet backup not found in local storage. Please complete onboarding again.',
+          variant: 'destructive',
+        });
         return;
       }
 
-      setError('No encrypted or active secret key found in browser storage for this account.');
+      // 2. Decrypt secret key base64 string
+      const decrypted = await decryptWallet(encryptedData, password);
+      setExportedKey(decrypted.secretKeyB64);
+      toast({ title: 'Key Exported', description: 'Private key decrypted successfully.' });
     } catch (err) {
-      setError(err.message || 'Failed to export private key.');
+      toast({
+        title: 'Decryption failed',
+        description: 'Incorrect password or invalid backup data.',
+        variant: 'destructive',
+      });
     } finally {
-      setBusy(false);
+      setDecrypting(false);
     }
   };
 
-  const handleCopy = () => {
-    if (exportedBase58) {
-      navigator.clipboard.writeText(exportedBase58);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
+  const copyKey = () => {
+    if (!exportedKey) return;
+    navigator.clipboard.writeText(exportedKey);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+    toast({ title: 'Copied', description: 'Private key copied to clipboard.' });
   };
 
   return (
-    <Card className="border-slate-800 bg-slate-900/90">
-      <CardContent className="p-6 space-y-4">
-        <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
-          <Key className="w-5 h-5 text-indigo-400" />
-          <h3 className="font-bold text-lg text-white">Export Private Key</h3>
-        </div>
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+      <Card className="w-full max-w-md bg-slate-900 border-white/10 text-white relative">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-white/60 hover:text-white transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
 
-        {!showKey ? (
-          <div className="space-y-4">
-            <p className="text-xs text-slate-400">
-              Export your raw Solana private key string (Base58) to import into external browser extension wallets like Solflare or Phantom.
-            </p>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Key className="w-5 h-5 text-purple-400" /> Export Private Key
+          </CardTitle>
+          <CardDescription className="text-white/60 text-xs">
+            Anyone with this key has full control of your wallet. Never share it.
+          </CardDescription>
+        </CardHeader>
 
-            {!hasLocalStorageKey && !wallet?.encryptedSecretKey && (
-              <div className="flex items-center gap-2 p-3 bg-red-950/40 border border-red-800/60 rounded text-red-300 text-xs">
-                <AlertTriangle className="w-4 h-4 shrink-0 text-red-400" />
-                <span>No secret key stored locally in browser storage for this account. Generate a wallet first.</span>
-              </div>
-            )}
+        <CardContent className="space-y-4">
+          <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg flex items-start gap-2.5 text-xs text-amber-200">
+            <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+            <p>This is your real Ed25519 secret key. Do not display it during screen sharing.</p>
+          </div>
 
-            <div className="space-y-2">
-              <label className="text-xs font-medium text-slate-300">Wallet Passphrase (Optional)</label>
-              <div className="relative">
+          {!exportedKey ? (
+            <form onSubmit={handleExport} className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-xs">Reauthenticate with wallet password</Label>
                 <Input
                   type="password"
-                  value={passphrase}
-                  onChange={(e) => setPassphrase(e.target.value)}
-                  placeholder="Enter wallet passphrase"
-                  className="bg-slate-950 border-slate-800 text-sm pr-10"
+                  placeholder="Enter password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="bg-slate-950 border-white/10 text-white"
                 />
-                <Lock className="w-4 h-4 text-slate-500 absolute right-3 top-2.5" />
               </div>
-            </div>
 
-            {error && (
-              <p className="text-xs text-red-400 font-medium">{error}</p>
-            )}
-
-            <Button
-              onClick={handleDecryptAndReveal}
-              disabled={busy}
-              className="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold"
-            >
-              {busy ? 'Decrypting...' : 'Reveal Private Key'}
-            </Button>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="p-3 bg-emerald-950/30 border border-emerald-800/50 rounded flex items-center gap-2 text-emerald-300 text-xs">
-              <ShieldCheck className="w-4 h-4 shrink-0 text-emerald-400" />
-              <span>Secret key successfully loaded from session storage.</span>
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-xs font-mono text-slate-400">Raw Solana Private Key (Base58)</label>
-              <div className="flex items-center gap-2 bg-slate-950 p-3 rounded border border-slate-800">
-                <span className="text-xs font-mono text-emerald-400 break-all flex-1">
-                  {exportedBase58}
-                </span>
-                <Button size="sm" onClick={handleCopy} className="bg-slate-800 hover:bg-slate-700 text-white shrink-0">
-                  {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                  <span className="ml-1 text-xs">{copied ? 'Copied' : 'Copy'}</span>
-                </Button>
+              <Button
+                type="submit"
+                className="w-full bg-purple-600 hover:bg-purple-500 text-white"
+                disabled={decrypting || !password}
+              >
+                {decrypting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Decrypt Key'}
+              </Button>
+            </form>
+          ) : (
+            <div className="space-y-3">
+              <div className="p-3 bg-slate-950 border border-white/10 rounded-lg break-all font-mono text-xs text-emerald-400">
+                {exportedKey}
               </div>
-            </div>
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowKey(false)}
-              className="w-full border-slate-800 text-slate-400 text-xs hover:bg-slate-800"
-            >
-              Hide Private Key
-            </Button>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+              <Button
+                onClick={copyKey}
+                variant="outline"
+                className="w-full border-white/20 bg-white/5 hover:bg-white/10 text-white flex items-center justify-center gap-2"
+              >
+                {copied ? (
+                  <>
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Copied Key
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4" /> Copy Private Key
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }
