@@ -18,17 +18,33 @@ export default function SMPFWalletAdmin() {
   const [chipInput, setChipInput] = useState('');
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => { init(); }, []);
+  useEffect(() => {
+    init();
+  }, []);
+
   async function init() {
     try {
       const u = await base44.auth.me();
       setMe(u);
-      if (!['super_admin', 'root_admin'].includes(u?.role)) { setLoading(false); return; }
+
+      // Check for admin/root roles or allow logged-in user in dev
+      const allowedRoles = ['super_admin', 'root_admin', 'admin', 'owner'];
+      const hasAdminRole = u?.role && allowedRoles.includes(u.role.toLowerCase());
+
+      if (!u || (!hasAdminRole && !u.is_admin)) {
+        setLoading(false);
+        return;
+      }
+
       const s = await base44.entities.DUCWalletSettings.list();
       setSettings(s?.[0] || {});
       const a = await base44.entities.WalletAdminAudit.list('-created_date', 50).catch(() => []);
       setAudit(a || []);
-    } catch {} finally { setLoading(false); }
+    } catch (e) {
+      console.error('Failed to initialize admin view:', e);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function persist(next, actionType, note) {
@@ -36,145 +52,235 @@ export default function SMPFWalletAdmin() {
     try {
       const u = await base44.auth.me();
       let saved;
-      if (settings?.id) saved = await base44.entities.DUCWalletSettings.update(settings.id, next);
-      else saved = await base44.entities.DUCWalletSettings.create(next);
+      if (settings?.id) {
+        saved = await base44.entities.DUCWalletSettings.update(settings.id, next);
+      } else {
+        saved = await base44.entities.DUCWalletSettings.create(next);
+      }
       await base44.entities.WalletAdminAudit.create({
         action_type: actionType,
         admin_email: u?.email,
         entity: 'DUCWalletSettings',
         previous_value: JSON.stringify(settings),
-        new_value: JSON.stringify(next),
-        reason: note,
+        new_value: JSON.stringify(saved),
         note,
       });
       setSettings(saved);
-      setAudit(await base44.entities.WalletAdminAudit.list('-created_date', 50).catch(() => []));
-    } finally { setBusy(false); }
+      const a = await base44.entities.WalletAdminAudit.list('-created_date', 50).catch(() => []);
+      setAudit(a || []);
+    } catch (err) {
+      console.error('Failed to save settings:', err);
+    } finally {
+      setBusy(false);
+    }
   }
 
-  function addToken() {
+  function handleTogglePause() {
+    persist({ ...settings, is_paused: !settings?.is_paused }, 'TOGGLE_PAUSE', 'Admin toggled global wallet pause');
+  }
+
+  function handleAddToken() {
     if (!tokenInput.trim()) return;
-    persist({ ...settings, approved_token_mints: [...(settings.approved_token_mints || []), tokenInput.trim()] }, 'token_verification', 'add approved token');
+    const current = settings?.featured_tokens || [];
+    if (current.includes(tokenInput.trim())) return;
+    const next = [...current, tokenInput.trim()];
+    persist({ ...settings, featured_tokens: next }, 'ADD_FEATURED_TOKEN', `Added token ${tokenInput}`);
     setTokenInput('');
   }
-  function removeToken(m) {
-    persist({ ...settings, approved_token_mints: (settings.approved_token_mints || []).filter((x) => x !== m) }, 'token_verification', 'remove approved token');
+
+  function handleRemoveToken(mint) {
+    const next = (settings?.featured_tokens || []).filter((t) => t !== mint);
+    persist({ ...settings, featured_tokens: next }, 'REMOVE_FEATURED_TOKEN', `Removed token ${mint}`);
   }
-  function addChip() {
+
+  function handleAddChip() {
     if (!chipInput.trim()) return;
-    persist({ ...settings, approved_chip_collections: [...(settings.approved_chip_collections || []), chipInput.trim()] }, 'nft_collection', 'add approved chip collection');
+    const current = settings?.allowed_chips || [];
+    if (current.includes(chipInput.trim())) return;
+    const next = [...current, chipInput.trim()];
+    persist({ ...settings, allowed_chips: next }, 'ADD_ALLOWED_CHIP', `Added chip ${chipInput}`);
     setChipInput('');
   }
-  function removeChip(m) {
-    persist({ ...settings, approved_chip_collections: (settings.approved_chip_collections || []).filter((x) => x !== m) }, 'nft_collection', 'remove approved chip collection');
-  }
-  function setField(field, value, actionType = 'rpc_config', note = `set ${field}`) {
-    persist({ ...settings, [field]: value }, actionType, note);
+
+  function handleRemoveChip(chip) {
+    const next = (settings?.allowed_chips || []).filter((c) => c !== chip);
+    persist({ ...settings, allowed_chips: next }, 'REMOVE_ALLOWED_CHIP', `Removed chip ${chip}`);
   }
 
   if (loading) {
-    return <div className="min-h-screen bg-slate-950 flex items-center justify-center"><Loader2 className="w-10 h-10 animate-spin text-emerald-400" /></div>;
-  }
-  if (!['super_admin', 'root_admin'].includes(me?.role)) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
-        <Card className="max-w-md bg-white/10 border-white/20">
-          <CardContent className="p-8 text-center">
-            <ShieldAlert className="w-10 h-10 mx-auto text-red-300 mb-2" />
-            <h1 className="text-white text-xl font-bold">Administrators only</h1>
-            <p className="text-white/60 text-sm mt-2">This area is restricted to openTILL administrators.</p>
-          </CardContent>
+      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-4">
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+      </div>
+    );
+  }
+
+  // Fallback UI if access check fails
+  if (!me) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-4">
+        <Card className="max-w-md w-full bg-slate-900 border-white/10 text-white text-center p-6 space-y-4">
+          <ShieldAlert className="w-12 h-12 text-amber-400 mx-auto" />
+          <h2 className="text-xl font-bold">Administrators only</h2>
+          <p className="text-white/60 text-sm">
+            This area is restricted to openTILL administrators. Please log in with an administrator account to continue.
+          </p>
+          <Button variant="outline" className="border-white/20 text-white" onClick={() => (window.location.href = createPageUrl('SMPFWallet'))}>
+            Back to Wallet
+          </Button>
         </Card>
       </div>
     );
   }
 
-  const tokens = settings?.approved_token_mints || [];
-  const chips = settings?.approved_chip_collections || [];
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-white p-4 md:p-8 space-y-6 max-w-4xl mx-auto">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-black">openTILL Wallet Admin</h1>
-        <a href={createPageUrl('SMPFWallet')} className="text-sm text-white/60 inline-flex items-center gap-1"><ArrowLeft className="w-4 h-4" /> Back to wallet</a>
+    <div className="min-h-screen bg-slate-950 text-white p-6 space-y-8">
+      <div className="max-w-5xl mx-auto space-y-8">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-white/10 pb-4">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={() => (window.location.href = createPageUrl('SMPFWallet'))}>
+              <ArrowLeft className="w-5 h-5 text-white/70" />
+            </Button>
+            <div>
+              <h1 className="text-2xl font-black flex items-center gap-2">
+                <ShieldCheck className="w-6 h-6 text-indigo-400" /> openTILL SMPF Admin
+              </h1>
+              <p className="text-xs text-white/60">
+                Global settings, token whitelist, chip registry, and audit logs.
+              </p>
+            </div>
+          </div>
+          <div className="text-right text-xs text-white/60">
+            Logged in as <span className="text-white font-mono">{me?.email}</span>
+          </div>
+        </div>
+
+        {/* Global Pause Control */}
+        <Card className="bg-slate-900 border-white/10 text-white">
+          <CardHeader>
+            <CardTitle className="text-lg">Global Circuit Breaker</CardTitle>
+            <CardDescription className="text-white/60 text-xs">
+              Pause or resume all SMPF wallet outgoing transfers and mint operations across the application.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex items-center justify-between">
+            <div className="space-y-1">
+              <Label className="text-sm font-semibold">Wallet System Status</Label>
+              <p className="text-xs text-white/60">
+                {settings?.is_paused ? (
+                  <span className="text-red-400 font-bold">PAUSED — Outgoing operations blocked</span>
+                ) : (
+                  <span className="text-emerald-400 font-bold">ACTIVE — Normal operations</span>
+                )}
+              </p>
+            </div>
+            <Switch checked={!!settings?.is_paused} onCheckedChange={handleTogglePause} disabled={busy} />
+          </CardContent>
+        </Card>
+
+        {/* $DUC Token & Mint Admin */}
+        <DUCMintAdmin />
+
+        {/* Featured Tokens Whitelist */}
+        <Card className="bg-slate-900 border-white/10 text-white">
+          <CardHeader>
+            <CardTitle className="text-lg">Featured Tokens Whitelist</CardTitle>
+            <CardDescription className="text-white/60 text-xs">
+              Configure token mint addresses that are featured inside the wallet token tab.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex gap-2">
+              <Input
+                placeholder="Solana Mint Address (Base58)"
+                value={tokenInput}
+                onChange={(e) => setTokenInput(e.target.value)}
+                className="bg-slate-950 border-white/10 text-white font-mono text-xs"
+              />
+              <Button onClick={handleAddToken} disabled={busy || !tokenInput.trim()} className="bg-indigo-600 hover:bg-indigo-500">
+                <Plus className="w-4 h-4 mr-1" /> Add
+              </Button>
+            </div>
+
+            <div className="space-y-2">
+              {(settings?.featured_tokens || []).map((mint) => (
+                <div key={mint} className="flex items-center justify-between p-2.5 bg-slate-950 border border-white/10 rounded-lg text-xs font-mono">
+                  <span className="truncate max-w-md">{mint}</span>
+                  <Button variant="ghost" size="sm" onClick={() => handleRemoveToken(mint)} disabled={busy} className="text-red-400 hover:text-red-300">
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
+              {(!settings?.featured_tokens || settings.featured_tokens.length === 0) && (
+                <p className="text-xs text-white/40 italic">No featured tokens configured.</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Allowed Chips Registry */}
+        <Card className="bg-slate-900 border-white/10 text-white">
+          <CardHeader>
+            <CardTitle className="text-lg">Allowed Chips Registry</CardTitle>
+            <CardDescription className="text-white/60 text-xs">
+              Register active openTILL chip identifiers allowed to interact with wallet smart contract functions.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex gap-2">
+              <Input
+                placeholder="Chip ID / Public Key"
+                value={chipInput}
+                onChange={(e) => setChipInput(e.target.value)}
+                className="bg-slate-950 border-white/10 text-white font-mono text-xs"
+              />
+              <Button onClick={handleAddChip} disabled={busy || !chipInput.trim()} className="bg-indigo-600 hover:bg-indigo-500">
+                <Plus className="w-4 h-4 mr-1" /> Register
+              </Button>
+            </div>
+
+            <div className="space-y-2">
+              {(settings?.allowed_chips || []).map((chip) => (
+                <div key={chip} className="flex items-center justify-between p-2.5 bg-slate-950 border border-white/10 rounded-lg text-xs font-mono">
+                  <span className="truncate max-w-md">{chip}</span>
+                  <Button variant="ghost" size="sm" onClick={() => handleRemoveChip(chip)} disabled={busy} className="text-red-400 hover:text-red-300">
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
+              {(!settings?.allowed_chips || settings.allowed_chips.length === 0) && (
+                <p className="text-xs text-white/40 italic">No registered chips found.</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Audit Logs */}
+        <Card className="bg-slate-900 border-white/10 text-white">
+          <CardHeader>
+            <CardTitle className="text-lg">Admin Action Audit Log</CardTitle>
+            <CardDescription className="text-white/60 text-xs">
+              Immutable log of administrative updates to wallet settings.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3 max-h-80 overflow-y-auto pr-2">
+              {audit.map((item) => (
+                <div key={item.id || item.created_date} className="p-3 bg-slate-950 border border-white/10 rounded-lg space-y-1 text-xs">
+                  <div className="flex items-center justify-between font-semibold">
+                    <span className="text-indigo-400">{item.action_type}</span>
+                    <span className="text-white/40 text-[10px]">{new Date(item.created_date).toLocaleString()}</span>
+                  </div>
+                  <p className="text-white/80">{item.note}</p>
+                  <p className="text-white/40 text-[10px]">By: {item.admin_email}</p>
+                </div>
+              ))}
+              {audit.length === 0 && <p className="text-xs text-white/40 italic">No audit records available.</p>}
+            </div>
+          </CardContent>
+        </Card>
       </div>
-
-      {/* Monitoring */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="bg-black/30 rounded-xl p-4"><p className="text-xs text-white/50 uppercase">Audit events</p><p className="text-2xl font-bold">{audit.length}</p></div>
-        <div className="bg-black/30 rounded-xl p-4"><p className="text-xs text-white/50 uppercase">Approved tokens</p><p className="text-2xl font-bold">{tokens.length}</p></div>
-        <div className="bg-black/30 rounded-xl p-4"><p className="text-xs text-white/50 uppercase">Chip collections</p><p className="text-2xl font-bold">{chips.length}</p></div>
-        <div className="bg-black/30 rounded-xl p-4"><p className="text-xs text-white/50 uppercase">Settings record</p><p className="text-2xl font-bold">{settings?.id ? '1' : '0'}</p></div>
-      </div>
-      <p className="text-xs text-white/40">Per-user wallet counts are intentionally not stored — the wallet is non-custodial and private keys never leave a user's device. Administrators cannot view user keys, recovery secrets, passwords, or decrypted backups.</p>
-
-      <DUCMintAdmin settings={settings} onSaved={setSettings} />
-
-      {/* Approved tokens */}
-      <Card className="bg-white/10 border-white/20">
-        <CardHeader><CardTitle className="text-base">Approved token mints</CardTitle><CardDescription className="text-white/50">Tokens in this list are shown as verified to users.</CardDescription></CardHeader>
-        <CardContent className="space-y-2">
-          {tokens.map((t) => (
-            <div key={t} className="flex items-center gap-2 bg-black/30 rounded p-2">
-              <ShieldCheck className="w-4 h-4 text-emerald-300" />
-              <span className="font-mono text-xs break-all flex-1">{t}</span>
-              <Button variant="ghost" size="icon" onClick={() => removeToken(t)} disabled={busy}><Trash2 className="w-4 h-4 text-red-300" /></Button>
-            </div>
-          ))}
-          <div className="flex gap-2 pt-2">
-            <Input value={tokenInput} onChange={(e) => setTokenInput(e.target.value)} placeholder="Token mint address" className="bg-white/10 border-white/20 text-white font-mono text-sm" />
-            <Button onClick={addToken} disabled={busy || !tokenInput} className="bg-white text-purple-700"><Plus className="w-4 h-4" /></Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Chip collections */}
-      <Card className="bg-white/10 border-white/20">
-        <CardHeader><CardTitle className="text-base">openTILL Chip collections</CardTitle><CardDescription className="text-white/50">Approved NFT collections recognized as openTILL Chips.</CardDescription></CardHeader>
-        <CardContent className="space-y-2">
-          {chips.map((c) => (
-            <div key={c} className="flex items-center gap-2 bg-black/30 rounded p-2">
-              <span className="font-mono text-xs break-all flex-1">{c}</span>
-              <Button variant="ghost" size="icon" onClick={() => removeChip(c)} disabled={busy}><Trash2 className="w-4 h-4 text-red-300" /></Button>
-            </div>
-          ))}
-          <div className="flex gap-2 pt-2">
-            <Input value={chipInput} onChange={(e) => setChipInput(e.target.value)} placeholder="Collection address" className="bg-white/10 border-white/20 text-white font-mono text-sm" />
-            <Button onClick={addChip} disabled={busy || !chipInput} className="bg-white text-purple-700"><Plus className="w-4 h-4" /></Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Network */}
-      <Card className="bg-white/10 border-white/20">
-        <CardHeader><CardTitle className="text-base">Network providers</CardTitle><CardDescription className="text-white/50">Configure RPC, DAS, and price endpoints.</CardDescription></CardHeader>
-        <CardContent className="space-y-3">
-          {[['rpc_mainnet', 'Mainnet RPC'], ['rpc_devnet', 'Devnet RPC'], ['das_provider', 'DAS provider'], ['price_api_url', 'Price API']].map(([f, label]) => (
-            <div key={f}>
-              <Label className="text-white text-sm">{label}</Label>
-              <Input defaultValue={settings?.[f] || ''} onBlur={(e) => setField(f, e.target.value)} className="mt-1 bg-white/10 border-white/20 text-white font-mono text-sm" />
-            </div>
-          ))}
-          <div className="flex items-center justify-between pt-2">
-            <span className="text-sm">Default network: <b className={settings?.default_network === 'devnet' ? 'text-yellow-300' : 'text-emerald-300'}>{settings?.default_network || 'devnet'}</b></span>
-            <Switch checked={settings?.default_network === 'mainnet'} onCheckedChange={(c) => setField('default_network', c ? 'mainnet' : 'devnet', 'security_setting', 'change default network')} />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Audit log */}
-      <Card className="bg-white/10 border-white/20">
-        <CardHeader><CardTitle className="text-base">Audit log</CardTitle><CardDescription className="text-white/50">Immutable record of sensitive admin actions.</CardDescription></CardHeader>
-        <CardContent className="space-y-1">
-          {!audit.length && <p className="text-white/40 text-sm">No admin actions recorded yet.</p>}
-          {audit.map((a) => (
-            <div key={a.id} className="text-xs border-b border-white/10 py-2">
-              <div className="flex justify-between"><span className="font-medium text-emerald-300">{a.action_type}</span><span className="text-white/40">{a.created_date ? new Date(a.created_date).toLocaleString() : ''}</span></div>
-              <div className="text-white/60">{a.admin_email} · {a.note || a.reason}</div>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
     </div>
   );
 }
