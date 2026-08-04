@@ -37,8 +37,8 @@ export default function PrivateKeyExport({ wallet, session, onClose }) {
       }
 
       // 2. Decrypt secret key base64 string
-      const secretKeyB64 = await decryptWallet(encryptedData, password);
-      setExportedKey(secretKeyB64);
+      const decrypted = await decryptWallet(encryptedData, password);
+      setExportedKey(decrypted.secretKeyB64);
       toast({ title: 'Key Exported', description: 'Private key decrypted successfully.' });
     } catch (err) {
       toast({

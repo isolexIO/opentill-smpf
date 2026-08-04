@@ -146,7 +146,8 @@ export default function SMPFWallet() {
     if (!wallet || !password) return;
     setUnlocking(true);
     try {
-      const decryptedB64 = await decryptWallet(wallet.encryptedData, password);
+      const decrypted = await decryptWallet(wallet.backup, password);
+      const decryptedB64 = decrypted.secretKeyB64;
       setSession(decryptedB64, wallet.address);
       setSessionState({ secretKeyB64: decryptedB64, address: wallet.address });
       setPassword('');
