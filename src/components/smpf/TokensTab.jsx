@@ -25,12 +25,13 @@ export default function TokensTab({ address, rpc, settings }) {
   const [addInfo, setAddInfo] = useState(null);
   const [error, setError] = useState('');
   const ducMint = settings?.verified_duc_mint;
+  const endpoint = (typeof rpc === 'string' && /^https?:\/\//.test(rpc)) ? rpc : 'https://api.mainnet-beta.solana.com';
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [rpc]);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [endpoint]);
 
   async function load() {
     setError('');
-    const conn = new Connection(rpc, 'confirmed');
+    const conn = new Connection(endpoint, 'confirmed');
     try { setSol((await conn.getBalance(new PublicKey(address))) / 1e9); } catch {}
     getPrice(WSOL).then(setSolUsd);
     const owned = [];
@@ -52,7 +53,7 @@ export default function TokensTab({ address, rpc, settings }) {
     let pk; try { pk = new PublicKey(mintInput.trim()); } catch { return setError('Not a valid Solana public key.'); }
     setAdding(true);
     try {
-      const conn = new Connection(rpc, 'confirmed');
+      const conn = new Connection(endpoint, 'confirmed');
       // Validate it is a mint account, not a token account or wallet.
       let mintInfo;
       try { mintInfo = await getMint(conn, pk); } catch { throw new Error('Address is not a token mint account.'); }
