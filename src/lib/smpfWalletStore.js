@@ -5,19 +5,37 @@
 const DB_NAME = 'smpf-wallet';
 const STORE = 'wallets';
 
+// Upgraded DB version to 2 to prevent version mismatch errors
 function openDB() {
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, 1);
-    req.onupgradeneeded = () => req.result.createObjectStore(STORE, { keyPath: 'address' });
+    const req = indexedDB.open(DB_NAME, 2);
+    
+    req.onupgradeneeded = (event) => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(STORE)) {
+        db.createObjectStore(STORE, { keyPath: 'address' });
+      }
+    };
+    
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });
 }
 
 export async function saveWallet(address, backup, userId) {
+  if (!address) {
+    throw new Error('Cannot save wallet: Invalid or missing address.');
+  }
+
   const db = await openDB();
   const tx = db.transaction(STORE, 'readwrite');
-  tx.objectStore(STORE).put({ address, backup, user_id: userId || null, created_date: Date.now() });
+  tx.objectStore(STORE).put({
+    address,
+    backup,
+    user_id: userId || null,
+    created_date: Date.now(),
+  });
+
   return new Promise((resolve, reject) => {
     tx.oncomplete = () => resolve(true);
     tx.onerror = () => reject(tx.error);
@@ -37,11 +55,17 @@ export async function getCurrentUserId() {
 }
 
 export async function getWallet(address) {
+  // Guard against undefined/null keys being passed to IndexedDB .get()
+  if (!address) {
+    console.warn('getWallet called without a valid address.');
+    return null;
+  }
+
   const db = await openDB();
   const tx = db.transaction(STORE, 'readonly');
   return new Promise((resolve, reject) => {
     const r = tx.objectStore(STORE).get(address);
-    r.onsuccess = () => resolve(r.result);
+    r.onsuccess = () => resolve(r.result || null);
     r.onerror = () => reject(r.error);
   });
 }
@@ -53,13 +77,15 @@ export async function listWallets(userId) {
     const r = tx.objectStore(STORE).getAll();
     r.onsuccess = () => {
       const all = r.result || [];
-      resolve(userId ? all.filter((w) => w.user_id === userId) : all);
+      if (!userId) return resolve(all);
+      resolve(all.filter((w) => w.user_id === userId || !w.user_id));
     };
     r.onerror = () => reject(r.error);
   });
 }
 
 export async function removeWallet(address) {
+  if (!address) return false;
   const db = await openDB();
   const tx = db.transaction(STORE, 'readwrite');
   tx.objectStore(STORE).delete(address);
@@ -69,20 +95,26 @@ export async function removeWallet(address) {
   });
 }
 
-// In-memory session only — never persisted. Cleared on reload / lock.
-let sessionKeypairB64 = null;
-let sessionAddress = null;
+// In-Memory Session Management
+let activeSession = null; // { secretKeyB64, address, expiresAt }
 
-export function setSession(secretKeyB64, address) {
-  sessionKeypairB64 = secretKeyB64;
-  sessionAddress = address;
+export function setSession(secretKeyB64, address, ttlMs = 5 * 60 * 1000) {
+  activeSession = {
+    secretKeyB64,
+    address,
+    expiresAt: Date.now() + ttlMs,
+  };
 }
 
 export function getSession() {
-  return sessionKeypairB64 ? { secretKeyB64: sessionKeypairB64, address: sessionAddress } : null;
+  if (!activeSession) return null;
+  if (Date.now() > activeSession.expiresAt) {
+    activeSession = null;
+    return null;
+  }
+  return activeSession;
 }
 
 export function clearSession() {
-  sessionKeypairB64 = null;
-  sessionAddress = null;
+  activeSession = null;
 }
