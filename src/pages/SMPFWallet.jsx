@@ -5,15 +5,16 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Loader2, Lock, LogIn, Wallet, ShieldCheck, Send, ArrowDownLeft, Coins, Cpu, KeyRound, Copy, Check, QrCode } from 'lucide-react';
+import { Loader2, Lock, LogIn, Wallet, ShieldCheck, Send, ArrowDownLeft, Coins, Cpu, KeyRound, Copy, Check, AlertCircle } from 'lucide-react';
+import { getWallet, listWallets } from '@/lib/smpfWalletStore';
 
 // Import your SMPF sub-components
 import PrivateKeyExport from '@/components/smpf/PrivateKeyExport';
-import DUCMintAdmin from '@/components/smpf/DUCMintAdmin';
 
 export default function SMPFWallet() {
   const [user, setUser] = useState(null);
   const [wallet, setWallet] = useState(null);
+  const [solAddress, setSolAddress] = useState('');
   const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
   const [balance, setBalance] = useState(0);
@@ -39,17 +40,25 @@ export default function SMPFWallet() {
       }
       setUser(currentUser);
 
-      // 2. Load wallet settings & configurations
+      // 2. Load global wallet settings & configurations
       const settingsList = await base44.entities.DUCWalletSettings.list().catch(() => []);
       const currentSettings = settingsList?.[0] || null;
       setSettings(currentSettings);
 
-      // 3. Load user-specific wallet instance
-      const wallets = await base44.entities.DUCWalletSettings.list({
-        user_id: currentUser.id
-      }).catch(() => []);
+      // 3. Retrieve local IndexedDB Solana Wallet entry
+      const localWallets = await listWallets(currentUser.id).catch(() => []);
+      const activeWallet = localWallets?.[0] || null;
 
-      setWallet(wallets?.[0] || currentSettings);
+      if (activeWallet) {
+        setWallet(activeWallet);
+        setSolAddress(activeWallet.address || activeWallet.public_key || '');
+      } else {
+        // Fallback check against remote DB record
+        const remoteWallets = await base44.entities.DUCWalletSettings.list({ user_id: currentUser.id }).catch(() => []);
+        if (remoteWallets?.[0]) {
+          setSolAddress(remoteWallets[0].solana_address || remoteWallets[0].public_key || '');
+        }
+      }
     } catch (err) {
       console.error('Error initializing openTILL SMPF Wallet:', err);
     } finally {
@@ -59,9 +68,8 @@ export default function SMPFWallet() {
 
   // Handle address copy
   const handleCopyAddress = () => {
-    const address = wallet?.public_key || wallet?.solana_address || user?.id || '';
-    if (address) {
-      navigator.clipboard.writeText(address);
+    if (solAddress) {
+      navigator.clipboard.writeText(solAddress);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
@@ -100,8 +108,6 @@ export default function SMPFWallet() {
     );
   }
 
-  const walletAddress = wallet?.public_key || wallet?.solana_address || user?.id || 'No public address assigned';
-
   return (
     <div className="min-h-screen bg-slate-950 text-white p-4 md:p-8 space-y-6">
       <div className="max-w-5xl mx-auto space-y-6">
@@ -116,7 +122,7 @@ export default function SMPFWallet() {
               <h1 className="text-2xl font-black tracking-tight flex items-center gap-2">
                 openTILL Wallet
               </h1>
-              <p className="text-xs text-white/60 font-mono">Structured Merchant Participation Framework (SMPF)</p>
+              <p className="text-xs text-white/60 font-mono">Solana Multi-Purpose Framework (SMPF)</p>
             </div>
           </div>
 
@@ -189,8 +195,10 @@ export default function SMPFWallet() {
                     <span className="text-emerald-400 font-semibold">Active & Bound</span>
                   </div>
                   <div className="flex justify-between py-1 border-b border-white/5 font-mono">
-                    <span className="text-white/60">User ID:</span>
-                    <span className="text-white/80 truncate max-w-[120px]">{user.id}</span>
+                    <span className="text-white/60">Solana Address:</span>
+                    <span className="text-indigo-300 truncate max-w-[120px]" title={solAddress || 'Not initialized'}>
+                      {solAddress ? `${solAddress.slice(0, 4)}...${solAddress.slice(-4)}` : 'None'}
+                    </span>
                   </div>
                 </CardContent>
               </Card>
@@ -218,7 +226,7 @@ export default function SMPFWallet() {
           </TabsContent>
 
           <TabsContent value="keys">
-            <PrivateKeyExport />
+            <PrivateKeyExport wallet={{ address: solAddress }} />
           </TabsContent>
 
           <TabsContent value="chips">
@@ -247,15 +255,30 @@ export default function SMPFWallet() {
             </DialogHeader>
 
             <div className="space-y-4 py-2">
-              <div className="p-3 bg-slate-950 border border-white/10 rounded-lg text-center space-y-2">
-                <span className="text-[10px] text-white/40 font-mono uppercase tracking-wider block">Your Public Address</span>
-                <p className="font-mono text-xs text-indigo-300 break-all select-all px-2">{walletAddress}</p>
-              </div>
+              {solAddress ? (
+                <>
+                  <div className="p-3 bg-slate-950 border border-white/10 rounded-lg text-center space-y-2">
+                    <span className="text-[10px] text-white/40 font-mono uppercase tracking-wider block">Your Solana Public Key</span>
+                    <p className="font-mono text-xs text-indigo-300 break-all select-all px-2">{solAddress}</p>
+                  </div>
 
-              <Button onClick={handleCopyAddress} className="w-full bg-indigo-600 hover:bg-indigo-500 font-semibold text-xs">
-                {copied ? <Check className="w-4 h-4 mr-2 text-emerald-300" /> : <Copy className="w-4 h-4 mr-2" />}
-                {copied ? 'Copied Address!' : 'Copy Wallet Address'}
-              </Button>
+                  <Button onClick={handleCopyAddress} className="w-full bg-indigo-600 hover:bg-indigo-500 font-semibold text-xs">
+                    {copied ? <Check className="w-4 h-4 mr-2 text-emerald-300" /> : <Copy className="w-4 h-4 mr-2" />}
+                    {copied ? 'Copied Address!' : 'Copy Solana Address'}
+                  </Button>
+                </>
+              ) : (
+                <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg text-amber-300 text-xs space-y-3 text-center">
+                  <AlertCircle className="w-5 h-5 mx-auto text-amber-400" />
+                  <p>No active Solana keypair found in local storage for this user.</p>
+                  <Button
+                    onClick={() => (window.location.href = createPageUrl('SMPFWalletOnboarding'))}
+                    className="w-full bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs"
+                  >
+                    Generate / Onboard Solana Wallet
+                  </Button>
+                </div>
+              )}
             </div>
           </DialogContent>
         </Dialog>
