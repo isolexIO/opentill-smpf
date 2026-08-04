@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Loader2, X, AlertTriangle, Zap, ArrowLeft, Copy, Check, ShieldCheck, Key } from 'lucide-react';
 import { Keypair } from '@solana/web3.js';
 import bs58 from 'bs58';
-import { bufToB64 } from '@/lib/smpfCrypto';
 
 const VANITY_VALUES = ['SMPF', 'DUc', 'TILL'];
 
@@ -16,7 +15,7 @@ export default function GenerationScreen({ onFound, onBack, currentUserEmail = '
   const [generatedKey, setGeneratedKey] = useState(null);
   const [copied, setCopied] = useState(false);
 
-  const startGeneration = async () => {
+  const startGeneration = () => {
     setError('');
     setRunning(true);
     setTested(0);
@@ -27,7 +26,8 @@ export default function GenerationScreen({ onFound, onBack, currentUserEmail = '
         let matchedKeypair = null;
         const target = mode === 'none' ? '' : value.toLowerCase();
 
-        while (attempts < 50000) {
+        // Direct keypair generation loop
+        while (attempts < 20000) {
           attempts++;
           const kp = Keypair.generate();
           const pub = kp.publicKey.toBase58();
@@ -44,13 +44,13 @@ export default function GenerationScreen({ onFound, onBack, currentUserEmail = '
           }
         }
 
+        // Fallback to fresh keypair if no vanity match found in 20k attempts
         if (!matchedKeypair) {
-          matchedKeypair = Keypair.generate(); // Fallback if vanity search times out
+          matchedKeypair = Keypair.generate();
         }
 
         const pubKey = matchedKeypair.publicKey.toBase58();
         const secretKeyBs58 = bs58.encode(matchedKeypair.secretKey);
-        const secretKeyB64 = bufToB64(matchedKeypair.secretKey);
 
         // Store directly in local browser storage
         const payload = {
@@ -70,7 +70,8 @@ export default function GenerationScreen({ onFound, onBack, currentUserEmail = '
         if (onFound) {
           onFound({
             address: pubKey,
-            secretKeyB64,
+            secretKeyB64: btoa(String.fromCharCode(...matchedKeypair.secretKey)),
+            publicKeyB64: btoa(String.fromCharCode(...matchedKeypair.publicKey.toBuffer())),
             privateKeyBs58: secretKeyBs58
           });
         }
@@ -79,7 +80,7 @@ export default function GenerationScreen({ onFound, onBack, currentUserEmail = '
       } finally {
         setRunning(false);
       }
-    }, 100);
+    }, 50);
   };
 
   const handleCopy = () => {
@@ -92,6 +93,7 @@ export default function GenerationScreen({ onFound, onBack, currentUserEmail = '
 
   return (
     <div className="min-h-[80vh] flex flex-col justify-center items-center px-4 py-8 max-w-4xl mx-auto w-full">
+      {/* Top Header Navigation */}
       <div className="w-full flex items-center justify-between mb-8 border-b border-slate-800 pb-4">
         <Button variant="ghost" onClick={onBack} className="text-slate-400 hover:text-white gap-2">
           <ArrowLeft className="w-4 h-4" /> Back to Dashboard
@@ -101,6 +103,7 @@ export default function GenerationScreen({ onFound, onBack, currentUserEmail = '
         </h1>
       </div>
 
+      {/* SUCCESS MODAL DISPLAY */}
       {generatedKey && (
         <div className="w-full mb-8 p-6 bg-amber-950/40 border border-amber-500/50 rounded-xl space-y-4">
           <div className="flex items-center gap-2 text-amber-400 font-bold text-lg">
@@ -112,27 +115,28 @@ export default function GenerationScreen({ onFound, onBack, currentUserEmail = '
           </p>
 
           <div className="space-y-1">
-            <label className="text-xs font-mono text-slate-400">Public Address</label>
+            <label className="text-xs font-mono text-slate-400 uppercase tracking-wider">Public Address</label>
             <div className="p-3 bg-black/70 rounded text-xs font-mono text-slate-200 break-all border border-slate-800">
               {generatedKey.address}
             </div>
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-mono text-slate-400">Private Key (Base58)</label>
+            <label className="text-xs font-mono text-slate-400 uppercase tracking-wider">Private Key (Base58)</label>
             <div className="flex items-center gap-2 bg-black/90 p-3 rounded border border-amber-500/40">
               <span className="text-xs font-mono text-amber-300 break-all flex-1">
                 {generatedKey.privateKey}
               </span>
               <Button size="sm" onClick={handleCopy} className="bg-amber-600 hover:bg-amber-500 text-white shrink-0">
                 {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                <span className="ml-1 text-xs">{copied ? 'Copied' : 'Copy'}</span>
+                <span className="ml-1 text-xs">{copied ? 'Copied' : 'Copy Key'}</span>
               </Button>
             </div>
           </div>
         </div>
       )}
 
+      {/* CONTROLS */}
       <div className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-8 space-y-6">
         <div className="space-y-3">
           <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">1. Select Vanity Mode</label>
