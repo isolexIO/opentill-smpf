@@ -1,24 +1,32 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Loader2, X, AlertTriangle, Zap, ArrowLeft } from 'lucide-react';
+import { Loader2, X, AlertTriangle, Zap, ArrowLeft, Copy, Check } from 'lucide-react';
+import bs58 from 'bs58';
 
-const VANITY_VALUES = ['SMPF', 'DUC', 'TILL'];
+const VANITY_VALUES = ['SMPF', 'DUc', 'TILL'];
 
-// Generates a real Solana keypair whose base58 address matches the user's
-// chosen vanity pattern (prefix, suffix, or a standard keypair) inside a
-// Web Worker so the UI stays responsive.
-export default function GenerationScreen({ onFound, onBack }) {
-  const [mode, setMode] = useState('suffix'); // 'suffix' | 'prefix' | 'none'
+export default function GenerationScreen({ onFound, onBack, currentUserEmail = 'admin@isolex.net' }) {
+  const [mode, setMode] = useState('suffix');
   const [value, setValue] = useState('SMPF');
   const [tested, setTested] = useState(0);
   const [elapsed, setElapsed] = useState(0);
   const [error, setError] = useState('');
   const [running, setRunning] = useState(false);
   const [started, setStarted] = useState(false);
+  const [generatedKey, setGeneratedKey] = useState(null);
+  const [copied, setCopied] = useState(false);
   const workerRef = useRef(null);
 
   useEffect(() => () => stopWorker(), []);
+
+  function stopWorker() {
+    if (workerRef.current) {
+      workerRef.current.terminate();
+      workerRef.current = null;
+    }
+    setRunning(false);
+  }
 
   function start() {
     setError('');
@@ -26,8 +34,10 @@ export default function GenerationScreen({ onFound, onBack }) {
     setElapsed(0);
     setRunning(true);
     setStarted(true);
+
     const worker = new Worker(new URL('../../workers/smpfWorker.js', import.meta.url), { type: 'module' });
     workerRef.current = worker;
+
     worker.onmessage = (e) => {
       const msg = e.data;
       if (msg.type === 'progress') {
@@ -39,195 +49,195 @@ export default function GenerationScreen({ onFound, onBack }) {
         setElapsed(msg.elapsed);
         worker.terminate();
         workerRef.current = null;
-        onFound({
+
+        // Convert base64 secret key to Uint8Array & Base58
+        let secretKeyBs58 = '';
+        try {
+          const binaryStr = atob(msg.secretKeyB64);
+          const bytes = new Uint8Array(binaryStr.length);
+          for (let i = 0; i < binaryStr.length; i++) {
+            bytes[i] = binaryStr.charCodeAt(i);
+          }
+          secretKeyBs58 = bs58.encode(bytes);
+        } catch (err) {
+          secretKeyBs58 = msg.secretKeyB64;
+        }
+
+        // Save locally for immediate persistence
+        const payload = {
           address: msg.address,
-          secretKeyB64: msg.secretKeyB64,
-          publicKeyB64: msg.publicKeyB64,
-          tested: msg.tested,
-          elapsed: msg.elapsed,
+          secretKey: secretKeyBs58,
+          createdAt: new Date().toISOString()
+        };
+        localStorage.setItem(`smpf_sk_${currentUserEmail}`, JSON.stringify(payload));
+        localStorage.setItem(`smpf_pubkey_${currentUserEmail}`, msg.address);
+
+        // State for immediate display modal
+        setGeneratedKey({
+          address: msg.address,
+          privateKey: secretKeyBs58
         });
-      } else if (msg.type === 'cancelled') {
-        setRunning(false);
-      } else if (msg.type === 'error') {
-        setRunning(false);
-        setError(msg.error);
+
+        if (onFound) {
+          onFound({
+            address: msg.address,
+            secretKeyB64: msg.secretKeyB64,
+            publicKeyB64: msg.publicKeyB64,
+            privateKeyBs58: secretKeyBs58
+          });
+        }
       }
     };
-    worker.postMessage({ type: 'start', mode, value: mode === 'none' ? '' : value });
+
+    worker.onerror = (err) => {
+      setError(err.message || 'Worker error');
+      stopWorker();
+    };
+
+    worker.postMessage({
+      cmd: 'start',
+      mode: mode === 'none' ? 'none' : mode,
+      value: mode === 'none' ? '' : value
+    });
   }
 
-  function stopWorker() {
-    if (workerRef.current) {
-      workerRef.current.postMessage({ type: 'cancel' });
-      workerRef.current.terminate();
-      workerRef.current = null;
+  const handleCopy = () => {
+    if (generatedKey?.privateKey) {
+      navigator.clipboard.writeText(generatedKey.privateKey);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
-  }
+  };
 
-  function handleCancel() {
-    stopWorker();
-    setRunning(false);
-  }
+  return (
+    <div className="space-y-6 max-w-2xl mx-auto p-4">
+      <div className="flex items-center justify-between">
+        <Button variant="ghost" onClick={onBack} className="gap-2">
+          <ArrowLeft className="w-4 h-4" /> Back
+        </Button>
+        <h2 className="text-xl font-bold">Generate SMPF Wallet Keypair</h2>
+      </div>
 
-  function handleRestart() {
-    stopWorker();
-    start();
-  }
+      {/* REVEAL PRIVATE KEY MODAL */}
+      {generatedKey && (
+        <Card className="border-amber-500/50 bg-amber-950/20 text-amber-100">
+          <CardContent className="p-4 space-y-3">
+            <div className="flex items-center gap-2 text-amber-400 font-bold">
+              <Zap className="w-5 h-5" />
+              <span>Wallet Generated Successfully!</span>
+            </div>
+            <p className="text-xs text-amber-200/80">
+              Your secret key is saved locally in browser storage. Copy your private key now to import into Phantom, Solflare, or external wallets.
+            </p>
+            
+            <div className="space-y-1">
+              <label className="text-xs font-mono text-slate-400">Solana Public Address</label>
+              <div className="p-2 bg-black/60 rounded text-xs font-mono break-all text-slate-300">
+                {generatedKey.address}
+              </div>
+            </div>
 
-  function handleEditConfig() {
-    stopWorker();
-    setRunning(false);
-    setStarted(false);
-  }
+            <div className="space-y-1">
+              <label className="text-xs font-mono text-slate-400">Solana Private Key (Base58)</label>
+              <div className="flex items-center gap-2 bg-black/80 p-2 rounded border border-amber-500/30">
+                <span className="text-xs font-mono break-all text-amber-300 flex-1">
+                  {generatedKey.privateKey}
+                </span>
+                <Button size="sm" onClick={handleCopy} className="bg-amber-600 hover:bg-amber-500 text-white shrink-0">
+                  {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  <span className="ml-1 text-xs">{copied ? 'Copied' : 'Copy'}</span>
+                </Button>
+              </div>
+            </div>
 
-  const secs = (elapsed / 1000).toFixed(1);
-  const rate = elapsed > 0 ? Math.round(tested / (elapsed / 1000)).toLocaleString() : '0';
-  const targetLabel =
-    mode === 'none'
-      ? 'Standard Solana keypair'
-      : mode === 'prefix'
-      ? `Address starting with ${value}`
-      : `Address ending with ${value}`;
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setGeneratedKey(null)} 
+              className="mt-2 text-xs border-amber-500/40 text-amber-300 hover:bg-amber-950/40"
+            >
+              Dismiss
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
-  if (!started) {
-    return (
-      <div className="space-y-6">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-white">Customize your wallet</h2>
-          <p className="text-white/70 mt-2">
-            Choose a vanity pattern for your Solana address, or generate a standard keypair.
-          </p>
-        </div>
+      <Card>
+        <CardContent className="p-6 space-y-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Vanity Pattern Mode</label>
+            <div className="flex gap-2">
+              {['suffix', 'prefix', 'none'].map((m) => (
+                <Button
+                  key={m}
+                  variant={mode === m ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setMode(m)}
+                  disabled={running}
+                  className="capitalize"
+                >
+                  {m}
+                </Button>
+              ))}
+            </div>
+          </div>
 
-        <Card className="bg-white/10 backdrop-blur border-white/20">
-          <CardContent className="p-6 space-y-5">
-            {/* Mode selection */}
+          {mode !== 'none' && (
             <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-wide text-white/60">Address style</p>
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  { id: 'suffix', label: 'Ends with' },
-                  { id: 'prefix', label: 'Starts with' },
-                  { id: 'none', label: 'Standard' },
-                ].map((opt) => (
-                  <button
-                    key={opt.id}
-                    onClick={() => setMode(opt.id)}
-                    className={`px-3 py-3 rounded-xl text-sm font-semibold border-2 transition-colors ${
-                      mode === opt.id
-                        ? 'bg-emerald-500/20 border-emerald-400 text-white'
-                        : 'bg-white/5 border-white/10 text-white/70 hover:border-white/30'
-                    }`}
+              <label className="text-sm font-medium">Pattern Value</label>
+              <div className="flex gap-2">
+                {VANITY_VALUES.map((v) => (
+                  <Button
+                    key={v}
+                    variant={value === v ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setValue(v)}
+                    disabled={running}
                   >
-                    {opt.label}
-                  </button>
+                    {v}
+                  </Button>
                 ))}
               </div>
             </div>
+          )}
 
-            {/* Vanity value selection */}
-            {mode !== 'none' && (
-              <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-wide text-white/60">Vanity text</p>
-                <div className="grid grid-cols-3 gap-2">
-                  {VANITY_VALUES.map((v) => (
-                    <button
-                      key={v}
-                      onClick={() => setValue(v)}
-                      className={`px-3 py-3 rounded-xl text-sm font-bold tracking-wider border-2 transition-colors ${
-                        value === v
-                          ? 'bg-emerald-500/20 border-emerald-400 text-white'
-                          : 'bg-white/5 border-white/10 text-white/70 hover:border-white/30'
-                      }`}
-                    >
-                      {v}
-                    </button>
-                  ))}
+          {error && (
+            <div className="flex items-center gap-2 p-3 bg-red-950/50 border border-red-800 text-red-300 rounded text-xs">
+              <AlertTriangle className="w-4 h-4 shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          <div className="pt-2">
+            {!running ? (
+              <Button onClick={start} className="w-full bg-emerald-600 hover:bg-emerald-500">
+                <Zap className="w-4 h-4 mr-2" /> Start Generation
+              </Button>
+            ) : (
+              <Button onClick={stopWorker} variant="destructive" className="w-full">
+                <X className="w-4 h-4 mr-2" /> Stop Generation
+              </Button>
+            )}
+          </div>
+
+          {started && (
+            <div className="p-4 bg-slate-900 rounded-lg border border-slate-800 space-y-2 text-xs font-mono">
+              <div className="flex justify-between text-slate-400">
+                <span>Tested Keys:</span>
+                <span className="text-white font-bold">{tested.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between text-slate-400">
+                <span>Time Elapsed:</span>
+                <span className="text-white font-bold">{elapsed}s</span>
+              </div>
+              {running && (
+                <div className="flex items-center gap-2 text-indigo-400 pt-1">
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  <span>Searching for matching keypair...</span>
                 </div>
-              </div>
-            )}
-
-            <div className="rounded-lg bg-black/20 p-3 text-center">
-              <p className="text-xs text-white/60 uppercase tracking-wide">Target</p>
-              <p className="text-lg font-bold text-white font-mono">
-                {mode === 'none' ? 'Any Solana address' : mode === 'prefix' ? `${value}…` : `…${value}`}
-              </p>
+              )}
             </div>
-
-            <div className="flex items-start gap-2 p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
-              <AlertTriangle className="w-4 h-4 text-yellow-300 shrink-0 mt-0.5" />
-              <p className="text-xs text-yellow-100/90">
-                {mode === 'none'
-                  ? 'A standard keypair is generated instantly — no matching required.'
-                  : 'Vanity generation tries random keypairs until one matches. A 3–4 character base58 pattern is rare, so please keep this tab open. You can cancel and restart anytime.'}
-              </p>
-            </div>
-
-            <div className="flex gap-3">
-              <Button variant="outline" className="flex-1 border-white/30 text-white bg-transparent" onClick={onBack}>
-                <ArrowLeft className="w-4 h-4 mr-2" /> Back
-              </Button>
-              <Button className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white" onClick={start}>
-                <Zap className="w-4 h-4 mr-2" /> Generate
-              </Button>
-            </div>
-
-            {error && <p className="text-sm text-red-300 text-center">Generation error: {error}</p>}
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-white">Creating your SMPF wallet</h2>
-        <p className="text-white/70 mt-2">
-          {running ? `Forging a Solana address — ${targetLabel}.` : `${targetLabel} found!`}
-        </p>
-      </div>
-
-      <Card className="bg-white/10 backdrop-blur border-white/20">
-        <CardContent className="p-6 space-y-5">
-          <div className="flex flex-col items-center gap-3 py-4">
-            {running ? (
-              <div className="relative">
-                <Loader2 className="w-16 h-16 text-emerald-400 animate-spin" />
-                <Zap className="w-7 h-7 text-yellow-300 absolute inset-0 m-auto" />
-              </div>
-            ) : (
-              <div className="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-300 text-2xl">✓</div>
-            )}
-            <div className="grid grid-cols-2 gap-4 w-full mt-2">
-              <div className="bg-black/20 rounded-lg p-3 text-center">
-                <p className="text-xs text-white/60 uppercase tracking-wide">Addresses tested</p>
-                <p className="text-xl font-bold text-white">{tested.toLocaleString()}</p>
-              </div>
-              <div className="bg-black/20 rounded-lg p-3 text-center">
-                <p className="text-xs text-white/60 uppercase tracking-wide">Elapsed</p>
-                <p className="text-xl font-bold text-white">{secs}s</p>
-              </div>
-            </div>
-            <p className="text-xs text-white/50">~{rate} keys/sec</p>
-          </div>
-
-          <div className="flex gap-3">
-            {running ? (
-              <Button variant="outline" className="flex-1 border-white/30 text-white bg-transparent" onClick={handleCancel}>
-                <X className="w-4 h-4 mr-2" /> Cancel
-              </Button>
-            ) : (
-              <Button variant="outline" className="flex-1 border-white/30 text-white bg-transparent" onClick={handleRestart}>
-                Retry
-              </Button>
-            )}
-            <Button variant="outline" className="flex-1 border-white/30 text-white bg-transparent" onClick={handleEditConfig}>
-              <ArrowLeft className="w-4 h-4 mr-2" /> Change
-            </Button>
-          </div>
-
-          {error && <p className="text-sm text-red-300 text-center">Generation error: {error}</p>}
+          )}
         </CardContent>
       </Card>
     </div>
