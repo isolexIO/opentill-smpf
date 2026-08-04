@@ -89,4 +89,4 @@ export default function SMPFWallet() {
       {/* Wallet balance, send, receive components... */}
     </div>
   );
-}
+} 
