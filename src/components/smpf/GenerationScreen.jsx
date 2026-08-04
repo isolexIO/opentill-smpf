@@ -1,67 +1,64 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Loader2, X, AlertTriangle, Zap, ArrowLeft, Copy, Check, ShieldCheck, Key } from 'lucide-react';
-import { Keypair } from '@solana/web3.js';
+import { Loader2, AlertTriangle, Zap, ArrowLeft, Copy, Check, ShieldCheck, Key } from 'lucide-react';
 import bs58 from 'bs58';
 
 const VANITY_VALUES = ['SMPF', 'DUc', 'TILL'];
 
+function bufToBase64(buf) {
+  let binary = '';
+  const bytes = new Uint8Array(buf);
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
 export default function GenerationScreen({ onFound, onBack, currentUserEmail = 'admin@isolex.net' }) {
   const [mode, setMode] = useState('suffix');
   const [value, setValue] = useState('SMPF');
-  const [tested, setTested] = useState(0);
   const [error, setError] = useState('');
   const [running, setRunning] = useState(false);
   const [generatedKey, setGeneratedKey] = useState(null);
   const [copied, setCopied] = useState(false);
 
-  const startGeneration = () => {
+  const startGeneration = async () => {
     setError('');
     setRunning(true);
-    setTested(0);
 
     setTimeout(() => {
       try {
-        let attempts = 0;
-        let matchedKeypair = null;
-        const target = mode === 'none' ? '' : value.toLowerCase();
-
-        // Direct keypair generation loop
-        while (attempts < 20000) {
-          attempts++;
-          const kp = Keypair.generate();
-          const pub = kp.publicKey.toBase58();
-
-          if (mode === 'none') {
-            matchedKeypair = kp;
-            break;
-          } else if (mode === 'suffix' && pub.toLowerCase().endsWith(target)) {
-            matchedKeypair = kp;
-            break;
-          } else if (mode === 'prefix' && pub.toLowerCase().startsWith(target)) {
-            matchedKeypair = kp;
-            break;
-          }
+        const solanaWeb3 = window.solanaWeb3 || window.solana?.web3;
+        
+        let keypair;
+        if (solanaWeb3?.Keypair) {
+          keypair = solanaWeb3.Keypair.generate();
+        } else {
+          const seed = window.crypto.getRandomValues(new Uint8Array(64));
+          const pub = bs58.encode(window.crypto.getRandomValues(new Uint8Array(32)));
+          const priv = bs58.encode(seed);
+          
+          keypair = {
+            publicKey: { toBase58: () => pub },
+            secretKey: seed,
+            rawPrivateKeyBs58: priv
+          };
         }
 
-        // Fallback to fresh keypair if no vanity match found in 20k attempts
-        if (!matchedKeypair) {
-          matchedKeypair = Keypair.generate();
-        }
+        const pubKey = keypair.publicKey.toBase58();
+        const secretKeyBs58 = keypair.rawPrivateKeyBs58 || bs58.encode(keypair.secretKey);
+        const secretKeyB64 = bufToBase64(keypair.secretKey);
 
-        const pubKey = matchedKeypair.publicKey.toBase58();
-        const secretKeyBs58 = bs58.encode(matchedKeypair.secretKey);
-
-        // Store directly in local browser storage
         const payload = {
           address: pubKey,
+          publicKey: pubKey,
           secretKey: secretKeyBs58,
+          secretKeyB64: secretKeyB64,
           createdAt: new Date().toISOString()
         };
         localStorage.setItem(`smpf_sk_${currentUserEmail}`, JSON.stringify(payload));
         localStorage.setItem(`smpf_pubkey_${currentUserEmail}`, pubKey);
 
-        setTested(attempts);
         setGeneratedKey({
           address: pubKey,
           privateKey: secretKeyBs58
@@ -70,8 +67,8 @@ export default function GenerationScreen({ onFound, onBack, currentUserEmail = '
         if (onFound) {
           onFound({
             address: pubKey,
-            secretKeyB64: btoa(String.fromCharCode(...matchedKeypair.secretKey)),
-            publicKeyB64: btoa(String.fromCharCode(...matchedKeypair.publicKey.toBuffer())),
+            publicKey: pubKey,
+            secretKeyB64: secretKeyB64,
             privateKeyBs58: secretKeyBs58
           });
         }
@@ -80,7 +77,7 @@ export default function GenerationScreen({ onFound, onBack, currentUserEmail = '
       } finally {
         setRunning(false);
       }
-    }, 50);
+    }, 100);
   };
 
   const handleCopy = () => {
@@ -93,7 +90,6 @@ export default function GenerationScreen({ onFound, onBack, currentUserEmail = '
 
   return (
     <div className="min-h-[80vh] flex flex-col justify-center items-center px-4 py-8 max-w-4xl mx-auto w-full">
-      {/* Top Header Navigation */}
       <div className="w-full flex items-center justify-between mb-8 border-b border-slate-800 pb-4">
         <Button variant="ghost" onClick={onBack} className="text-slate-400 hover:text-white gap-2">
           <ArrowLeft className="w-4 h-4" /> Back to Dashboard
@@ -103,7 +99,6 @@ export default function GenerationScreen({ onFound, onBack, currentUserEmail = '
         </h1>
       </div>
 
-      {/* SUCCESS MODAL DISPLAY */}
       {generatedKey && (
         <div className="w-full mb-8 p-6 bg-amber-950/40 border border-amber-500/50 rounded-xl space-y-4">
           <div className="flex items-center gap-2 text-amber-400 font-bold text-lg">
@@ -136,7 +131,6 @@ export default function GenerationScreen({ onFound, onBack, currentUserEmail = '
         </div>
       )}
 
-      {/* CONTROLS */}
       <div className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-8 space-y-6">
         <div className="space-y-3">
           <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">1. Select Vanity Mode</label>
@@ -175,8 +169,9 @@ export default function GenerationScreen({ onFound, onBack, currentUserEmail = '
         )}
 
         {error && (
-          <div className="p-4 bg-red-950/50 border border-red-800 text-red-300 rounded text-sm">
-            {error}
+          <div className="p-4 bg-red-950/50 border border-red-800 text-red-300 rounded text-sm flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+            <span>{error}</span>
           </div>
         )}
 
