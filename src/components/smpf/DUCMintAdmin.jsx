@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { PublicKey } from '@solana/web3.js';
 import { Button } from '@/components/ui/button';
@@ -21,90 +21,164 @@ export default function DUCMintAdmin({ settings, onSaved }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
+  // Keep local input in sync if parent settings load asynchronously
+  useEffect(() => {
+    if (settings?.verified_duc_mint) {
+      setMint(settings.verified_duc_mint);
+    }
+  }, [settings?.verified_duc_mint]);
+
   const isConfigured = !!settings?.verified_duc_mint;
 
   async function save() {
     setError('');
+
     if (!adminEmail) return setError('Reauthentication required: enter your admin email.');
     if (confirmText !== 'CHANGE DUC MINT') return setError('Type CHANGE DUC MINT exactly to confirm.');
+
     let pk;
     try {
       pk = new PublicKey(mint.trim());
     } catch {
       return setError('That is not a valid Solana public key.');
     }
+
     setBusy(true);
     try {
       const me = await base44.auth.me();
-      if (!['admin', 'super_admin', 'root_admin'].includes(me?.role)) throw new Error('Administrators only.');
+      if (!['admin', 'super_admin', 'root_admin'].includes(me?.role)) {
+        throw new Error('Administrators only.');
+      }
+      if (adminEmail.trim().toLowerCase() !== me?.email?.trim().toLowerCase()) {
+        throw new Error('Reauthentication email does not match your current logged-in email.');
+      }
+
+      // 1. Query latest settings from Base44 DB to check for existing record ID
+      const existingList = await base44.entities.DUCWalletSettings.list().catch(() => []);
+      const currentRecord = existingList?.[0] || settings;
+
       const payload = {
-        ...settings,
+        ...currentRecord,
         verified_duc_mint: pk.toBase58(),
         mint_changed_by: me.email,
         mint_changed_at: new Date().toISOString(),
-        previous_duc_mint: settings?.verified_duc_mint || null,
+        previous_duc_mint: currentRecord?.verified_duc_mint || null,
       };
-      let saved;
-      if (settings?.id) {
-        saved = await base44.entities.DUCWalletSettings.update(settings.id, payload);
+
+      let savedRecord;
+      // 2. Persist to DB (Update if record exists, Create if first setup)
+      if (currentRecord?.id) {
+        savedRecord = await base44.entities.DUCWalletSettings.update(currentRecord.id, payload);
       } else {
-        saved = await base44.entities.DUCWalletSettings.create(payload);
+        savedRecord = await base44.entities.DUCWalletSettings.create(payload);
       }
-      toast({ title: '$DUC mint updated', description: 'A system-wide security warning now applies.' });
-      onSaved?.(saved);
-    } catch (e) {
-      setError(e.message || String(e));
+
+      // 3. Record Audit Log Entry
+      await base44.entities.WalletAdminAudit.create({
+        action_type: 'UPDATE_DUC_MINT',
+        admin_email: me.email,
+        entity: 'DUCWalletSettings',
+        new_value: JSON.stringify(savedRecord),
+        note: `Updated DUC mint address to ${pk.toBase58()}`,
+      }).catch(() => {});
+
+      toast({
+        title: 'Verified $DUC Mint Updated',
+        description: `Mainnet mint bound to ${pk.toBase58().slice(0, 8)}...`,
+      });
+
+      setConfirmText('');
+      if (typeof onSaved === 'function') {
+        onSaved(savedRecord);
+      }
+    } catch (err) {
+      console.error('Failed to update $DUC mint:', err);
+      setError(err?.message || 'Failed to persist verified $DUC mint to database.');
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <Card className="border-yellow-500/40 bg-yellow-500/5">
+    <Card className="bg-slate-900 border-indigo-500/30 text-white">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-white">
-          <ShieldAlert className="w-5 h-5 text-yellow-300" /> Verified $DUC Mainnet Mint
-        </CardTitle>
-        <CardDescription className="text-white/60">
-          Only administrators can change this. Changing the mint records the old/new values, admin identity, and timestamp.
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg font-black flex items-center gap-2">
+            <ShieldAlert className="w-5 h-5 text-indigo-400" /> Verified $DUC Mainnet Mint
+          </CardTitle>
+          {isConfigured && (
+            <span className="flex items-center gap-1 text-xs font-semibold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-2.5 py-1 rounded-full">
+              <BadgeCheck className="w-3.5 h-3.5" /> Configured
+            </span>
+          )}
+        </div>
+        <CardDescription className="text-white/60 text-xs">
+          Set the official SPL Token Mint for $DUC on Solana. This mint is enforced system-wide across openTILL checkout, POS terminals, and customer wallets.
         </CardDescription>
       </CardHeader>
+
       <CardContent className="space-y-4">
-        {!isConfigured && (
-          <Alert className="bg-red-500/10 border-red-500/40">
-            <ShieldAlert className="h-4 w-4 text-red-400" />
-            <AlertDescription className="text-red-200">
-              <strong>Major warning:</strong> No verified $DUC mint has been configured. $DUC balances and transfers
-              cannot be shown until an administrator verifies the mint.
-            </AlertDescription>
+        {error && (
+          <Alert variant="destructive" className="bg-red-500/10 border-red-500/30 text-red-400 text-xs">
+            <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
+
         {isConfigured && (
-          <div className="flex items-center gap-2 text-emerald-300 text-sm">
-            <BadgeCheck className="w-4 h-4" /> Current verified mint: <span className="font-mono text-xs break-all">{settings.verified_duc_mint}</span>
+          <div className="p-3 bg-slate-950 border border-white/10 rounded-lg space-y-1 font-mono text-xs">
+            <span className="text-white/40 block text-[10px] uppercase">Active $DUC Mint</span>
+            <p className="text-indigo-300 break-all select-all">{settings.verified_duc_mint}</p>
+            {settings.mint_changed_by && (
+              <p className="text-[10px] text-white/40 font-sans mt-1">
+                Updated by {settings.mint_changed_by} on {new Date(settings.mint_changed_at).toLocaleString()}
+              </p>
+            )}
           </div>
         )}
-        <div>
-          <Label className="text-white">New $DUC mint address</Label>
-          <Input value={mint} onChange={(e) => setMint(e.target.value)} placeholder="Mint address" className="mt-1 bg-white/10 border-white/20 text-white font-mono text-sm" />
+
+        <div className="space-y-3 pt-2">
+          <div className="space-y-1">
+            <Label className="text-xs text-white/80">New $DUC mint address</Label>
+            <Input
+              value={mint}
+              onChange={(e) => setMint(e.target.value)}
+              placeholder="Base58 Solana Mint Address..."
+              className="bg-slate-950 border-white/10 text-xs font-mono text-white placeholder:text-white/30"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <Label className="text-xs text-white/80">Admin reauthentication (your email)</Label>
+            <Input
+              type="email"
+              value={adminEmail}
+              onChange={(e) => setAdminEmail(e.target.value)}
+              placeholder="admin@isolex.net"
+              className="bg-slate-950 border-white/10 text-xs text-white placeholder:text-white/30"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <Label className="text-xs text-white/80">
+              Type <span className="font-mono font-bold text-amber-400">CHANGE DUC MINT</span> to confirm
+            </Label>
+            <Input
+              value={confirmText}
+              onChange={(e) => setConfirmText(e.target.value)}
+              placeholder="CHANGE DUC MINT"
+              className="bg-slate-950 border-white/10 text-xs font-mono text-white placeholder:text-white/30"
+            />
+          </div>
+
+          <Button
+            onClick={save}
+            disabled={busy || confirmText !== 'CHANGE DUC MINT' || !adminEmail || !mint}
+            className="w-full bg-indigo-600 hover:bg-indigo-500 font-semibold text-xs mt-2"
+          >
+            {busy ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+            Save verified $DUC mint
+          </Button>
         </div>
-        <div>
-          <Label className="text-white">Admin reauthentication (your email)</Label>
-          <Input value={adminEmail} onChange={(e) => setAdminEmail(e.target.value)} placeholder="admin@opentill.io" className="mt-1 bg-white/10 border-white/20 text-white" />
-        </div>
-        <div>
-          <Label className="text-white">Type CHANGE DUC MINT to confirm</Label>
-          <Input value={confirmText} onChange={(e) => setConfirmText(e.target.value)} placeholder="CHANGE DUC MINT" className="mt-1 bg-white/10 border-white/20 text-white font-mono" />
-        </div>
-        {error && <p className="text-sm text-red-300">{error}</p>}
-        <div className="flex items-start gap-2 p-2 rounded bg-black/30">
-          <ShieldAlert className="w-4 h-4 text-yellow-300 shrink-0 mt-0.5" />
-          <p className="text-xs text-yellow-100/80">Balances are never automatically transferred from the old mint.</p>
-        </div>
-        <Button onClick={save} disabled={busy || !mint || !adminEmail || confirmText !== 'CHANGE DUC MINT'} className="w-full bg-yellow-500 hover:bg-yellow-600 text-black">
-          {busy ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <ShieldAlert className="w-4 h-4 mr-2" />}
-          Save verified $DUC mint
-        </Button>
       </CardContent>
     </Card>
   );
