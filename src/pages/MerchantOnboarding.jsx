@@ -183,7 +183,8 @@ export default function MerchantOnboarding() {
       {/* Logo */}
       <div className="flex items-center gap-2 mb-6">
         <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6970e2871534100b4ebb8d45/8e45f76fe_DUC3.png" alt="openTILL" className="object-contain" style={{ width: '175px', height: '175px' }} />
-        <span className="text-2xl font-black text-slate-900 tracking-tight">openTILL</span>
+        </div>
+        <div><span className="text-2xl font-black text-slate-900 tracking-tight">openTILL</span>
       </div>
 
       <div className="w-full max-w-md">
