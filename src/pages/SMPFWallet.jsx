@@ -10,6 +10,7 @@ import { getWallet, listWallets } from '@/lib/smpfWalletStore';
 
 // Import your SMPF sub-components
 import PrivateKeyExport from '@/components/smpf/PrivateKeyExport';
+import TokensTab from '@/components/smpf/TokensTab';
 
 export default function SMPFWallet() {
   const [user, setUser] = useState(null);
@@ -206,23 +207,15 @@ export default function SMPFWallet() {
           </TabsContent>
 
           <TabsContent value="tokens">
-            <Card className="bg-slate-900 border-white/10 text-white">
-              <CardHeader>
-                <CardTitle className="text-lg">Whitelisted Tokens</CardTitle>
-                <CardDescription className="text-white/60 text-xs">Tokens configured by the network administrator.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {(settings?.featured_tokens || []).map((mint) => (
-                  <div key={mint} className="p-3 bg-slate-950 border border-white/10 rounded-lg flex justify-between items-center text-xs font-mono">
-                    <span className="text-indigo-300 truncate">{mint}</span>
-                    <span className="text-emerald-400 font-sans text-[11px] font-semibold">Verified SPL</span>
-                  </div>
-                ))}
-                {(!settings?.featured_tokens || settings.featured_tokens.length === 0) && (
-                  <p className="text-xs text-white/40 italic">No featured tokens whitelisted.</p>
-                )}
-              </CardContent>
-            </Card>
+            {solAddress ? (
+              <TokensTab address={solAddress} rpc={settings?.rpc_mainnet} settings={settings} />
+            ) : (
+              <Card className="bg-slate-900 border-white/10 text-white">
+                <CardContent className="p-6 text-center text-xs text-white/60">
+                  No Solana address found. Onboard a wallet to view token balances.
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           <TabsContent value="keys">
