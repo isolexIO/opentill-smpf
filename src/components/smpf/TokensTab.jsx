@@ -15,6 +15,7 @@ function saveSet(k, s) { localStorage.setItem(k, JSON.stringify([...s])); }
 
 export default function TokensTab({ address, rpc, settings }) {
   const [sol, setSol] = useState(null);
+  const [solLoading, setSolLoading] = useState(false);
   const [solUsd, setSolUsd] = useState(null);
   const [tokens, setTokens] = useState([]);
   const [hidden, setHidden] = useState(loadSet(HIDDEN_KEY));
@@ -31,9 +32,21 @@ export default function TokensTab({ address, rpc, settings }) {
 
   async function load() {
     setError('');
-    const conn = new Connection(endpoint, 'confirmed');
-    try { setSol((await conn.getBalance(new PublicKey(address))) / 1e9); } catch {}
+    setSolLoading(true);
+    const rpcs = [endpoint, 'https://api.mainnet-beta.solana.com'];
+    for (const rpc of rpcs) {
+      try {
+        const conn = new Connection(rpc, 'confirmed');
+        setSol((await conn.getBalance(new PublicKey(address))) / 1e9);
+        setSolLoading(false);
+        break;
+      } catch (e) {
+        console.warn('SOL balance fetch failed on', rpc, e);
+      }
+    }
+    if (sol === null) setSolLoading(false);
     getPrice(WSOL).then(setSolUsd);
+    const conn = new Connection(endpoint, 'confirmed');
     const owned = [];
     for (const programId of [TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID]) {
       try {
@@ -95,7 +108,7 @@ export default function TokensTab({ address, rpc, settings }) {
           <div className="flex items-center justify-between py-2 border-b border-white/10">
             <div className="flex items-center gap-2"><Coins className="w-4 h-4 text-white/60" /><span>SOL</span></div>
             <div className="text-right">
-              <p className="font-bold">{sol !== null ? sol.toFixed(4) : '…'}</p>
+              <p className="font-bold text-white">{solLoading ? <Loader2 className="w-4 h-4 animate-spin inline" /> : sol !== null ? sol.toFixed(4) : '—'}</p>
               {solUsd !== null && sol !== null && <p className="text-xs text-white/40">≈ ${(sol * solUsd).toFixed(2)}</p>}
             </div>
           </div>

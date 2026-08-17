@@ -10,7 +10,7 @@ export async function getPrice(mint) {
   const c = cache.get(mint);
   if (c && now - c.ts < TTL) return c.price;
   try {
-    const res = await fetch(`https://api.jup.club/price/v2?ids=${mint}`);
+    const res = await fetch(`https://lite-api.jup.ag/price/v2?ids=${mint}`);
     const j = await res.json();
     const p = j?.data?.[mint]?.price ?? null;
     cache.set(mint, { price: p, ts: now });

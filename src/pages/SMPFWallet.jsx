@@ -21,6 +21,7 @@ export default function SMPFWallet() {
   const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
   const [solBalance, setSolBalance] = useState(null);
+  const [solLoading, setSolLoading] = useState(false);
   const [solUsd, setSolUsd] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
 
@@ -36,24 +37,32 @@ export default function SMPFWallet() {
   useEffect(() => {
     if (!solAddress) return;
     let cancelled = false;
-    const rpc = (typeof settings?.rpc_mainnet === 'string' && /^https?:\/\//.test(settings.rpc_mainnet))
-      ? settings.rpc_mainnet
-      : 'https://api.mainnet-beta.solana.com';
+    setSolBalance(null);
+    setSolLoading(true);
+    const rpcs = [
+      (typeof settings?.rpc_mainnet === 'string' && /^https?:\/\//.test(settings.rpc_mainnet))
+        ? settings.rpc_mainnet
+        : null,
+      'https://api.mainnet-beta.solana.com',
+    ].filter(Boolean);
     (async () => {
-      try {
-        const conn = new Connection(rpc, 'confirmed');
-        const lamports = await conn.getBalance(new PublicKey(solAddress));
-        if (!cancelled) setSolBalance(lamports / 1e9);
-      } catch (e) {
-        console.warn('SOL balance fetch failed:', e);
+      for (const rpc of rpcs) {
+        try {
+          const conn = new Connection(rpc, 'confirmed');
+          const lamports = await conn.getBalance(new PublicKey(solAddress));
+          if (cancelled) return;
+          setSolBalance(lamports / 1e9);
+          setSolLoading(false);
+          return;
+        } catch (e) {
+          console.warn('SOL balance fetch failed on', rpc, e);
+        }
       }
-      try {
-        const price = await getPrice(WSOL);
-        if (!cancelled) setSolUsd(price);
-      } catch (e) {
-        console.warn('SOL price fetch failed:', e);
-      }
+      if (!cancelled) setSolLoading(false);
     })();
+    getPrice(WSOL)
+      .then((p) => { if (!cancelled) setSolUsd(p); })
+      .catch((e) => console.warn('SOL price fetch failed:', e));
     return () => { cancelled = true; };
   }, [solAddress, settings?.rpc_mainnet]);
 
@@ -197,7 +206,13 @@ export default function SMPFWallet() {
                 <CardHeader>
                   <CardTitle className="text-xs text-white/60 font-mono uppercase tracking-wider">SOL Balance</CardTitle>
                   <div className="text-3xl font-black font-mono tracking-tight text-white flex items-baseline gap-2">
-                    {solBalance !== null ? solBalance.toFixed(4) : '…'} <span className="text-xs font-normal text-white/40">SOL</span>
+                    {solLoading ? (
+                      <Loader2 className="w-6 h-6 animate-spin text-indigo-400" />
+                    ) : solBalance !== null ? (
+                      solBalance.toFixed(4)
+                    ) : (
+                      '—'
+                    )} <span className="text-xs font-normal text-white/40">SOL</span>
                   </div>
                   {solUsd !== null && solBalance !== null && (
                     <p className="text-xs text-white/50 font-mono">≈ ${(solBalance * solUsd).toFixed(2)} USD</p>
