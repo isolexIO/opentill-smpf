@@ -86,12 +86,36 @@ export default function SMPFWallet() {
       const currentSettings = settingsList?.[0] || null;
       setSettings(currentSettings);
 
-      // 3. Retrieve local IndexedDB Solana Wallet entry — prefer the SMPF vanity address
+      // 3. Retrieve local IndexedDB Solana Wallet entry — pick the funded one (highest on-chain SOL balance)
       const localWallets = await listWallets(currentUser.id).catch(() => []);
-      const activeWallet =
-        localWallets?.find((w) => typeof w.address === 'string' && w.address.endsWith('SMPF')) ||
-        localWallets?.[localWallets.length - 1] ||
-        null;
+      let activeWallet = localWallets?.[0] || null;
+      if (localWallets && localWallets.length > 1) {
+        const net = currentSettings?.default_network === 'devnet' ? 'devnet' : 'mainnet';
+        const configured = net === 'mainnet' ? currentSettings?.rpc_mainnet : currentSettings?.rpc_devnet;
+        const publicRpcs = net === 'mainnet'
+          ? ['https://api.mainnet-beta.solana.com', 'https://rpc.ankr.com/solana']
+          : ['https://api.devnet.solana.com'];
+        const rpcs = Array.from(new Set([
+          (typeof configured === 'string' && /^https?:\/\//.test(configured)) ? configured : null,
+          ...publicRpcs,
+        ].filter(Boolean)));
+        const fetchBalance = async (addr) => {
+          for (const rpc of rpcs) {
+            try {
+              const conn = new Connection(rpc, 'confirmed');
+              return await conn.getBalance(new PublicKey(addr));
+            } catch (e) { /* try next rpc */ }
+          }
+          return -1;
+        };
+        const results = await Promise.all(localWallets.map(async (w) => {
+          const addr = w.address || w.public_key;
+          if (!addr) return { w, bal: -1 };
+          return { w, bal: await fetchBalance(addr) };
+        }));
+        results.sort((a, b) => b.bal - a.bal);
+        if (results[0] && results[0].bal > 0) activeWallet = results[0].w;
+      }
 
       if (activeWallet) {
         setWallet(activeWallet);
