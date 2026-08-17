@@ -7,6 +7,7 @@ import { Key, Lock, Copy, CheckCircle2, ShieldAlert, Loader2, X } from 'lucide-r
 import { useToast } from '@/components/ui/use-toast';
 import { getWallet } from '@/lib/smpfWalletStore';
 import { decryptWallet } from '@/lib/smpfCrypto';
+import bs58 from 'bs58';
 
 export default function PrivateKeyExport({ wallet, session, onClose }) {
   const { toast } = useToast();
@@ -36,10 +37,10 @@ export default function PrivateKeyExport({ wallet, session, onClose }) {
         return;
       }
 
-      // 2. Decrypt secret key base64 string
+      // 2. Decrypt secret key and encode as base58 (Phantom / Solflare compatible)
       const decrypted = await decryptWallet(encryptedData, password);
-      setExportedKey(decrypted.secretKeyB64);
-      toast({ title: 'Key Exported', description: 'Private key decrypted successfully.' });
+      setExportedKey(bs58.encode(decrypted.secretKey));
+      toast({ title: 'Key Exported', description: 'Base58 private key ready for Phantom / Solflare import.' });
     } catch (err) {
       toast({
         title: 'Decryption failed',
@@ -74,7 +75,7 @@ export default function PrivateKeyExport({ wallet, session, onClose }) {
             <Key className="w-5 h-5 text-purple-400" /> Export Private Key
           </CardTitle>
           <CardDescription className="text-white/60 text-xs">
-            Anyone with this key has full control of your wallet. Never share it.
+            Anyone with this key has full control of your wallet. Never share it. Exported as base58 — compatible with Phantom, Solflare, and other Solana wallets.
           </CardDescription>
         </CardHeader>
 

@@ -26,14 +26,16 @@ export default function TokensTab({ address, rpc, settings }) {
   const [addInfo, setAddInfo] = useState(null);
   const [error, setError] = useState('');
   const ducMint = settings?.verified_duc_mint;
-  const endpoint = (typeof rpc === 'string' && /^https?:\/\//.test(rpc)) ? rpc : 'https://api.mainnet-beta.solana.com';
+  const net = settings?.default_network === 'mainnet' ? 'mainnet' : 'devnet';
+  const publicRpc = net === 'mainnet' ? 'https://api.mainnet-beta.solana.com' : 'https://api.devnet.solana.com';
+  const endpoint = (typeof rpc === 'string' && /^https?:\/\//.test(rpc)) ? rpc : publicRpc;
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [endpoint]);
 
   async function load() {
     setError('');
     setSolLoading(true);
-    const rpcs = [endpoint, 'https://api.mainnet-beta.solana.com'];
+    const rpcs = Array.from(new Set([endpoint, publicRpc]));
     for (const rpc of rpcs) {
       try {
         const conn = new Connection(rpc, 'confirmed');

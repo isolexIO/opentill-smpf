@@ -39,12 +39,15 @@ export default function SMPFWallet() {
     let cancelled = false;
     setSolBalance(null);
     setSolLoading(true);
-    const rpcs = [
-      (typeof settings?.rpc_mainnet === 'string' && /^https?:\/\//.test(settings.rpc_mainnet))
-        ? settings.rpc_mainnet
-        : null,
-      'https://api.mainnet-beta.solana.com',
-    ].filter(Boolean);
+    const net = settings?.default_network === 'mainnet' ? 'mainnet' : 'devnet';
+    const configured = net === 'mainnet' ? settings?.rpc_mainnet : settings?.rpc_devnet;
+    const publicRpc = net === 'mainnet'
+      ? 'https://api.mainnet-beta.solana.com'
+      : 'https://api.devnet.solana.com';
+    const rpcs = Array.from(new Set([
+      (typeof configured === 'string' && /^https?:\/\//.test(configured)) ? configured : null,
+      publicRpc,
+    ].filter(Boolean)));
     (async () => {
       for (const rpc of rpcs) {
         try {
@@ -64,7 +67,7 @@ export default function SMPFWallet() {
       .then((p) => { if (!cancelled) setSolUsd(p); })
       .catch((e) => console.warn('SOL price fetch failed:', e));
     return () => { cancelled = true; };
-  }, [solAddress, settings?.rpc_mainnet]);
+  }, [solAddress, settings?.rpc_mainnet, settings?.rpc_devnet, settings?.default_network]);
 
   async function initWallet() {
     setLoading(true);
@@ -254,7 +257,7 @@ export default function SMPFWallet() {
 
           <TabsContent value="tokens">
             {solAddress ? (
-              <TokensTab address={solAddress} rpc={settings?.rpc_mainnet} settings={settings} />
+              <TokensTab address={solAddress} rpc={settings?.default_network === 'mainnet' ? settings?.rpc_mainnet : settings?.rpc_devnet} settings={settings} />
             ) : (
               <Card className="bg-slate-900 border-white/10 text-white">
                 <CardContent className="p-6 text-center text-xs text-white/60">
