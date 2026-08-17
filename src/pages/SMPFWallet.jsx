@@ -86,9 +86,12 @@ export default function SMPFWallet() {
       const currentSettings = settingsList?.[0] || null;
       setSettings(currentSettings);
 
-      // 3. Retrieve local IndexedDB Solana Wallet entry
+      // 3. Retrieve local IndexedDB Solana Wallet entry — prefer the SMPF vanity address
       const localWallets = await listWallets(currentUser.id).catch(() => []);
-      const activeWallet = localWallets?.[0] || null;
+      const activeWallet =
+        localWallets?.find((w) => typeof w.address === 'string' && w.address.endsWith('SMPF')) ||
+        localWallets?.[localWallets.length - 1] ||
+        null;
 
       if (activeWallet) {
         setWallet(activeWallet);
