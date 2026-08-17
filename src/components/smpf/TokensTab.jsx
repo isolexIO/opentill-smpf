@@ -25,6 +25,7 @@ export default function TokensTab({ address, rpc, settings }) {
   const [adding, setAdding] = useState(false);
   const [addInfo, setAddInfo] = useState(null);
   const [error, setError] = useState('');
+  const [prices, setPrices] = useState({});
   const ducMint = settings?.verified_duc_mint;
   const net = settings?.default_network === 'devnet' ? 'devnet' : 'mainnet';
   const publicRpc = net === 'mainnet' ? 'https://api.mainnet-beta.solana.com' : 'https://api.devnet.solana.com';
@@ -65,6 +66,15 @@ export default function TokensTab({ address, rpc, settings }) {
       } catch {}
     }
     setTokens(owned);
+    // Fetch USD prices for owned tokens (best-effort, non-blocking)
+    const priceMap = {};
+    await Promise.all(owned.map(async (t) => {
+      try {
+        const p = await getPrice(t.mint);
+        if (p !== null) priceMap[t.mint] = p;
+      } catch {}
+    }));
+    setPrices(priceMap);
   }
 
   async function addMint() {
@@ -125,8 +135,13 @@ export default function TokensTab({ address, rpc, settings }) {
                 <p className="font-mono text-xs break-all text-white">{t.mint}</p>
                 <p className="text-[10px] text-white/40">{t.program === TOKEN_2022_PROGRAM_ID.toBase58() ? 'Token-2022' : 'SPL Token'}{ducMint === t.mint ? ' · $DUC' : ''}</p>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-white">{t.amount.toFixed(t.decimals > 2 ? 4 : 0)}</span>
+              <div className="flex items-center gap-2 text-right">
+                <div>
+                  <span className="text-sm text-white">{t.amount.toFixed(t.decimals > 2 ? 4 : 0)}</span>
+                  {prices[t.mint] != null && (
+                    <p className="text-[10px] text-white/40">≈ ${(t.amount * prices[t.mint]).toFixed(2)}</p>
+                  )}
+                </div>
                 <button onClick={() => toggleHide(t.mint)} className="text-white/40 hover:text-white/70">
                   {hidden.has(t.mint) ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
