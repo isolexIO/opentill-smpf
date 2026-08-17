@@ -112,7 +112,7 @@ export default function TokensTab({ address, rpc, settings }) {
       <Card className="bg-white/10 border-white/20">
         <CardContent className="p-4 space-y-2">
           <div className="flex items-center justify-between py-2 border-b border-white/10">
-            <div className="flex items-center gap-2"><Coins className="w-4 h-4 text-white/60" /><span>SOL</span></div>
+            <div className="flex items-center gap-2"><Coins className="w-4 h-4 text-white/60" /><span className="text-white">SOL</span></div>
             <div className="text-right">
               <p className="font-bold text-white">{solLoading ? <Loader2 className="w-4 h-4 animate-spin inline" /> : sol !== null ? sol.toFixed(4) : '—'}</p>
               {solUsd !== null && sol !== null && <p className="text-xs text-white/40">≈ ${(sol * solUsd).toFixed(2)}</p>}
