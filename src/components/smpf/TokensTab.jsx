@@ -122,11 +122,11 @@ export default function TokensTab({ address, rpc, settings }) {
           {visibleTokens.map((t) => (
             <div key={t.mint} className="flex items-center justify-between py-2 border-b border-white/10">
               <div className="min-w-0 flex-1">
-                <p className="font-mono text-xs break-all">{t.mint}</p>
+                <p className="font-mono text-xs break-all text-white">{t.mint}</p>
                 <p className="text-[10px] text-white/40">{t.program === TOKEN_2022_PROGRAM_ID.toBase58() ? 'Token-2022' : 'SPL Token'}{ducMint === t.mint ? ' · $DUC' : ''}</p>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm">{t.amount.toFixed(t.decimals > 2 ? 4 : 0)}</span>
+                <span className="text-sm text-white">{t.amount.toFixed(t.decimals > 2 ? 4 : 0)}</span>
                 <button onClick={() => toggleHide(t.mint)} className="text-white/40 hover:text-white/70">
                   {hidden.has(t.mint) ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -136,7 +136,7 @@ export default function TokensTab({ address, rpc, settings }) {
 
           {customExtras.map((m) => (
             <div key={m} className="flex items-center justify-between py-2 border-b border-white/10 opacity-60">
-              <div className="min-w-0"><p className="font-mono text-xs break-all">{m}</p><p className="text-[10px] text-white/40">Custom · not held</p></div>
+              <div className="min-w-0"><p className="font-mono text-xs break-all text-white">{m}</p><p className="text-[10px] text-white/40">Custom · not held</p></div>
               <span className="text-xs text-white/40">0</span>
             </div>
           ))}
