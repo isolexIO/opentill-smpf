@@ -39,14 +39,14 @@ export default function SMPFWallet() {
     let cancelled = false;
     setSolBalance(null);
     setSolLoading(true);
-    const net = settings?.default_network === 'mainnet' ? 'mainnet' : 'devnet';
+    const net = settings?.default_network === 'devnet' ? 'devnet' : 'mainnet';
     const configured = net === 'mainnet' ? settings?.rpc_mainnet : settings?.rpc_devnet;
-    const publicRpc = net === 'mainnet'
-      ? 'https://api.mainnet-beta.solana.com'
-      : 'https://api.devnet.solana.com';
+    const publicRpcs = net === 'mainnet'
+      ? ['https://api.mainnet-beta.solana.com', 'https://rpc.ankr.com/solana']
+      : ['https://api.devnet.solana.com'];
     const rpcs = Array.from(new Set([
       (typeof configured === 'string' && /^https?:\/\//.test(configured)) ? configured : null,
-      publicRpc,
+      ...publicRpcs,
     ].filter(Boolean)));
     (async () => {
       for (const rpc of rpcs) {
@@ -257,7 +257,7 @@ export default function SMPFWallet() {
 
           <TabsContent value="tokens">
             {solAddress ? (
-              <TokensTab address={solAddress} rpc={settings?.default_network === 'mainnet' ? settings?.rpc_mainnet : settings?.rpc_devnet} settings={settings} />
+              <TokensTab address={solAddress} rpc={settings?.default_network === 'devnet' ? settings?.rpc_devnet : settings?.rpc_mainnet} settings={settings} />
             ) : (
               <Card className="bg-slate-900 border-white/10 text-white">
                 <CardContent className="p-6 text-center text-xs text-white/60">
