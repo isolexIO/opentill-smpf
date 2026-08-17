@@ -73,6 +73,11 @@
       ],
       "default": "devnet",
       "description": "Production default is mainnet only after testing is complete."
+    },
+    "is_paused": {
+      "type": "boolean",
+      "default": false,
+      "description": "Global circuit breaker. When true, all SMPF wallet outgoing transfers and mint operations are blocked across the application."
     }
   },
   "required": [],

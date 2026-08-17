@@ -57,15 +57,21 @@ export default function SMPFWalletAdmin() {
       } else {
         saved = await base44.entities.DUCWalletSettings.create(next);
       }
-      await base44.entities.WalletAdminAudit.create({
-        action_type: actionType,
-        admin_email: u?.email,
-        entity: 'DUCWalletSettings',
-        previous_value: JSON.stringify(settings),
-        new_value: JSON.stringify(saved),
-        note,
-      });
+      // Update local state first so the UI reflects the saved value even if
+      // the audit write fails.
       setSettings(saved);
+      try {
+        await base44.entities.WalletAdminAudit.create({
+          action_type: actionType,
+          admin_email: u?.email,
+          entity: 'DUCWalletSettings',
+          previous_value: JSON.stringify(settings),
+          new_value: JSON.stringify(saved),
+          note,
+        });
+      } catch (auditErr) {
+        console.warn('Audit log write failed:', auditErr);
+      }
       const a = await base44.entities.WalletAdminAudit.list('-created_date', 50).catch(() => []);
       setAudit(a || []);
     } catch (err) {
@@ -76,35 +82,35 @@ export default function SMPFWalletAdmin() {
   }
 
   function handleTogglePause() {
-    persist({ ...settings, is_paused: !settings?.is_paused }, 'TOGGLE_PAUSE', 'Admin toggled global wallet pause');
+    persist({ ...settings, is_paused: !settings?.is_paused }, 'security_setting', 'Admin toggled global wallet pause');
   }
 
   function handleAddToken() {
     if (!tokenInput.trim()) return;
-    const current = settings?.featured_tokens || [];
+    const current = settings?.approved_token_mints || [];
     if (current.includes(tokenInput.trim())) return;
     const next = [...current, tokenInput.trim()];
-    persist({ ...settings, featured_tokens: next }, 'ADD_FEATURED_TOKEN', `Added token ${tokenInput}`);
+    persist({ ...settings, approved_token_mints: next }, 'token_verification', `Added token ${tokenInput}`);
     setTokenInput('');
   }
 
   function handleRemoveToken(mint) {
-    const next = (settings?.featured_tokens || []).filter((t) => t !== mint);
-    persist({ ...settings, featured_tokens: next }, 'REMOVE_FEATURED_TOKEN', `Removed token ${mint}`);
+    const next = (settings?.approved_token_mints || []).filter((t) => t !== mint);
+    persist({ ...settings, approved_token_mints: next }, 'token_verification', `Removed token ${mint}`);
   }
 
   function handleAddChip() {
     if (!chipInput.trim()) return;
-    const current = settings?.allowed_chips || [];
+    const current = settings?.approved_chip_collections || [];
     if (current.includes(chipInput.trim())) return;
     const next = [...current, chipInput.trim()];
-    persist({ ...settings, allowed_chips: next }, 'ADD_ALLOWED_CHIP', `Added chip ${chipInput}`);
+    persist({ ...settings, approved_chip_collections: next }, 'nft_collection', `Added chip ${chipInput}`);
     setChipInput('');
   }
 
   function handleRemoveChip(chip) {
-    const next = (settings?.allowed_chips || []).filter((c) => c !== chip);
-    persist({ ...settings, allowed_chips: next }, 'REMOVE_ALLOWED_CHIP', `Removed chip ${chip}`);
+    const next = (settings?.approved_chip_collections || []).filter((c) => c !== chip);
+    persist({ ...settings, approved_chip_collections: next }, 'nft_collection', `Removed chip ${chip}`);
   }
 
   if (loading) {
@@ -180,7 +186,7 @@ export default function SMPFWalletAdmin() {
         </Card>
 
         {/* $DUC Token & Mint Admin */}
-        <DUCMintAdmin />
+        <DUCMintAdmin settings={settings} onSaved={setSettings} />
 
         {/* Featured Tokens Whitelist */}
         <Card className="bg-slate-900 border-white/10 text-white">
@@ -204,7 +210,7 @@ export default function SMPFWalletAdmin() {
             </div>
 
             <div className="space-y-2">
-              {(settings?.featured_tokens || []).map((mint) => (
+              {(settings?.approved_token_mints || []).map((mint) => (
                 <div key={mint} className="flex items-center justify-between p-2.5 bg-slate-950 border border-white/10 rounded-lg text-xs font-mono">
                   <span className="truncate max-w-md">{mint}</span>
                   <Button variant="ghost" size="sm" onClick={() => handleRemoveToken(mint)} disabled={busy} className="text-red-400 hover:text-red-300">
@@ -212,7 +218,7 @@ export default function SMPFWalletAdmin() {
                   </Button>
                 </div>
               ))}
-              {(!settings?.featured_tokens || settings.featured_tokens.length === 0) && (
+              {(!settings?.approved_token_mints || settings.approved_token_mints.length === 0) && (
                 <p className="text-xs text-white/40 italic">No featured tokens configured.</p>
               )}
             </div>
@@ -241,7 +247,7 @@ export default function SMPFWalletAdmin() {
             </div>
 
             <div className="space-y-2">
-              {(settings?.allowed_chips || []).map((chip) => (
+              {(settings?.approved_chip_collections || []).map((chip) => (
                 <div key={chip} className="flex items-center justify-between p-2.5 bg-slate-950 border border-white/10 rounded-lg text-xs font-mono">
                   <span className="truncate max-w-md">{chip}</span>
                   <Button variant="ghost" size="sm" onClick={() => handleRemoveChip(chip)} disabled={busy} className="text-red-400 hover:text-red-300">
@@ -249,7 +255,7 @@ export default function SMPFWalletAdmin() {
                   </Button>
                 </div>
               ))}
-              {(!settings?.allowed_chips || settings.allowed_chips.length === 0) && (
+              {(!settings?.approved_chip_collections || settings.approved_chip_collections.length === 0) && (
                 <p className="text-xs text-white/40 italic">No registered chips found.</p>
               )}
             </div>
