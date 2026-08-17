@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Loader2, Lock, LogIn, Wallet, ShieldCheck, Send, ArrowDownLeft, Coins, Cpu, KeyRound, Copy, Check, AlertCircle } from 'lucide-react';
+import { Connection, PublicKey } from '@solana/web3.js';
+import { getPrice, WSOL } from '@/lib/smpfPrices';
 import { getWallet, listWallets } from '@/lib/smpfWalletStore';
 
 // Import your SMPF sub-components
@@ -18,7 +20,8 @@ export default function SMPFWallet() {
   const [solAddress, setSolAddress] = useState('');
   const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [balance, setBalance] = useState(0);
+  const [solBalance, setSolBalance] = useState(null);
+  const [solUsd, setSolUsd] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
 
   // Receive Modal States
@@ -28,6 +31,31 @@ export default function SMPFWallet() {
   useEffect(() => {
     initWallet();
   }, []);
+
+  // Fetch live SOL balance + USD price whenever the address or RPC changes.
+  useEffect(() => {
+    if (!solAddress) return;
+    let cancelled = false;
+    const rpc = (typeof settings?.rpc_mainnet === 'string' && /^https?:\/\//.test(settings.rpc_mainnet))
+      ? settings.rpc_mainnet
+      : 'https://api.mainnet-beta.solana.com';
+    (async () => {
+      try {
+        const conn = new Connection(rpc, 'confirmed');
+        const lamports = await conn.getBalance(new PublicKey(solAddress));
+        if (!cancelled) setSolBalance(lamports / 1e9);
+      } catch (e) {
+        console.warn('SOL balance fetch failed:', e);
+      }
+      try {
+        const price = await getPrice(WSOL);
+        if (!cancelled) setSolUsd(price);
+      } catch (e) {
+        console.warn('SOL price fetch failed:', e);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [solAddress, settings?.rpc_mainnet]);
 
   async function initWallet() {
     setLoading(true);
@@ -167,10 +195,13 @@ export default function SMPFWallet() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Card className="bg-slate-900 border-white/10 text-white md:col-span-2">
                 <CardHeader>
-                  <CardTitle className="text-xs text-white/60 font-mono uppercase tracking-wider">Total Portfolio Balance</CardTitle>
+                  <CardTitle className="text-xs text-white/60 font-mono uppercase tracking-wider">SOL Balance</CardTitle>
                   <div className="text-3xl font-black font-mono tracking-tight text-white flex items-baseline gap-2">
-                    ${balance.toFixed(2)} <span className="text-xs font-normal text-white/40">USD</span>
+                    {solBalance !== null ? solBalance.toFixed(4) : '…'} <span className="text-xs font-normal text-white/40">SOL</span>
                   </div>
+                  {solUsd !== null && solBalance !== null && (
+                    <p className="text-xs text-white/50 font-mono">≈ ${(solBalance * solUsd).toFixed(2)} USD</p>
+                  )}
                 </CardHeader>
                 <CardContent className="flex gap-3">
                   <Button disabled={settings?.is_paused} className="bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold">
