@@ -17,6 +17,7 @@ import { getNetworkRpcList } from '@/lib/smpfRpc';
 import PrivateKeyExport from '@/components/smpf/PrivateKeyExport';
 import TokensTab from '@/components/smpf/TokensTab';
 import TransactionHistoryTab from '@/components/smpf/TransactionHistoryTab';
+import SendScreen from '@/components/smpf/SendScreen';
 
 export default function SMPFWallet() {
   const [user, setUser] = useState(null);
@@ -34,6 +35,7 @@ export default function SMPFWallet() {
   const [isReceiveOpen, setIsReceiveOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isExportOpen, setIsExportOpen] = useState(false);
+  const [isSendOpen, setIsSendOpen] = useState(false);
   const [resetting, setResetting] = useState(false);
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
   const [ackTransferred, setAckTransferred] = useState(false);
@@ -279,20 +281,20 @@ export default function SMPFWallet() {
 
         {/* Main Wallet Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="bg-slate-900 border border-white/10 p-1 rounded-xl flex w-full overflow-x-auto gap-1 sm:grid sm:grid-cols-5">
-            <TabsTrigger value="overview" className="flex-1 whitespace-nowrap data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-xs px-3">
+          <TabsList className="bg-slate-900 border border-white/10 p-1 rounded-xl flex w-full gap-1 overflow-x-auto sm:grid sm:grid-cols-5 sm:overflow-visible">
+            <TabsTrigger value="overview" className="shrink-0 whitespace-nowrap data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-xs px-3 py-2 sm:flex-1 sm:shrink">
               <Wallet className="w-3.5 h-3.5 mr-1.5" /> <span>Balance</span>
             </TabsTrigger>
-            <TabsTrigger value="tokens" className="flex-1 whitespace-nowrap data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-xs px-3">
+            <TabsTrigger value="tokens" className="shrink-0 whitespace-nowrap data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-xs px-3 py-2 sm:flex-1 sm:shrink">
               <Coins className="w-3.5 h-3.5 mr-1.5" /> <span>Tokens</span>
             </TabsTrigger>
-            <TabsTrigger value="history" className="flex-1 whitespace-nowrap data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-xs px-3">
+            <TabsTrigger value="history" className="shrink-0 whitespace-nowrap data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-xs px-3 py-2 sm:flex-1 sm:shrink">
               <History className="w-3.5 h-3.5 mr-1.5" /> <span>History</span>
             </TabsTrigger>
-            <TabsTrigger value="chips" className="flex-1 whitespace-nowrap data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-xs px-3">
+            <TabsTrigger value="chips" className="shrink-0 whitespace-nowrap data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-xs px-3 py-2 sm:flex-1 sm:shrink">
               <Cpu className="w-3.5 h-3.5 mr-1.5" /> <span>Chips</span>
             </TabsTrigger>
-            <TabsTrigger value="keys" className="flex-1 whitespace-nowrap data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-xs px-3">
+            <TabsTrigger value="keys" className="shrink-0 whitespace-nowrap data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-xs px-3 py-2 sm:flex-1 sm:shrink">
               <KeyRound className="w-3.5 h-3.5 mr-1.5" /> <span>Keys</span>
             </TabsTrigger>
           </TabsList>
@@ -328,7 +330,11 @@ export default function SMPFWallet() {
                   <p className="text-[10px] text-white/30 font-mono">Auto-refreshes every 30s</p>
                 </CardHeader>
                 <CardContent className="flex flex-col sm:flex-row gap-3">
-                  <Button disabled={settings?.is_paused} className="bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold w-full sm:w-auto">
+                  <Button
+                    disabled={settings?.is_paused || !solAddress || !wallet}
+                    onClick={() => setIsSendOpen(true)}
+                    className="bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold w-full sm:w-auto"
+                  >
                     <Send className="w-3.5 h-3.5 mr-1.5" /> Send SOL / Token
                   </Button>
                   <Button
@@ -472,6 +478,33 @@ export default function SMPFWallet() {
                 </div>
               )}
             </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Send Assets Modal */}
+        <Dialog open={isSendOpen} onOpenChange={setIsSendOpen}>
+          <DialogContent className="bg-slate-900 border-white/10 text-white max-w-md rounded-xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-lg font-black flex items-center gap-2">
+                <Send className="w-5 h-5 text-indigo-400" /> Send Assets
+              </DialogTitle>
+              <DialogDescription className="text-white/60 text-xs">
+                Transfer SOL or SPL tokens from your openTILL wallet.
+              </DialogDescription>
+            </DialogHeader>
+            {wallet && solAddress ? (
+              <SendScreen
+                address={solAddress}
+                rpc={getNetworkRpcList(settings)[0] || 'https://api.mainnet-beta.solana.com'}
+                network={settings?.default_network || 'mainnet'}
+              />
+            ) : (
+              <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg text-amber-300 text-xs space-y-3 text-center">
+                <AlertCircle className="w-5 h-5 mx-auto text-amber-400" />
+                <p>No local keypair is available on this device. Sending requires the wallet's private key, which is only present on the device where the wallet was created.</p>
+                <p className="text-white/50">Restore your wallet from your encrypted backup file to enable sending.</p>
+              </div>
+            )}
           </DialogContent>
         </Dialog>
 
