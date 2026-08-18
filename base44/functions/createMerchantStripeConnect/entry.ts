@@ -14,6 +14,21 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'merchant_id is required' }, { status: 400 });
     }
 
+    // Validate redirect URLs against the app origin to prevent open-redirect to
+    // attacker-controlled domains after Stripe onboarding.
+    const appOrigin = new URL(req.url).origin;
+    const safeUrl = (u) => {
+      if (!u || typeof u !== 'string') return null;
+      try {
+        const parsed = new URL(u, appOrigin);
+        return parsed.origin === appOrigin ? parsed.href : null;
+      } catch {
+        return null;
+      }
+    };
+    const safeReturnUrl = safeUrl(return_url) || `${appOrigin}/`;
+    const safeRefreshUrl = safeUrl(refresh_url) || safeReturnUrl;
+
     // Authorization: platform admin or the merchant themselves.
     if (user.role !== 'admin' && user.merchant_id !== merchant_id) {
       return Response.json({ error: 'Forbidden' }, { status: 403 });
@@ -68,8 +83,8 @@ Deno.serve(async (req) => {
     // Generate (or refresh) the onboarding link.
     const accountLink = await stripe.accountLinks.create({
       account: accountId,
-      refresh_url: refresh_url || return_url,
-      return_url,
+      refresh_url: safeRefreshUrl,
+      return_url: safeReturnUrl,
       type: 'account_onboarding',
     });
 

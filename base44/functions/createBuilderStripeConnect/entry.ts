@@ -8,8 +8,20 @@ Deno.serve(async (req) => {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { return_url, refresh_url } = await req.json();
-    const redirectUrl = return_url || (typeof location !== 'undefined' ? location.href : '');
-    const refreshUrl = refresh_url || redirectUrl;
+    // Validate redirect URLs against the app origin to prevent open-redirect to
+    // attacker-controlled domains after Stripe onboarding.
+    const appOrigin = new URL(req.url).origin;
+    const safeUrl = (u) => {
+      if (!u || typeof u !== 'string') return null;
+      try {
+        const parsed = new URL(u, appOrigin);
+        return parsed.origin === appOrigin ? parsed.href : null;
+      } catch {
+        return null;
+      }
+    };
+    const redirectUrl = safeUrl(return_url) || `${appOrigin}/`;
+    const refreshUrl = safeUrl(refresh_url) || redirectUrl;
 
     const stripe = new Stripe(Deno.env.get('STRIPE_CONNECT_KEY') || Deno.env.get('STRIPE_SECRET_KEY'));
 
