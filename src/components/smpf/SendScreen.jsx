@@ -45,12 +45,20 @@ export default function SendScreen({ address, rpc, network }) {
   useEffect(() => { listContacts().then(setContacts).catch(() => {}); }, []);
 
   async function loadAssets() {
+    const pub = new PublicKey(address);
+    let list = [];
+    // SOL first — always populate even if token indexing fails.
     try {
-      const pub = new PublicKey(address);
       const lamports = await conn.getBalance(pub);
       setSolBalance(lamports / 1e9);
-      const list = [{ key: 'SOL', label: 'SOL', decimals: 9, balance: lamports / 1e9, programId: null, mint: null, sourceATA: null }];
-      for (const programId of [TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID]) {
+      list.push({ key: 'SOL', label: 'SOL', decimals: 9, balance: lamports / 1e9, programId: null, mint: null, sourceATA: null });
+    } catch (e) {
+      list.push({ key: 'SOL', label: 'SOL', decimals: 9, balance: 0, programId: null, mint: null, sourceATA: null });
+    }
+    setAssets([...list]);
+    // SPL tokens — append defensively so a single failing program doesn't drop SOL.
+    for (const programId of [TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID]) {
+      try {
         const res = await conn.getParsedTokenAccountsByOwner(pub, { programId });
         for (const acc of res.value) {
           const info = acc.account.data?.parsed?.info;
@@ -67,9 +75,9 @@ export default function SendScreen({ address, rpc, network }) {
             sourceATA: acc.pubkey.toBase58(),
           });
         }
-      }
-      setAssets(list);
-    } catch {}
+      } catch (e) { /* ignore this program, keep what we have */ }
+    }
+    setAssets([...list]);
   }
 
   const current = assets.find((a) => a.key === selAsset) || assets[0];
