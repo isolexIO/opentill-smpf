@@ -1,17 +1,19 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader2, AlertTriangle, Zap, ArrowLeft, Copy, Check, ShieldCheck, Key } from 'lucide-react';
 import bs58 from 'bs58';
-import nacl from 'tweetnacl';
 
 const VANITY_VALUES = ['SMPF', 'DUc', 'TILL'];
 
-function uint8ToBase64(uint8) {
-  let binary = '';
-  for (let i = 0; i < uint8.length; i++) {
-    binary += String.fromCharCode(uint8[i]);
-  }
-  return btoa(binary);
+// Worker pool size: use multiple cores in parallel so a 4-char vanity
+// suffix (~1 in 11.3M) is found in seconds rather than minutes.
+const POOL_SIZE = Math.min(4, Math.max(1, (navigator.hardwareConcurrency || 2) - 1));
+
+function b64ToBase58(b64) {
+  const binary = atob(b64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bs58.encode(bytes);
 }
 
 export default function GenerationScreen({ onFound, onBack, currentUserEmail = 'admin@isolex.net' }) {
@@ -22,85 +24,109 @@ export default function GenerationScreen({ onFound, onBack, currentUserEmail = '
   const [tested, setTested] = useState(0);
   const [generatedKey, setGeneratedKey] = useState(null);
   const [copied, setCopied] = useState(false);
+
+  const workersRef = useRef([]);
+  const testedByWorkerRef = useRef({});
   const stopRef = useRef(false);
+
+  // Clean up any workers on unmount
+  useEffect(() => {
+    return () => {
+      stopRef.current = true;
+      workersRef.current.forEach((w) => {
+        try { w.postMessage({ type: 'cancel' }); } catch { /* noop */ }
+        try { w.terminate(); } catch { /* noop */ }
+      });
+      workersRef.current = [];
+    };
+  }, []);
+
+  const spawnWorker = () => {
+    const w = new Worker(new URL('../../workers/smpfWorker.js', import.meta.url), { type: 'module' });
+    w.onmessage = (e) => {
+      const msg = e.data;
+      if (!msg) return;
+      if (msg.type === 'progress') {
+        testedByWorkerRef.current[w.__id] = msg.tested || 0;
+        const total = Object.values(testedByWorkerRef.current).reduce((a, b) => a + b, 0);
+        setTested(total);
+      } else if (msg.type === 'found') {
+        if (stopRef.current) return;
+        stopRef.current = true;
+
+        const secretKeyBs58 = b64ToBase58(msg.secretKeyB64);
+        const payload = {
+          address: msg.address,
+          publicKey: msg.address,
+          secretKey: secretKeyBs58,
+          secretKeyB64: msg.secretKeyB64,
+          createdAt: new Date().toISOString(),
+        };
+
+        localStorage.setItem(`smpf_sk_${currentUserEmail}`, JSON.stringify(payload));
+        localStorage.setItem(`smpf_pubkey_${currentUserEmail}`, msg.address);
+
+        setGeneratedKey({ address: msg.address, privateKey: secretKeyBs58 });
+        setTested((prev) => prev + (msg.tested || 0));
+        setRunning(false);
+
+        // Stop the rest of the pool
+        workersRef.current.forEach((other) => {
+          if (other !== w) {
+            try { other.postMessage({ type: 'cancel' }); } catch { /* noop */ }
+          }
+        });
+
+        if (onFound) {
+          onFound({
+            address: msg.address,
+            publicKey: msg.address,
+            secretKeyB64: msg.secretKeyB64,
+            privateKeyBs58: secretKeyBs58,
+          });
+        }
+      } else if (msg.type === 'error') {
+        setError(msg.error || 'Generation error');
+        setRunning(false);
+        stopRef.current = true;
+      }
+    };
+    w.onerror = (ev) => {
+      setError(String(ev?.message || 'Worker error'));
+      setRunning(false);
+      stopRef.current = true;
+    };
+    return w;
+  };
 
   const startGeneration = () => {
     setError('');
     setRunning(true);
     setTested(0);
+    setGeneratedKey(null);
     stopRef.current = false;
+    testedByWorkerRef.current = {};
 
-    const targetPattern = mode === 'none' ? '' : (value || 'SMPF');
-    let attemptsCounter = 0;
+    // Terminate any leftover workers
+    workersRef.current.forEach((w) => { try { w.terminate(); } catch { /* noop */ } });
+    workersRef.current = [];
 
-    const chunk = () => {
-      if (stopRef.current) {
-        setRunning(false);
-        return;
-      }
+    const targetValue = mode === 'none' ? '' : (value || 'SMPF');
 
-      // Process 2,500 attempts per animation frame without freezing UI
-      for (let i = 0; i < 2500; i++) {
-        attemptsCounter++;
-        
-        // Derive a real Ed25519 keypair from a 32-byte seed. tweetnacl produces
-        // the canonical 64-byte Solana secret key (32-byte seed + 32-byte public
-        // key), which Phantom and Solflare accept for import. The public key is
-        // derived from the seed (not random), so the address and secret key are
-        // cryptographically linked.
-        const seed = window.crypto.getRandomValues(new Uint8Array(32));
-        const pair = nacl.sign.keyPair.fromSeed(seed);
-        const pubBytes = pair.publicKey;
-        const secretKeyBytes = pair.secretKey;
-
-        const candidateAddr = bs58.encode(pubBytes);
-        const isMatch = mode === 'suffix' 
-          ? candidateAddr.endsWith(targetPattern)
-          : mode === 'prefix' 
-          ? candidateAddr.startsWith(targetPattern)
-          : true;
-
-        if (isMatch) {
-          const secretKeyBs58 = bs58.encode(secretKeyBytes);
-          const secretKeyB64 = uint8ToBase64(secretKeyBytes);
-
-          const payload = {
-            address: candidateAddr,
-            publicKey: candidateAddr,
-            secretKey: secretKeyBs58,
-            secretKeyB64: secretKeyB64,
-            createdAt: new Date().toISOString()
-          };
-
-          localStorage.setItem(`smpf_sk_${currentUserEmail}`, JSON.stringify(payload));
-          localStorage.setItem(`smpf_pubkey_${currentUserEmail}`, candidateAddr);
-
-          setGeneratedKey({ address: candidateAddr, privateKey: secretKeyBs58 });
-          setTested(attemptsCounter);
-          setRunning(false);
-
-          if (onFound) {
-            onFound({
-              address: candidateAddr,
-              publicKey: candidateAddr,
-              secretKeyB64: secretKeyB64,
-              privateKeyBs58: secretKeyBs58
-            });
-          }
-          return;
-        }
-      }
-
-      setTested(attemptsCounter);
-      requestAnimationFrame(chunk);
-    };
-
-    requestAnimationFrame(chunk);
+    for (let i = 0; i < POOL_SIZE; i++) {
+      const w = spawnWorker();
+      w.__id = i;
+      workersRef.current.push(w);
+      w.postMessage({ type: 'start', mode, value: targetValue });
+    }
   };
 
   const handleStop = () => {
     stopRef.current = true;
     setRunning(false);
+    workersRef.current.forEach((w) => {
+      try { w.postMessage({ type: 'cancel' }); } catch { /* noop */ }
+    });
   };
 
   const handleCopy = () => {
@@ -193,8 +219,10 @@ export default function GenerationScreen({ onFound, onBack, currentUserEmail = '
 
         {running && (
           <div className="p-4 bg-indigo-950/40 border border-indigo-800 rounded-xl space-y-2 text-center">
-            <div className="text-xs text-indigo-300 font-mono">
-              Searching for pattern ending in: <span className="text-white font-bold">{value}</span>
+            <div className="text-xs text-indigo-300 font-mono flex items-center justify-center gap-2">
+              <Loader2 className="w-3 h-3 animate-spin" />
+              Searching {POOL_SIZE}× in parallel for pattern {mode === 'prefix' ? 'starting' : 'ending'} in:{' '}
+              <span className="text-white font-bold">{value}</span>
             </div>
             <div className="text-lg font-mono font-bold text-indigo-400">
               {tested.toLocaleString()} attempts evaluated
@@ -211,16 +239,16 @@ export default function GenerationScreen({ onFound, onBack, currentUserEmail = '
 
         <div className="pt-4 flex gap-3">
           {running ? (
-            <Button 
-              onClick={handleStop} 
+            <Button
+              onClick={handleStop}
               variant="destructive"
               className="w-full h-14 font-bold rounded-xl"
             >
               Stop Search
             </Button>
           ) : (
-            <Button 
-              onClick={startGeneration} 
+            <Button
+              onClick={startGeneration}
               className="w-full h-14 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl"
             >
               <div className="flex items-center gap-2">

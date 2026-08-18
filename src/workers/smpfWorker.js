@@ -34,7 +34,7 @@ self.onmessage = async (e) => {
 
     try {
       while (running) {
-        for (let i = 0; i < 2000 && running; i++) {
+        for (let i = 0; i < 50000 && running; i++) {
           const kp = Keypair.generate();
           tested++;
           const pub = kp.publicKey.toBase58();
