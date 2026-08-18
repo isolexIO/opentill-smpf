@@ -195,10 +195,10 @@ export default function SMPFWallet() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <div className="text-right text-xs">
               <span className="text-white/40 block text-[10px] uppercase tracking-wider">Account</span>
-              <span className="font-mono text-indigo-300 font-medium">{user.email}</span>
+              <span className="font-mono text-indigo-300 font-medium break-all">{user.email}</span>
             </div>
             {(user.role === 'admin' || user.is_admin) && (
               <Button
@@ -215,18 +215,18 @@ export default function SMPFWallet() {
 
         {/* Main Wallet Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="bg-slate-900 border border-white/10 p-1 rounded-xl">
-            <TabsTrigger value="overview" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-xs">
-              <Wallet className="w-3.5 h-3.5 mr-1.5" /> Balance & Overview
+          <TabsList className="bg-slate-900 border border-white/10 p-1 rounded-xl flex w-full overflow-x-auto gap-1 sm:grid sm:grid-cols-4">
+            <TabsTrigger value="overview" className="flex-1 whitespace-nowrap data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-xs px-3">
+              <Wallet className="w-3.5 h-3.5 mr-1.5" /> <span className="hidden sm:inline">Balance</span><span className="sm:hidden">Balance</span>
             </TabsTrigger>
-            <TabsTrigger value="tokens" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-xs">
-              <Coins className="w-3.5 h-3.5 mr-1.5" /> Featured Tokens
+            <TabsTrigger value="tokens" className="flex-1 whitespace-nowrap data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-xs px-3">
+              <Coins className="w-3.5 h-3.5 mr-1.5" /> <span>Tokens</span>
             </TabsTrigger>
-            <TabsTrigger value="chips" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-xs">
-              <Cpu className="w-3.5 h-3.5 mr-1.5" /> Hardware Chips
+            <TabsTrigger value="chips" className="flex-1 whitespace-nowrap data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-xs px-3">
+              <Cpu className="w-3.5 h-3.5 mr-1.5" /> <span>Chips</span>
             </TabsTrigger>
-            <TabsTrigger value="keys" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-xs">
-              <KeyRound className="w-3.5 h-3.5 mr-1.5" /> Security & Keys
+            <TabsTrigger value="keys" className="flex-1 whitespace-nowrap data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-xs px-3">
+              <KeyRound className="w-3.5 h-3.5 mr-1.5" /> <span>Keys</span>
             </TabsTrigger>
           </TabsList>
 
@@ -249,14 +249,14 @@ export default function SMPFWallet() {
                     <p className="text-xs text-white/50 font-mono">≈ ${(solBalance * solUsd).toFixed(2)} USD</p>
                   )}
                 </CardHeader>
-                <CardContent className="flex gap-3">
-                  <Button disabled={settings?.is_paused} className="bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold">
+                <CardContent className="flex flex-col sm:flex-row gap-3">
+                  <Button disabled={settings?.is_paused} className="bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold w-full sm:w-auto">
                     <Send className="w-3.5 h-3.5 mr-1.5" /> Send SOL / Token
                   </Button>
                   <Button
                     variant="outline"
                     onClick={() => setIsReceiveOpen(true)}
-                    className="border-white/10 bg-slate-950 text-white hover:bg-white/5 text-xs font-semibold"
+                    className="border-white/10 bg-slate-950 text-white hover:bg-white/5 text-xs font-semibold w-full sm:w-auto"
                   >
                     <ArrowDownLeft className="w-3.5 h-3.5 mr-1.5" /> Receive
                   </Button>
