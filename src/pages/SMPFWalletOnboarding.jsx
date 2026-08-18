@@ -67,6 +67,7 @@ export default function SMPFWalletOnboarding() {
                   </p>
                 </div>
 
+                {!existingWallet && (
                 <button
                   onClick={() => setStep('generate')}
                   className="w-full text-left p-5 rounded-xl bg-gradient-to-r from-emerald-500/20 to-emerald-600/10 border-2 border-emerald-400/50 hover:border-emerald-400 transition-colors"
@@ -89,7 +90,9 @@ export default function SMPFWalletOnboarding() {
                     <ArrowRight className="w-5 h-5 text-white/60" />
                   </div>
                 </button>
+                )}
 
+                {!existingWallet && (
                 <button
                   onClick={() => (window.location.href = createPageUrl('SMPFWallet'))}
                   className="w-full text-left p-5 rounded-xl bg-white/5 border-2 border-white/10 hover:border-white/30 transition-colors"
@@ -105,10 +108,11 @@ export default function SMPFWalletOnboarding() {
                     <ArrowRight className="w-5 h-5 text-white/60" />
                   </div>
                 </button>
+                )}
 
                 {existingWallet && (
-                  <div className="text-center pt-2">
-                    <p className="text-white/60 text-xs mb-2">You already have a wallet:</p>
+                  <div className="text-center pt-2 space-y-3">
+                    <p className="text-amber-300/80 text-xs">Only one wallet may be bound per email. You already have a wallet bound to your account:</p>
                     <Button variant="outline" className="border-white/30 text-white bg-transparent" onClick={openWallet}>
                       Open {existingWallet.address.slice(0, 6)}…{existingWallet.address.slice(-6)}
                     </Button>

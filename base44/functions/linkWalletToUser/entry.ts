@@ -54,6 +54,15 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Invalid wallet signature' }, { status: 401 });
     }
 
+    // Enforce one bound wallet per email/user. If a wallet is already bound
+    // to this account, reject any attempt to bind a different one.
+    if (user.wallet_address && user.wallet_address !== wallet_address) {
+      return Response.json({
+        error: 'This account already has a wallet bound. Only one wallet may be bound per email.',
+        bound_wallet_address: user.wallet_address
+      }, { status: 409 });
+    }
+
     // Store the wallet in pos_settings.{walletType}_wallet and set as primary wallet_address
     const walletField = `${wallet_type}_wallet`;
     const updatedPosSettings = {
