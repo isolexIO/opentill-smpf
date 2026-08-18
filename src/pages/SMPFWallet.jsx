@@ -8,7 +8,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from '@/components/ui/alert-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2, Lock, LogIn, Wallet, ShieldCheck, Send, ArrowDownLeft, Coins, Cpu, KeyRound, Copy, Check, AlertCircle, RefreshCw, History, Rocket, ArrowLeftRight, ExternalLink } from 'lucide-react';
+import { Loader2, Lock, LogIn, Wallet, ShieldCheck, Send, ArrowDownLeft, Coins, Cpu, KeyRound, Copy, Check, AlertCircle, RefreshCw, History, Rocket, ArrowLeftRight, ExternalLink, LayoutDashboard } from 'lucide-react';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID } from '@solana/spl-token';
 import { getPrice, WSOL } from '@/lib/smpfPrices';
@@ -298,6 +298,14 @@ export default function SMPFWallet() {
           </div>
 
           <div className="flex items-center gap-3 flex-wrap">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => (window.location.href = createPageUrl('SystemMenu'))}
+              className="border-white/20 bg-white/5 text-white hover:bg-white/10 text-xs"
+            >
+              <LayoutDashboard className="w-3.5 h-3.5 mr-1.5" /> Dashboard
+            </Button>
             <div className="text-right text-xs">
               <span className="text-white/40 block text-[10px] uppercase tracking-wider">Account</span>
               <span className="font-mono text-indigo-300 font-medium break-all">{user.email}</span>
