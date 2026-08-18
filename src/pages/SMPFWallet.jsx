@@ -72,30 +72,33 @@ export default function SMPFWallet() {
     if (!solAddress) return;
     setSolLoading(true);
     setSolError(null);
-    const net = settings?.default_network === 'devnet' ? 'devnet' : 'mainnet';
-    const configured = net === 'mainnet' ? settings?.rpc_mainnet : settings?.rpc_devnet;
-    const publicRpcs = net === 'mainnet'
-      ? ['https://solana-rpc.publicnode.com', 'https://api.mainnet-beta.solana.com']
-      : ['https://api.devnet.solana.com'];
+    // SMPF wallets are real Solana wallets that live on mainnet. Always use a
+    // CORS-friendly mainnet RPC (publicnode) and take the highest balance found,
+    // so the funded balance resolves in the browser even when the admin setting
+    // still points at devnet (returns 0 for a mainnet address) or at
+    // api.mainnet-beta.solana.com (which 403s browser Origin requests).
     const rpcs = Array.from(new Set([
-      (typeof configured === 'string' && /^https?:\/\//.test(configured)) ? configured : null,
-      ...publicRpcs,
+      (typeof settings?.rpc_mainnet === 'string' && /^https?:\/\//.test(settings.rpc_mainnet)) ? settings.rpc_mainnet : null,
+      'https://solana-rpc.publicnode.com',
     ].filter(Boolean)));
+    let bestLamports = -1;
     for (const rpc of rpcs) {
       try {
         const conn = new Connection(rpc, 'confirmed');
         const lamports = await conn.getBalance(new PublicKey(solAddress));
-        setSolBalance(lamports / 1e9);
-        setSolLoading(false);
-        setSolError(null);
-        return;
+        if (lamports > bestLamports) bestLamports = lamports;
       } catch (e) {
         console.warn('SOL balance fetch failed on', rpc, e);
       }
     }
+    if (bestLamports >= 0) {
+      setSolBalance(bestLamports / 1e9);
+      setSolError(null);
+    } else {
+      setSolError('Unable to fetch balance — public RPC may be rate-limited.');
+    }
     setSolLoading(false);
-    setSolError('Unable to fetch balance — public RPC may be rate-limited.');
-  }, [solAddress, settings?.rpc_mainnet, settings?.rpc_devnet, settings?.default_network]);
+  }, [solAddress, settings?.rpc_mainnet]);
 
   // Initial fetch + re-fetch whenever the address / RPC config changes
   useEffect(() => {
@@ -142,23 +145,21 @@ export default function SMPFWallet() {
       const localWallets = await listWallets(currentUser.id).catch(() => []);
       let activeWallet = localWallets?.[0] || null;
       if (localWallets && localWallets.length > 1) {
-        const net = currentSettings?.default_network === 'devnet' ? 'devnet' : 'mainnet';
-        const configured = net === 'mainnet' ? currentSettings?.rpc_mainnet : currentSettings?.rpc_devnet;
-        const publicRpcs = net === 'mainnet'
-          ? ['https://solana-rpc.publicnode.com', 'https://api.mainnet-beta.solana.com']
-          : ['https://api.devnet.solana.com'];
+        // Pick the funded wallet using mainnet publicnode (CORS-friendly).
         const rpcs = Array.from(new Set([
-          (typeof configured === 'string' && /^https?:\/\//.test(configured)) ? configured : null,
-          ...publicRpcs,
+          (typeof currentSettings?.rpc_mainnet === 'string' && /^https?:\/\//.test(currentSettings.rpc_mainnet)) ? currentSettings.rpc_mainnet : null,
+          'https://solana-rpc.publicnode.com',
         ].filter(Boolean)));
         const fetchBalance = async (addr) => {
+          let best = -1;
           for (const rpc of rpcs) {
             try {
               const conn = new Connection(rpc, 'confirmed');
-              return await conn.getBalance(new PublicKey(addr));
+              const lam = await conn.getBalance(new PublicKey(addr));
+              if (lam > best) best = lam;
             } catch (e) { /* try next rpc */ }
           }
-          return -1;
+          return best;
         };
         const results = await Promise.all(localWallets.map(async (w) => {
           const addr = w.address || w.public_key;
@@ -172,12 +173,11 @@ export default function SMPFWallet() {
       if (activeWallet) {
         setWallet(activeWallet);
         setSolAddress(activeWallet.address || activeWallet.public_key || '');
-      } else {
-        // Fallback check against remote DB record
-        const remoteWallets = await base44.entities.DUCWalletSettings.list({ user_id: currentUser.id }).catch(() => []);
-        if (remoteWallets?.[0]) {
-          setSolAddress(remoteWallets[0].solana_address || remoteWallets[0].public_key || '');
-        }
+      } else if (currentUser.wallet_address) {
+        // No local keypair in IndexedDB, but the account has a bound wallet address —
+        // use it so balance/history still render. (Private key export won't be available
+        // until the wallet is restored from backup.)
+        setSolAddress(currentUser.wallet_address);
       }
     } catch (err) {
       console.error('Error initializing openTILL SMPF Wallet:', err);

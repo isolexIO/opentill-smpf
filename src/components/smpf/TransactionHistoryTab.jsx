@@ -28,16 +28,13 @@ export default function TransactionHistoryTab({ address, settings }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const net = settings?.default_network === 'devnet' ? 'devnet' : 'mainnet';
-  const configured = net === 'mainnet' ? settings?.rpc_mainnet : settings?.rpc_devnet;
-  const publicRpcs = net === 'mainnet'
-    ? ['https://solana-rpc.publicnode.com', 'https://api.mainnet-beta.solana.com']
-    : ['https://api.devnet.solana.com'];
+  // SMPF wallets are real Solana wallets on mainnet. Use a CORS-friendly mainnet RPC
+  // (publicnode); api.mainnet-beta.solana.com 403s browser (Origin) requests.
   const rpcs = Array.from(new Set([
-    (typeof configured === 'string' && /^https?:\/\//.test(configured)) ? configured : null,
-    ...publicRpcs,
+    (typeof settings?.rpc_mainnet === 'string' && /^https?:\/\//.test(settings.rpc_mainnet)) ? settings.rpc_mainnet : null,
+    'https://solana-rpc.publicnode.com',
   ].filter(Boolean)));
-  const explorerSuffix = net === 'devnet' ? '?cluster=devnet' : '';
+  const explorerSuffix = '';
 
   const load = useCallback(async () => {
     if (!address) return;
@@ -56,7 +53,7 @@ export default function TransactionHistoryTab({ address, settings }) {
     }
     setError('Unable to load transaction history — public RPC may be rate-limited.');
     setLoading(false);
-  }, [address, settings?.default_network, settings?.rpc_mainnet, settings?.rpc_devnet]);
+  }, [address, settings?.rpc_mainnet]);
 
   useEffect(() => {
     load();

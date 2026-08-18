@@ -27,9 +27,11 @@ export default function TokensTab({ address, rpc, settings }) {
   const [error, setError] = useState('');
   const [prices, setPrices] = useState({});
   const ducMint = settings?.verified_duc_mint;
-  const net = settings?.default_network === 'devnet' ? 'devnet' : 'mainnet';
-  const publicRpc = net === 'mainnet' ? 'https://api.mainnet-beta.solana.com' : 'https://api.devnet.solana.com';
-  const endpoint = (typeof rpc === 'string' && /^https?:\/\//.test(rpc)) ? rpc : publicRpc;
+  // SMPF wallets are real Solana wallets on mainnet. Use a CORS-friendly mainnet RPC
+  // (publicnode); api.mainnet-beta.solana.com 403s browser (Origin) requests.
+  const endpoint = (typeof settings?.rpc_mainnet === 'string' && /^https?:\/\//.test(settings.rpc_mainnet) && settings.rpc_mainnet !== 'https://api.mainnet-beta.solana.com')
+    ? settings.rpc_mainnet
+    : 'https://solana-rpc.publicnode.com';
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [endpoint]);
 
@@ -38,8 +40,7 @@ export default function TokensTab({ address, rpc, settings }) {
     setSolLoading(true);
     const rpcs = Array.from(new Set([
       endpoint,
-      publicRpc,
-      net === 'mainnet' ? 'https://rpc.ankr.com/solana' : 'https://api.devnet.solana.com',
+      'https://solana-rpc.publicnode.com',
     ]));
     for (const rpc of rpcs) {
       try {
