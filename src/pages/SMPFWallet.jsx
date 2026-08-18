@@ -10,6 +10,7 @@ import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, A
 import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2, Lock, LogIn, Wallet, ShieldCheck, Send, ArrowDownLeft, Coins, Cpu, KeyRound, Copy, Check, AlertCircle, RefreshCw, History } from 'lucide-react';
 import { Connection, PublicKey } from '@solana/web3.js';
+import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID } from '@solana/spl-token';
 import { getPrice, WSOL } from '@/lib/smpfPrices';
 import { getWallet, listWallets, clearAllWallets } from '@/lib/smpfWalletStore';
 import { getNetworkRpcList } from '@/lib/smpfRpc';
@@ -32,6 +33,8 @@ export default function SMPFWallet() {
   const [solError, setSolError] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [tokenRefresh, setTokenRefresh] = useState(0);
+  const [ducBalance, setDucBalance] = useState(null);
+  const [ducLoading, setDucLoading] = useState(false);
 
   // Receive Modal States
   const [isReceiveOpen, setIsReceiveOpen] = useState(false);
@@ -98,10 +101,40 @@ export default function SMPFWallet() {
     setSolLoading(false);
   }, [solAddress, settings?.default_network, settings?.rpc_mainnet, settings?.rpc_testnet, settings?.rpc_devnet]);
 
+  // Fetch $DUC (verified mint) balance across multiple RPCs — same 403 issue.
+  const refreshDuc = useCallback(async () => {
+    const ducMint = settings?.verified_duc_mint;
+    if (!solAddress || !ducMint) { setDucBalance(null); return; }
+    setDucLoading(true);
+    const rpcs = getNetworkRpcList(settings);
+    let bestAmount = -1;
+    for (const rpc of rpcs) {
+      try {
+        const conn = new Connection(rpc, 'confirmed');
+        for (const programId of [TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID]) {
+          try {
+            const res = await conn.getParsedTokenAccountsByOwner(
+              new PublicKey(solAddress),
+              { mint: new PublicKey(ducMint) },
+            );
+            for (const acc of res.value) {
+              const info = acc.account.data?.parsed?.info;
+              const amt = Number(info?.tokenAmount?.uiAmount || 0);
+              if (amt > bestAmount) bestAmount = amt;
+            }
+          } catch {}
+        }
+      } catch (e) { /* try next rpc */ }
+    }
+    setDucBalance(bestAmount >= 0 ? bestAmount : 0);
+    setDucLoading(false);
+  }, [solAddress, settings?.verified_duc_mint, settings?.default_network, settings?.rpc_mainnet, settings?.rpc_testnet, settings?.rpc_devnet]);
+
   // Initial fetch + re-fetch whenever the address / RPC config changes
   useEffect(() => {
     refreshBalance();
-  }, [refreshBalance]);
+    refreshDuc();
+  }, [refreshBalance, refreshDuc]);
 
   // Auto-refresh balance every 30 seconds
   useEffect(() => {
@@ -366,6 +399,31 @@ export default function SMPFWallet() {
 
               <Card className="bg-slate-900 border-white/10 text-white">
                 <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-xs text-white/60 font-mono uppercase tracking-wider">$DUC Balance</CardTitle>
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-white/50 hover:text-white" onClick={refreshDuc} title="Refresh $DUC">
+                      <RefreshCw className={ducLoading ? 'w-3.5 h-3.5 animate-spin' : 'w-3.5 h-3.5'} />
+                    </Button>
+                  </div>
+                  <div className="text-3xl font-black font-mono tracking-tight text-white flex items-baseline gap-2">
+                    {ducLoading && ducBalance === null ? (
+                      <Loader2 className="w-6 h-6 animate-spin text-indigo-400" />
+                    ) : ducBalance !== null ? (
+                      ducBalance.toFixed(2)
+                    ) : (
+                      '—'
+                    )} <span className="text-xs font-normal text-white/40">$DUC</span>
+                  </div>
+                  {!settings?.verified_duc_mint && (
+                    <p className="text-xs text-amber-400 flex items-center gap-1.5 mt-1">
+                      <AlertCircle className="w-3.5 h-3.5 shrink-0" /> No verified $DUC mint configured
+                    </p>
+                  )}
+                </CardHeader>
+              </Card>
+
+              <Card className="bg-slate-900 border-white/10 text-white">
+                <CardHeader>
                   <CardTitle className="text-xs text-white/60 font-mono uppercase tracking-wider">Account Status</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2 text-xs">
@@ -514,7 +572,7 @@ export default function SMPFWallet() {
                 address={solAddress}
                 rpc={getNetworkRpcList(settings)[0] || 'https://api.mainnet-beta.solana.com'}
                 network={settings?.default_network || 'mainnet'}
-                onSent={() => { refreshBalance(); setTokenRefresh((n) => n + 1); }}
+                onSent={() => { refreshBalance(); refreshDuc(); setTokenRefresh((n) => n + 1); }}
               />
             ) : (
               <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg text-amber-300 text-xs space-y-3 text-center">

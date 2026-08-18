@@ -52,19 +52,37 @@ export default function TokensTab({ address, rpc, settings, refreshTrigger }) {
         console.warn('SOL balance fetch failed on', rpc, e);
       }
     }
-    if (sol === null) setSolLoading(false);
+    setSolLoading(false);
     getPrice(WSOL).then(setSolUsd);
-    const conn = new Connection(endpoint, 'confirmed');
+    // Fetch token accounts across multiple RPCs — api.mainnet-beta.solana.com
+    // 403-blocks browser Origin headers, so a single-endpoint fetch silently
+    // returns nothing. Try each RPC until one succeeds.
+    const tokenRpcs = Array.from(new Set([
+      endpoint,
+      'https://solana-rpc.publicnode.com',
+      'https://api.mainnet-beta.solana.com',
+    ]));
     const owned = [];
-    for (const programId of [TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID]) {
+    let tokenFetchOk = false;
+    for (const rpc of tokenRpcs) {
+      if (tokenFetchOk) break;
       try {
-        const res = await conn.getParsedTokenAccountsByOwner(new PublicKey(address), { programId });
-        for (const acc of res.value) {
-          const info = acc.account.data?.parsed?.info;
-          if (!info) continue;
-          owned.push({ mint: info.mint, amount: Number(info.tokenAmount?.uiAmount || 0), decimals: Number(info.tokenAmount?.decimals || 0), program: programId.toBase58() });
+        const conn = new Connection(rpc, 'confirmed');
+        for (const programId of [TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID]) {
+          try {
+            const res = await conn.getParsedTokenAccountsByOwner(new PublicKey(address), { programId });
+            for (const acc of res.value) {
+              const info = acc.account.data?.parsed?.info;
+              if (!info) continue;
+              owned.push({ mint: info.mint, amount: Number(info.tokenAmount?.uiAmount || 0), decimals: Number(info.tokenAmount?.decimals || 0), program: programId.toBase58() });
+            }
+          } catch {}
         }
-      } catch {}
+        tokenFetchOk = owned.length >= 0; // any non-throwing completion counts
+        if (tokenFetchOk) break;
+      } catch (e) {
+        console.warn('Token account fetch failed on', rpc, e);
+      }
     }
     setTokens(owned);
     // Fetch USD prices for owned tokens (best-effort, non-blocking)
