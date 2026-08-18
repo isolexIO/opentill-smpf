@@ -347,7 +347,7 @@ export default function SMPFWallet() {
                 </CardHeader>
                 <CardContent className="flex flex-col sm:flex-row gap-3">
                   <Button
-                    disabled={settings?.is_paused || !solAddress || !wallet}
+                    disabled={settings?.is_paused || !solAddress}
                     onClick={() => setIsSendOpen(true)}
                     className="bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold w-full sm:w-auto"
                   >
