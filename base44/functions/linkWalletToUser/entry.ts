@@ -2,7 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import { PublicKey } from 'npm:@solana/web3.js@1.95.8';
 import nacl from 'npm:tweetnacl@1.0.3';
 
-const SOLANA_WALLET_TYPES = ['phantom', 'solflare', 'backpack', 'jupiter'];
+const SOLANA_WALLET_TYPES = ['phantom', 'solflare', 'backpack', 'jupiter', 'smpf'];
 
 Deno.serve(async (req) => {
   try {
@@ -46,7 +46,7 @@ Deno.serve(async (req) => {
       }
     } else {
       return Response.json({
-        error: `Unsupported wallet type: ${wallet_type}. Supported: phantom, solflare, backpack, jupiter, ethereum, metamask.`
+        error: `Unsupported wallet type: ${wallet_type}. Supported: phantom, solflare, backpack, jupiter, smpf, ethereum, metamask.`
       }, { status: 400 });
     }
 

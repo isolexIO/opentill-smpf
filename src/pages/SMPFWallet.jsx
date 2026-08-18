@@ -23,6 +23,7 @@ import TokensTab from '@/components/smpf/TokensTab';
 import TransactionHistoryTab from '@/components/smpf/TransactionHistoryTab';
 import SendScreen from '@/components/smpf/SendScreen';
 import DucPresaleCard from '@/components/smpf/DucPresaleCard';
+import ConnectRewardsCard from '@/components/smpf/ConnectRewardsCard';
 
 export default function SMPFWallet() {
   const [user, setUser] = useState(null);
@@ -258,6 +259,13 @@ export default function SMPFWallet() {
     }
   }
 
+  async function refreshUser() {
+    try {
+      const u = await base44.auth.me();
+      setUser(u);
+    } catch {}
+  }
+
   // Handle address copy
   const handleCopyAddress = () => {
     if (solAddress) {
@@ -488,6 +496,8 @@ export default function SMPFWallet() {
                     </div>
                   </CardContent>
                 </Card>
+
+                <ConnectRewardsCard user={user} solAddress={solAddress} wallet={wallet} onLinked={refreshUser} />
 
                 {/* Swap on Jupiter (admin referral link) */}
                 <Card className="bg-gradient-to-br from-indigo-600/20 to-purple-600/10 border-indigo-500/30 text-white">
