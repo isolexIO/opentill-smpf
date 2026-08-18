@@ -8,6 +8,23 @@ import { useToast } from '@/components/ui/use-toast';
 import { getWallet } from '@/lib/smpfWalletStore';
 import { decryptWallet } from '@/lib/smpfCrypto';
 import bs58 from 'bs58';
+import nacl from 'tweetnacl';
+
+// A valid Solana secret key is 64 bytes: [32-byte seed || 32-byte public key],
+// where the public key is derived from the seed. Solflare/Phantom derive the
+// address from the seed and reject keys whose stored public key doesn't match.
+// The old broken generator stitched a random public key onto the seed, so
+// those keys fail this check and must be regenerated.
+function isValidSecretKeyForAddress(secretKeyBs58, expectedAddress) {
+  try {
+    const sk = bs58.decode(secretKeyBs58);
+    if (sk.length !== 64) return false;
+    const { publicKey } = nacl.sign.keyPair.fromSecretKey(sk);
+    return bs58.encode(publicKey) === expectedAddress;
+  } catch {
+    return false;
+  }
+}
 
 export default function PrivateKeyExport({ wallet, session, onClose }) {
   const { toast } = useToast();
@@ -27,33 +44,47 @@ export default function PrivateKeyExport({ wallet, session, onClose }) {
       let encryptedData = record?.backup;
 
       // 2. Decrypt secret key and encode as base58 (Phantom / Solflare compatible)
+      let candidateKey = null;
       if (encryptedData) {
         const decrypted = await decryptWallet(encryptedData, password);
-        setExportedKey(bs58.encode(decrypted.secretKey));
-        toast({ title: 'Key Exported', description: 'Base58 private key ready for Phantom / Solflare import.' });
-        return;
-      }
-
-      // 3. Fallback: scan local keypair payloads (smpf_sk_<email>) for this address.
-      //    These store the base58 secret key directly from generation.
-      let localPayload = null;
-      for (let i = 0; i < localStorage.length; i++) {
-        const k = localStorage.key(i);
-        if (k && k.startsWith('smpf_sk_')) {
-          try {
-            const p = JSON.parse(localStorage.getItem(k));
-            if (p && p.address === wallet.address) { localPayload = p; break; }
-          } catch { /* skip malformed */ }
+        candidateKey = bs58.encode(decrypted.secretKey);
+      } else {
+        // 3. Fallback: scan local keypair payloads (smpf_sk_<email>) for this address.
+        //    These store the base58 secret key directly from generation.
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && k.startsWith('smpf_sk_')) {
+            try {
+              const p = JSON.parse(localStorage.getItem(k));
+              if (p && p.address === wallet.address && p.secretKey) { candidateKey = p.secretKey; break; }
+            } catch { /* skip malformed */ }
+          }
         }
       }
 
-      if (localPayload && localPayload.secretKey) {
-        // localPayload.secretKey is the base58-encoded 64-byte Ed25519 secret key
-        // captured at generation time (Phantom / Solflare compatible).
-        setExportedKey(localPayload.secretKey);
-        toast({ title: 'Key Exported', description: 'Base58 private key ready for Phantom / Solflare import.' });
+      if (!candidateKey) {
+        toast({
+          title: 'Export failed',
+          description: 'Wallet backup not found in local storage. Please complete onboarding again.',
+          variant: 'destructive',
+        });
         return;
       }
+
+      // 4. Validate the key actually derives this wallet's address. Keys created
+      //    by the old broken generator have a mismatched public key and will NOT
+      //    import into Solflare/Phantom — those wallets must be regenerated.
+      if (!isValidSecretKeyForAddress(candidateKey, wallet.address)) {
+        toast({
+          title: 'Invalid key — regenerate wallet',
+          description: 'This wallet was created with a broken keypair generator. Its private key cannot be imported into Solflare/Phantom. Please delete this wallet and run onboarding again to generate a valid key.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      setExportedKey(candidateKey);
+      toast({ title: 'Key Exported', description: 'Base58 private key ready for Phantom / Solflare import.' });
 
       toast({
         title: 'Export failed',
