@@ -9,3 +9,7 @@ export const DUC_PRESALE_URL = 'https://ico.opentill.io/';
 
 export const DUC_NAME = 'Digital Utility Credit';
 export const DUC_SYMBOL = 'DUC';
+
+// Jupiter referral link (admin referral). Used by the wallet Swap tile so the
+// platform earns referral fees when users trade on Jupiter.
+export const JUPITER_REFERRAL_LINK = 'https://jup.ag/swap?ref=opentill';

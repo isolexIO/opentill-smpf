@@ -8,14 +8,14 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from '@/components/ui/alert-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2, Lock, LogIn, Wallet, ShieldCheck, Send, ArrowDownLeft, Coins, Cpu, KeyRound, Copy, Check, AlertCircle, RefreshCw, History, Rocket } from 'lucide-react';
+import { Loader2, Lock, LogIn, Wallet, ShieldCheck, Send, ArrowDownLeft, Coins, Cpu, KeyRound, Copy, Check, AlertCircle, RefreshCw, History, Rocket, ArrowLeftRight, ExternalLink } from 'lucide-react';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID } from '@solana/spl-token';
 import { getPrice, WSOL } from '@/lib/smpfPrices';
 import { getWallet, listWallets, clearAllWallets } from '@/lib/smpfWalletStore';
 import { getNetworkRpcList, withTimeout } from '@/lib/smpfRpc';
 import { getTokenMeta } from '@/lib/smpfTokenMeta';
-import { DUC_LOGO_URL } from '@/lib/smpfConstants';
+import { DUC_LOGO_URL, JUPITER_REFERRAL_LINK } from '@/lib/smpfConstants';
 
 // Import your SMPF sub-components
 import PrivateKeyExport from '@/components/smpf/PrivateKeyExport';
@@ -329,6 +329,9 @@ export default function SMPFWallet() {
           </div>
         </div>
 
+        {/* $DUC Presale — above the tab menu so it's always visible */}
+        <DucPresaleCard />
+
         {/* Main Wallet Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           {/* Mobile: dropdown menu */}
@@ -366,100 +369,135 @@ export default function SMPFWallet() {
 
           {/* Overview Tab Content */}
           <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card className="bg-slate-900 border-white/10 text-white md:col-span-2">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-xs text-white/60 font-mono uppercase tracking-wider">SOL Balance</CardTitle>
-                    <Button variant="ghost" size="icon" className="h-7 w-7 text-white/50 hover:text-white" onClick={refreshBalance} title="Refresh balance">
-                      <RefreshCw className={solLoading ? 'w-3.5 h-3.5 animate-spin' : 'w-3.5 h-3.5'} />
-                    </Button>
-                  </div>
-                  <div className="text-3xl font-black font-mono tracking-tight text-white flex items-baseline gap-2">
-                    {solLoading && solBalance === null ? (
-                      <Loader2 className="w-6 h-6 animate-spin text-indigo-400" />
-                    ) : solBalance !== null ? (
-                      solBalance.toFixed(4)
-                    ) : (
-                      '—'
-                    )} <span className="text-xs font-normal text-white/40">SOL</span>
-                  </div>
-                  {solUsd !== null && solBalance !== null && (
-                    <p className="text-xs text-white/50 font-mono">≈ ${(solBalance * solUsd).toFixed(2)} USD</p>
-                  )}
-                  {solError && (
-                    <p className="text-xs text-amber-400 flex items-center gap-1.5 mt-1">
-                      <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {solError}
-                    </p>
-                  )}
-                  <p className="text-[10px] text-white/30 font-mono">Auto-refreshes every 30s</p>
-                </CardHeader>
-                <CardContent className="flex flex-col sm:flex-row gap-3">
-                  <Button
-                    disabled={settings?.is_paused || !solAddress}
-                    onClick={() => setIsSendOpen(true)}
-                    className="bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold w-full sm:w-auto"
-                  >
-                    <Send className="w-3.5 h-3.5 mr-1.5" /> Send SOL / Token
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsReceiveOpen(true)}
-                    className="border-white/10 bg-slate-950 text-white hover:bg-white/5 text-xs font-semibold w-full sm:w-auto"
-                  >
-                    <ArrowDownLeft className="w-3.5 h-3.5 mr-1.5" /> Receive
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-slate-900 border-white/10 text-white">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-xs text-white/60 font-mono uppercase tracking-wider">$DUC Balance</CardTitle>
-                    <Button variant="ghost" size="icon" className="h-7 w-7 text-white/50 hover:text-white" onClick={refreshDuc} title="Refresh $DUC">
-                      <RefreshCw className={ducLoading ? 'w-3.5 h-3.5 animate-spin' : 'w-3.5 h-3.5'} />
-                    </Button>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <img src={DUC_LOGO_URL} alt="$DUC" className="w-10 h-10 rounded-full object-cover border border-indigo-400/40" />
-                    <div className="text-3xl font-black font-mono tracking-tight text-white flex items-baseline gap-2">
-                      {ducLoading && ducBalance === null ? (
-                        <Loader2 className="w-6 h-6 animate-spin text-indigo-400" />
-                      ) : ducBalance !== null ? (
-                        ducBalance.toFixed(2)
-                      ) : (
-                        '0.00'
-                      )} <span className="text-xs font-normal text-white/40">$DUC</span>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
+              {/* Left main column: SOL balance on top, $DUC balance below */}
+              <div className="md:col-span-2 flex flex-col gap-4">
+                <Card className="bg-slate-900 border-white/10 text-white">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-xs text-white/60 font-mono uppercase tracking-wider">SOL Balance</CardTitle>
+                      <Button variant="ghost" size="icon" className="h-7 w-7 text-white/50 hover:text-white" onClick={refreshBalance} title="Refresh balance">
+                        <RefreshCw className={solLoading ? 'w-3.5 h-3.5 animate-spin' : 'w-3.5 h-3.5'} />
+                      </Button>
                     </div>
-                  </div>
-                  {!settings?.verified_duc_mint && (
-                    <p className="text-xs text-emerald-400 flex items-center gap-1.5 mt-1">
-                      <Rocket className="w-3.5 h-3.5 shrink-0" /> $DUC is in presale — balance shows on-chain holdings
+                    <div className="text-3xl font-black font-mono tracking-tight text-white flex items-baseline gap-2">
+                      {solLoading && solBalance === null ? (
+                        <Loader2 className="w-6 h-6 animate-spin text-indigo-400" />
+                      ) : solBalance !== null ? (
+                        solBalance.toFixed(4)
+                      ) : (
+                        '—'
+                      )} <span className="text-xs font-normal text-white/40">SOL</span>
+                    </div>
+                    {solUsd !== null && solBalance !== null && (
+                      <p className="text-xs text-white/50 font-mono">≈ ${(solBalance * solUsd).toFixed(2)} USD</p>
+                    )}
+                    {solError && (
+                      <p className="text-xs text-amber-400 flex items-center gap-1.5 mt-1">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {solError}
+                      </p>
+                    )}
+                    <p className="text-[10px] text-white/30 font-mono">Auto-refreshes every 30s</p>
+                  </CardHeader>
+                  <CardContent className="flex flex-col sm:flex-row gap-3">
+                    <Button
+                      disabled={settings?.is_paused || !solAddress}
+                      onClick={() => setIsSendOpen(true)}
+                      className="bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold w-full sm:w-auto"
+                    >
+                      <Send className="w-3.5 h-3.5 mr-1.5" /> Send SOL / Token
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsReceiveOpen(true)}
+                      className="border-white/10 bg-slate-950 text-white hover:bg-white/5 text-xs font-semibold w-full sm:w-auto"
+                    >
+                      <ArrowDownLeft className="w-3.5 h-3.5 mr-1.5" /> Receive
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-slate-900 border-white/10 text-white">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-xs text-white/60 font-mono uppercase tracking-wider">$DUC Balance</CardTitle>
+                      <Button variant="ghost" size="icon" className="h-7 w-7 text-white/50 hover:text-white" onClick={refreshDuc} title="Refresh $DUC">
+                        <RefreshCw className={ducLoading ? 'w-3.5 h-3.5 animate-spin' : 'w-3.5 h-3.5'} />
+                      </Button>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <img src={DUC_LOGO_URL} alt="$DUC" className="w-10 h-10 rounded-full object-cover border border-indigo-400/40" />
+                      <div className="text-3xl font-black font-mono tracking-tight text-white flex items-baseline gap-2">
+                        {ducLoading && ducBalance === null ? (
+                          <Loader2 className="w-6 h-6 animate-spin text-indigo-400" />
+                        ) : ducBalance !== null ? (
+                          ducBalance.toFixed(2)
+                        ) : (
+                          '0.00'
+                        )} <span className="text-xs font-normal text-white/40">$DUC</span>
+                      </div>
+                    </div>
+                    {!settings?.verified_duc_mint && (
+                      <p className="text-xs text-emerald-400 flex items-center gap-1.5 mt-1">
+                        <Rocket className="w-3.5 h-3.5 shrink-0" /> $DUC is in presale — balance shows on-chain holdings
+                      </p>
+                    )}
+                  </CardHeader>
+                </Card>
+              </div>
+
+              {/* Right sidebar: Account Status (fills space) + Swap tile */}
+              <div className="flex flex-col gap-4">
+                <Card className="bg-slate-900 border-white/10 text-white flex-1 flex flex-col">
+                  <CardHeader>
+                    <CardTitle className="text-xs text-white/60 font-mono uppercase tracking-wider">Account Status</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2 text-xs flex-1">
+                    <div className="flex justify-between py-1 border-b border-white/5">
+                      <span className="text-white/60">Status:</span>
+                      <span className="text-emerald-400 font-semibold">Active & Bound</span>
+                    </div>
+                    <div className="flex justify-between py-1 border-b border-white/5 font-mono">
+                      <span className="text-white/60">Solana Address:</span>
+                      <span className="text-indigo-300 truncate max-w-[120px]" title={solAddress || 'Not initialized'}>
+                        {solAddress ? `${solAddress.slice(0, 4)}...${solAddress.slice(-4)}` : 'None'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between py-1 border-b border-white/5">
+                      <span className="text-white/60">Network:</span>
+                      <span className="text-indigo-300 font-semibold capitalize">{settings?.default_network || 'mainnet'}</span>
+                    </div>
+                    <div className="flex justify-between py-1">
+                      <span className="text-white/60">Wallet:</span>
+                      <span className="text-emerald-400 font-semibold">{wallet ? 'Local Keystore' : 'Bound (read-only)'}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Swap on Jupiter (admin referral link) */}
+                <Card className="bg-gradient-to-br from-indigo-600/20 to-purple-600/10 border-indigo-500/30 text-white">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-xs text-white/80 font-mono uppercase tracking-wider flex items-center gap-1.5">
+                      <ArrowLeftRight className="w-3.5 h-3.5 text-indigo-300" /> Swap on Jupiter
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <p className="text-[11px] text-white/60">
+                      Trade SOL, USDC, and SPL tokens at the best on-chain rates.
                     </p>
-                  )}
-                </CardHeader>
-              </Card>
-
-              <Card className="bg-slate-900 border-white/10 text-white">
-                <CardHeader>
-                  <CardTitle className="text-xs text-white/60 font-mono uppercase tracking-wider">Account Status</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2 text-xs">
-                  <div className="flex justify-between py-1 border-b border-white/5">
-                    <span className="text-white/60">Status:</span>
-                    <span className="text-emerald-400 font-semibold">Active & Bound</span>
-                  </div>
-                  <div className="flex justify-between py-1 border-b border-white/5 font-mono">
-                    <span className="text-white/60">Solana Address:</span>
-                    <span className="text-indigo-300 truncate max-w-[120px]" title={solAddress || 'Not initialized'}>
-                      {solAddress ? `${solAddress.slice(0, 4)}...${solAddress.slice(-4)}` : 'None'}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
+                    <Button
+                      asChild
+                      className="w-full bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold"
+                    >
+                      <a href={JUPITER_REFERRAL_LINK} target="_blank" rel="noopener noreferrer">
+                        <ArrowLeftRight className="w-3.5 h-3.5 mr-1.5" /> Open Jupiter Swap
+                        <ExternalLink className="w-3 h-3 ml-1.5 opacity-70" />
+                      </a>
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
-
-            <DucPresaleCard />
           </TabsContent>
 
           <TabsContent value="tokens">
