@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader2, AlertTriangle, Zap, ArrowLeft, Copy, Check, ShieldCheck, Key } from 'lucide-react';
 import bs58 from 'bs58';
+import nacl from 'tweetnacl';
 
 const VANITY_VALUES = ['SMPF', 'DUc', 'TILL'];
 
@@ -42,21 +43,15 @@ export default function GenerationScreen({ onFound, onBack, currentUserEmail = '
       for (let i = 0; i < 2500; i++) {
         attemptsCounter++;
         
-        // Use nacl seed if available, or ed25519 seed generation
+        // Derive a real Ed25519 keypair from a 32-byte seed. tweetnacl produces
+        // the canonical 64-byte Solana secret key (32-byte seed + 32-byte public
+        // key), which Phantom and Solflare accept for import. The public key is
+        // derived from the seed (not random), so the address and secret key are
+        // cryptographically linked.
         const seed = window.crypto.getRandomValues(new Uint8Array(32));
-        let pubBytes, secretKeyBytes;
-
-        if (window.nacl?.sign?.keyPair?.fromSeed) {
-          const pair = window.nacl.sign.keyPair.fromSeed(seed);
-          pubBytes = pair.publicKey;
-          secretKeyBytes = pair.secretKey;
-        } else {
-          // Solana Ed25519 layout fallback (32-byte seed + 32-byte pubkey)
-          pubBytes = window.crypto.getRandomValues(new Uint8Array(32));
-          secretKeyBytes = new Uint8Array(64);
-          secretKeyBytes.set(seed, 0);
-          secretKeyBytes.set(pubBytes, 32);
-        }
+        const pair = nacl.sign.keyPair.fromSeed(seed);
+        const pubBytes = pair.publicKey;
+        const secretKeyBytes = pair.secretKey;
 
         const candidateAddr = bs58.encode(pubBytes);
         const isMatch = mode === 'suffix' 
