@@ -135,45 +135,62 @@ export default function SMPFWallet() {
       const currentSettings = settingsList?.[0] || null;
       setSettings(currentSettings);
 
-      // 3. Retrieve local IndexedDB Solana Wallet entry — pick the funded one (highest on-chain SOL balance)
+      // 3. Retrieve local IndexedDB Solana Wallet entries.
       let localWallets = await listWallets(currentUser.id).catch(() => []);
       // Fallback: if no wallets matched this user, try all local wallets (handles
       // wallets saved before per-user isolation or with a mismatched user_id).
       if (!localWallets || localWallets.length === 0) {
         localWallets = await listWallets(null).catch(() => []);
       }
-      let activeWallet = localWallets?.[0] || null;
-      if (localWallets && localWallets.length > 1) {
-        // Pick the funded wallet using the admin-selected Solana cluster.
-        const rpcs = getNetworkRpcList(currentSettings);
-        const fetchBalance = async (addr) => {
-          let best = -1;
-          for (const rpc of rpcs) {
-            try {
-              const conn = new Connection(rpc, 'confirmed');
-              const lam = await conn.getBalance(new PublicKey(addr));
-              if (lam > best) best = lam;
-            } catch (e) { /* try next rpc */ }
-          }
-          return best;
-        };
-        const results = await Promise.all(localWallets.map(async (w) => {
-          const addr = w.address || w.public_key;
-          if (!addr) return { w, bal: -1 };
-          return { w, bal: await fetchBalance(addr) };
-        }));
-        results.sort((a, b) => b.bal - a.bal);
-        if (results[0] && results[0].bal > 0) activeWallet = results[0].w;
+
+      const boundAddress = (currentUser.wallet_address || '').trim();
+
+      // The backend-bound wallet address is the source of truth. A stale local
+      // keypair with a DIFFERENT address must never silently override it — that
+      // was causing the actual app (different browser origin than the preview)
+      // to surface an old wallet instead of the bound one.
+      let activeWallet = null;
+      if (boundAddress) {
+        activeWallet = (localWallets || []).find((w) => {
+          const addr = (w.address || w.public_key || '').trim();
+          return addr && addr === boundAddress;
+        }) || null;
+      }
+
+      // Only if there is no bound address do we fall back to local-keystore selection.
+      if (!activeWallet && !boundAddress) {
+        activeWallet = localWallets?.[0] || null;
+        if (localWallets && localWallets.length > 1) {
+          const rpcs = getNetworkRpcList(currentSettings);
+          const fetchBalance = async (addr) => {
+            let best = -1;
+            for (const rpc of rpcs) {
+              try {
+                const conn = new Connection(rpc, 'confirmed');
+                const lam = await conn.getBalance(new PublicKey(addr));
+                if (lam > best) best = lam;
+              } catch (e) { /* try next rpc */ }
+            }
+            return best;
+          };
+          const results = await Promise.all(localWallets.map(async (w) => {
+            const addr = w.address || w.public_key;
+            if (!addr) return { w, bal: -1 };
+            return { w, bal: await fetchBalance(addr) };
+          }));
+          results.sort((a, b) => b.bal - a.bal);
+          if (results[0] && results[0].bal > 0) activeWallet = results[0].w;
+        }
       }
 
       if (activeWallet) {
         setWallet(activeWallet);
         setSolAddress(activeWallet.address || activeWallet.public_key || '');
-      } else if (currentUser.wallet_address) {
-        // No local keypair in IndexedDB, but the account has a bound wallet address —
-        // use it so balance/history still render. (Private key export won't be available
-        // until the wallet is restored from backup.)
-        setSolAddress(currentUser.wallet_address);
+      } else if (boundAddress) {
+        // No matching local keypair, but the account has a bound wallet address —
+        // use it so balance/history still render. (Private key export won't be
+        // available until the wallet is restored from backup on this device.)
+        setSolAddress(boundAddress);
       }
     } catch (err) {
       console.error('Error initializing openTILL SMPF Wallet:', err);
