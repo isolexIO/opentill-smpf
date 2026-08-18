@@ -39,6 +39,7 @@ export default function SMPFWallet() {
   const [ducBalance, setDucBalance] = useState(null);
   const [ducLoading, setDucLoading] = useState(false);
   const [ducMeta, setDucMeta] = useState(null);
+  const [dashboardUrl, setDashboardUrl] = useState(createPageUrl('SystemMenu'));
 
   // Receive Modal States
   const [isReceiveOpen, setIsReceiveOpen] = useState(false);
@@ -167,6 +168,26 @@ export default function SMPFWallet() {
         return;
       }
       setUser(currentUser);
+
+      // Determine the user's role-based dashboard for the "Back to Dashboard" button.
+      // Admin → SuperAdmin, Ambassador/Dealer → DealerDashboard,
+      // Builder → BuilderDashboard, Merchant (default) → SystemMenu.
+      if (currentUser.role === 'admin' || currentUser.is_admin) {
+        setDashboardUrl(createPageUrl('SuperAdmin'));
+      } else if (localStorage.getItem('dealerToken') || currentUser.dealer_id) {
+        setDashboardUrl(createPageUrl('DealerDashboard'));
+      } else {
+        try {
+          const builders = await base44.entities.Builder.filter({ user_email: currentUser.email });
+          if (builders && builders.length > 0) {
+            setDashboardUrl(createPageUrl('BuilderDashboard'));
+          } else {
+            setDashboardUrl(createPageUrl('SystemMenu'));
+          }
+        } catch {
+          setDashboardUrl(createPageUrl('SystemMenu'));
+        }
+      }
 
       // 2. Load global wallet settings & configurations
       const settingsList = await base44.entities.DUCWalletSettings.list().catch(() => []);
@@ -301,7 +322,7 @@ export default function SMPFWallet() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => (window.location.href = createPageUrl('SystemMenu'))}
+              onClick={() => (window.location.href = dashboardUrl)}
               className="border-white/20 bg-white/5 text-white hover:bg-white/10 text-xs"
             >
               <LayoutDashboard className="w-3.5 h-3.5 mr-1.5" /> Dashboard
