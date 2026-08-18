@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from '@/components/ui/alert-dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2, Lock, LogIn, Wallet, ShieldCheck, Send, ArrowDownLeft, Coins, Cpu, KeyRound, Copy, Check, AlertCircle, RefreshCw, History } from 'lucide-react';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { getPrice, WSOL } from '@/lib/smpfPrices';
@@ -32,11 +34,21 @@ export default function SMPFWallet() {
   const [copied, setCopied] = useState(false);
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [resetting, setResetting] = useState(false);
+  const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
+  const [ackTransferred, setAckTransferred] = useState(false);
+  const [ackBackedUp, setAckBackedUp] = useState(false);
+  const [ackLiability, setAckLiability] = useState(false);
 
-  // Permanently wipe all local wallet data and unlink the backend binding,
-  // then route to onboarding so a fresh, valid keypair is generated.
-  async function handleResetWallet() {
-    if (!confirm('This permanently deletes all local wallet data and unlinks the wallet from your account. You will generate a new wallet. Continue?')) return;
+  // Open the regeneration warning dialog. The actual wipe happens in performReset
+  // only after the user acknowledges the fund-loss / no-liability warnings.
+  function handleResetWallet() {
+    setAckTransferred(false);
+    setAckBackedUp(false);
+    setAckLiability(false);
+    setIsResetDialogOpen(true);
+  }
+
+  async function performReset() {
     setResetting(true);
     try {
       await clearAllWallets();
@@ -46,6 +58,7 @@ export default function SMPFWallet() {
     } catch (e) {
       console.error('Wallet reset failed:', e);
       setResetting(false);
+      setIsResetDialogOpen(false);
     }
   }
 
@@ -456,6 +469,63 @@ export default function SMPFWallet() {
             onClose={() => setIsExportOpen(false)}
           />
         )}
+
+        {/* Regenerate Wallet Warning Dialog */}
+        <AlertDialog
+          open={isResetDialogOpen}
+          onOpenChange={(open) => {
+            setIsResetDialogOpen(open);
+            if (!open) {
+              setAckTransferred(false);
+              setAckBackedUp(false);
+              setAckLiability(false);
+            }
+          }}
+        >
+          <AlertDialogContent className="bg-slate-900 border-red-500/30 text-white max-w-lg">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-lg font-black flex items-center gap-2 text-red-400">
+                <AlertCircle className="w-5 h-5" /> Regenerate Wallet Keypair
+              </AlertDialogTitle>
+              <AlertDialogDescription asChild>
+                <div className="space-y-3 text-xs text-white/70">
+                  <p>Regenerating creates a brand-new Solana wallet and permanently deletes the current keypair from this device.</p>
+                  <div className="rounded-lg border border-red-500/40 bg-red-500/10 p-3 space-y-2 text-red-200">
+                    <p className="font-bold uppercase tracking-wide">Warning — possible loss of funds</p>
+                    <p>If you have <span className="font-bold">not transferred your funds</span> out of the current wallet, or <span className="font-bold">backed up your private key</span>, you will lose access to all assets in the current wallet <span className="font-bold">permanently</span>.</p>
+                    <p className="text-red-300/90">openTILL cannot recover lost funds. We have <span className="font-bold">no liability</span> and cannot help recover assets from a discarded wallet.</p>
+                  </div>
+                  <p className="text-white/50">Please confirm all of the following before continuing:</p>
+                  <div className="space-y-2">
+                    <label className="flex items-start gap-2 cursor-pointer">
+                      <Checkbox checked={ackTransferred} onCheckedChange={setAckTransferred} className="mt-0.5 border-white/30 data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600" />
+                      <span>I have transferred all funds out of my current wallet (or it has a zero balance).</span>
+                    </label>
+                    <label className="flex items-start gap-2 cursor-pointer">
+                      <Checkbox checked={ackBackedUp} onCheckedChange={setAckBackedUp} className="mt-0.5 border-white/30 data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600" />
+                      <span>I have backed up my current private key / encrypted backup file.</span>
+                    </label>
+                    <label className="flex items-start gap-2 cursor-pointer">
+                      <Checkbox checked={ackLiability} onCheckedChange={setAckLiability} className="mt-0.5 border-white/30 data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600" />
+                      <span>I understand openTILL has no liability and cannot help recover any assets left in the old wallet.</span>
+                    </label>
+                  </div>
+                </div>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="border-white/10 text-white hover:bg-white/5">Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                disabled={!ackTransferred || !ackBackedUp || !ackLiability || resetting}
+                onClick={(e) => { e.preventDefault(); performReset(); }}
+                className="bg-red-600 hover:bg-red-500 text-white disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {resetting ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <AlertCircle className="w-4 h-4 mr-1.5" />}
+                I understand — Regenerate Wallet
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
       </div>
     </div>
