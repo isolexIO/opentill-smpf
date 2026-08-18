@@ -62,7 +62,7 @@ export default function SMPFWallet() {
     const net = settings?.default_network === 'devnet' ? 'devnet' : 'mainnet';
     const configured = net === 'mainnet' ? settings?.rpc_mainnet : settings?.rpc_devnet;
     const publicRpcs = net === 'mainnet'
-      ? ['https://api.mainnet-beta.solana.com', 'https://rpc.ankr.com/solana', 'https://solana.api.onfinality.io/public']
+      ? ['https://solana-rpc.publicnode.com', 'https://api.mainnet-beta.solana.com']
       : ['https://api.devnet.solana.com'];
     const rpcs = Array.from(new Set([
       (typeof configured === 'string' && /^https?:\/\//.test(configured)) ? configured : null,
@@ -132,7 +132,7 @@ export default function SMPFWallet() {
         const net = currentSettings?.default_network === 'devnet' ? 'devnet' : 'mainnet';
         const configured = net === 'mainnet' ? currentSettings?.rpc_mainnet : currentSettings?.rpc_devnet;
         const publicRpcs = net === 'mainnet'
-          ? ['https://api.mainnet-beta.solana.com', 'https://rpc.ankr.com/solana']
+          ? ['https://solana-rpc.publicnode.com', 'https://api.mainnet-beta.solana.com']
           : ['https://api.devnet.solana.com'];
         const rpcs = Array.from(new Set([
           (typeof configured === 'string' && /^https?:\/\//.test(configured)) ? configured : null,

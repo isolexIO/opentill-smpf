@@ -31,7 +31,7 @@ export default function TransactionHistoryTab({ address, settings }) {
   const net = settings?.default_network === 'devnet' ? 'devnet' : 'mainnet';
   const configured = net === 'mainnet' ? settings?.rpc_mainnet : settings?.rpc_devnet;
   const publicRpcs = net === 'mainnet'
-    ? ['https://api.mainnet-beta.solana.com', 'https://rpc.ankr.com/solana', 'https://solana.api.onfinality.io/public']
+    ? ['https://solana-rpc.publicnode.com', 'https://api.mainnet-beta.solana.com']
     : ['https://api.devnet.solana.com'];
   const rpcs = Array.from(new Set([
     (typeof configured === 'string' && /^https?:\/\//.test(configured)) ? configured : null,
