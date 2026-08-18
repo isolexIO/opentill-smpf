@@ -28,6 +28,7 @@ export default function SMPFWallet() {
   // Receive Modal States
   const [isReceiveOpen, setIsReceiveOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isExportOpen, setIsExportOpen] = useState(false);
 
   useEffect(() => {
     initWallet();
@@ -295,7 +296,25 @@ export default function SMPFWallet() {
           </TabsContent>
 
           <TabsContent value="keys">
-            <PrivateKeyExport wallet={{ address: solAddress }} />
+            <Card className="bg-slate-900 border-white/10 text-white">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <KeyRound className="w-5 h-5 text-purple-400" /> Private Key Export
+                </CardTitle>
+                <CardDescription className="text-white/60 text-xs">
+                  Decrypt and export your wallet's Ed25519 private key as base58 for import into Phantom, Solflare, or other Solana wallets.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button
+                  onClick={() => setIsExportOpen(true)}
+                  disabled={!solAddress}
+                  className="bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold"
+                >
+                  <KeyRound className="w-3.5 h-3.5 mr-1.5" /> Export Private Key
+                </Button>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="chips">
@@ -351,6 +370,14 @@ export default function SMPFWallet() {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Private Key Export Modal */}
+        {isExportOpen && (
+          <PrivateKeyExport
+            wallet={{ address: solAddress }}
+            onClose={() => setIsExportOpen(false)}
+          />
+        )}
 
       </div>
     </div>
