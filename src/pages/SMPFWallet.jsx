@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Loader2, Lock, LogIn, Wallet, ShieldCheck, Send, ArrowDownLeft, Coins, Cpu, KeyRound, Copy, Check, AlertCircle } from 'lucide-react';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { getPrice, WSOL } from '@/lib/smpfPrices';
-import { getWallet, listWallets } from '@/lib/smpfWalletStore';
+import { getWallet, listWallets, clearAllWallets } from '@/lib/smpfWalletStore';
 
 // Import your SMPF sub-components
 import PrivateKeyExport from '@/components/smpf/PrivateKeyExport';
@@ -29,6 +29,23 @@ export default function SMPFWallet() {
   const [isReceiveOpen, setIsReceiveOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isExportOpen, setIsExportOpen] = useState(false);
+  const [resetting, setResetting] = useState(false);
+
+  // Permanently wipe all local wallet data and unlink the backend binding,
+  // then route to onboarding so a fresh, valid keypair is generated.
+  async function handleResetWallet() {
+    if (!confirm('This permanently deletes all local wallet data and unlinks the wallet from your account. You will generate a new wallet. Continue?')) return;
+    setResetting(true);
+    try {
+      await clearAllWallets();
+      // Clear the backend wallet binding so the one-per-email check won't block re-onboarding
+      await base44.auth.updateMe({ wallet_address: null, pos_settings: {} }).catch(() => {});
+      window.location.href = createPageUrl('SMPFWalletOnboarding');
+    } catch (e) {
+      console.error('Wallet reset failed:', e);
+      setResetting(false);
+    }
+  }
 
   useEffect(() => {
     initWallet();
@@ -305,7 +322,7 @@ export default function SMPFWallet() {
                   Decrypt and export your wallet's Ed25519 private key as base58 for import into Phantom, Solflare, or other Solana wallets.
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-3">
                 <Button
                   onClick={() => setIsExportOpen(true)}
                   disabled={!solAddress}
@@ -313,6 +330,20 @@ export default function SMPFWallet() {
                 >
                   <KeyRound className="w-3.5 h-3.5 mr-1.5" /> Export Private Key
                 </Button>
+                <div className="pt-2 border-t border-white/10">
+                  <p className="text-[11px] text-white/50 mb-2">
+                    If your key won't import into Solflare/Phantom (created by an older broken generator), reset and generate a new wallet.
+                  </p>
+                  <Button
+                    onClick={handleResetWallet}
+                    disabled={resetting}
+                    variant="destructive"
+                    className="text-xs font-semibold"
+                  >
+                    {resetting ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <AlertCircle className="w-3.5 h-3.5 mr-1.5" />}
+                    Reset &amp; Regenerate Wallet
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
