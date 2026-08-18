@@ -187,7 +187,7 @@ export default function TokensTab({ address, rpc, settings, refreshTrigger, ducB
         </Card>
       )}
 
-      {ducMint && !tokens.some((t) => t.mint === ducMint) && (
+      {ducMint && !ducLoading && (ducBalance === null || Number(ducBalance) === 0) && !tokens.some((t) => t.mint === ducMint) && (
         <p className="text-sm text-yellow-200/80">$DUC mint configured but you hold no $DUC yet.</p>
       )}
 
