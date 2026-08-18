@@ -67,8 +67,9 @@ export default function NotificationBanner() {
         // Check if expired
         if (notification.expires_at && notification.expires_at < now) return false;
 
-        // Check if dismissed by this user
-        if (notification.is_dismissible && notification.dismissed_by?.includes(currentUser.id)) return false;
+        // Check if dismissed by this user (applies to all notifications,
+        // so a user-closed popup does not reappear on the next poll)
+        if (notification.dismissed_by?.includes(currentUser.id)) return false;
 
         // Check if targeted to this merchant (or all merchants)
         if (!notification.target_merchants || notification.target_merchants.length === 0) return true;
@@ -105,24 +106,26 @@ export default function NotificationBanner() {
   };
 
   const handleDismiss = async (notification) => {
-    if (!notification.is_dismissible || !user) return;
+    // Always remove the popup locally so the user can close any notification.
+    setNotifications(prev => prev.filter(n => n.id !== notification.id));
+    if (!user) return;
 
     try {
       await base44.entities.MerchantNotification.update(notification.id, {
         dismissed_by: [...(notification.dismissed_by || []), user.id]
       });
-
-      setNotifications(prev => prev.filter(n => n.id !== notification.id));
     } catch (error) {
       console.error('Error dismissing notification:', error);
     }
   };
 
-  // Auto-dismiss notifications after 4 seconds
+  // Auto-dismiss only dismissible notifications after 4 seconds.
+  // Non-dismissible popups stay until the user closes them.
   useEffect(() => {
-    if (notifications.length === 0) return;
+    const dismissible = notifications.filter(n => n.is_dismissible);
+    if (dismissible.length === 0) return;
 
-    const timers = notifications.map(notification => {
+    const timers = dismissible.map(notification => {
       return setTimeout(() => {
         handleDismiss(notification);
       }, 4000);
@@ -191,16 +194,15 @@ export default function NotificationBanner() {
                     </Button>
                   )}
                 </div>
-                {notification.is_dismissible && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={() => handleDismiss(notification)}
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                )}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 shrink-0"
+                  onClick={() => handleDismiss(notification)}
+                  aria-label="Dismiss notification"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
               </div>
             </Alert>
           </motion.div>
