@@ -22,6 +22,18 @@ async function verifyDealerToken(token) {
   }
 }
 
+// Validate that a Stripe onboarding redirect URL points only to this app's
+// own origin. External/invalid values fall back to the app root to prevent
+// open-redirect / phishing via attacker-supplied return_url / refresh_url.
+function safeRedirectUrl(candidate, appOrigin) {
+  if (!candidate) return appOrigin + '/';
+  try {
+    const u = new URL(candidate, appOrigin);
+    if (u.origin === appOrigin) return u.toString();
+  } catch { /* invalid url */ }
+  return appOrigin + '/';
+}
+
 Deno.serve(async (req) => {
   try {
     const stripe = new Stripe(Deno.env.get('STRIPE_CONNECT_KEY') || Deno.env.get('STRIPE_SECRET_KEY'));
@@ -95,8 +107,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    const redirectUrl = return_url || (typeof location !== 'undefined' ? location.href : '');
-    const refreshUrl = refresh_url || redirectUrl;
+    const appOrigin = new URL(req.url).origin;
+    const redirectUrl = safeRedirectUrl(return_url, appOrigin);
+    const refreshUrl = safeRedirectUrl(refresh_url, appOrigin);
 
     const accountLink = await stripe.accountLinks.create({
       account: accountId,

@@ -5,6 +5,18 @@ import { verify as verifyJwt } from 'https://deno.land/x/djwt@v2.8/mod.ts';
 const JWT_SECRET = Deno.env.get('JWT_SECRET');
 const stripe = new Stripe(Deno.env.get('STRIPE_CONNECT_KEY') || Deno.env.get('STRIPE_SECRET_KEY'));
 
+// Validate that a Stripe onboarding redirect URL points only to this app's
+// own origin. External/invalid values fall back to the app root to prevent
+// open-redirect / phishing via attacker-supplied return_url / refresh_url.
+function safeRedirectUrl(candidate, appOrigin) {
+  if (!candidate) return appOrigin + '/';
+  try {
+    const u = new URL(candidate, appOrigin);
+    if (u.origin === appOrigin) return u.toString();
+  } catch { /* invalid url */ }
+  return appOrigin + '/';
+}
+
 async function verifyDealerToken(token) {
   if (!token || !JWT_SECRET) return null;
   try {
@@ -59,11 +71,14 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Create new account link
+    // Create new account link (redirect URLs restricted to app origin)
+    const appOrigin = new URL(req.url).origin;
+    const safeReturn = safeRedirectUrl(return_url, appOrigin);
+    const safeRefresh = safeRedirectUrl(refresh_url, appOrigin);
     const accountLink = await stripe.accountLinks.create({
       account: account_id,
-      refresh_url: refresh_url || return_url,
-      return_url: return_url,
+      refresh_url: safeRefresh,
+      return_url: safeReturn,
       type: 'account_onboarding',
     });
 

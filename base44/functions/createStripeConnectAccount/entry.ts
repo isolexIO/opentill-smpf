@@ -3,6 +3,18 @@ import Stripe from 'npm:stripe@17.4.0';
 
 const stripe = new Stripe(Deno.env.get('STRIPE_CONNECT_KEY') || Deno.env.get('STRIPE_SECRET_KEY'));
 
+// Validate that a Stripe onboarding redirect URL points only to this app's
+// own origin. External/invalid values fall back to the app root to prevent
+// open-redirect / phishing via attacker-supplied return_url / refresh_url.
+function safeRedirectUrl(candidate, appOrigin) {
+  if (!candidate) return appOrigin + '/';
+  try {
+    const u = new URL(candidate, appOrigin);
+    if (u.origin === appOrigin) return u.toString();
+  } catch { /* invalid url */ }
+  return appOrigin + '/';
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -41,11 +53,14 @@ Deno.serve(async (req) => {
       },
     });
 
-    // Create account link for onboarding
+    // Create account link for onboarding (redirect URLs restricted to app origin)
+    const appOrigin = new URL(req.url).origin;
+    const safeReturn = safeRedirectUrl(return_url, appOrigin);
+    const safeRefresh = safeRedirectUrl(refresh_url, appOrigin);
     const accountLink = await stripe.accountLinks.create({
       account: account.id,
-      refresh_url: refresh_url || return_url,
-      return_url: return_url,
+      refresh_url: safeRefresh,
+      return_url: safeReturn,
       type: 'account_onboarding',
     });
 
