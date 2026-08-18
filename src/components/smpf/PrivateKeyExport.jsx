@@ -24,23 +24,42 @@ export default function PrivateKeyExport({ wallet, session, onClose }) {
     try {
       // 1. Fetch wallet entry from IndexedDB using address
       const record = await getWallet(wallet.address);
-      
-      // Fallback: If record or backup is missing in IndexedDB, use active session if available
       let encryptedData = record?.backup;
 
-      if (!encryptedData) {
-        toast({
-          title: 'Export failed',
-          description: 'Wallet backup not found in local storage. Please complete onboarding again.',
-          variant: 'destructive',
-        });
+      // 2. Decrypt secret key and encode as base58 (Phantom / Solflare compatible)
+      if (encryptedData) {
+        const decrypted = await decryptWallet(encryptedData, password);
+        setExportedKey(bs58.encode(decrypted.secretKey));
+        toast({ title: 'Key Exported', description: 'Base58 private key ready for Phantom / Solflare import.' });
         return;
       }
 
-      // 2. Decrypt secret key and encode as base58 (Phantom / Solflare compatible)
-      const decrypted = await decryptWallet(encryptedData, password);
-      setExportedKey(bs58.encode(decrypted.secretKey));
-      toast({ title: 'Key Exported', description: 'Base58 private key ready for Phantom / Solflare import.' });
+      // 3. Fallback: scan local keypair payloads (smpf_sk_<email>) for this address.
+      //    These store the base58 secret key directly from generation.
+      let localPayload = null;
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('smpf_sk_')) {
+          try {
+            const p = JSON.parse(localStorage.getItem(k));
+            if (p && p.address === wallet.address) { localPayload = p; break; }
+          } catch { /* skip malformed */ }
+        }
+      }
+
+      if (localPayload && localPayload.secretKey) {
+        // localPayload.secretKey is the base58-encoded 64-byte Ed25519 secret key
+        // captured at generation time (Phantom / Solflare compatible).
+        setExportedKey(localPayload.secretKey);
+        toast({ title: 'Key Exported', description: 'Base58 private key ready for Phantom / Solflare import.' });
+        return;
+      }
+
+      toast({
+        title: 'Export failed',
+        description: 'Wallet backup not found in local storage. Please complete onboarding again.',
+        variant: 'destructive',
+      });
     } catch (err) {
       toast({
         title: 'Decryption failed',
