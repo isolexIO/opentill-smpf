@@ -814,7 +814,7 @@ All new feature revenue is included in your monthly commission calculations. Tra
         },
         {
           title: 'Getting Help',
-          content: 'Support channels:\n\n1. Live Chat:\n   • Click chat bubble (bottom right)\n   • Instant help during business hours\n   • After hours: Leave message\n\n2. Support Tickets:\n   • Navigate to Support page\n   • Click "Submit Ticket"\n   • Describe issue in detail\n   • Attach screenshots\n   • Response within 24 hours\n\n3. Phone/Text:\n   • Call or text: 419-729-3889\n   • Business hours: Mon-Fri 9am-5pm EST\n   • Leave voicemail after hours\n\n4. Email:\n   • support@isolex.io\n   • Include:\n     - Merchant name\n     - Issue description\n     - Steps to reproduce\n     - Screenshots/videos\n   - Response within 24 hours\n\n5. User Manual:\n   • This guide\n   • Search for topics\n   • Step-by-step tutorials\n\n6. Video Tutorials:\n   • Coming soon\n   • YouTube channel\n\n7. Community Forum:\n   • Future feature\n   • Connect with other merchants'
+          content: 'Support channels:\n\n1. Support Tickets:\n   • Navigate to Support page\n   • Click "Submit Ticket"\n   • Describe issue in detail\n   • Attach screenshots\n   • Response within 24 hours\n\n2. Phone/Text:\n   • Call or text: 419-729-3889\n   • Business hours: Mon-Fri 9am-5pm EST\n   • Leave voicemail after hours\n\n3. Email:\n   • support@isolex.io\n   • Include:\n     - Merchant name\n     - Issue description\n     - Steps to reproduce\n     - Screenshots/videos\n   - Response within 24 hours\n\n4. User Manual:\n   • This guide\n   • Search for topics\n   • Step-by-step tutorials\n\n5. Video Tutorials:\n   • Coming soon\n   • YouTube channel\n\n6. Community Forum:\n   • Future feature\n   • Connect with other merchants'
         }
       ]
     },
@@ -1010,10 +1010,9 @@ All new feature revenue is included in your monthly commission calculations. Tra
             <div>
               <h3 className="font-semibold text-lg mb-2">Still need help?</h3>
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                Our support team is here to help you succeed. Use live chat for the fastest response!
+                Our support team is here to help you succeed. Submit a ticket or reach us by phone/email!
               </p>
               <div className="flex flex-wrap gap-2">
-                <Badge className="bg-blue-600 text-white">Live Chat Available</Badge>
                 <Badge variant="outline">📞 419-729-3889</Badge>
                 <Badge variant="outline">✉️ support@isolex.io</Badge>
               </div>

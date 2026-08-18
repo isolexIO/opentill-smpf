@@ -31,14 +31,7 @@ export default function UserGuide() {
         <CardHeader>
           <CardTitle>Quick Start Guide</CardTitle>
           <CardDescription>
-            Need immediate help?{' '}
-            <Button
-              variant="link"
-              className="p-0 h-auto text-blue-600"
-              onClick={() => window.open('https://071be2.c.myucm.cloud/liveChat?liveChatAccess=MF83MDA2N2YzNDg5OTQ0OWI0OTdiMzhlMWQyNDhkNTg5Ml8wMDBiODIwNzFiZTImNmI3ODBlYzM4ZThmMWQyYjNiNDcwMTliMWM1OWM2MzA=', '_blank')}
-            >
-              Chat with support
-            </Button>
+            Everything you need to know about using openTILL POS
           </CardDescription>
         </CardHeader>
       </Card>
@@ -371,7 +364,6 @@ export default function UserGuide() {
             <CardContent className="prose max-w-none space-y-4">
               <h3 className="text-lg font-semibold">Getting Help</h3>
               <ul className="list-disc pl-5 space-y-2">
-                <li><strong>Live Chat:</strong> Click the chat bubble in the bottom-right corner of any page</li>
                 <li><strong>Support Tickets:</strong> Go to <strong>System Menu → Support → New Ticket</strong></li>
                 <li><strong>Phone/Text:</strong> 419-729-3889 (Mon–Fri, 9am–5pm EST)</li>
                 <li><strong>Email:</strong> support@isolex.io (24–48 hour response)</li>
