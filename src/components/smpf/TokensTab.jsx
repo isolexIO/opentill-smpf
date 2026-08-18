@@ -9,6 +9,7 @@ import { Coins, Plus, Loader2, Eye, EyeOff, AlertTriangle, RefreshCw } from 'luc
 import { WSOL, getPrice } from '@/lib/smpfPrices';
 import { getNetworkRpcList, withTimeout } from '@/lib/smpfRpc';
 import { getTokenMeta } from '@/lib/smpfTokenMeta';
+import { DUC_LOGO_URL } from '@/lib/smpfConstants';
 
 const HIDDEN_KEY = 'smpf_hidden_tokens';
 const CUSTOM_KEY = 'smpf_custom_tokens';
@@ -167,13 +168,7 @@ export default function TokensTab({ address, rpc, settings, refreshTrigger, ducB
           <CardContent className="p-4 space-y-1">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                {meta[ducMint]?.image ? (
-                  <img src={meta[ducMint].image} alt="$DUC" className="w-8 h-8 rounded-full object-cover border border-indigo-400/40" onError={(e) => { e.target.style.display = 'none'; }} />
-                ) : (
-                  <div className="w-8 h-8 rounded-full bg-indigo-500/20 border border-indigo-400/40 flex items-center justify-center">
-                    <Coins className="w-4 h-4 text-indigo-300" />
-                  </div>
-                )}
+                <img src={DUC_LOGO_URL} alt="$DUC" className="w-8 h-8 rounded-full object-cover border border-indigo-400/40" />
                 <div>
                   <p className="text-sm font-bold text-white">$DUC</p>
                   <p className="text-[10px] text-white/50">{meta[ducMint]?.name || 'Digital Utility Credit'}</p>
@@ -213,7 +208,9 @@ export default function TokensTab({ address, rpc, settings, refreshTrigger, ducB
             return (
               <div key={t.mint} className="flex items-center justify-between py-2 border-b border-white/10">
                 <div className="flex items-center gap-2 min-w-0 flex-1">
-                  {m?.image ? (
+                  {isDuc ? (
+                    <img src={DUC_LOGO_URL} alt="$DUC" className="w-8 h-8 rounded-full object-cover shrink-0" />
+                  ) : m?.image ? (
                     <img src={m.image} alt={label || t.mint} className="w-8 h-8 rounded-full object-cover shrink-0 bg-white/10" onError={(e) => { e.target.style.display = 'none'; }} />
                   ) : (
                     <div className="w-8 h-8 rounded-full bg-white/10 border border-white/20 flex items-center justify-center shrink-0">

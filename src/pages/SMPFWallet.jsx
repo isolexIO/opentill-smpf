@@ -8,19 +8,21 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from '@/components/ui/alert-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2, Lock, LogIn, Wallet, ShieldCheck, Send, ArrowDownLeft, Coins, Cpu, KeyRound, Copy, Check, AlertCircle, RefreshCw, History } from 'lucide-react';
+import { Loader2, Lock, LogIn, Wallet, ShieldCheck, Send, ArrowDownLeft, Coins, Cpu, KeyRound, Copy, Check, AlertCircle, RefreshCw, History, Rocket } from 'lucide-react';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID } from '@solana/spl-token';
 import { getPrice, WSOL } from '@/lib/smpfPrices';
 import { getWallet, listWallets, clearAllWallets } from '@/lib/smpfWalletStore';
 import { getNetworkRpcList, withTimeout } from '@/lib/smpfRpc';
 import { getTokenMeta } from '@/lib/smpfTokenMeta';
+import { DUC_LOGO_URL } from '@/lib/smpfConstants';
 
 // Import your SMPF sub-components
 import PrivateKeyExport from '@/components/smpf/PrivateKeyExport';
 import TokensTab from '@/components/smpf/TokensTab';
 import TransactionHistoryTab from '@/components/smpf/TransactionHistoryTab';
 import SendScreen from '@/components/smpf/SendScreen';
+import DucPresaleCard from '@/components/smpf/DucPresaleCard';
 
 export default function SMPFWallet() {
   const [user, setUser] = useState(null);
@@ -106,7 +108,7 @@ export default function SMPFWallet() {
   // Fetch $DUC (verified mint) balance across multiple RPCs — same 403 issue.
   const refreshDuc = useCallback(async () => {
     const ducMint = settings?.verified_duc_mint;
-    if (!solAddress || !ducMint) { setDucBalance(null); return; }
+    if (!solAddress || !ducMint) { setDucBalance(0); setDucLoading(false); return; }
     setDucLoading(true);
     const rpcs = getNetworkRpcList(settings);
     let bestAmount = -1;
@@ -419,26 +421,20 @@ export default function SMPFWallet() {
                     </Button>
                   </div>
                   <div className="flex items-center gap-3">
-                    {ducMeta?.image ? (
-                      <img src={ducMeta.image} alt="$DUC" className="w-10 h-10 rounded-full object-cover border border-indigo-400/40" onError={(e) => { e.target.style.display = 'none'; }} />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-indigo-500/20 border border-indigo-400/40 flex items-center justify-center">
-                        <Coins className="w-5 h-5 text-indigo-300" />
-                      </div>
-                    )}
+                    <img src={DUC_LOGO_URL} alt="$DUC" className="w-10 h-10 rounded-full object-cover border border-indigo-400/40" />
                     <div className="text-3xl font-black font-mono tracking-tight text-white flex items-baseline gap-2">
                       {ducLoading && ducBalance === null ? (
                         <Loader2 className="w-6 h-6 animate-spin text-indigo-400" />
                       ) : ducBalance !== null ? (
                         ducBalance.toFixed(2)
                       ) : (
-                        '—'
+                        '0.00'
                       )} <span className="text-xs font-normal text-white/40">$DUC</span>
                     </div>
                   </div>
                   {!settings?.verified_duc_mint && (
-                    <p className="text-xs text-amber-400 flex items-center gap-1.5 mt-1">
-                      <AlertCircle className="w-3.5 h-3.5 shrink-0" /> No verified $DUC mint configured
+                    <p className="text-xs text-emerald-400 flex items-center gap-1.5 mt-1">
+                      <Rocket className="w-3.5 h-3.5 shrink-0" /> $DUC is in presale — balance shows on-chain holdings
                     </p>
                   )}
                 </CardHeader>
@@ -462,6 +458,8 @@ export default function SMPFWallet() {
                 </CardContent>
               </Card>
             </div>
+
+            <DucPresaleCard />
           </TabsContent>
 
           <TabsContent value="tokens">

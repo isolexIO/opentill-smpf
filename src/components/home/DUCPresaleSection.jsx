@@ -3,11 +3,11 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Rocket, ArrowRight, TrendingUp, Lock, Sparkles } from 'lucide-react';
+import { DUC_LOGO_URL, DUC_PRESALE_URL } from '@/lib/smpfConstants';
 
-const DUC_LOGO =
-  'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6970e2871534100b4ebb8d45/8e45f76fe_DUC3.png';
+const DUC_LOGO = DUC_LOGO_URL;
 
-const ICO_URL = 'https://ico.opentill.io/';
+const ICO_URL = DUC_PRESALE_URL;
 
 const HIGHLIGHTS = [
   { icon: TrendingUp, label: 'Early-Bird Pricing', desc: 'Lowest token price available during the presale window.' },
