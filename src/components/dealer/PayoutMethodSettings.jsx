@@ -23,6 +23,7 @@ import {
 import { AlertCircle, Plus, Trash2, Check } from 'lucide-react';
 import SolanaWalletInput from '@/components/shared/SolanaWalletInput';
 import { updateAmbassadorProfile } from '@/lib/dealerProfile';
+import SMPFPayoutWalletConnector from '@/components/smpf/SMPFPayoutWalletConnector';
 
 export default function PayoutMethodSettings({ dealer, onUpdate }) {
   const [methods, setMethods] = useState(dealer?.payout_methods || []);
@@ -123,6 +124,9 @@ export default function PayoutMethodSettings({ dealer, onUpdate }) {
 
   return (
     <div className="space-y-6">
+      {/* SMPF Wallet Payout Connector */}
+      <SMPFPayoutWalletConnector />
+
       {/* Active Methods */}
       <Card>
         <CardHeader>

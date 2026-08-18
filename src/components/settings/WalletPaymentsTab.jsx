@@ -11,6 +11,7 @@ import {
   Wallet, CheckCircle, Loader2, Copy, ExternalLink, RefreshCw,
   Unlink, Link2, AlertCircle, Shield, Zap, Info, Eye, EyeOff
 } from 'lucide-react';
+import SMPFPayoutWalletConnector from '@/components/smpf/SMPFPayoutWalletConnector';
 
 const WALLETS = [
   {
@@ -254,6 +255,9 @@ export default function WalletPaymentsTab({ merchant, onSave }) {
           </AlertDescription>
         </Alert>
       )}
+
+      {/* SMPF Wallet Payout Connector */}
+      <SMPFPayoutWalletConnector />
 
       {/* Connect Wallets */}
       <Card className="dark:bg-gray-800 dark:border-gray-700">

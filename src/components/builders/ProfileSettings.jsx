@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/select';
 import SolanaWalletInput from '@/components/shared/SolanaWalletInput';
 import IdentityVerificationCard from '@/components/shared/IdentityVerificationCard';
+import SMPFPayoutWalletConnector from '@/components/smpf/SMPFPayoutWalletConnector';
 
 export default function ProfileSettings({ builder, user, onUpdated }) {
   const [editing, setEditing] = useState(false);
@@ -377,9 +378,14 @@ export default function ProfileSettings({ builder, user, onUpdated }) {
 
       {/* Payment Information */}
        <div className="border-t border-gray-200 pt-6">
-          <h4 className="font-bold text-gray-900 mb-4">Payment Information</h4>
+           <h4 className="font-bold text-gray-900 mb-4">Payment Information</h4>
 
-         <div className="space-y-2 mb-4">
+          {/* SMPF Wallet Payout Connector */}
+          <div className="mb-6">
+            <SMPFPayoutWalletConnector />
+          </div>
+
+          <div className="space-y-2 mb-4">
            <label className="block text-sm font-medium text-gray-700">Payout Method</label>
            <Select
              value={formData.payout_method}
