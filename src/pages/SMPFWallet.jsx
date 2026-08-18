@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Loader2, Lock, LogIn, Wallet, ShieldCheck, Send, ArrowDownLeft, Coins, Cpu, KeyRound, Copy, Check, AlertCircle } from 'lucide-react';
+import { Loader2, Lock, LogIn, Wallet, ShieldCheck, Send, ArrowDownLeft, Coins, Cpu, KeyRound, Copy, Check, AlertCircle, RefreshCw, History } from 'lucide-react';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { getPrice, WSOL } from '@/lib/smpfPrices';
 import { getWallet, listWallets, clearAllWallets } from '@/lib/smpfWalletStore';
@@ -13,6 +13,7 @@ import { getWallet, listWallets, clearAllWallets } from '@/lib/smpfWalletStore';
 // Import your SMPF sub-components
 import PrivateKeyExport from '@/components/smpf/PrivateKeyExport';
 import TokensTab from '@/components/smpf/TokensTab';
+import TransactionHistoryTab from '@/components/smpf/TransactionHistoryTab';
 
 export default function SMPFWallet() {
   const [user, setUser] = useState(null);
@@ -23,6 +24,7 @@ export default function SMPFWallet() {
   const [solBalance, setSolBalance] = useState(null);
   const [solLoading, setSolLoading] = useState(false);
   const [solUsd, setSolUsd] = useState(null);
+  const [solError, setSolError] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
 
   // Receive Modal States
@@ -51,41 +53,60 @@ export default function SMPFWallet() {
     initWallet();
   }, []);
 
-  // Fetch live SOL balance + USD price whenever the address or RPC changes.
-  useEffect(() => {
+  // Fetch live SOL balance. Retries across multiple public RPCs and surfaces an
+  // error so the UI can show a retry button instead of silently showing "—".
+  const refreshBalance = useCallback(async () => {
     if (!solAddress) return;
-    let cancelled = false;
-    setSolBalance(null);
     setSolLoading(true);
+    setSolError(null);
     const net = settings?.default_network === 'devnet' ? 'devnet' : 'mainnet';
     const configured = net === 'mainnet' ? settings?.rpc_mainnet : settings?.rpc_devnet;
     const publicRpcs = net === 'mainnet'
-      ? ['https://api.mainnet-beta.solana.com', 'https://rpc.ankr.com/solana']
+      ? ['https://api.mainnet-beta.solana.com', 'https://rpc.ankr.com/solana', 'https://solana.api.onfinality.io/public']
       : ['https://api.devnet.solana.com'];
     const rpcs = Array.from(new Set([
       (typeof configured === 'string' && /^https?:\/\//.test(configured)) ? configured : null,
       ...publicRpcs,
     ].filter(Boolean)));
-    (async () => {
-      for (const rpc of rpcs) {
-        try {
-          const conn = new Connection(rpc, 'confirmed');
-          const lamports = await conn.getBalance(new PublicKey(solAddress));
-          if (cancelled) return;
-          setSolBalance(lamports / 1e9);
-          setSolLoading(false);
-          return;
-        } catch (e) {
-          console.warn('SOL balance fetch failed on', rpc, e);
-        }
+    for (const rpc of rpcs) {
+      try {
+        const conn = new Connection(rpc, 'confirmed');
+        const lamports = await conn.getBalance(new PublicKey(solAddress));
+        setSolBalance(lamports / 1e9);
+        setSolLoading(false);
+        setSolError(null);
+        return;
+      } catch (e) {
+        console.warn('SOL balance fetch failed on', rpc, e);
       }
-      if (!cancelled) setSolLoading(false);
-    })();
-    getPrice(WSOL)
-      .then((p) => { if (!cancelled) setSolUsd(p); })
-      .catch((e) => console.warn('SOL price fetch failed:', e));
-    return () => { cancelled = true; };
+    }
+    setSolLoading(false);
+    setSolError('Unable to fetch balance — public RPC may be rate-limited.');
   }, [solAddress, settings?.rpc_mainnet, settings?.rpc_devnet, settings?.default_network]);
+
+  // Initial fetch + re-fetch whenever the address / RPC config changes
+  useEffect(() => {
+    refreshBalance();
+  }, [refreshBalance]);
+
+  // Auto-refresh balance every 30 seconds
+  useEffect(() => {
+    if (!solAddress) return;
+    const id = setInterval(refreshBalance, 30000);
+    return () => clearInterval(id);
+  }, [refreshBalance]);
+
+  // Fetch USD price of SOL (auto-refreshed every 60s)
+  useEffect(() => {
+    let cancelled = false;
+    const fetchPrice = () =>
+      getPrice(WSOL)
+        .then((p) => { if (!cancelled) setSolUsd(p); })
+        .catch((e) => console.warn('SOL price fetch failed:', e));
+    fetchPrice();
+    const id = setInterval(fetchPrice, 60000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, []);
 
   async function initWallet() {
     setLoading(true);
@@ -232,12 +253,15 @@ export default function SMPFWallet() {
 
         {/* Main Wallet Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="bg-slate-900 border border-white/10 p-1 rounded-xl flex w-full overflow-x-auto gap-1 sm:grid sm:grid-cols-4">
+          <TabsList className="bg-slate-900 border border-white/10 p-1 rounded-xl flex w-full overflow-x-auto gap-1 sm:grid sm:grid-cols-5">
             <TabsTrigger value="overview" className="flex-1 whitespace-nowrap data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-xs px-3">
-              <Wallet className="w-3.5 h-3.5 mr-1.5" /> <span className="hidden sm:inline">Balance</span><span className="sm:hidden">Balance</span>
+              <Wallet className="w-3.5 h-3.5 mr-1.5" /> <span>Balance</span>
             </TabsTrigger>
             <TabsTrigger value="tokens" className="flex-1 whitespace-nowrap data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-xs px-3">
               <Coins className="w-3.5 h-3.5 mr-1.5" /> <span>Tokens</span>
+            </TabsTrigger>
+            <TabsTrigger value="history" className="flex-1 whitespace-nowrap data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-xs px-3">
+              <History className="w-3.5 h-3.5 mr-1.5" /> <span>History</span>
             </TabsTrigger>
             <TabsTrigger value="chips" className="flex-1 whitespace-nowrap data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-xs px-3">
               <Cpu className="w-3.5 h-3.5 mr-1.5" /> <span>Chips</span>
@@ -252,9 +276,14 @@ export default function SMPFWallet() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Card className="bg-slate-900 border-white/10 text-white md:col-span-2">
                 <CardHeader>
-                  <CardTitle className="text-xs text-white/60 font-mono uppercase tracking-wider">SOL Balance</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-xs text-white/60 font-mono uppercase tracking-wider">SOL Balance</CardTitle>
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-white/50 hover:text-white" onClick={refreshBalance} title="Refresh balance">
+                      <RefreshCw className={solLoading ? 'w-3.5 h-3.5 animate-spin' : 'w-3.5 h-3.5'} />
+                    </Button>
+                  </div>
                   <div className="text-3xl font-black font-mono tracking-tight text-white flex items-baseline gap-2">
-                    {solLoading ? (
+                    {solLoading && solBalance === null ? (
                       <Loader2 className="w-6 h-6 animate-spin text-indigo-400" />
                     ) : solBalance !== null ? (
                       solBalance.toFixed(4)
@@ -265,6 +294,12 @@ export default function SMPFWallet() {
                   {solUsd !== null && solBalance !== null && (
                     <p className="text-xs text-white/50 font-mono">≈ ${(solBalance * solUsd).toFixed(2)} USD</p>
                   )}
+                  {solError && (
+                    <p className="text-xs text-amber-400 flex items-center gap-1.5 mt-1">
+                      <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {solError}
+                    </p>
+                  )}
+                  <p className="text-[10px] text-white/30 font-mono">Auto-refreshes every 30s</p>
                 </CardHeader>
                 <CardContent className="flex flex-col sm:flex-row gap-3">
                   <Button disabled={settings?.is_paused} className="bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold w-full sm:w-auto">
@@ -307,6 +342,18 @@ export default function SMPFWallet() {
               <Card className="bg-slate-900 border-white/10 text-white">
                 <CardContent className="p-6 text-center text-xs text-white/60">
                   No Solana address found. Onboard a wallet to view token balances.
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="history">
+            {solAddress ? (
+              <TransactionHistoryTab address={solAddress} settings={settings} />
+            ) : (
+              <Card className="bg-slate-900 border-white/10 text-white">
+                <CardContent className="p-6 text-center text-xs text-white/60">
+                  No Solana address found. Onboard a wallet to view transaction history.
                 </CardContent>
               </Card>
             )}
