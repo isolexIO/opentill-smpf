@@ -72,14 +72,15 @@ export default function SMPFWallet() {
     if (!solAddress) return;
     setSolLoading(true);
     setSolError(null);
-    // SMPF wallets are real Solana wallets that live on mainnet. Always use a
-    // CORS-friendly mainnet RPC (publicnode) and take the highest balance found,
-    // so the funded balance resolves in the browser even when the admin setting
-    // still points at devnet (returns 0 for a mainnet address) or at
-    // api.mainnet-beta.solana.com (which 403s browser Origin requests).
+    // SMPF wallets live on mainnet. Try the CORS-friendly mainnet publicnode RPC
+    // first, then the configured mainnet RPC, then devnet as a last-resort
+    // fallback (devnet returns 0 for a mainnet address). Take the highest balance
+    // found so a funded mainnet balance resolves even when the admin setting still
+    // points at devnet or at api.mainnet-beta.solana.com (which 403s browsers).
     const rpcs = Array.from(new Set([
-      (typeof settings?.rpc_mainnet === 'string' && /^https?:\/\//.test(settings.rpc_mainnet)) ? settings.rpc_mainnet : null,
       'https://solana-rpc.publicnode.com',
+      (typeof settings?.rpc_mainnet === 'string' && /^https?:\/\//.test(settings.rpc_mainnet)) ? settings.rpc_mainnet : null,
+      'https://api.devnet.solana.com',
     ].filter(Boolean)));
     let bestLamports = -1;
     for (const rpc of rpcs) {
@@ -142,13 +143,20 @@ export default function SMPFWallet() {
       setSettings(currentSettings);
 
       // 3. Retrieve local IndexedDB Solana Wallet entry — pick the funded one (highest on-chain SOL balance)
-      const localWallets = await listWallets(currentUser.id).catch(() => []);
+      let localWallets = await listWallets(currentUser.id).catch(() => []);
+      // Fallback: if no wallets matched this user, try all local wallets (handles
+      // wallets saved before per-user isolation or with a mismatched user_id).
+      if (!localWallets || localWallets.length === 0) {
+        localWallets = await listWallets(null).catch(() => []);
+      }
       let activeWallet = localWallets?.[0] || null;
       if (localWallets && localWallets.length > 1) {
-        // Pick the funded wallet using mainnet publicnode (CORS-friendly).
+        // Pick the funded wallet using mainnet publicnode (CORS-friendly), with
+        // devnet as a last-resort fallback.
         const rpcs = Array.from(new Set([
-          (typeof currentSettings?.rpc_mainnet === 'string' && /^https?:\/\//.test(currentSettings.rpc_mainnet)) ? currentSettings.rpc_mainnet : null,
           'https://solana-rpc.publicnode.com',
+          (typeof currentSettings?.rpc_mainnet === 'string' && /^https?:\/\//.test(currentSettings.rpc_mainnet)) ? currentSettings.rpc_mainnet : null,
+          'https://api.devnet.solana.com',
         ].filter(Boolean)));
         const fetchBalance = async (addr) => {
           let best = -1;
