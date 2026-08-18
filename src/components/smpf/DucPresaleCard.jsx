@@ -57,7 +57,7 @@ export default function DucPresaleCard() {
           <Button
             variant="outline"
             className="border-white/20 bg-white/5 text-white hover:bg-white/10 text-xs font-semibold flex-1"
-            onClick={() => window.open(DUC_PRESALE_URL, '_blank', 'noopener,noreferrer')}
+            onClick={() => window.open('https://cmd.openTILL.io', '_blank', 'noopener,noreferrer')}
           >
             Learn More
           </Button>
