@@ -4,6 +4,7 @@ import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from '@/components/ui/alert-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -281,20 +282,35 @@ export default function SMPFWallet() {
 
         {/* Main Wallet Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="bg-slate-900 border border-white/10 p-1 rounded-xl flex w-full gap-1 overflow-x-auto sm:grid sm:grid-cols-5 sm:overflow-visible">
-            <TabsTrigger value="overview" className="shrink-0 whitespace-nowrap data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-xs px-3 py-2 sm:flex-1 sm:shrink">
+          {/* Mobile: dropdown menu */}
+          <Select value={activeTab} onValueChange={setActiveTab}>
+            <SelectTrigger className="md:hidden w-full bg-slate-900 border-white/10 text-white rounded-xl h-11">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="bg-slate-900 border-white/10 text-white">
+              <SelectItem value="overview" className="text-white focus:bg-indigo-600 focus:text-white">Balance</SelectItem>
+              <SelectItem value="tokens" className="text-white focus:bg-indigo-600 focus:text-white">Tokens</SelectItem>
+              <SelectItem value="history" className="text-white focus:bg-indigo-600 focus:text-white">History</SelectItem>
+              <SelectItem value="chips" className="text-white focus:bg-indigo-600 focus:text-white">Chips</SelectItem>
+              <SelectItem value="keys" className="text-white focus:bg-indigo-600 focus:text-white">Keys</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Desktop: tab grid */}
+          <TabsList className="hidden md:grid md:grid-cols-5 bg-slate-900 border border-white/10 p-1 rounded-xl w-full gap-1">
+            <TabsTrigger value="overview" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-xs px-3 py-2 flex-1">
               <Wallet className="w-3.5 h-3.5 mr-1.5" /> <span>Balance</span>
             </TabsTrigger>
-            <TabsTrigger value="tokens" className="shrink-0 whitespace-nowrap data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-xs px-3 py-2 sm:flex-1 sm:shrink">
+            <TabsTrigger value="tokens" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-xs px-3 py-2 flex-1">
               <Coins className="w-3.5 h-3.5 mr-1.5" /> <span>Tokens</span>
             </TabsTrigger>
-            <TabsTrigger value="history" className="shrink-0 whitespace-nowrap data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-xs px-3 py-2 sm:flex-1 sm:shrink">
+            <TabsTrigger value="history" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-xs px-3 py-2 flex-1">
               <History className="w-3.5 h-3.5 mr-1.5" /> <span>History</span>
             </TabsTrigger>
-            <TabsTrigger value="chips" className="shrink-0 whitespace-nowrap data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-xs px-3 py-2 sm:flex-1 sm:shrink">
+            <TabsTrigger value="chips" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-xs px-3 py-2 flex-1">
               <Cpu className="w-3.5 h-3.5 mr-1.5" /> <span>Chips</span>
             </TabsTrigger>
-            <TabsTrigger value="keys" className="shrink-0 whitespace-nowrap data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-xs px-3 py-2 sm:flex-1 sm:shrink">
+            <TabsTrigger value="keys" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-xs px-3 py-2 flex-1">
               <KeyRound className="w-3.5 h-3.5 mr-1.5" /> <span>Keys</span>
             </TabsTrigger>
           </TabsList>
