@@ -4,12 +4,6 @@ import Stripe from 'npm:stripe@17.4.0';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    // Require an authenticated caller to prevent anonymous resource exhaustion
-    // (each call creates a paid Stripe Identity VerificationSession).
-    const user = await base44.auth.me();
-    if (!user) {
-      return Response.json({ error: 'Authentication required' }, { status: 401 });
-    }
 
     const body = await req.json();
     const { business_name, owner_email, owner_name, return_url, entity_type, entity_id } = body;
@@ -18,6 +12,23 @@ Deno.serve(async (req) => {
       return Response.json({
         error: 'business_name and owner_email are required'
       }, { status: 400 });
+    }
+
+    // The merchant onboarding flow is anonymous by design, so a logged-in
+    // user is not required. When one is present (ambassador/builder portals),
+    // record it for traceability.
+    let user = null;
+    try { user = await base44.auth.me(); } catch { /* anonymous onboarding */ }
+
+    // Validate return_url against this app's origin to prevent open-redirect /
+    // phishing via attacker-supplied return_url.
+    const appOrigin = new URL(req.url).origin;
+    let safeReturnUrl = null;
+    if (return_url) {
+      try {
+        const u = new URL(return_url, appOrigin);
+        safeReturnUrl = u.origin === appOrigin ? u.toString() : null;
+      } catch { /* invalid url */ }
     }
 
     // Use STRIPE_CONNECT_KEY (restricted key) for Identity. It must have the
@@ -47,13 +58,13 @@ Deno.serve(async (req) => {
         source: 'opentill_merchant_onboarding',
         entity_type: entity_type || '',
         entity_id: entity_id || '',
-        requested_by_user_id: user.id,
-        requested_by_email: user.email,
+        requested_by_user_id: user?.id || '',
+        requested_by_email: user?.email || '',
       },
       provided_details: {
         email: owner_email,
       },
-      ...(return_url ? { return_url } : {}),
+      ...(safeReturnUrl ? { return_url: safeReturnUrl } : {}),
     });
 
     return Response.json({
