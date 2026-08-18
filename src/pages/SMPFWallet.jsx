@@ -105,38 +105,24 @@ export default function SMPFWallet() {
     setSolLoading(false);
   }, [solAddress, settings?.default_network, settings?.rpc_mainnet, settings?.rpc_testnet, settings?.rpc_devnet]);
 
-  // Fetch $DUC (verified mint) balance across multiple RPCs — same 403 issue.
+  // Fetch $DUC (verified mint) balance via a backend function. Browser RPCs
+  // can't reliably call getTokenAccountsByOwner (mainnet-beta 403s on Origin,
+  // publicnode times out), so the lookup runs server-side where it works.
   const refreshDuc = useCallback(async () => {
     const ducMint = settings?.verified_duc_mint;
     if (!solAddress || !ducMint) { setDucBalance(0); setDucLoading(false); return; }
     setDucLoading(true);
-    const rpcs = getNetworkRpcList(settings);
-    let bestAmount = -1;
-    for (const rpc of rpcs) {
-      try {
-        const conn = new Connection(rpc, 'confirmed');
-        for (const programId of [TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID]) {
-          try {
-            const res = await withTimeout(
-              conn.getParsedTokenAccountsByOwner(
-                new PublicKey(solAddress),
-                { mint: new PublicKey(ducMint) },
-              ),
-              8000,
-              'duc-balance',
-            );
-            for (const acc of res.value) {
-              const info = acc.account.data?.parsed?.info;
-              const amt = Number(info?.tokenAmount?.uiAmount || 0);
-              if (amt > bestAmount) bestAmount = amt;
-            }
-          } catch {}
-        }
-      } catch (e) { /* try next rpc */ }
+    try {
+      const res = await base44.functions.invoke('getDucBalance', { address: solAddress });
+      const data = res.data || {};
+      setDucBalance(typeof data.ducBalance === 'number' ? data.ducBalance : 0);
+    } catch (e) {
+      console.warn('DUC balance fetch failed:', e);
+      setDucBalance(0);
+    } finally {
+      setDucLoading(false);
     }
-    setDucBalance(bestAmount >= 0 ? bestAmount : 0);
-    setDucLoading(false);
-  }, [solAddress, settings?.verified_duc_mint, settings?.default_network, settings?.rpc_mainnet, settings?.rpc_testnet, settings?.rpc_devnet]);
+  }, [solAddress, settings?.verified_duc_mint, settings?.default_network]);
 
   // Fetch $DUC token metadata (image/name) for the overview card.
   useEffect(() => {
