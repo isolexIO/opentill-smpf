@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Coins, Plus, Loader2, Eye, EyeOff, AlertTriangle } from 'lucide-react';
 import { WSOL, getPrice } from '@/lib/smpfPrices';
+import { getNetworkRpcList } from '@/lib/smpfRpc';
 
 const HIDDEN_KEY = 'smpf_hidden_tokens';
 const CUSTOM_KEY = 'smpf_custom_tokens';
@@ -27,11 +28,9 @@ export default function TokensTab({ address, rpc, settings }) {
   const [error, setError] = useState('');
   const [prices, setPrices] = useState({});
   const ducMint = settings?.verified_duc_mint;
-  // SMPF wallets are real Solana wallets on mainnet. Use a CORS-friendly mainnet RPC
-  // (publicnode); api.mainnet-beta.solana.com 403s browser (Origin) requests.
-  const endpoint = (typeof settings?.rpc_mainnet === 'string' && /^https?:\/\//.test(settings.rpc_mainnet) && settings.rpc_mainnet !== 'https://api.mainnet-beta.solana.com')
-    ? settings.rpc_mainnet
-    : 'https://solana-rpc.publicnode.com';
+  // Use the admin-selected Solana cluster (mainnet / testnet / devnet).
+  const rpcs = getNetworkRpcList(settings);
+  const endpoint = rpcs[0];
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [endpoint]);
 

@@ -3,6 +3,7 @@ import { Connection, PublicKey } from '@solana/web3.js';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, ExternalLink, RefreshCw, CheckCircle2, XCircle, Clock, Inbox } from 'lucide-react';
+import { getNetworkRpcList, getExplorerSuffix } from '@/lib/smpfRpc';
 
 function formatTime(blockTime) {
   if (!blockTime) return '—';
@@ -28,13 +29,9 @@ export default function TransactionHistoryTab({ address, settings }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // SMPF wallets are real Solana wallets on mainnet. Use a CORS-friendly mainnet RPC
-  // (publicnode); api.mainnet-beta.solana.com 403s browser (Origin) requests.
-  const rpcs = Array.from(new Set([
-    (typeof settings?.rpc_mainnet === 'string' && /^https?:\/\//.test(settings.rpc_mainnet)) ? settings.rpc_mainnet : null,
-    'https://solana-rpc.publicnode.com',
-  ].filter(Boolean)));
-  const explorerSuffix = '';
+  // Use the admin-selected Solana cluster (mainnet / testnet / devnet).
+  const rpcs = getNetworkRpcList(settings);
+  const explorerSuffix = getExplorerSuffix(settings);
 
   const load = useCallback(async () => {
     if (!address) return;
@@ -53,7 +50,7 @@ export default function TransactionHistoryTab({ address, settings }) {
     }
     setError('Unable to load transaction history — public RPC may be rate-limited.');
     setLoading(false);
-  }, [address, settings?.rpc_mainnet]);
+  }, [address, settings?.default_network, settings?.rpc_mainnet, settings?.rpc_testnet, settings?.rpc_devnet]);
 
   useEffect(() => {
     load();

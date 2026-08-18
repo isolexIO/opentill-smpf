@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, Plus, Trash2, ShieldAlert, ArrowLeft, ShieldCheck } from 'lucide-react';
 import DUCMintAdmin from '@/components/smpf/DUCMintAdmin';
 
@@ -17,10 +18,20 @@ export default function SMPFWalletAdmin() {
   const [tokenInput, setTokenInput] = useState('');
   const [chipInput, setChipInput] = useState('');
   const [busy, setBusy] = useState(false);
+  const [rpcMainnetInput, setRpcMainnetInput] = useState('');
+  const [rpcTestnetInput, setRpcTestnetInput] = useState('');
+  const [rpcDevnetInput, setRpcDevnetInput] = useState('');
 
   useEffect(() => {
     init();
   }, []);
+
+  // Keep RPC endpoint inputs in sync with the persisted settings.
+  useEffect(() => {
+    setRpcMainnetInput(settings?.rpc_mainnet || '');
+    setRpcTestnetInput(settings?.rpc_testnet || '');
+    setRpcDevnetInput(settings?.rpc_devnet || '');
+  }, [settings?.id, settings?.rpc_mainnet, settings?.rpc_testnet, settings?.rpc_devnet]);
 
   async function init() {
     try {
@@ -182,6 +193,85 @@ export default function SMPFWalletAdmin() {
               </p>
             </div>
             <Switch checked={!!settings?.is_paused} onCheckedChange={handleTogglePause} disabled={busy} />
+          </CardContent>
+        </Card>
+
+        {/* Solana Network Selection */}
+        <Card className="bg-slate-900 border-white/10 text-white">
+          <CardHeader>
+            <CardTitle className="text-lg">Solana Network</CardTitle>
+            <CardDescription className="text-white/60 text-xs">
+              Choose which Solana cluster the wallet reads balances, tokens, and transaction history from.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold">Active Network</Label>
+              <Select
+                value={settings?.default_network || 'mainnet'}
+                onValueChange={(v) => persist({ ...settings, default_network: v }, 'rpc_config', `Switched active network to ${v}`)}
+                disabled={busy}
+              >
+                <SelectTrigger className="bg-slate-950 border-white/10 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="mainnet">Mainnet Beta</SelectItem>
+                  <SelectItem value="testnet">Testnet</SelectItem>
+                  <SelectItem value="devnet">Devnet</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-[11px] text-white/40">
+                {(settings?.default_network || 'mainnet') === 'mainnet' && 'Mainnet Beta — production cluster with real funds.'}
+                {settings?.default_network === 'testnet' && 'Testnet — public QA cluster. Airdrop SOL from the Solana testnet faucet.'}
+                {settings?.default_network === 'devnet' && 'Devnet — local development cluster.'}
+              </p>
+            </div>
+
+            <div className="grid sm:grid-cols-3 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs text-white/60">Mainnet RPC</Label>
+                <Input
+                  value={rpcMainnetInput}
+                  onChange={(e) => setRpcMainnetInput(e.target.value)}
+                  onBlur={() => {
+                    if ((settings?.rpc_mainnet || '') !== rpcMainnetInput) {
+                      persist({ ...settings, rpc_mainnet: rpcMainnetInput }, 'rpc_config', 'Updated mainnet RPC');
+                    }
+                  }}
+                  placeholder="https://api.mainnet-beta.solana.com"
+                  className="bg-slate-950 border-white/10 text-white font-mono text-xs"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-white/60">Testnet RPC</Label>
+                <Input
+                  value={rpcTestnetInput}
+                  onChange={(e) => setRpcTestnetInput(e.target.value)}
+                  onBlur={() => {
+                    if ((settings?.rpc_testnet || '') !== rpcTestnetInput) {
+                      persist({ ...settings, rpc_testnet: rpcTestnetInput }, 'rpc_config', 'Updated testnet RPC');
+                    }
+                  }}
+                  placeholder="https://api.testnet.solana.com"
+                  className="bg-slate-950 border-white/10 text-white font-mono text-xs"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-white/60">Devnet RPC</Label>
+                <Input
+                  value={rpcDevnetInput}
+                  onChange={(e) => setRpcDevnetInput(e.target.value)}
+                  onBlur={() => {
+                    if ((settings?.rpc_devnet || '') !== rpcDevnetInput) {
+                      persist({ ...settings, rpc_devnet: rpcDevnetInput }, 'rpc_config', 'Updated devnet RPC');
+                    }
+                  }}
+                  placeholder="https://api.devnet.solana.com"
+                  className="bg-slate-950 border-white/10 text-white font-mono text-xs"
+                />
+              </div>
+            </div>
           </CardContent>
         </Card>
 

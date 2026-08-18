@@ -24,6 +24,11 @@
       "default": "https://api.mainnet-beta.solana.com",
       "description": "Mainnet RPC endpoint"
     },
+    "rpc_testnet": {
+      "type": "string",
+      "default": "https://api.testnet.solana.com",
+      "description": "Testnet RPC endpoint"
+    },
     "rpc_devnet": {
       "type": "string",
       "default": "https://api.devnet.solana.com",
@@ -69,10 +74,11 @@
       "type": "string",
       "enum": [
         "mainnet",
+        "testnet",
         "devnet"
       ],
-      "default": "devnet",
-      "description": "Production default is mainnet only after testing is complete."
+      "default": "mainnet",
+      "description": "Active Solana cluster the wallet reads balances, tokens, and history from."
     },
     "is_paused": {
       "type": "boolean",

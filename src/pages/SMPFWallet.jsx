@@ -11,6 +11,7 @@ import { Loader2, Lock, LogIn, Wallet, ShieldCheck, Send, ArrowDownLeft, Coins, 
 import { Connection, PublicKey } from '@solana/web3.js';
 import { getPrice, WSOL } from '@/lib/smpfPrices';
 import { getWallet, listWallets, clearAllWallets } from '@/lib/smpfWalletStore';
+import { getNetworkRpcList } from '@/lib/smpfRpc';
 
 // Import your SMPF sub-components
 import PrivateKeyExport from '@/components/smpf/PrivateKeyExport';
@@ -72,16 +73,8 @@ export default function SMPFWallet() {
     if (!solAddress) return;
     setSolLoading(true);
     setSolError(null);
-    // SMPF wallets live on mainnet. Try the CORS-friendly mainnet publicnode RPC
-    // first, then the configured mainnet RPC, then devnet as a last-resort
-    // fallback (devnet returns 0 for a mainnet address). Take the highest balance
-    // found so a funded mainnet balance resolves even when the admin setting still
-    // points at devnet or at api.mainnet-beta.solana.com (which 403s browsers).
-    const rpcs = Array.from(new Set([
-      'https://solana-rpc.publicnode.com',
-      (typeof settings?.rpc_mainnet === 'string' && /^https?:\/\//.test(settings.rpc_mainnet)) ? settings.rpc_mainnet : null,
-      'https://api.devnet.solana.com',
-    ].filter(Boolean)));
+    // Use the admin-selected Solana cluster (mainnet / testnet / devnet).
+    const rpcs = getNetworkRpcList(settings);
     let bestLamports = -1;
     for (const rpc of rpcs) {
       try {
@@ -99,7 +92,7 @@ export default function SMPFWallet() {
       setSolError('Unable to fetch balance — public RPC may be rate-limited.');
     }
     setSolLoading(false);
-  }, [solAddress, settings?.rpc_mainnet]);
+  }, [solAddress, settings?.default_network, settings?.rpc_mainnet, settings?.rpc_testnet, settings?.rpc_devnet]);
 
   // Initial fetch + re-fetch whenever the address / RPC config changes
   useEffect(() => {
@@ -151,13 +144,8 @@ export default function SMPFWallet() {
       }
       let activeWallet = localWallets?.[0] || null;
       if (localWallets && localWallets.length > 1) {
-        // Pick the funded wallet using mainnet publicnode (CORS-friendly), with
-        // devnet as a last-resort fallback.
-        const rpcs = Array.from(new Set([
-          'https://solana-rpc.publicnode.com',
-          (typeof currentSettings?.rpc_mainnet === 'string' && /^https?:\/\//.test(currentSettings.rpc_mainnet)) ? currentSettings.rpc_mainnet : null,
-          'https://api.devnet.solana.com',
-        ].filter(Boolean)));
+        // Pick the funded wallet using the admin-selected Solana cluster.
+        const rpcs = getNetworkRpcList(currentSettings);
         const fetchBalance = async (addr) => {
           let best = -1;
           for (const rpc of rpcs) {
