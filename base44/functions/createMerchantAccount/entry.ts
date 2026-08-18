@@ -30,18 +30,23 @@ Deno.serve(async (req) => {
 
         const base44 = createClientFromRequest(req);
 
+        // Resolve the caller once. The public self-registration path is
+        // unauthenticated; admin-only actions (activation, email dispatch)
+        // require an authenticated administrator below.
+        let currentUser = null;
+        try {
+            currentUser = await base44.auth.me();
+        } catch (e) {
+            currentUser = null;
+        }
+        const isAdmin = !!currentUser && currentUser.role === 'admin';
+
         // SECURITY: The activation path is admin-only. Public self-registration
         // must never be able to activate an arbitrary existing merchant_id,
         // which would bypass admin approval controls. Use /functions/activateMerchant
         // for activations.
         if (merchant_id) {
-            let currentUser = null;
-            try {
-                currentUser = await base44.auth.me();
-            } catch (e) {
-                currentUser = null;
-            }
-            if (!currentUser || currentUser.role !== 'admin') {
+            if (!isAdmin) {
                 return Response.json({
                     success: false,
                     error: 'Forbidden: activation requires administrator access'
@@ -131,22 +136,29 @@ Deno.serve(async (req) => {
             });
         }
 
-        // Invite the merchant owner via base44 platform invitation
-        try {
-            await base44.asServiceRole.integrations.Core.SendEmail({
-                to: owner_email.toLowerCase().trim(),
-                subject: 'Welcome to openTILL — Application Received',
-                body: `
-                    <h2>Welcome to openTILL, ${escapeHtml(owner_name)}!</h2>
-                    <p>Your merchant application for <strong>${escapeHtml(business_name)}</strong> has been received successfully.</p>
-                    <p>Our team will review your application and activate your account within 24 hours. You will receive a follow-up email once your account is active.</p>
-                    <p>Once activated, you can log in at: <a href="https://chainlinkpos.isolex.io">chainlinkpos.isolex.io</a></p>
-                    <p>Thank you for choosing openTILL!</p>
-                `
-            });
-            console.log('Welcome email sent to merchant owner:', owner_email);
-        } catch (emailError) {
-            console.error('Failed to send welcome email:', emailError);
+        // SECURITY: Only send the confirmation email when an authenticated admin
+        // is creating the merchant. The public self-registration path is
+        // unauthenticated, so sending email to a caller-supplied, unverified
+        // address would let anonymous attackers abuse the platform as an open
+        // mail relay. Public registrants are notified later, once an admin
+        // reviews and activates their account.
+        if (isAdmin) {
+            try {
+                await base44.asServiceRole.integrations.Core.SendEmail({
+                    to: owner_email.toLowerCase().trim(),
+                    subject: 'Welcome to openTILL — Application Received',
+                    body: `
+                        <h2>Welcome to openTILL, ${escapeHtml(owner_name)}!</h2>
+                        <p>Your merchant application for <strong>${escapeHtml(business_name)}</strong> has been received successfully.</p>
+                        <p>Our team will review your application and activate your account within 24 hours. You will receive a follow-up email once your account is active.</p>
+                        <p>Once activated, you can log in at: <a href="https://chainlinkpos.isolex.io">chainlinkpos.isolex.io</a></p>
+                        <p>Thank you for choosing openTILL!</p>
+                    `
+                });
+                console.log('Welcome email sent to merchant owner:', owner_email);
+            } catch (emailError) {
+                console.error('Failed to send welcome email:', emailError);
+            }
         }
 
         return Response.json({
