@@ -14,6 +14,7 @@ import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID } from '@solana/spl-token';
 import { getPrice, WSOL } from '@/lib/smpfPrices';
 import { getWallet, listWallets, clearAllWallets } from '@/lib/smpfWalletStore';
 import { getNetworkRpcList, withTimeout } from '@/lib/smpfRpc';
+import { getTokenMeta } from '@/lib/smpfTokenMeta';
 
 // Import your SMPF sub-components
 import PrivateKeyExport from '@/components/smpf/PrivateKeyExport';
@@ -35,6 +36,7 @@ export default function SMPFWallet() {
   const [tokenRefresh, setTokenRefresh] = useState(0);
   const [ducBalance, setDucBalance] = useState(null);
   const [ducLoading, setDucLoading] = useState(false);
+  const [ducMeta, setDucMeta] = useState(null);
 
   // Receive Modal States
   const [isReceiveOpen, setIsReceiveOpen] = useState(false);
@@ -133,6 +135,13 @@ export default function SMPFWallet() {
     setDucBalance(bestAmount >= 0 ? bestAmount : 0);
     setDucLoading(false);
   }, [solAddress, settings?.verified_duc_mint, settings?.default_network, settings?.rpc_mainnet, settings?.rpc_testnet, settings?.rpc_devnet]);
+
+  // Fetch $DUC token metadata (image/name) for the overview card.
+  useEffect(() => {
+    const m = settings?.verified_duc_mint;
+    if (!m) return;
+    getTokenMeta(m, settings).then(setDucMeta).catch(() => {});
+  }, [settings?.verified_duc_mint, settings?.default_network]);
 
   // Initial fetch + re-fetch whenever the address / RPC config changes
   useEffect(() => {
@@ -409,14 +418,23 @@ export default function SMPFWallet() {
                       <RefreshCw className={ducLoading ? 'w-3.5 h-3.5 animate-spin' : 'w-3.5 h-3.5'} />
                     </Button>
                   </div>
-                  <div className="text-3xl font-black font-mono tracking-tight text-white flex items-baseline gap-2">
-                    {ducLoading && ducBalance === null ? (
-                      <Loader2 className="w-6 h-6 animate-spin text-indigo-400" />
-                    ) : ducBalance !== null ? (
-                      ducBalance.toFixed(2)
+                  <div className="flex items-center gap-3">
+                    {ducMeta?.image ? (
+                      <img src={ducMeta.image} alt="$DUC" className="w-10 h-10 rounded-full object-cover border border-indigo-400/40" onError={(e) => { e.target.style.display = 'none'; }} />
                     ) : (
-                      '—'
-                    )} <span className="text-xs font-normal text-white/40">$DUC</span>
+                      <div className="w-10 h-10 rounded-full bg-indigo-500/20 border border-indigo-400/40 flex items-center justify-center">
+                        <Coins className="w-5 h-5 text-indigo-300" />
+                      </div>
+                    )}
+                    <div className="text-3xl font-black font-mono tracking-tight text-white flex items-baseline gap-2">
+                      {ducLoading && ducBalance === null ? (
+                        <Loader2 className="w-6 h-6 animate-spin text-indigo-400" />
+                      ) : ducBalance !== null ? (
+                        ducBalance.toFixed(2)
+                      ) : (
+                        '—'
+                      )} <span className="text-xs font-normal text-white/40">$DUC</span>
+                    </div>
                   </div>
                   {!settings?.verified_duc_mint && (
                     <p className="text-xs text-amber-400 flex items-center gap-1.5 mt-1">
@@ -584,7 +602,14 @@ export default function SMPFWallet() {
                 address={solAddress}
                 rpc={getNetworkRpcList(settings)[0] || 'https://api.mainnet-beta.solana.com'}
                 network={settings?.default_network || 'mainnet'}
-                onSent={() => { refreshBalance(); refreshDuc(); setTokenRefresh((n) => n + 1); }}
+                onSent={() => {
+                  refreshBalance();
+                  refreshDuc();
+                  setTokenRefresh((n) => n + 1);
+                  // RPCs can lag a few seconds behind confirmation — re-fetch so the
+                  // balance reflects the just-confirmed transfer.
+                  setTimeout(() => { refreshBalance(); refreshDuc(); setTokenRefresh((n) => n + 1); }, 3000);
+                }}
               />
             ) : (
               <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg text-amber-300 text-xs space-y-3 text-center">

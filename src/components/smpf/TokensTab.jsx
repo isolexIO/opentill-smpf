@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Coins, Plus, Loader2, Eye, EyeOff, AlertTriangle, RefreshCw } from 'lucide-react';
 import { WSOL, getPrice } from '@/lib/smpfPrices';
 import { getNetworkRpcList, withTimeout } from '@/lib/smpfRpc';
+import { getTokenMeta } from '@/lib/smpfTokenMeta';
 
 const HIDDEN_KEY = 'smpf_hidden_tokens';
 const CUSTOM_KEY = 'smpf_custom_tokens';
@@ -27,6 +28,7 @@ export default function TokensTab({ address, rpc, settings, refreshTrigger, ducB
   const [addInfo, setAddInfo] = useState(null);
   const [error, setError] = useState('');
   const [prices, setPrices] = useState({});
+  const [meta, setMeta] = useState({});
   const ducMint = settings?.verified_duc_mint;
   // Use the admin-selected Solana cluster (mainnet / testnet / devnet).
   const rpcs = getNetworkRpcList(settings);
@@ -98,6 +100,22 @@ export default function TokensTab({ address, rpc, settings, refreshTrigger, ducB
       } catch {}
     }));
     setPrices(priceMap);
+    // Fetch token metadata (images, names) best-effort.
+    const metaMap = {};
+    await Promise.all(owned.map(async (t) => {
+      try {
+        const m = await getTokenMeta(t.mint, settings);
+        if (m) metaMap[t.mint] = m;
+      } catch {}
+    }));
+    setMeta(metaMap);
+    // Always fetch $DUC metadata for the dedicated card (even if not held).
+    if (ducMint && !metaMap[ducMint]) {
+      try {
+        const dm = await getTokenMeta(ducMint, settings);
+        if (dm) setMeta((prev) => ({ ...prev, [ducMint]: dm }));
+      } catch {}
+    }
   }
 
   async function addMint() {
@@ -149,12 +167,16 @@ export default function TokensTab({ address, rpc, settings, refreshTrigger, ducB
           <CardContent className="p-4 space-y-1">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-indigo-500/20 border border-indigo-400/40 flex items-center justify-center">
-                  <Coins className="w-4 h-4 text-indigo-300" />
-                </div>
+                {meta[ducMint]?.image ? (
+                  <img src={meta[ducMint].image} alt="$DUC" className="w-8 h-8 rounded-full object-cover border border-indigo-400/40" onError={(e) => { e.target.style.display = 'none'; }} />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-indigo-500/20 border border-indigo-400/40 flex items-center justify-center">
+                    <Coins className="w-4 h-4 text-indigo-300" />
+                  </div>
+                )}
                 <div>
                   <p className="text-sm font-bold text-white">$DUC</p>
-                  <p className="text-[10px] text-white/50">Digital Utility Credit</p>
+                  <p className="text-[10px] text-white/50">{meta[ducMint]?.name || 'Digital Utility Credit'}</p>
                 </div>
               </div>
               <div className="text-right">
@@ -184,25 +206,44 @@ export default function TokensTab({ address, rpc, settings, refreshTrigger, ducB
             </div>
           </div>
 
-          {visibleTokens.map((t) => (
-            <div key={t.mint} className="flex items-center justify-between py-2 border-b border-white/10">
-              <div className="min-w-0 flex-1">
-                <p className="font-mono text-xs break-all text-white">{t.mint}</p>
-                <p className="text-[10px] text-white/40">{t.program === TOKEN_2022_PROGRAM_ID.toBase58() ? 'Token-2022' : 'SPL Token'}{ducMint === t.mint ? ' · $DUC' : ''}</p>
-              </div>
-              <div className="flex items-center gap-2 text-right">
-                <div>
-                  <span className="text-sm text-white">{t.amount.toFixed(t.decimals > 2 ? 4 : 0)}</span>
-                  {prices[t.mint] != null && (
-                    <p className="text-[10px] text-white/40">≈ ${(t.amount * prices[t.mint]).toFixed(2)}</p>
+          {visibleTokens.map((t) => {
+            const m = meta[t.mint];
+            const isDuc = ducMint === t.mint;
+            const label = isDuc ? '$DUC' : (m?.symbol || (m?.name ? m.name.slice(0, 12) : null));
+            return (
+              <div key={t.mint} className="flex items-center justify-between py-2 border-b border-white/10">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  {m?.image ? (
+                    <img src={m.image} alt={label || t.mint} className="w-8 h-8 rounded-full object-cover shrink-0 bg-white/10" onError={(e) => { e.target.style.display = 'none'; }} />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-white/10 border border-white/20 flex items-center justify-center shrink-0">
+                      <Coins className="w-4 h-4 text-white/50" />
+                    </div>
                   )}
+                  <div className="min-w-0">
+                    {label ? (
+                      <p className="text-sm font-semibold text-white truncate">{label}</p>
+                    ) : (
+                      <p className="font-mono text-xs break-all text-white">{t.mint}</p>
+                    )}
+                    <p className="text-[10px] text-white/40 truncate">{t.program === TOKEN_2022_PROGRAM_ID.toBase58() ? 'Token-2022' : 'SPL Token'}{isDuc ? ' · $DUC' : ''}{m?.name && !isDuc ? ` · ${m.name}` : ''}</p>
+                    <p className="font-mono text-[9px] text-white/30 break-all truncate">{t.mint}</p>
+                  </div>
                 </div>
-                <button onClick={() => toggleHide(t.mint)} className="text-white/40 hover:text-white/70">
-                  {hidden.has(t.mint) ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
+                <div className="flex items-center gap-2 text-right">
+                  <div>
+                    <span className="text-sm text-white">{t.amount.toFixed(t.decimals > 2 ? 4 : 0)}</span>
+                    {prices[t.mint] != null && (
+                      <p className="text-[10px] text-white/40">≈ ${(t.amount * prices[t.mint]).toFixed(2)}</p>
+                    )}
+                  </div>
+                  <button onClick={() => toggleHide(t.mint)} className="text-white/40 hover:text-white/70">
+                    {hidden.has(t.mint) ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
 
           {customExtras.map((m) => (
             <div key={m} className="flex items-center justify-between py-2 border-b border-white/10 opacity-60">
