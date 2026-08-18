@@ -31,6 +31,7 @@ export default function SMPFWallet() {
   const [solUsd, setSolUsd] = useState(null);
   const [solError, setSolError] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
+  const [tokenRefresh, setTokenRefresh] = useState(0);
 
   // Receive Modal States
   const [isReceiveOpen, setIsReceiveOpen] = useState(false);
@@ -385,7 +386,7 @@ export default function SMPFWallet() {
 
           <TabsContent value="tokens">
             {solAddress ? (
-              <TokensTab address={solAddress} rpc={settings?.default_network === 'devnet' ? settings?.rpc_devnet : settings?.rpc_mainnet} settings={settings} />
+              <TokensTab address={solAddress} rpc={settings?.default_network === 'devnet' ? settings?.rpc_devnet : settings?.rpc_mainnet} settings={settings} refreshTrigger={tokenRefresh} />
             ) : (
               <Card className="bg-slate-900 border-white/10 text-white">
                 <CardContent className="p-6 text-center text-xs text-white/60">
@@ -513,6 +514,7 @@ export default function SMPFWallet() {
                 address={solAddress}
                 rpc={getNetworkRpcList(settings)[0] || 'https://api.mainnet-beta.solana.com'}
                 network={settings?.default_network || 'mainnet'}
+                onSent={() => { refreshBalance(); setTokenRefresh((n) => n + 1); }}
               />
             ) : (
               <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg text-amber-300 text-xs space-y-3 text-center">

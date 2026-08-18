@@ -14,7 +14,7 @@ const CUSTOM_KEY = 'smpf_custom_tokens';
 function loadSet(k) { try { return new Set(JSON.parse(localStorage.getItem(k) || '[]')); } catch { return new Set(); } }
 function saveSet(k, s) { localStorage.setItem(k, JSON.stringify([...s])); }
 
-export default function TokensTab({ address, rpc, settings }) {
+export default function TokensTab({ address, rpc, settings, refreshTrigger }) {
   const [sol, setSol] = useState(null);
   const [solLoading, setSolLoading] = useState(false);
   const [solUsd, setSolUsd] = useState(null);
@@ -33,6 +33,7 @@ export default function TokensTab({ address, rpc, settings }) {
   const endpoint = rpcs[0];
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [endpoint]);
+  useEffect(() => { if (refreshTrigger) load(); /* eslint-disable-next-line */ }, [refreshTrigger]);
 
   async function load() {
     setError('');

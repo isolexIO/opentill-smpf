@@ -25,7 +25,7 @@ function friendlyError(err) {
 
 const ATA_RENT = 2039280;
 
-export default function SendScreen({ address, rpc, network }) {
+export default function SendScreen({ address, rpc, network, onSent }) {
   const { toast } = useToast();
   const [assets, setAssets] = useState([]);
   const [selAsset, setSelAsset] = useState('SOL');
@@ -173,6 +173,7 @@ export default function SendScreen({ address, rpc, network }) {
       setPreview(null);
       setPassword('');
       await loadAssets();
+      if (typeof onSent === 'function') onSent();
       toast({ title: 'Sent', description: 'Transaction confirmed.' });
     } catch (e) {
       toast({ title: 'Send failed', description: friendlyError(e), variant: 'destructive' });
