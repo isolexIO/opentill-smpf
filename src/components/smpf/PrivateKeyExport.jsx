@@ -96,6 +96,9 @@ export default function PrivateKeyExport({ wallet, session, onClose }) {
           <CardDescription className="text-white/60 text-xs">
             Anyone with this key has full control of your wallet. Never share it. Exported as base58 — compatible with Phantom, Solflare, and other Solana wallets.
           </CardDescription>
+          <div className="mt-2 p-2.5 bg-blue-500/10 border border-blue-500/20 rounded-lg text-[11px] text-blue-200/90">
+            Custom vanity addresses (e.g. …SMPF) are <strong>not</strong> recoverable from a 12-word seed phrase. To restore this wallet, use the encrypted backup file you downloaded during onboarding.
+          </div>
         </CardHeader>
 
         <CardContent className="space-y-4">
