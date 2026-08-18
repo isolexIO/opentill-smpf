@@ -13,7 +13,7 @@ import { Connection, PublicKey } from '@solana/web3.js';
 import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID } from '@solana/spl-token';
 import { getPrice, WSOL } from '@/lib/smpfPrices';
 import { getWallet, listWallets, clearAllWallets } from '@/lib/smpfWalletStore';
-import { getNetworkRpcList } from '@/lib/smpfRpc';
+import { getNetworkRpcList, withTimeout } from '@/lib/smpfRpc';
 
 // Import your SMPF sub-components
 import PrivateKeyExport from '@/components/smpf/PrivateKeyExport';
@@ -113,9 +113,13 @@ export default function SMPFWallet() {
         const conn = new Connection(rpc, 'confirmed');
         for (const programId of [TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID]) {
           try {
-            const res = await conn.getParsedTokenAccountsByOwner(
-              new PublicKey(solAddress),
-              { mint: new PublicKey(ducMint) },
+            const res = await withTimeout(
+              conn.getParsedTokenAccountsByOwner(
+                new PublicKey(solAddress),
+                { mint: new PublicKey(ducMint) },
+              ),
+              8000,
+              'duc-balance',
             );
             for (const acc of res.value) {
               const info = acc.account.data?.parsed?.info;
@@ -444,7 +448,15 @@ export default function SMPFWallet() {
 
           <TabsContent value="tokens">
             {solAddress ? (
-              <TokensTab address={solAddress} rpc={settings?.default_network === 'devnet' ? settings?.rpc_devnet : settings?.rpc_mainnet} settings={settings} refreshTrigger={tokenRefresh} />
+              <TokensTab
+                address={solAddress}
+                rpc={settings?.default_network === 'devnet' ? settings?.rpc_devnet : settings?.rpc_mainnet}
+                settings={settings}
+                refreshTrigger={tokenRefresh}
+                ducBalance={ducBalance}
+                ducLoading={ducLoading}
+                onRefreshDuc={refreshDuc}
+              />
             ) : (
               <Card className="bg-slate-900 border-white/10 text-white">
                 <CardContent className="p-6 text-center text-xs text-white/60">

@@ -41,6 +41,14 @@ export function getNetworkRpcList(settings) {
   ].filter(Boolean)));
 }
 
+// Race a promise against a timeout so a hanging RPC never spins forever.
+export function withTimeout(promise, ms = 8000, label = 'rpc') {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(`${label} timeout`)), ms)),
+  ]);
+}
+
 // Solana Explorer suffix for the selected network.
 export function getExplorerSuffix(settings) {
   const net = getActiveNetwork(settings);

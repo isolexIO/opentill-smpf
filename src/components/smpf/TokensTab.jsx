@@ -5,16 +5,16 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Coins, Plus, Loader2, Eye, EyeOff, AlertTriangle } from 'lucide-react';
+import { Coins, Plus, Loader2, Eye, EyeOff, AlertTriangle, RefreshCw } from 'lucide-react';
 import { WSOL, getPrice } from '@/lib/smpfPrices';
-import { getNetworkRpcList } from '@/lib/smpfRpc';
+import { getNetworkRpcList, withTimeout } from '@/lib/smpfRpc';
 
 const HIDDEN_KEY = 'smpf_hidden_tokens';
 const CUSTOM_KEY = 'smpf_custom_tokens';
 function loadSet(k) { try { return new Set(JSON.parse(localStorage.getItem(k) || '[]')); } catch { return new Set(); } }
 function saveSet(k, s) { localStorage.setItem(k, JSON.stringify([...s])); }
 
-export default function TokensTab({ address, rpc, settings, refreshTrigger }) {
+export default function TokensTab({ address, rpc, settings, refreshTrigger, ducBalance, ducLoading, onRefreshDuc }) {
   const [sol, setSol] = useState(null);
   const [solLoading, setSolLoading] = useState(false);
   const [solUsd, setSolUsd] = useState(null);
@@ -70,7 +70,11 @@ export default function TokensTab({ address, rpc, settings, refreshTrigger }) {
         const conn = new Connection(rpc, 'confirmed');
         for (const programId of [TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID]) {
           try {
-            const res = await conn.getParsedTokenAccountsByOwner(new PublicKey(address), { programId });
+            const res = await withTimeout(
+              conn.getParsedTokenAccountsByOwner(new PublicKey(address), { programId }),
+              8000,
+              'token-accounts',
+            );
             for (const acc of res.value) {
               const info = acc.account.data?.parsed?.info;
               if (!info) continue;
@@ -133,7 +137,39 @@ export default function TokensTab({ address, rpc, settings, refreshTrigger }) {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-black">Tokens</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-black">Tokens</h1>
+        <Button variant="ghost" size="icon" className="h-7 w-7 text-white/50 hover:text-white" onClick={onRefreshDuc} title="Refresh $DUC">
+          <RefreshCw className={ducLoading ? 'w-3.5 h-3.5 animate-spin' : 'w-3.5 h-3.5'} />
+        </Button>
+      </div>
+
+      {ducMint && (
+        <Card className="bg-gradient-to-br from-indigo-600/20 to-purple-600/10 border-indigo-500/30">
+          <CardContent className="p-4 space-y-1">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-indigo-500/20 border border-indigo-400/40 flex items-center justify-center">
+                  <Coins className="w-4 h-4 text-indigo-300" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-white">$DUC</p>
+                  <p className="text-[10px] text-white/50">Digital Utility Credit</p>
+                </div>
+              </div>
+              <div className="text-right">
+                {ducLoading && ducBalance === null ? (
+                  <Loader2 className="w-5 h-5 animate-spin text-indigo-300" />
+                ) : (
+                  <p className="text-xl font-black text-white font-mono">{ducBalance !== null ? Number(ducBalance).toFixed(2) : '—'}</p>
+                )}
+              </div>
+            </div>
+            <p className="font-mono text-[10px] text-white/40 break-all pt-1">{ducMint}</p>
+          </CardContent>
+        </Card>
+      )}
+
       {ducMint && !tokens.some((t) => t.mint === ducMint) && (
         <p className="text-sm text-yellow-200/80">$DUC mint configured but you hold no $DUC yet.</p>
       )}
