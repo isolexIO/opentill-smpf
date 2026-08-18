@@ -26,7 +26,11 @@ export function utf8ToB64(str) {
   return bufToB64(enc.encode(str));
 }
 
-const ITERATIONS = 250000;
+// OWASP 2023 recommends ≥ 600,000 iterations for PBKDF2-SHA256 to resist
+// offline brute-force attacks on encrypted backups. Backward compatible:
+// decryptWallet reads the iteration count stored in each backup blob, so
+// older backups encrypted with fewer iterations still decrypt correctly.
+const ITERATIONS = 600000;
 
 async function deriveKey(password, salt, iterations = ITERATIONS) {
   const baseKey = await crypto.subtle.importKey(
@@ -83,8 +87,8 @@ export async function decryptWallet(backup, password) {
 export async function verifyBackupFile(fileText, password) {
   const backup = JSON.parse(fileText);
   const result = await decryptWallet(backup, password);
-  if (!result.address || !result.address.endsWith('SMPF')) {
-    throw new Error('Backup does not contain a valid SMPF address');
+  if (!result.address || result.address.length < 32) {
+    throw new Error('Backup does not contain a valid Solana address');
   }
   return result;
 }

@@ -63,7 +63,11 @@ export default function GenerationScreen({ onFound, onBack, currentUserEmail = '
           createdAt: new Date().toISOString(),
         };
 
-        localStorage.setItem(`smpf_sk_${currentUserEmail}`, JSON.stringify(payload));
+        // SECURITY: Only store the public address in localStorage. The secret key
+        // is passed exclusively via the onFound callback to the parent, which
+        // encrypts it (AES-256-GCM) and persists only the encrypted blob in
+        // IndexedDB. Never store plaintext/b64 secret keys in localStorage —
+        // it is readable by any script on the page (XSS, extensions, etc.).
         localStorage.setItem(`smpf_pubkey_${currentUserEmail}`, msg.address);
 
         setGeneratedKey({ address: msg.address, privateKey: secretKeyBs58 });

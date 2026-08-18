@@ -39,39 +39,26 @@ export default function PrivateKeyExport({ wallet, session, onClose }) {
 
     setDecrypting(true);
     try {
-      // 1. Fetch wallet entry from IndexedDB using address
+      // 1. Fetch the ENCRYPTED wallet entry from IndexedDB. Plaintext keys are
+      //    never stored in localStorage — only the encrypted backup blob is
+      //    persisted, and it requires the user's password to decrypt.
       const record = await getWallet(wallet.address);
-      let encryptedData = record?.backup;
+      const encryptedData = record?.backup;
 
-      // 2. Decrypt secret key and encode as base58 (Phantom / Solflare compatible)
-      let candidateKey = null;
-      if (encryptedData) {
-        const decrypted = await decryptWallet(encryptedData, password);
-        candidateKey = bs58.encode(decrypted.secretKey);
-      } else {
-        // 3. Fallback: scan local keypair payloads (smpf_sk_<email>) for this address.
-        //    These store the base58 secret key directly from generation.
-        for (let i = 0; i < localStorage.length; i++) {
-          const k = localStorage.key(i);
-          if (k && k.startsWith('smpf_sk_')) {
-            try {
-              const p = JSON.parse(localStorage.getItem(k));
-              if (p && p.address === wallet.address && p.secretKey) { candidateKey = p.secretKey; break; }
-            } catch { /* skip malformed */ }
-          }
-        }
-      }
-
-      if (!candidateKey) {
+      if (!encryptedData) {
         toast({
           title: 'Export failed',
-          description: 'Wallet backup not found in local storage. Please complete onboarding again.',
+          description: 'Encrypted wallet backup not found. Please complete onboarding again to create a new wallet.',
           variant: 'destructive',
         });
         return;
       }
 
-      // 4. Validate the key actually derives this wallet's address. Keys created
+      // 2. Decrypt the secret key and encode as base58 (Phantom / Solflare compatible)
+      const decrypted = await decryptWallet(encryptedData, password);
+      const candidateKey = bs58.encode(decrypted.secretKey);
+
+      // 3. Validate the key actually derives this wallet's address. Keys created
       //    by the old broken generator have a mismatched public key and will NOT
       //    import into Solflare/Phantom — those wallets must be regenerated.
       if (!isValidSecretKeyForAddress(candidateKey, wallet.address)) {
@@ -85,12 +72,6 @@ export default function PrivateKeyExport({ wallet, session, onClose }) {
 
       setExportedKey(candidateKey);
       toast({ title: 'Key Exported', description: 'Base58 private key ready for Phantom / Solflare import.' });
-
-      toast({
-        title: 'Export failed',
-        description: 'Wallet backup not found in local storage. Please complete onboarding again.',
-        variant: 'destructive',
-      });
     } catch (err) {
       toast({
         title: 'Decryption failed',
