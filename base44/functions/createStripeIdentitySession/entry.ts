@@ -4,6 +4,13 @@ import Stripe from 'npm:stripe@17.4.0';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    // Require an authenticated caller to prevent anonymous resource exhaustion
+    // (each call creates a paid Stripe Identity VerificationSession).
+    const user = await base44.auth.me();
+    if (!user) {
+      return Response.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
     const body = await req.json();
     const { business_name, owner_email, owner_name, return_url, entity_type, entity_id } = body;
 
@@ -40,6 +47,8 @@ Deno.serve(async (req) => {
         source: 'opentill_merchant_onboarding',
         entity_type: entity_type || '',
         entity_id: entity_id || '',
+        requested_by_user_id: user.id,
+        requested_by_email: user.email,
       },
       provided_details: {
         email: owner_email,
