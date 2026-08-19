@@ -9,6 +9,7 @@ import { Loader2, CheckCircle, AlertCircle, Trash2 } from 'lucide-react';
 
 export default function DemoMenuManager() {
   const [email, setEmail] = useState('');
+  const [menuType, setMenuType] = useState('restaurant');
   const [loading, setLoading] = useState(false);
   const [clearing, setClearing] = useState(false);
   const [result, setResult] = useState(null);
@@ -60,7 +61,7 @@ export default function DemoMenuManager() {
 
     try {
       console.log('DemoMenuManager: Setting up demo menu for:', email);
-      const response = await base44.functions.invoke('setupDemoMenu', { email: email.trim() });
+      const response = await base44.functions.invoke('setupDemoMenu', { email: email.trim(), menu_type: menuType });
 
       console.log('DemoMenuManager: Setup response:', response.data);
 
@@ -95,6 +96,42 @@ export default function DemoMenuManager() {
           />
         </div>
 
+        <div>
+          <Label>Menu Type</Label>
+          <div className="grid grid-cols-2 gap-2 mt-1">
+            <button
+              type="button"
+              onClick={() => setMenuType('restaurant')}
+              className={`flex items-center gap-2 px-4 py-3 rounded-lg border-2 transition-all ${
+                menuType === 'restaurant'
+                  ? 'border-cyan-500 bg-cyan-50 text-cyan-700 font-semibold'
+                  : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
+              }`}
+            >
+              <span className="text-xl">🍽️</span>
+              <div className="text-left">
+                <div className="text-sm font-medium">Restaurant</div>
+                <div className="text-xs opacity-70">Appetizers, entrees, etc.</div>
+              </div>
+            </button>
+            <button
+              type="button"
+              onClick={() => setMenuType('retail')}
+              className={`flex items-center gap-2 px-4 py-3 rounded-lg border-2 transition-all ${
+                menuType === 'retail'
+                  ? 'border-green-500 bg-green-50 text-green-700 font-semibold'
+                  : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
+              }`}
+            >
+              <span className="text-xl">🛒</span>
+              <div className="text-left">
+                <div className="text-sm font-medium">Retail</div>
+                <div className="text-xs opacity-70">Groceries, household, etc.</div>
+              </div>
+            </button>
+          </div>
+        </div>
+
         <div className="flex gap-2">
           <Button
             onClick={handleClearData}
@@ -126,7 +163,7 @@ export default function DemoMenuManager() {
                 Setting up...
               </>
             ) : (
-              'Setup Demo Menu'
+              `Setup ${menuType === 'retail' ? 'Retail' : 'Restaurant'} Demo Menu`
             )}
           </Button>
         </div>
@@ -157,6 +194,7 @@ export default function DemoMenuManager() {
           <p className="font-medium mb-2">Instructions:</p>
           <ol className="list-decimal list-inside space-y-1">
             <li>Enter the merchant's email address</li>
+            <li>Choose Restaurant or Retail menu type</li>
             <li>Click "Clear All Data" to remove any existing demo data (including duplicates)</li>
             <li>Click "Setup Demo Menu" to create fresh demo data with 10 departments</li>
             <li>Refresh the POS page to see the changes</li>

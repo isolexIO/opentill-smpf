@@ -14,7 +14,7 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { email } = body;
+    const { email, menu_type } = body;
 
     if (!email) {
       return Response.json({
@@ -22,6 +22,8 @@ Deno.serve(async (req) => {
         error: 'Email is required'
       }, { status: 400 });
     }
+
+    const menuType = (menu_type === 'retail') ? 'retail' : 'restaurant';
 
     console.log('setupDemoMenu: Looking up merchant with email:', email);
 
@@ -65,35 +67,83 @@ Deno.serve(async (req) => {
       console.log('setupDemoMenu: Cleared old demo data');
     }
 
-    // Define 10 departments
-    const departments = [
-      { name: 'Appetizers', display_order: 1, color: '#f59e0b', icon: '🥟' },
-      { name: 'Entrees', display_order: 2, color: '#ef4444', icon: '🍔' },
-      { name: 'Sides', display_order: 3, color: '#10b981', icon: '🍟' },
-      { name: 'Beverages', display_order: 4, color: '#3b82f6', icon: '🥤' },
-      { name: 'Desserts', display_order: 5, color: '#ec4899', icon: '🍰' },
-      { name: 'Alcohol', display_order: 6, color: '#8b5cf6', icon: '🍺' },
-      { name: 'Breakfast', display_order: 7, color: '#fbbf24', icon: '🍳' },
-      { name: 'Salads', display_order: 8, color: '#34d399', icon: '🥗' },
-      { name: 'Pizza', display_order: 9, color: '#f87171', icon: '🍕' },
-      { name: 'Seafood', display_order: 10, color: '#60a5fa', icon: '🦞' }
-    ];
+    // Define departments and products based on menu type
+    let departments, products;
 
-    console.log('setupDemoMenu: Creating departments...');
-    const createdDepartments = [];
-    for (const dept of departments) {
-      const created = await base44.asServiceRole.entities.Department.create({
-        merchant_id: merchant.id,
-        dealer_id: merchant.dealer_id || null,
-        ...dept,
-        is_active: true
-      });
-      createdDepartments.push(created);
-      console.log('setupDemoMenu: Created department:', created.name);
-    }
+    if (menuType === 'retail') {
+      departments = [
+        { name: 'Groceries', display_order: 1, color: '#10b981', icon: '🛒' },
+        { name: 'Produce', display_order: 2, color: '#34d399', icon: '🥦' },
+        { name: 'Dairy & Eggs', display_order: 3, color: '#60a5fa', icon: '🥛' },
+        { name: 'Meat & Seafood', display_order: 4, color: '#ef4444', icon: '🥩' },
+        { name: 'Bakery', display_order: 5, color: '#fbbf24', icon: '🍞' },
+        { name: 'Beverages', display_order: 6, color: '#3b82f6', icon: '🥤' },
+        { name: 'Snacks', display_order: 7, color: '#f59e0b', icon: '🍫' },
+        { name: 'Household', display_order: 8, color: '#8b5cf6', icon: '🧴' },
+        { name: 'Health & Beauty', display_order: 9, color: '#ec4899', icon: '💄' },
+        { name: 'Frozen', display_order: 10, color: '#06b6d4', icon: '🧊' }
+      ];
 
-    // Define products with departments (expanded to include new departments)
-    const products = [
+      products = [
+        { name: 'White Rice 5lb', department: 'Groceries', price: 6.99, description: 'Long grain white rice', image_url: 'https://images.unsplash.com/photo-1586201375761-838650ddc671?w=400', stock_quantity: 200, sku: 'GRO001', ebt_eligible: true },
+        { name: 'Pasta 16oz', department: 'Groceries', price: 1.99, description: 'Spaghetti pasta', image_url: 'https://images.unsplash.com/photo-1551462147-3758338f5a6b?w=400', stock_quantity: 200, sku: 'GRO002', ebt_eligible: true },
+        { name: 'Peanut Butter 16oz', department: 'Groceries', price: 4.49, description: 'Creamy peanut butter', image_url: 'https://images.unsplash.com/photo-1599842057874-37393e9342df?w=400', stock_quantity: 200, sku: 'GRO003', ebt_eligible: true },
+        { name: 'Cereal Box', department: 'Groceries', price: 3.99, description: 'Assorted cereal', image_url: 'https://images.unsplash.com/photo-1571614515852-718b5a1f5c29?w=400', stock_quantity: 200, sku: 'GRO004', ebt_eligible: true },
+        { name: 'Canned Beans', department: 'Groceries', price: 1.49, description: '15oz canned beans', image_url: 'https://images.unsplash.com/photo-1606756790138-261d2f0b4d1b?w=400', stock_quantity: 200, sku: 'GRO005', ebt_eligible: true },
+        { name: 'Bananas (per lb)', department: 'Produce', price: 0.59, description: 'Fresh bananas', image_url: 'https://images.unsplash.com/photo-1571771879135-c5c0b5c1b5b1?w=400', stock_quantity: 300, sku: 'PRD001', ebt_eligible: true },
+        { name: 'Gala Apples (per lb)', department: 'Produce', price: 1.29, description: 'Fresh gala apples', image_url: 'https://images.unsplash.com/photo-1568702846914-473d72f4ab31?w=400', stock_quantity: 300, sku: 'PRD002', ebt_eligible: true },
+        { name: 'Roma Tomatoes (per lb)', department: 'Produce', price: 1.49, description: 'Fresh roma tomatoes', image_url: 'https://images.unsplash.com/photo-1592924357228-91d4b5f6be54?w=400', stock_quantity: 300, sku: 'PRD003', ebt_eligible: true },
+        { name: 'Bag of Potatoes 5lb', department: 'Produce', price: 3.99, description: 'Russet potatoes', image_url: 'https://images.unsplash.com/photo-1518977676601-b53cf82b2c0b?w=400', stock_quantity: 200, sku: 'PRD004', ebt_eligible: true },
+        { name: 'Avocado', department: 'Produce', price: 1.99, description: 'Hass avocado each', image_url: 'https://images.unsplash.com/photo-1601039641847-7b9d21b1c3d9?w=400', stock_quantity: 200, sku: 'PRD005', ebt_eligible: true },
+        { name: 'Whole Milk 1gal', department: 'Dairy & Eggs', price: 3.99, description: 'Whole milk gallon', image_url: 'https://images.unsplash.com/photo-1563636613-e914003e2c44?w=400', stock_quantity: 150, sku: 'DRY001', ebt_eligible: true },
+        { name: 'Large Eggs Dozen', department: 'Dairy & Eggs', price: 2.99, description: 'Grade A large eggs', image_url: 'https://images.unsplash.com/photo-1582722872796-9f1d1b1b5b1b?w=400', stock_quantity: 150, sku: 'DRY002', ebt_eligible: true },
+        { name: 'Cheddar Cheese 8oz', department: 'Dairy & Eggs', price: 4.49, description: 'Sharp cheddar block', image_url: 'https://images.unsplash.com/photo-1486297678162-eb2a99b0a7d2?w=400', stock_quantity: 150, sku: 'DRY003', ebt_eligible: true },
+        { name: 'Butter 1lb', department: 'Dairy & Eggs', price: 3.49, description: 'Salted butter', image_url: 'https://images.unsplash.com/photo-1582093237197-9b9b4e3e4b1b?w=400', stock_quantity: 150, sku: 'DRY004', ebt_eligible: true },
+        { name: 'Greek Yogurt 32oz', department: 'Dairy & Eggs', price: 4.99, description: 'Plain greek yogurt', image_url: 'https://images.unsplash.com/photo-1571212515416-fefc0d1b5b1b?w=400', stock_quantity: 150, sku: 'DRY005', ebt_eligible: true },
+        { name: 'Ground Beef 1lb', department: 'Meat & Seafood', price: 5.99, description: '80/20 ground beef', image_url: 'https://images.unsplash.com/photo-1603048297172-c9e2b0b3b1b1?w=400', stock_quantity: 100, sku: 'MEA001', ebt_eligible: true },
+        { name: 'Chicken Breast 1lb', department: 'Meat & Seafood', price: 4.99, description: 'Boneless skinless', image_url: 'https://images.unsplash.com/photo-1604503427653-2c4b5b1b1b1b?w=400', stock_quantity: 100, sku: 'MEA002', ebt_eligible: true },
+        { name: 'Bacon 1lb', department: 'Meat & Seafood', price: 6.49, description: 'Thick cut bacon', image_url: 'https://images.unsplash.com/photo-1528607929212-2636ec44253e?w=400', stock_quantity: 100, sku: 'MEA003', ebt_eligible: true },
+        { name: 'Salmon Fillet 1lb', department: 'Meat & Seafood', price: 9.99, description: 'Fresh atlantic salmon', image_url: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=400', stock_quantity: 80, sku: 'MEA004', ebt_eligible: true },
+        { name: 'White Bread Loaf', department: 'Bakery', price: 2.49, description: 'Sliced white bread', image_url: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400', stock_quantity: 100, sku: 'BAK001', ebt_eligible: true },
+        { name: 'Bagels 6pk', department: 'Bakery', price: 3.99, description: 'Assorted bagels', image_url: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=400', stock_quantity: 100, sku: 'BAK002', ebt_eligible: true },
+        { name: 'Croissants 4pk', department: 'Bakery', price: 4.99, description: 'Butter croissants', image_url: 'https://images.unsplash.com/photo-1551024601-bec11b5b5b1b?w=400', stock_quantity: 80, sku: 'BAK003', ebt_eligible: true },
+        { name: 'Donuts 6pk', department: 'Bakery', price: 3.49, description: 'Glazed donuts', image_url: 'https://images.unsplash.com/photo-1551024601-bec11b5b5b1b?w=400', stock_quantity: 80, sku: 'BAK004', ebt_eligible: true },
+        { name: 'Coca-Cola 12pk', department: 'Beverages', price: 6.99, description: '12 pack cans', image_url: 'https://images.unsplash.com/photo-1554866585-cd94860890b7?w=400', stock_quantity: 200, sku: 'BEV001', ebt_eligible: true },
+        { name: 'Orange Juice 64oz', department: 'Beverages', price: 4.49, description: '100% orange juice', image_url: 'https://images.unsplash.com/photo-1600271886745-f2e3e3b1b1b1?w=400', stock_quantity: 150, sku: 'BEV002', ebt_eligible: true },
+        { name: 'Bottled Water 24pk', department: 'Beverages', price: 4.99, description: 'Spring water', image_url: 'https://images.unsplash.com/photo-1560884664-1b1b1b1b1b1b?w=400', stock_quantity: 200, sku: 'BEV003', ebt_eligible: false },
+        { name: 'Energy Drink', department: 'Beverages', price: 2.99, description: '16oz energy drink', image_url: 'https://images.unsplash.com/photo-1631353143b1b1b1b1b1b1b?w=400', stock_quantity: 200, sku: 'BEV004', ebt_eligible: false },
+        { name: 'Potato Chips 8oz', department: 'Snacks', price: 3.49, description: 'Classic potato chips', image_url: 'https://images.unsplash.com/photo-1566478989037-e9f3b1b1b1b1?w=400', stock_quantity: 200, sku: 'SNK001', ebt_eligible: true },
+        { name: 'Chocolate Bar', department: 'Snacks', price: 1.99, description: 'Milk chocolate bar', image_url: 'https://images.unsplash.com/photo-1626094309820-1b1b1b1b1b1b?w=400', stock_quantity: 200, sku: 'SNK002', ebt_eligible: true },
+        { name: 'Cookies 12pk', department: 'Snacks', price: 3.99, description: 'Assorted cookies', image_url: 'https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=400', stock_quantity: 200, sku: 'SNK003', ebt_eligible: true },
+        { name: 'Popcorn 6oz', department: 'Snacks', price: 2.49, description: 'Microwave popcorn', image_url: 'https://images.unsplash.com/photo-1571997478779-2adcbbe9ab2f?w=400', stock_quantity: 200, sku: 'SNK004', ebt_eligible: true },
+        { name: 'Paper Towels 6pk', department: 'Household', price: 7.99, description: 'Bounty paper towels', image_url: 'https://images.unsplash.com/photo-1583947581928-8b1b1b1b1b1b?w=400', stock_quantity: 150, sku: 'HSH001', ebt_eligible: false },
+        { name: 'Dish Soap 16oz', department: 'Household', price: 3.49, description: 'Dawn dish soap', image_url: 'https://images.unsplash.com/photo-1600857536b1b1b1b1b1b1b?w=400', stock_quantity: 150, sku: 'HSH002', ebt_eligible: false },
+        { name: 'Laundry Detergent 50oz', department: 'Household', price: 11.99, description: 'Tide liquid detergent', image_url: 'https://images.unsplash.com/photo-1610557892470-5b1b1b1b1b1b?w=400', stock_quantity: 100, sku: 'HSH003', ebt_eligible: false },
+        { name: 'Trash Bags 30pk', department: 'Household', price: 8.99, description: '13 gallon trash bags', image_url: 'https://images.unsplash.com/photo-1604335399105-a0c1b1b1b1b1?w=400', stock_quantity: 100, sku: 'HSH004', ebt_eligible: false },
+        { name: 'Toothpaste 6oz', department: 'Health & Beauty', price: 3.99, description: 'Crest toothpaste', image_url: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400', stock_quantity: 150, sku: 'HNB001', ebt_eligible: false },
+        { name: 'Shampoo 16oz', department: 'Health & Beauty', price: 5.99, description: 'Daily shampoo', image_url: 'https://images.unsplash.com/photo-1556228453-9e2f1b1b1b1b?w=400', stock_quantity: 150, sku: 'HNB002', ebt_eligible: false },
+        { name: 'Hand Soap 8oz', department: 'Health & Beauty', price: 2.99, description: 'Antibacterial hand soap', image_url: 'https://images.unsplash.com/photo-1600857536b1b1b1b1b1b1b?w=400', stock_quantity: 150, sku: 'HNB003', ebt_eligible: false },
+        { name: 'Bandages 60pk', department: 'Health & Beauty', price: 4.49, description: 'Assorted bandages', image_url: 'https://images.unsplash.com/photo-1583947581928-8b1b1b1b1b1b?w=400', stock_quantity: 150, sku: 'HNB004', ebt_eligible: false },
+        { name: 'Frozen Pizza', department: 'Frozen', price: 5.99, description: 'Pepperoni frozen pizza', image_url: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400', stock_quantity: 100, sku: 'FRZ001', ebt_eligible: true },
+        { name: 'Ice Cream 1.5qt', department: 'Frozen', price: 4.99, description: 'Vanilla ice cream', image_url: 'https://images.unsplash.com/photo-1497034825429-c343d7c6ba68?w=400', stock_quantity: 100, sku: 'FRZ002', ebt_eligible: true },
+        { name: 'Frozen Vegetables 16oz', department: 'Frozen', price: 2.49, description: 'Mixed vegetables', image_url: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400', stock_quantity: 100, sku: 'FRZ003', ebt_eligible: true },
+        { name: 'Frozen Waffles 10pk', department: 'Frozen', price: 3.49, description: 'Frozen waffles', image_url: 'https://images.unsplash.com/photo-1608039829572-78524f79c4c7?w=400', stock_quantity: 100, sku: 'FRZ004', ebt_eligible: true }
+      ];
+    } else {
+      departments = [
+        { name: 'Appetizers', display_order: 1, color: '#f59e0b', icon: '🥟' },
+        { name: 'Entrees', display_order: 2, color: '#ef4444', icon: '🍔' },
+        { name: 'Sides', display_order: 3, color: '#10b981', icon: '🍟' },
+        { name: 'Beverages', display_order: 4, color: '#3b82f6', icon: '🥤' },
+        { name: 'Desserts', display_order: 5, color: '#ec4899', icon: '🍰' },
+        { name: 'Alcohol', display_order: 6, color: '#8b5cf6', icon: '🍺' },
+        { name: 'Breakfast', display_order: 7, color: '#fbbf24', icon: '🍳' },
+        { name: 'Salads', display_order: 8, color: '#34d399', icon: '🥗' },
+        { name: 'Pizza', display_order: 9, color: '#f87171', icon: '🍕' },
+        { name: 'Seafood', display_order: 10, color: '#60a5fa', icon: '🦞' }
+      ];
+
+      products = [
       // Appetizers
       { name: 'Buffalo Wings', department: 'Appetizers', price: 12.99, description: 'Spicy chicken wings with ranch', image_url: 'https://images.unsplash.com/photo-1608039829572-78524f79c4c7?w=400', stock_quantity: 100, sku: 'APP001', ebt_eligible: false },
       { name: 'Mozzarella Sticks', department: 'Appetizers', price: 8.99, description: 'Breaded mozzarella with marinara', image_url: 'https://images.unsplash.com/photo-1531749668029-2db88e4276c7?w=400', stock_quantity: 100, sku: 'APP002', ebt_eligible: false },
@@ -154,7 +204,21 @@ Deno.serve(async (req) => {
       { name: 'Shrimp Scampi', department: 'Seafood', price: 18.99, description: 'Garlic butter shrimp over pasta', image_url: 'https://images.unsplash.com/photo-1633504581786-316c8002b1b9?w=400', stock_quantity: 100, sku: 'SEA002', ebt_eligible: true },
       { name: 'Lobster Roll', department: 'Seafood', price: 24.99, description: 'Maine lobster on a toasted bun', image_url: 'https://images.unsplash.com/photo-1559847844-d1c5425fa15d?w=400', stock_quantity: 100, sku: 'SEA003', ebt_eligible: true },
       { name: 'Fish Tacos', department: 'Seafood', price: 13.99, description: 'Grilled fish with cabbage slaw', image_url: 'https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=400', stock_quantity: 100, sku: 'SEA004', ebt_eligible: true }
-    ];
+      ];
+    }
+
+    console.log('setupDemoMenu: Creating departments...');
+    const createdDepartments = [];
+    for (const dept of departments) {
+      const created = await base44.asServiceRole.entities.Department.create({
+        merchant_id: merchant.id,
+        dealer_id: merchant.dealer_id || null,
+        ...dept,
+        is_active: true
+      });
+      createdDepartments.push(created);
+      console.log('setupDemoMenu: Created department:', created.name);
+    }
 
     console.log('setupDemoMenu: Creating products...');
     let createdCount = 0;
@@ -173,10 +237,11 @@ Deno.serve(async (req) => {
 
     return Response.json({
       success: true,
-      message: 'Demo menu setup successfully with 10 departments',
+      message: `${menuType === 'retail' ? 'Retail' : 'Restaurant'} demo menu setup successfully with ${createdDepartments.length} departments`,
       stats: {
         departments: createdDepartments.length,
-        products: createdCount
+        products: createdCount,
+        menu_type: menuType
       }
     });
 
