@@ -51,20 +51,30 @@ export default function MerchantOnboarding() {
     const params = new URLSearchParams(window.location.search);
     const ref = params.get('ref') || params.get('referral') || params.get('code');
     const dId = params.get('dealer_id') || params.get('dealerid') || params.get('dealer');
+    const stripeStatus = params.get('stripe_identity');
+    const stripeSessionId = params.get('verification_session_id');
 
-    // Restore form data if returning from Stripe Identity redirect
+    // Restore form data saved before the Stripe Identity redirect
     const restored = loadOnboardingForm();
     if (restored) {
       setFormData(prev => ({ ...prev, ...restored }));
-      // If identity was verified via redirect, jump to the identity step
-      // (StepStripeIdentity will detect the params and auto-advance to step 4)
-      if (params.get('stripe_identity') === 'verified') {
-        setStep(3);
-      }
       clearOnboardingForm();
     }
 
-    if (dId) {
+    // Returning from Stripe Identity verification: set verified flags and
+    // jump straight to step 4 (Payment Preferences) with all form data intact.
+    if (stripeStatus === 'verified' && stripeSessionId) {
+      setFormData(prev => ({
+        ...prev,
+        stripe_identity_verified: true,
+        stripe_verification_session_id: stripeSessionId,
+      }));
+      setStep(4);
+      const url = new URL(window.location.href);
+      url.searchParams.delete('verification_session_id');
+      url.searchParams.delete('stripe_identity');
+      window.history.replaceState({}, document.title, url.toString());
+    } else if (dId) {
       setFormData((f) => ({ ...f, referral_code: dId }));
       setReferralLocked(true);
       setDealerReferral(true);
