@@ -46,26 +46,76 @@ Deno.serve(async (req) => {
         trial_ends_at: trialEndDate
       });
 
-      // Send activation email
-      try {
-        const transporter = nodemailer.createTransport({
-          host: Deno.env.get('SMTP_HOST'),
-          port: parseInt(Deno.env.get('SMTP_PORT') || '587'),
-          secure: false,
-          auth: {
-            user: Deno.env.get('SMTP_USER'),
-            pass: Deno.env.get('SMTP_PASS'),
-          },
-        });
+      // Collect all recipient addresses for activation notifications:
+      //   1. The merchant (owner_email) — confirmation email
+      //   2. Platform admins — internal notification
+      //   3. The referring ambassador/dealer — "interested party" notification
+      const transporter = nodemailer.createTransport({
+        host: Deno.env.get('SMTP_HOST'),
+        port: parseInt(Deno.env.get('SMTP_PORT') || '587'),
+        secure: false,
+        auth: {
+          user: Deno.env.get('SMTP_USER'),
+          pass: Deno.env.get('SMTP_PASS'),
+        },
+      });
+      const fromAddr = Deno.env.get('SMTP_USER');
+      const bizName = sanitizeForEmail(merchantData.business_name);
+      const ownerName = sanitizeForEmail(merchantData.owner_name) || 'Merchant';
+      const trialExpires = new Date(trialEndDate).toLocaleDateString();
 
+      // 1. Merchant activation confirmation
+      try {
         await transporter.sendMail({
-          from: Deno.env.get('SMTP_USER'),
+          from: fromAddr,
           to: merchantData.owner_email,
           subject: 'Your openTILL Account Has Been Activated',
-          text: `Dear ${sanitizeForEmail(merchantData.owner_name) || 'Merchant'},\n\nCongratulations! Your openTILL account has been activated.\n\nBusiness Name: ${sanitizeForEmail(merchantData.business_name)}\nTrial Period: 30 days\nTrial Expires: ${new Date(trialEndDate).toLocaleDateString()}\n\nYou can now log in and start using openTILL.\n\nBest regards,\nThe openTILL Team`,
+          text: `Dear ${ownerName},\n\nCongratulations! Your openTILL account has been activated.\n\nBusiness Name: ${bizName}\nTrial Period: 30 days\nTrial Expires: ${trialExpires}\n\nYou can now log in and start using openTILL.\n\nBest regards,\nThe openTILL Team`,
         });
       } catch (emailError) {
-        console.error('Failed to send activation email:', emailError);
+        console.error('Failed to send merchant activation email:', emailError);
+      }
+
+      // 2. Notify all platform admins (admin / super_admin / root_admin)
+      try {
+        const adminUsers = await base44.asServiceRole.entities.User.list();
+        const adminEmails = (adminUsers || [])
+          .filter(u => u.role === 'admin' || u.role === 'super_admin' || u.role === 'root_admin')
+          .map(u => u.email)
+          .filter(Boolean);
+        for (const adminEmail of adminEmails) {
+          try {
+            await transporter.sendMail({
+              from: fromAddr,
+              to: adminEmail,
+              subject: `Merchant Activated: ${bizName}`,
+              text: `A merchant account has been activated.\n\nBusiness: ${bizName}\nOwner: ${ownerName}\nEmail: ${sanitizeForEmail(merchantData.owner_email)}\nTrial Expires: ${trialExpires}\n\nThis is an automated notification from openTILL.`,
+            });
+          } catch (adminErr) {
+            console.error(`Failed to notify admin ${adminEmail}:`, adminErr);
+          }
+        }
+      } catch (adminListError) {
+        console.error('Failed to fetch admin users for notification:', adminListError);
+      }
+
+      // 3. Notify the referring ambassador/dealer (interested party)
+      if (merchantData.dealer_id) {
+        try {
+          const ambassadors = await base44.asServiceRole.entities.Ambassador.filter({ legacy_dealer_id: merchantData.dealer_id });
+          const ambassador = ambassadors?.[0];
+          const interestedEmail = ambassador?.contact_email || ambassador?.owner_email;
+          if (interestedEmail) {
+            await transporter.sendMail({
+              from: fromAddr,
+              to: interestedEmail,
+              subject: `Your Referral Has Been Activated: ${bizName}`,
+              text: `Good news! A merchant you referred has been activated on openTILL.\n\nBusiness: ${bizName}\nOwner: ${ownerName}\nTrial Expires: ${trialExpires}\n\nYou can view this merchant's progress from your ambassador dashboard.\n\nBest regards,\nThe openTILL Team`,
+            });
+          }
+        } catch (ambassadorError) {
+          console.error('Failed to notify referring ambassador:', ambassadorError);
+        }
       }
 
       return Response.json({ success: true, merchant_id, data: updated });
