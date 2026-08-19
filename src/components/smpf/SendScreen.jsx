@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Connection, Transaction, PublicKey, LAMPORTS_PER_SOL, SystemProgram, Keypair } from '@solana/web3.js';
 import {
-  TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID,
+  ASSOCIATED_TOKEN_PROGRAM_ID,
   getAssociatedTokenAddress, createAssociatedTokenAccountInstruction, createTransferInstruction,
 } from '@solana/spl-token';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import { Send, Loader2, ShieldAlert, ExternalLink, Coins } from 'lucide-react';
 import { b64ToBuf } from '@/lib/smpfCrypto';
 import { getWallet, getSession } from '@/lib/smpfWalletStore';
 import { decryptWallet } from '@/lib/smpfCrypto';
+import { base44 } from '@/api/base44Client';
 import { listContacts } from '@/lib/smpfAddressBook';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -56,27 +57,21 @@ export default function SendScreen({ address, rpc, network, onSent }) {
       list.push({ key: 'SOL', label: 'SOL', decimals: 9, balance: 0, programId: null, mint: null, sourceATA: null });
     }
     setAssets([...list]);
-    // SPL tokens — append defensively so a single failing program doesn't drop SOL.
-    for (const programId of [TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID]) {
-      try {
-        const res = await conn.getParsedTokenAccountsByOwner(pub, { programId });
-        for (const acc of res.value) {
-          const info = acc.account.data?.parsed?.info;
-          if (!info) continue;
-          const dec = Number(info.tokenAmount?.decimals || 0);
-          const ui = Number(info.tokenAmount?.uiAmount || 0);
-          list.push({
-            key: info.mint,
-            label: `${info.mint.slice(0, 4)}…${info.mint.slice(-4)}`,
-            decimals: dec,
-            balance: ui,
-            programId: programId.toBase58(),
-            mint: info.mint,
-            sourceATA: acc.pubkey.toBase58(),
-          });
-        }
-      } catch (e) { /* ignore this program, keep what we have */ }
-    }
+    // SPL tokens via backend — browser RPCs 403/timeout on getTokenAccountsByOwner.
+    try {
+      const { data } = await base44.functions.invoke('getTokenAccounts', { address });
+      for (const t of data.tokens || []) {
+        list.push({
+          key: t.mint,
+          label: `${t.mint.slice(0, 4)}…${t.mint.slice(-4)}`,
+          decimals: t.decimals,
+          balance: t.balance,
+          programId: t.programId,
+          mint: t.mint,
+          sourceATA: t.sourceATA,
+        });
+      }
+    } catch (e) { /* ignore — SOL still available */ }
     setAssets([...list]);
   }
 
