@@ -39,7 +39,8 @@ export default function Modifiers() {
   useEffect(() => {
     (async () => {
       try {
-        const me = await base44.auth.me();
+        const pinUserJSON = localStorage.getItem('pinLoggedInUser');
+        const me = pinUserJSON ? JSON.parse(pinUserJSON) : await base44.auth.me();
         if (me?.merchant_id) {
           setMerchantId(me.merchant_id);
           await load(me.merchant_id);

@@ -22,7 +22,6 @@ Deno.serve(async (req) => {
     const appUrl = origin.replace(/\/$/, '');
 
     const now = new Date().toISOString();
-    const trialEndDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
     // Sanitize merchant-supplied fields before inserting into email bodies to
     // prevent content spoofing / header injection. Strip control characters
@@ -96,7 +95,7 @@ Deno.serve(async (req) => {
     };
 
     if (action === 'activate') {
-      // Activate merchant with trial
+      // Activate merchant — full active status, no trial period
       const merchants = await base44.asServiceRole.entities.Merchant.filter({ id: merchant_id });
       const merchantData = merchants?.[0];
       
@@ -105,15 +104,13 @@ Deno.serve(async (req) => {
       }
 
       const updated = await base44.asServiceRole.entities.Merchant.update(merchant_id, {
-        status: 'trial',
-        activated_at: now,
-        trial_ends_at: trialEndDate
+        status: 'active',
+        activated_at: now
       });
 
       const bizName = sanitizeForEmail(merchantData.business_name);
       const ownerName = sanitizeForEmail(merchantData.owner_name) || 'Merchant';
       const ownerEmail = sanitizeForEmail(merchantData.owner_email, 120);
-      const trialExpires = new Date(trialEndDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
       const hasCredentials = !!(pin || temp_password);
 
       // Build the credentials card HTML only when credentials were supplied.
@@ -153,8 +150,8 @@ Deno.serve(async (req) => {
         </p>
         <div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:16px 20px;margin:24px 0;">
           <p style="margin:0;font-size:14px;color:#065f46;">
-            <strong>&#9989; 30-Day Free Trial Active</strong><br>
-            <span style="font-size:13px;color:#047857;">Trial expires ${trialExpires} — no card required.</span>
+            <strong>&#9989; Account Active</strong><br>
+            <span style="font-size:13px;color:#047857;">Your account is fully active — no trial period, no card required.</span>
           </p>
         </div>
         ${credentialsHtml}
@@ -192,7 +189,7 @@ Deno.serve(async (req) => {
               <tr><td style="padding:6px 0;color:#71717a;font-weight:500;width:120px;">Business</td><td style="padding:6px 0;font-weight:600;">${escapeHtml(bizName)}</td></tr>
               <tr><td style="padding:6px 0;color:#71717a;font-weight:500;">Owner</td><td style="padding:6px 0;font-weight:600;">${escapeHtml(ownerName)}</td></tr>
               <tr><td style="padding:6px 0;color:#71717a;font-weight:500;">Email</td><td style="padding:6px 0;font-weight:600;font-family:monospace;">${escapeHtml(ownerEmail)}</td></tr>
-              <tr><td style="padding:6px 0;color:#71717a;font-weight:500;">Trial Expires</td><td style="padding:6px 0;font-weight:600;">${escapeHtml(trialExpires)}</td></tr>
+              <tr><td style="padding:6px 0;color:#71717a;font-weight:500;">Status</td><td style="padding:6px 0;font-weight:600;">Active</td></tr>
             </table>
             <p style="margin:20px 0 0 0;font-size:13px;color:#a1a1aa;">This is an automated notification from openTILL SMPF.</p>`
           );
