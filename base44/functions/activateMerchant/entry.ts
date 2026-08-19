@@ -191,6 +191,20 @@ Deno.serve(async (req) => {
               ]
             });
           }
+
+          // Invite the merchant owner via base44 so a real auth account is
+          // created. Without this, the User entity row exists but the merchant
+          // has no auth account — they can't log in and SendEmail silently
+          // drops them (only reaches registered users). Same pattern as
+          // createDealerAccount.
+          try {
+            await base44.users.inviteUser(emailLower, 'user');
+            console.log('Invitation sent to merchant owner:', emailLower);
+          } catch (inviteError) {
+            // Ignore "already invited" errors — the user may already have an
+            // auth account from a previous activation attempt.
+            console.error('Failed to send invitation (may already exist):', inviteError);
+          }
         } catch (userError) {
           console.error('Failed to provision merchant admin user:', userError);
         }
