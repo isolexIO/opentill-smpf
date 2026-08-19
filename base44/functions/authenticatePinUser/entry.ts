@@ -59,20 +59,44 @@ Deno.serve(async (req) => {
     
     const base44 = createClientFromRequest(req);
     
-    // Use service role to securely look up PIN - never expose all users
+    // Use service role to securely look up PIN - never expose all users.
+    // First, try to find a User record with this PIN + merchant_id. If none
+    // is found, fall back to the merchant's admin_pin (set at activation,
+    // before the owner accepts their platform invite and becomes a User).
     let user;
+    let isVirtualUser = false;
     try {
       const users = await base44.asServiceRole.entities.User.filter({ pin, merchant_id });
-      
-      if (!users || users.length === 0) {
+
+      if (users && users.length > 0) {
+        user = users[0];
+      } else {
+        // Fallback: check the merchant's admin_pin field
+        const merchants = await base44.asServiceRole.entities.Merchant.filter({ id: merchant_id });
+        const merchant = merchants?.[0];
+        if (merchant && merchant.admin_pin && merchant.admin_pin === String(pin)) {
+          // Build a virtual user from the merchant record so PIN login works
+          // immediately at activation, before the owner accepts the invite.
+          isVirtualUser = true;
+          user = {
+            id: `merchant_${merchant.id}`,
+            email: merchant.owner_email,
+            full_name: merchant.owner_name || 'Merchant Admin',
+            role: 'admin',
+            merchant_id: merchant.id,
+            dealer_id: merchant.dealer_id || null,
+            is_active: true
+          };
+        }
+      }
+
+      if (!user) {
         // Generic error - don't reveal if PIN exists
         return Response.json(
           { success: false, error: 'Invalid PIN. Please try again.' },
           { status: 401 }
         );
       }
-      
-      user = users[0];
     } catch (error) {
       console.error('Error looking up user by PIN:', error);
       return Response.json(
@@ -80,31 +104,33 @@ Deno.serve(async (req) => {
         { status: 500 }
       );
     }
-    
-    // Verify user is active
-    if (!user.is_active) {
+
+    // Verify user is active (skip for virtual merchant-admin users)
+    if (!isVirtualUser && !user.is_active) {
       return Response.json(
         { success: false, error: 'Your account is inactive. Please contact support.' },
         { status: 403 }
       );
     }
-    
-    // Update last login
-    try {
-      await base44.asServiceRole.entities.User.update(user.id, {
-        last_login: new Date().toISOString()
-      });
-    } catch (e) {
-      console.warn('Could not update last login:', e);
+
+    // Update last login (only for real User records)
+    if (!isVirtualUser) {
+      try {
+        await base44.asServiceRole.entities.User.update(user.id, {
+          last_login: new Date().toISOString()
+        });
+      } catch (e) {
+        console.warn('Could not update last login:', e);
+      }
     }
-    
+
     // Log successful authentication
     try {
       await base44.asServiceRole.entities.SystemLog.create({
         merchant_id: user.merchant_id || null,
         log_type: 'merchant_action',
         action: 'User PIN Login',
-        description: `User ${user.full_name} logged in via PIN`,
+        description: `User ${user.full_name} logged in via PIN${isVirtualUser ? ' (merchant admin_pin)' : ''}`,
         user_id: user.id,
         user_email: user.email,
         user_role: user.role,
@@ -114,7 +140,7 @@ Deno.serve(async (req) => {
     } catch (logError) {
       console.warn('Could not create log:', logError);
     }
-    
+
     // Return user (without sensitive fields)
     // SECURITY: Do NOT return pos_settings — it may contain gateway API keys,
     // wallet addresses, and other private configuration that cashiers must not see.

@@ -135,77 +135,21 @@ Deno.serve(async (req) => {
         return Response.json({ error: 'Merchant not found' }, { status: 404 });
       }
 
-      const updated = await base44.asServiceRole.entities.Merchant.update(merchant_id, {
+      // Save the admin PIN directly on the merchant record. This allows PIN
+      // login to work immediately at activation — the platform blocks
+      // User.create() and inviteUser() requires the user to accept an email
+      // invitation before the account exists, so the PIN can't be saved to a
+      // User record until then. authenticatePinUser checks merchant.admin_pin
+      // as a fallback when no User with the PIN is found.
+      const updateData = {
         status: 'active',
         activated_at: now,
         trial_ends_at: null
-      });
-
-      // Create the merchant admin user with the PIN so they can log in via PinLogin.
-      // The platform requires inviteUser() to create users (User.create() is not
-      // persisted). After inviting, we update the user with the PIN + merchant_id.
+      };
       if (pin) {
-        const userEmail = String(merchantData.owner_email || '').toLowerCase().trim();
-        try {
-          // Check if a user already exists for this email. Use list() + find
-          // (like resetAdminPin does) because filter() may not find newly
-          // invited users.
-          const allUsers = await base44.asServiceRole.entities.User.list();
-          let existingUser = allUsers.find(u => u.email && u.email.toLowerCase() === userEmail.toLowerCase());
-
-          if (!existingUser) {
-            // Create the user via invite (the only way the platform allows)
-            try {
-              await base44.users.inviteUser(userEmail, 'user');
-              console.log('Platform invitation sent for:', userEmail);
-            } catch (inviteErr) {
-              console.warn('inviteUser result:', inviteErr?.message || inviteErr);
-            }
-
-            // Re-query to find the newly created user
-            const allUsersAfter = await base44.asServiceRole.entities.User.list();
-            existingUser = allUsersAfter.find(u => u.email && u.email.toLowerCase() === userEmail.toLowerCase());
-          }
-
-          if (existingUser) {
-            const userId = existingUser.id;
-
-            // Ensure the PIN is unique
-            let uniquePin = String(pin);
-            const allUsersForPin = await base44.asServiceRole.entities.User.list();
-            const pinInUse = allUsersForPin.find(u => u.pin === uniquePin && u.id !== userId);
-            if (pinInUse) {
-              const randomBytes = crypto.getRandomValues(new Uint32Array(1));
-              uniquePin = (100000 + (randomBytes[0] % 900000)).toString();
-            }
-
-            // Update the user with the PIN, merchant_id, role, and permissions
-            await base44.asServiceRole.entities.User.update(userId, {
-              full_name: String(merchantData.owner_name || 'Merchant Admin').trim(),
-              role: 'admin',
-              merchant_id: merchant_id,
-              dealer_id: merchantData.dealer_id || null,
-              pin: uniquePin,
-              temp_password: temp_password || null,
-              is_active: true,
-              permissions: [
-                'manage_products',
-                'manage_inventory',
-                'manage_orders',
-                'view_reports',
-                'manage_settings',
-                'process_refunds',
-                'submit_tickets'
-              ]
-            });
-            console.log('Merchant admin user updated with PIN:', userId, 'pin:', uniquePin);
-          } else {
-            console.error('User not found after invite for:', userEmail);
-          }
-        } catch (userError) {
-          console.error('Failed to create merchant admin user:', userError?.message || userError, userError?.status, JSON.stringify(userError?.data || {}));
-        }
+        updateData.admin_pin = String(pin);
       }
+      const updated = await base44.asServiceRole.entities.Merchant.update(merchant_id, updateData);
 
       const bizName = sanitizeForEmail(merchantData.business_name);
       const ownerName = sanitizeForEmail(merchantData.owner_name) || 'Merchant';
