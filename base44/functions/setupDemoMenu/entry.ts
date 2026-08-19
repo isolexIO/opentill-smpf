@@ -90,9 +90,9 @@ Deno.serve(async (req) => {
         { name: 'Peanut Butter 16oz', department: 'Groceries', price: 4.49, description: 'Creamy peanut butter', image_url: 'https://images.unsplash.com/photo-1578916171728-46686eac8d58?w=400', stock_quantity: 200, sku: 'GRO003', ebt_eligible: true },
         { name: 'Cereal Box', department: 'Groceries', price: 3.99, description: 'Assorted cereal', image_url: 'https://images.unsplash.com/photo-1578916171728-46686eac8d58?w=400', stock_quantity: 200, sku: 'GRO004', ebt_eligible: true },
         { name: 'Canned Beans', department: 'Groceries', price: 1.49, description: '15oz canned beans', image_url: 'https://images.unsplash.com/photo-1578916171728-46686eac8d58?w=400', stock_quantity: 200, sku: 'GRO005', ebt_eligible: true },
-        { name: 'Bananas (per lb)', department: 'Produce', price: 0.59, description: 'Fresh bananas', image_url: 'https://images.unsplash.com/photo-1583258292688-d0213dc5a3a8?w=400', stock_quantity: 300, sku: 'PRD001', ebt_eligible: true },
-        { name: 'Gala Apples (per lb)', department: 'Produce', price: 1.29, description: 'Fresh gala apples', image_url: 'https://images.unsplash.com/photo-1583258292688-d0213dc5a3a8?w=400', stock_quantity: 300, sku: 'PRD002', ebt_eligible: true },
-        { name: 'Roma Tomatoes (per lb)', department: 'Produce', price: 1.49, description: 'Fresh roma tomatoes', image_url: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400', stock_quantity: 300, sku: 'PRD003', ebt_eligible: true },
+        { name: 'Bananas (per lb)', department: 'Produce', price: 0.59, description: 'Fresh bananas', image_url: 'https://images.unsplash.com/photo-1583258292688-d0213dc5a3a8?w=400', stock_quantity: 300, sku: 'PRD001', ebt_eligible: true, pricing_type: 'weight', weight_unit: 'lb' },
+        { name: 'Gala Apples (per lb)', department: 'Produce', price: 1.29, description: 'Fresh gala apples', image_url: 'https://images.unsplash.com/photo-1583258292688-d0213dc5a3a8?w=400', stock_quantity: 300, sku: 'PRD002', ebt_eligible: true, pricing_type: 'weight', weight_unit: 'lb' },
+        { name: 'Roma Tomatoes (per lb)', department: 'Produce', price: 1.49, description: 'Fresh roma tomatoes', image_url: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400', stock_quantity: 300, sku: 'PRD003', ebt_eligible: true, pricing_type: 'weight', weight_unit: 'lb' },
         { name: 'Bag of Potatoes 5lb', department: 'Produce', price: 3.99, description: 'Russet potatoes', image_url: 'https://images.unsplash.com/photo-1550989460-0adf9ea622e2?w=400', stock_quantity: 200, sku: 'PRD004', ebt_eligible: true },
         { name: 'Avocado', department: 'Produce', price: 1.99, description: 'Hass avocado each', image_url: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400', stock_quantity: 200, sku: 'PRD005', ebt_eligible: true },
         { name: 'Whole Milk 1gal', department: 'Dairy & Eggs', price: 3.99, description: 'Whole milk gallon', image_url: 'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400', stock_quantity: 150, sku: 'DRY001', ebt_eligible: true },
@@ -100,10 +100,10 @@ Deno.serve(async (req) => {
         { name: 'Cheddar Cheese 8oz', department: 'Dairy & Eggs', price: 4.49, description: 'Sharp cheddar block', image_url: 'https://images.unsplash.com/photo-1523473827533-2a64d0d36748?w=400', stock_quantity: 150, sku: 'DRY003', ebt_eligible: true },
         { name: 'Butter 1lb', department: 'Dairy & Eggs', price: 3.49, description: 'Salted butter', image_url: 'https://images.unsplash.com/photo-1523473827533-2a64d0d36748?w=400', stock_quantity: 150, sku: 'DRY004', ebt_eligible: true },
         { name: 'Greek Yogurt 32oz', department: 'Dairy & Eggs', price: 4.99, description: 'Plain greek yogurt', image_url: 'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400', stock_quantity: 150, sku: 'DRY005', ebt_eligible: true },
-        { name: 'Ground Beef 1lb', department: 'Meat & Seafood', price: 5.99, description: '80/20 ground beef', image_url: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400', stock_quantity: 100, sku: 'MEA001', ebt_eligible: true },
-        { name: 'Chicken Breast 1lb', department: 'Meat & Seafood', price: 4.99, description: 'Boneless skinless', image_url: 'https://images.unsplash.com/photo-1606755962773-d324e0a13086?w=400', stock_quantity: 100, sku: 'MEA002', ebt_eligible: true },
-        { name: 'Bacon 1lb', department: 'Meat & Seafood', price: 6.49, description: 'Thick cut bacon', image_url: 'https://images.unsplash.com/photo-1528607929212-2636ec44253e?w=400', stock_quantity: 100, sku: 'MEA003', ebt_eligible: true },
-        { name: 'Salmon Fillet 1lb', department: 'Meat & Seafood', price: 9.99, description: 'Fresh atlantic salmon', image_url: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=400', stock_quantity: 80, sku: 'MEA004', ebt_eligible: true },
+        { name: 'Ground Beef (per lb)', department: 'Meat & Seafood', price: 5.99, description: '80/20 ground beef', image_url: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400', stock_quantity: 100, sku: 'MEA001', ebt_eligible: true, pricing_type: 'weight', weight_unit: 'lb' },
+        { name: 'Chicken Breast (per lb)', department: 'Meat & Seafood', price: 4.99, description: 'Boneless skinless', image_url: 'https://images.unsplash.com/photo-1606755962773-d324e0a13086?w=400', stock_quantity: 100, sku: 'MEA002', ebt_eligible: true, pricing_type: 'weight', weight_unit: 'lb' },
+        { name: 'Bacon (per lb)', department: 'Meat & Seafood', price: 6.49, description: 'Thick cut bacon', image_url: 'https://images.unsplash.com/photo-1528607929212-2636ec44253e?w=400', stock_quantity: 100, sku: 'MEA003', ebt_eligible: true, pricing_type: 'weight', weight_unit: 'lb' },
+        { name: 'Salmon Fillet (per lb)', department: 'Meat & Seafood', price: 9.99, description: 'Fresh atlantic salmon', image_url: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=400', stock_quantity: 80, sku: 'MEA004', ebt_eligible: true, pricing_type: 'weight', weight_unit: 'lb' },
         { name: 'White Bread Loaf', department: 'Bakery', price: 2.49, description: 'Sliced white bread', image_url: 'https://images.unsplash.com/photo-1567042661848-7161ce446f85?w=400', stock_quantity: 100, sku: 'BAK001', ebt_eligible: true },
         { name: 'Bagels 6pk', department: 'Bakery', price: 3.99, description: 'Assorted bagels', image_url: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400', stock_quantity: 100, sku: 'BAK002', ebt_eligible: true },
         { name: 'Croissants 4pk', department: 'Bakery', price: 4.99, description: 'Butter croissants', image_url: 'https://images.unsplash.com/photo-1567042661848-7161ce446f85?w=400', stock_quantity: 80, sku: 'BAK003', ebt_eligible: true },
@@ -221,6 +221,7 @@ Deno.serve(async (req) => {
     }
 
     console.log('setupDemoMenu: Creating products...');
+    const posModes = menuType === 'retail' ? ['retail'] : ['restaurant', 'quick_service', 'food_truck'];
     let createdCount = 0;
     for (const prod of products) {
       await base44.asServiceRole.entities.Product.create({
@@ -228,7 +229,7 @@ Deno.serve(async (req) => {
         dealer_id: merchant.dealer_id || null,
         ...prod,
         is_active: true,
-        pos_mode: ['restaurant', 'retail', 'quick_service', 'food_truck']
+        pos_mode: posModes
       });
       createdCount++;
     }
