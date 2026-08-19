@@ -1,6 +1,9 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import bcrypt from 'npm:bcryptjs@2.4.3';
 
-// activateMerchant — handles merchant activation/rejection with branded HTML emails
+// activateMerchant — handles merchant activation/rejection with branded HTML emails.
+// Also creates/updates the merchant admin User with PIN + temp_password so the
+// credentials in the activation email actually work at login.
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -107,6 +110,63 @@ Deno.serve(async (req) => {
         status: 'active',
         activated_at: now
       });
+
+      // Create or update the merchant admin User so the PIN / temp_password
+      // included in the activation email actually work at login. Without this,
+      // the credentials are emailed but no User record carries them, so every
+      // login attempt fails.
+      if (pin || temp_password) {
+        const emailLower = (merchantData.owner_email || '').toLowerCase().trim();
+        try {
+          const existingUsers = await base44.asServiceRole.entities.User.filter({ email: emailLower });
+
+          // Hash the temp password — emailPasswordLogin verifies with bcrypt.compare.
+          const tempPasswordHash = temp_password ? bcrypt.hashSync(temp_password, 10) : null;
+
+          if (existingUsers && existingUsers.length > 0) {
+            await base44.asServiceRole.entities.User.update(existingUsers[0].id, {
+              pin: pin || existingUsers[0].pin,
+              temp_password: tempPasswordHash,
+              merchant_id: merchant_id,
+              dealer_id: merchantData.dealer_id || existingUsers[0].dealer_id,
+              is_active: true
+            });
+          } else {
+            await base44.asServiceRole.entities.User.create({
+              full_name: merchantData.owner_name || merchantData.business_name,
+              email: emailLower,
+              role: 'user',
+              merchant_id: merchant_id,
+              dealer_id: merchantData.dealer_id || null,
+              pin: pin || null,
+              temp_password: tempPasswordHash,
+              is_active: true,
+              permissions: [
+                'process_orders',
+                'manage_inventory',
+                'view_reports',
+                'manage_customers',
+                'process_refunds',
+                'admin_settings',
+                'manage_users',
+                'access_marketplace',
+                'configure_devices',
+                'configure_payments',
+                'submit_tickets',
+                'view_all_tickets'
+              ]
+            });
+            // Invite for platform login (Google / magic link). Non-fatal.
+            try {
+              await base44.users.inviteUser(emailLower, 'user');
+            } catch (inviteError) {
+              console.error('Failed to invite merchant user:', inviteError);
+            }
+          }
+        } catch (userError) {
+          console.error('Failed to create/update merchant admin user:', userError);
+        }
+      }
 
       const bizName = sanitizeForEmail(merchantData.business_name);
       const ownerName = sanitizeForEmail(merchantData.owner_name) || 'Merchant';
