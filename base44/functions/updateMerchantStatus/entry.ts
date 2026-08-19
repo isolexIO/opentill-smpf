@@ -30,9 +30,10 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Merchant not found' }, { status: 404 });
     }
 
-    // Tenant boundary: platform-wide admins (root/super) may act on any merchant,
-    // but a dealer-scoped admin may only modify merchants under their own dealer.
-    const isPlatformAdmin = user.role === 'root_admin' || user.role === 'super_admin';
+    // Tenant boundary: platform-wide admins (admin/super/root) may act on any
+    // merchant. A dealer-scoped user (non-admin role carrying a dealer_id) may
+    // only modify merchants under their own dealer.
+    const isPlatformAdmin = ['admin', 'super_admin', 'root_admin'].includes(user.role);
     if (!isPlatformAdmin) {
       const adminDealerId = user.data?.dealer_id;
       if (!adminDealerId || merchant.dealer_id !== adminDealerId) {
