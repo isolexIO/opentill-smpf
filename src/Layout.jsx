@@ -183,6 +183,7 @@ export default function Layout({ children, currentPageName }) {
 
   const handleExitImpersonation = () => {
     localStorage.removeItem('pinLoggedInUser');
+    localStorage.removeItem('impersonationData');
     navigate(createPageUrl('SuperAdmin'));
   };
 

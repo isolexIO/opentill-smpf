@@ -1,5 +1,4 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
-import nodemailer from 'npm:nodemailer@6.9.7';
 
 Deno.serve(async (req) => {
   try {
@@ -31,6 +30,20 @@ Deno.serve(async (req) => {
         .slice(0, maxLen);
     };
 
+    // Use the built-in SendEmail integration instead of nodemailer — direct
+    // SMTP connections time out in the edge function environment.
+    const sendEmail = async (to, subject, body) => {
+      try {
+        await base44.asServiceRole.integrations.Core.SendEmail({
+          to,
+          subject,
+          body,
+        });
+      } catch (emailError) {
+        console.error(`Failed to send email to ${to}:`, emailError);
+      }
+    };
+
     if (action === 'activate') {
       // Activate merchant with trial
       const merchants = await base44.asServiceRole.entities.Merchant.filter({ id: merchant_id });
@@ -46,35 +59,16 @@ Deno.serve(async (req) => {
         trial_ends_at: trialEndDate
       });
 
-      // Collect all recipient addresses for activation notifications:
-      //   1. The merchant (owner_email) — confirmation email
-      //   2. Platform admins — internal notification
-      //   3. The referring ambassador/dealer — "interested party" notification
-      const transporter = nodemailer.createTransport({
-        host: Deno.env.get('SMTP_HOST'),
-        port: parseInt(Deno.env.get('SMTP_PORT') || '587'),
-        secure: false,
-        auth: {
-          user: Deno.env.get('SMTP_USER'),
-          pass: Deno.env.get('SMTP_PASS'),
-        },
-      });
-      const fromAddr = Deno.env.get('SMTP_USER');
       const bizName = sanitizeForEmail(merchantData.business_name);
       const ownerName = sanitizeForEmail(merchantData.owner_name) || 'Merchant';
       const trialExpires = new Date(trialEndDate).toLocaleDateString();
 
       // 1. Merchant activation confirmation
-      try {
-        await transporter.sendMail({
-          from: fromAddr,
-          to: merchantData.owner_email,
-          subject: 'Your openTILL Account Has Been Activated',
-          text: `Dear ${ownerName},\n\nCongratulations! Your openTILL account has been activated.\n\nBusiness Name: ${bizName}\nTrial Period: 30 days\nTrial Expires: ${trialExpires}\n\nYou can now log in and start using openTILL.\n\nBest regards,\nThe openTILL Team`,
-        });
-      } catch (emailError) {
-        console.error('Failed to send merchant activation email:', emailError);
-      }
+      await sendEmail(
+        merchantData.owner_email,
+        'Your openTILL Account Has Been Activated',
+        `Dear ${ownerName},\n\nCongratulations! Your openTILL account has been activated.\n\nBusiness Name: ${bizName}\nTrial Period: 30 days\nTrial Expires: ${trialExpires}\n\nYou can now log in and start using openTILL.\n\nBest regards,\nThe openTILL Team`
+      );
 
       // 2. Notify all platform admins (admin / super_admin / root_admin)
       try {
@@ -84,16 +78,11 @@ Deno.serve(async (req) => {
           .map(u => u.email)
           .filter(Boolean);
         for (const adminEmail of adminEmails) {
-          try {
-            await transporter.sendMail({
-              from: fromAddr,
-              to: adminEmail,
-              subject: `Merchant Activated: ${bizName}`,
-              text: `A merchant account has been activated.\n\nBusiness: ${bizName}\nOwner: ${ownerName}\nEmail: ${sanitizeForEmail(merchantData.owner_email)}\nTrial Expires: ${trialExpires}\n\nThis is an automated notification from openTILL.`,
-            });
-          } catch (adminErr) {
-            console.error(`Failed to notify admin ${adminEmail}:`, adminErr);
-          }
+          await sendEmail(
+            adminEmail,
+            `Merchant Activated: ${bizName}`,
+            `A merchant account has been activated.\n\nBusiness: ${bizName}\nOwner: ${ownerName}\nEmail: ${sanitizeForEmail(merchantData.owner_email)}\nTrial Expires: ${trialExpires}\n\nThis is an automated notification from openTILL.`
+          );
         }
       } catch (adminListError) {
         console.error('Failed to fetch admin users for notification:', adminListError);
@@ -106,12 +95,11 @@ Deno.serve(async (req) => {
           const ambassador = ambassadors?.[0];
           const interestedEmail = ambassador?.contact_email || ambassador?.owner_email;
           if (interestedEmail) {
-            await transporter.sendMail({
-              from: fromAddr,
-              to: interestedEmail,
-              subject: `Your Referral Has Been Activated: ${bizName}`,
-              text: `Good news! A merchant you referred has been activated on openTILL.\n\nBusiness: ${bizName}\nOwner: ${ownerName}\nTrial Expires: ${trialExpires}\n\nYou can view this merchant's progress from your ambassador dashboard.\n\nBest regards,\nThe openTILL Team`,
-            });
+            await sendEmail(
+              interestedEmail,
+              `Your Referral Has Been Activated: ${bizName}`,
+              `Good news! A merchant you referred has been activated on openTILL.\n\nBusiness: ${bizName}\nOwner: ${ownerName}\nTrial Expires: ${trialExpires}\n\nYou can view this merchant's progress from your ambassador dashboard.\n\nBest regards,\nThe openTILL Team`
+            );
           }
         } catch (ambassadorError) {
           console.error('Failed to notify referring ambassador:', ambassadorError);
@@ -132,26 +120,11 @@ Deno.serve(async (req) => {
 
       // Send rejection email
       if (merchantData?.owner_email) {
-        try {
-          const transporter = nodemailer.createTransport({
-            host: Deno.env.get('SMTP_HOST'),
-            port: parseInt(Deno.env.get('SMTP_PORT') || '587'),
-            secure: false,
-            auth: {
-              user: Deno.env.get('SMTP_USER'),
-              pass: Deno.env.get('SMTP_PASS'),
-            },
-          });
-
-          await transporter.sendMail({
-            from: Deno.env.get('SMTP_USER'),
-            to: merchantData.owner_email,
-            subject: 'Your openTILL Application Status',
-            text: `Dear ${sanitizeForEmail(merchantData.owner_name) || 'Applicant'},\n\nThank you for your interest in openTILL. Unfortunately, your application for ${sanitizeForEmail(merchantData.business_name)} has been rejected by our team.\n\nIf you have any questions, please contact our support team.\n\nBest regards,\nThe openTILL Team`,
-          });
-        } catch (emailError) {
-          console.error('Failed to send rejection email:', emailError);
-        }
+        await sendEmail(
+          merchantData.owner_email,
+          'Your openTILL Application Status',
+          `Dear ${sanitizeForEmail(merchantData.owner_name) || 'Applicant'},\n\nThank you for your interest in openTILL. Unfortunately, your application for ${sanitizeForEmail(merchantData.business_name)} has been rejected by our team.\n\nIf you have any questions, please contact our support team.\n\nBest regards,\nThe openTILL Team`
+        );
       }
 
       return Response.json({ success: true, merchant_id, data: updated });

@@ -151,12 +151,12 @@ export default function MerchantManagement({ onUpdate }) {
         timestamp: new Date().toISOString()
       }));
 
-      // Create a temporary impersonation user object
-      // IMPORTANT: do NOT spread currentUser — its own merchant_id may be stale/wrong
+      // Create a temporary impersonation user object that fully represents
+      // the merchant owner — NOT a mix of admin identity + merchant IDs.
       const impersonationUser = {
         id: currentUser.id,
-        email: currentUser.email,
-        full_name: currentUser.full_name,
+        email: merchant.owner_email || currentUser.email,
+        full_name: merchant.owner_name || merchant.business_name || 'Merchant User',
         merchant_id: merchant.id,
         dealer_id: merchant.dealer_id || undefined,
         role: 'merchant_admin',
@@ -175,7 +175,9 @@ export default function MerchantManagement({ onUpdate }) {
           'submit_tickets',
           'view_all_tickets'
         ],
-        is_impersonating: true
+        is_impersonating: true,
+        original_admin_email: currentUser.email,
+        original_admin_name: currentUser.full_name
       };
 
       // Store impersonation user in PIN login storage
