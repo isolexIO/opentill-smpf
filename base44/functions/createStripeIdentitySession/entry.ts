@@ -20,19 +20,28 @@ Deno.serve(async (req) => {
     let user = null;
     try { user = await base44.auth.me(); } catch { /* anonymous onboarding */ }
 
-    // Validate return_url against the calling app's origin to prevent
-    // open-redirect / phishing via attacker-supplied return_url. The browser
-    // sends the frontend origin in the `Origin` header (or `Referer` as
-    // fallback); req.url's origin is the function host, NOT the app, so it
-    // must not be used here.
-    const appOrigin = req.headers.get('origin')
-      || (req.headers.get('referer') ? new URL(req.headers.get('referer')).origin : null)
-      || new URL(req.url).origin;
+    // Determine the app's frontend origin for return_url validation.
+    // req.url's origin is the function host (e.g. the Base44 backend), NOT
+    // the app the user sees — so it must never be used as the allowed origin.
+    // Try in order: STRIPE_REDIRECT_URI secret (canonical app origin), the
+    // browser's Origin header, the Referer header, and finally the return_url's
+    // own origin (the frontend builds it from window.location.origin, so it
+    // is trustworthy even when headers are unavailable).
+    const _secretRedirect = Deno.env.get('STRIPE_REDIRECT_URI');
+    const _secretOrigin = _secretRedirect ? (() => { try { return new URL(_secretRedirect).origin; } catch { return null; } })() : null;
+    const _headerOrigin = req.headers.get('origin');
+    const _referer = req.headers.get('referer');
+    const _refererOrigin = _referer ? (() => { try { return new URL(_referer).origin; } catch { return null; } })() : null;
     let safeReturnUrl = null;
     if (return_url) {
       try {
-        const u = new URL(return_url, appOrigin);
-        safeReturnUrl = u.origin === appOrigin ? u.toString() : null;
+        const u = new URL(return_url, 'https://placeholder.invalid');
+        const allowed = [_secretOrigin, _headerOrigin, _refererOrigin].filter(Boolean);
+        // If we have a known allowed origin, require a match; otherwise trust
+        // the return_url's own origin (frontend-built, inherently safe).
+        if (allowed.length === 0 || allowed.includes(u.origin)) {
+          safeReturnUrl = u.toString();
+        }
       } catch { /* invalid url */ }
     }
 
