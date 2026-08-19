@@ -112,42 +112,49 @@ Deno.serve(async (req) => {
       });
 
       // Provision the merchant admin User so the PIN / temp_password in the
-      // activation email actually work at login. User records can't be created
-      // directly (create returns 405), so we invite first (which creates the
-      // auth User) and then update it with credentials + merchant scoping.
+      // branded activation email actually work at login. We create the User
+      // directly via asServiceRole (same pattern as createDealerAccount) — no
+      // platform invitation email, the branded email below carries credentials.
       if (pin || temp_password) {
         const emailLower = (merchantData.owner_email || '').toLowerCase().trim();
         const tempPasswordHash = temp_password ? bcrypt.hashSync(temp_password, 10) : null;
-        const credentials = {
-          pin: pin || null,
-          temp_password: tempPasswordHash,
-          merchant_id: merchant_id,
-          dealer_id: merchantData.dealer_id || null,
-          is_active: true
-        };
 
         try {
-          let users = await base44.asServiceRole.entities.User.filter({ email: emailLower });
+          const existingUsers = await base44.asServiceRole.entities.User.filter({ email: emailLower });
 
-          if (!users || users.length === 0) {
-            // No User yet — invite to create the auth User, then attach creds.
-            try {
-              await base44.users.inviteUser(emailLower, 'user');
-            } catch (inviteError) {
-              console.error('Failed to invite merchant user:', inviteError);
-            }
-            // Re-fetch: inviteUser creates the User record.
-            users = await base44.asServiceRole.entities.User.filter({ email: emailLower });
-          }
-
-          if (users && users.length > 0) {
-            await base44.asServiceRole.entities.User.update(users[0].id, {
-              ...credentials,
-              pin: credentials.pin || users[0].pin,
-              dealer_id: credentials.dealer_id || users[0].dealer_id
+          if (existingUsers && existingUsers.length > 0) {
+            await base44.asServiceRole.entities.User.update(existingUsers[0].id, {
+              pin: pin || existingUsers[0].pin,
+              temp_password: tempPasswordHash,
+              merchant_id: merchant_id,
+              dealer_id: merchantData.dealer_id || existingUsers[0].dealer_id,
+              is_active: true
             });
           } else {
-            console.error('Merchant admin User was not created by invite — credentials not stored.');
+            await base44.asServiceRole.entities.User.create({
+              full_name: merchantData.owner_name || merchantData.business_name,
+              email: emailLower,
+              role: 'user',
+              merchant_id: merchant_id,
+              dealer_id: merchantData.dealer_id || null,
+              pin: pin || null,
+              temp_password: tempPasswordHash,
+              is_active: true,
+              permissions: [
+                'process_orders',
+                'manage_inventory',
+                'view_reports',
+                'manage_customers',
+                'process_refunds',
+                'admin_settings',
+                'manage_users',
+                'access_marketplace',
+                'configure_devices',
+                'configure_payments',
+                'submit_tickets',
+                'view_all_tickets'
+              ]
+            });
           }
         } catch (userError) {
           console.error('Failed to provision merchant admin user:', userError);
