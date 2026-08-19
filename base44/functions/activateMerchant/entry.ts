@@ -83,9 +83,44 @@ Deno.serve(async (req) => {
 </body>
 </html>`;
 
-    // Use the built-in SendEmail integration instead of nodemailer — direct
-    // SMTP connections time out in the edge function environment.
+    // Send email via SMTP directly. Core.SendEmail only reaches fully-
+    // registered auth users; a merchant we just provisioned via
+    // asServiceRole.entities.User.create is not registered yet, so SendEmail
+    // silently drops the message. SMTP works for any address.
     const sendEmail = async (to, subject, htmlBody) => {
+      const smtpHost = Deno.env.get('SMTP_HOST');
+      const smtpPort = Deno.env.get('SMTP_PORT');
+      const smtpUser = Deno.env.get('SMTP_USER');
+      const smtpPass = Deno.env.get('SMTP_PASS');
+
+      if (smtpHost && smtpUser && smtpPass) {
+        try {
+          const nodemailer = await import('npm:nodemailer@6.9.7');
+          const portNum = parseInt(smtpPort || '465');
+          const transporter = nodemailer.default.createTransport({
+            host: smtpHost,
+            port: portNum,
+            secure: portNum === 465,
+            requireTLS: portNum !== 465,
+            connectionTimeout: 15000,
+            greetingTimeout: 15000,
+            socketTimeout: 15000,
+            auth: { user: smtpUser, pass: smtpPass }
+          });
+          await transporter.sendMail({
+            from: `"openTILL SMPF" <${smtpUser}>`,
+            to,
+            subject,
+            html: brandedEmail(htmlBody),
+            text: brandedEmail(htmlBody).replace(/<[^>]+>/g, '')
+          });
+          return;
+        } catch (smtpError) {
+          console.error(`SMTP send failed for ${to}, falling back to SendEmail:`, smtpError);
+        }
+      }
+
+      // Fallback: built-in SendEmail (works for registered users)
       try {
         await base44.asServiceRole.integrations.Core.SendEmail({
           to,
