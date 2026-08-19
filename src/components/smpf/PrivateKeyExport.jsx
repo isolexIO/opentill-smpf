@@ -34,7 +34,7 @@ export default function PrivateKeyExport({ wallet, session, onClose }) {
   const [exportedKey, setExportedKey] = useState(null);
   const [copied, setCopied] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState(null);
-  const [showQr, setShowQr] = useState(false);
+  const [showQr, setShowQr] = useState(true);
 
   // Generate a QR code from the exported base58 key so it can be scanned by
   // Phantom / Solflare mobile apps for direct import.

@@ -25,6 +25,7 @@ import SendScreen from '@/components/smpf/SendScreen';
 import DucPresaleCard from '@/components/smpf/DucPresaleCard';
 import ConnectRewardsCard from '@/components/smpf/ConnectRewardsCard';
 import RestoreFromBackup from '@/components/smpf/RestoreFromBackup';
+import ImportKeyScreen from '@/components/smpf/ImportKeyScreen';
 
 export default function SMPFWallet() {
   const [user, setUser] = useState(null);
@@ -53,6 +54,7 @@ export default function SMPFWallet() {
   const [ackTransferred, setAckTransferred] = useState(false);
   const [ackBackedUp, setAckBackedUp] = useState(false);
   const [ackLiability, setAckLiability] = useState(false);
+  const [restoreMethod, setRestoreMethod] = useState('backup'); // 'backup' | 'import'
 
   // Open the regeneration warning dialog. The actual wipe happens in performReset
   // only after the user acknowledges the fund-loss / no-liability warnings.
@@ -674,10 +676,34 @@ export default function SMPFWallet() {
                 }}
               />
             ) : (
-              <RestoreFromBackup
-                expectedAddress={solAddress}
-                onRestored={() => initWallet()}
-              />
+              <div className="space-y-4">
+                <div className="flex gap-2 p-1 bg-slate-950 rounded-lg border border-white/10">
+                  <button
+                    onClick={() => setRestoreMethod('backup')}
+                    className={`flex-1 text-xs font-semibold py-2 rounded-md transition-colors ${restoreMethod === 'backup' ? 'bg-indigo-600 text-white' : 'text-white/60 hover:text-white'}`}
+                  >
+                    Backup File
+                  </button>
+                  <button
+                    onClick={() => setRestoreMethod('import')}
+                    className={`flex-1 text-xs font-semibold py-2 rounded-md transition-colors ${restoreMethod === 'import' ? 'bg-indigo-600 text-white' : 'text-white/60 hover:text-white'}`}
+                  >
+                    Private Key / QR
+                  </button>
+                </div>
+                {restoreMethod === 'backup' ? (
+                  <RestoreFromBackup
+                    expectedAddress={solAddress}
+                    onRestored={() => initWallet()}
+                  />
+                ) : (
+                  <ImportKeyScreen
+                    expectedAddress={solAddress}
+                    onDone={() => initWallet()}
+                    onBack={() => setRestoreMethod('backup')}
+                  />
+                )}
+              </div>
             )}
           </DialogContent>
         </Dialog>
