@@ -80,15 +80,47 @@ Deno.serve(async (req) => {
 </body>
 </html>`;
 
-    // Use the built-in SendEmail integration instead of nodemailer — direct
-    // SMTP connections time out in the edge function environment.
+    // Send via SMTP directly so emails reach merchant owners who may not be
+    // registered Base44 users yet (Core.SendEmail only delivers to registered
+    // app users). Falls back to Core.SendEmail if SMTP is not configured.
     const sendEmail = async (to, subject, htmlBody) => {
+      const html = brandedEmail(htmlBody);
+      const smtpHost = Deno.env.get('SMTP_HOST');
+      const smtpPort = Deno.env.get('SMTP_PORT');
+      const smtpUser = Deno.env.get('SMTP_USER');
+      const smtpPass = Deno.env.get('SMTP_PASS');
+
+      if (smtpHost && smtpUser && smtpPass) {
+        try {
+          const nodemailer = await import('npm:nodemailer@6.9.7');
+          const smtpPortNum = parseInt(smtpPort || '465');
+          const transporter = nodemailer.default.createTransport({
+            host: smtpHost,
+            port: smtpPortNum,
+            secure: smtpPortNum === 465,
+            requireTLS: smtpPortNum !== 465,
+            connectionTimeout: 15000,
+            greetingTimeout: 15000,
+            socketTimeout: 15000,
+            auth: { user: smtpUser, pass: smtpPass }
+          });
+          await transporter.sendMail({
+            from: `"openTILL SMPF" <${smtpUser}>`,
+            to,
+            subject,
+            html,
+            text: html.replace(/<[^>]+>/g, '')
+          });
+          console.log(`Email sent via SMTP to ${to}: ${subject}`);
+          return;
+        } catch (smtpError) {
+          console.error(`SMTP send failed for ${to}, falling back to Core.SendEmail:`, smtpError);
+        }
+      }
+
+      // Fallback: Core.SendEmail (only reaches registered app users)
       try {
-        await base44.asServiceRole.integrations.Core.SendEmail({
-          to,
-          subject,
-          body: brandedEmail(htmlBody),
-        });
+        await base44.asServiceRole.integrations.Core.SendEmail({ to, subject, body: html });
       } catch (emailError) {
         console.error(`Failed to send email to ${to}:`, emailError);
       }
