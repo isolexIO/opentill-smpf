@@ -65,13 +65,18 @@ export default function MerchantOnboarding() {
     // jump straight to step 4 (Payment Preferences) with all form data intact.
     // Stripe appends verification_session_id on redirect (it may drop the
     // stripe_identity param we added), so that alone is the reliable signal.
-    if (stripeSessionId) {
+    // As a fallback (Stripe sometimes omits the param when verification is
+    // still "reviewing"), also check for a session ID saved before redirect.
+    const savedSessionId = (() => { try { return localStorage.getItem('opentill_stripe_identity_session'); } catch (_) { return null; } })();
+    const returningSessionId = stripeSessionId || savedSessionId;
+    if (returningSessionId) {
       setFormData(prev => ({
         ...prev,
         stripe_identity_verified: true,
-        stripe_verification_session_id: stripeSessionId,
+        stripe_verification_session_id: returningSessionId,
       }));
       setStep(4);
+      try { localStorage.removeItem('opentill_stripe_identity_session'); } catch (_) {}
       const url = new URL(window.location.href);
       url.searchParams.delete('verification_session_id');
       url.searchParams.delete('stripe_identity');

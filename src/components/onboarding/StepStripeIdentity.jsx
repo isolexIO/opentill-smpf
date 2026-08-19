@@ -61,6 +61,11 @@ export default function StepStripeIdentity({ formData, onChange, onNext, onBack 
         throw new Error(res.data?.error || 'Failed to create verification session');
       }
 
+      // Save the session ID so we can detect the return from Stripe even if
+      // Stripe's redirect doesn't include verification_session_id in the URL
+      // (which happens when verification is still in the "reviewing" state).
+      try { localStorage.setItem('opentill_stripe_identity_session', res.data.session_id); } catch (_) {}
+
       // Redirect to Stripe-hosted verification page
       window.location.href = res.data.url;
     } catch (err) {
