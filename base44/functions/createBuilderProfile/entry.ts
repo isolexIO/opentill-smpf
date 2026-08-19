@@ -73,21 +73,63 @@ Deno.serve(async (req) => {
       status: 'pending',
     });
 
-    // Send confirmation email
+    // Generate a unique 6-digit PIN for quick login
+    let builderPin = null;
+    try {
+      let pinIsUnique = false;
+      let attempts = 0;
+      while (!pinIsUnique && attempts < 10) {
+        const randomBytes = crypto.getRandomValues(new Uint32Array(1));
+        const candidate = (100000 + (randomBytes[0] % 900000)).toString();
+        const existingPinUsers = await base44.asServiceRole.entities.User.filter({ pin: candidate });
+        if (!existingPinUsers || existingPinUsers.length === 0) {
+          builderPin = candidate;
+          pinIsUnique = true;
+        } else {
+          attempts++;
+        }
+      }
+      if (builderPin) {
+        await base44.asServiceRole.entities.User.update(user.id, { pin: builderPin });
+      }
+    } catch (pinError) {
+      console.error('Failed to generate/set builder PIN:', pinError);
+    }
+
+    // Derive app URL from request origin
+    const origin = req.headers.get('origin') || req.headers.get('referer') || 'https://opentill.isolex.io';
+    const appUrl = origin.replace(/\/$/, '');
+
+    // Send confirmation email with openTILL credentials
     try {
       await base44.asServiceRole.integrations.Core.SendEmail({
         to: user_email,
-        subject: 'Welcome to the openTILL Builder Program!',
+        subject: 'Welcome to the openTILL Builder Program — Your Credentials Inside',
         body: `
           <h2>Welcome to the openTILL Builder Program, ${escapeHtml(full_name)}!</h2>
           <p>Your builder profile for <strong>${escapeHtml(company_name)}</strong> has been submitted and is under review.</p>
+          ${builderPin ? `
+          <div style="background:#f4f4f5;border:1px solid #e4e4e7;border-radius:12px;padding:24px;margin:24px 0;">
+            <p style="margin:0 0 16px 0;font-size:13px;font-weight:700;color:#3f3f46;text-transform:uppercase;letter-spacing:0.5px;">Your openTILL Login Credentials</p>
+            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td style="padding:8px 0;font-size:14px;color:#71717a;font-weight:500;width:140px;">Login Email</td>
+                <td style="padding:8px 0;font-size:14px;color:#18181b;font-weight:600;font-family:monospace;">${escapeHtml(user_email)}</td>
+              </tr>
+              <tr>
+                <td style="padding:8px 0;font-size:14px;color:#71717a;font-weight:500;">Quick-Login PIN</td>
+                <td style="padding:8px 0;font-size:22px;color:#7B2FD6;font-weight:800;font-family:monospace;letter-spacing:4px;">${escapeHtml(builderPin)}</td>
+              </tr>
+            </table>
+          </div>
+          <div style="text-align:center;margin:32px 0;">
+            <a href="${appUrl}/BuilderDashboard" style="display:inline-block;padding:14px 40px;background:linear-gradient(90deg,#7B2FD6 0%,#0FD17A 100%);color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;border-radius:10px;box-shadow:0 2px 8px rgba(123,47,214,0.3);">Go to Builder Dashboard &rarr;</a>
+          </div>
+          ` : `
           <h3>How to Log In</h3>
-          <p>Use the same account you signed up with to access your Builder Dashboard:</p>
-          <ul>
-            <li><strong>Google Sign-In</strong> (recommended), or</li>
-            <li><strong>Email magic link</strong> sent to ${escapeHtml(user_email)}</li>
-          </ul>
-          <p>Visit: <a href="https://chainlinkpos.isolex.io/builder-dashboard">Your Builder Dashboard</a></p>
+          <p>Use <strong>Google Sign-In</strong> with ${escapeHtml(user_email)} (recommended), or the email magic link.</p>
+          <p>Visit: <a href="${appUrl}/BuilderDashboard">Your Builder Dashboard</a></p>
+          `}
           <p>Our team will review your application and you'll be notified once verified.</p>
           <p>Thank you for building with openTILL!</p>
         `,

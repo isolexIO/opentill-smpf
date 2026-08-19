@@ -55,9 +55,8 @@ Deno.serve(async (req) => {
 
             if (activate) {
                 await base44.asServiceRole.entities.Merchant.update(merchant_id, {
-                    status: 'trial',
-                    activated_at: new Date().toISOString(),
-                    trial_ends_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+                    status: 'active',
+                    activated_at: new Date().toISOString()
                 });
             }
 
