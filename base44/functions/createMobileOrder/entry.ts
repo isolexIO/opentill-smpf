@@ -64,15 +64,47 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: 'Merchant account not active' }, { status: 403 });
     }
 
-    // Create the order with service role
+    // SECURITY: Validate order_data before creating. The client controls these
+    // values, so enforce basic integrity: items must be a non-empty array, and
+    // subtotal/total must be positive finite numbers. This prevents zero-dollar
+    // or negative-total orders from being created and then completed for free.
+    const items = Array.isArray(order_data.items) ? order_data.items : [];
+    if (items.length === 0) {
+      return Response.json({ success: false, error: 'Order must contain at least one item' }, { status: 400 });
+    }
+    const subtotal = Number(order_data.subtotal);
+    const total = Number(order_data.total);
+    if (!Number.isFinite(subtotal) || subtotal < 0) {
+      return Response.json({ success: false, error: 'Invalid order subtotal' }, { status: 400 });
+    }
+    if (!Number.isFinite(total) || total <= 0) {
+      return Response.json({ success: false, error: 'Order total must be greater than zero' }, { status: 400 });
+    }
+
+    // Create the order with service role. Only whitelisted fields from order_data
+    // are used; merchant_id/dealer_id/station_id come from the authenticated
+    // station, not the client.
     const order = await base44.asServiceRole.entities.Order.create({
-      ...order_data,
+      items: order_data.items,
+      subtotal: order_data.subtotal,
+      tax_amount: order_data.tax_amount || 0,
+      discount_amount: order_data.discount_amount || 0,
+      surcharge_amount: order_data.surcharge_amount || 0,
+      tip_amount: order_data.tip_amount || 0,
+      total: order_data.total,
+      order_number: order_data.order_number,
+      customer_id: order_data.customer_id || null,
+      customer_name: order_data.customer_name || null,
+      table_number: order_data.table_number || null,
+      fulfillment_type: order_data.fulfillment_type || null,
+      delivery_address: order_data.delivery_address || null,
+      special_instructions: order_data.special_instructions || null,
       merchant_id: station.merchant_id,
       dealer_id: merchant.dealer_id,
       station_id: station.station_id,
       station_name: station.name,
       source: 'mobile_pos',
-      status: order_data.status || 'pending',
+      status: 'pending',
     });
 
     return Response.json({

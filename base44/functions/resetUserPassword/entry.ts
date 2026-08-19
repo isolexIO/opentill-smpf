@@ -1,10 +1,32 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import bcrypt from 'npm:bcryptjs@2.4.3';
 
+// In-memory rate limiting to prevent email bombing (an attacker spamming reset
+// emails to arbitrary addresses). Two buckets: per-IP and per-email, so an
+// attacker rotating IPs cannot flood a single inbox and a single IP cannot
+// enumerate many addresses.
+const ipAttemptMap = new Map();
+const emailAttemptMap = new Map();
+const RATE_LIMIT_WINDOW = 15 * 60 * 1000; // 15 minutes
+const IP_RATE_LIMIT = 3;       // max reset requests per IP per window
+const EMAIL_RATE_LIMIT = 2;    // max reset requests per email per window
+
+function checkRateLimit(key, map, limit) {
+  const now = Date.now();
+  const attempts = (map.get(key) || []).filter((ts) => now - ts < RATE_LIMIT_WINDOW);
+  if (attempts.length >= limit) {
+    map.set(key, attempts);
+    return false;
+  }
+  attempts.push(now);
+  map.set(key, attempts);
+  return true;
+}
+
 Deno.serve(async (req) => {
-    try {
+  try {
         console.log('resetUserPassword: Starting...');
-        
+
         const body = await req.json();
         const { email } = body;
 
@@ -13,6 +35,18 @@ Deno.serve(async (req) => {
                 success: false,
                 error: 'Email is required'
             }, { status: 400 });
+        }
+
+        // Rate limit by IP and by email to prevent email bombing
+        const ipAddress = (req.headers.get('x-forwarded-for') || '').split(',')[0].trim() ||
+                          req.headers.get('x-real-ip') || 'unknown';
+        const normalizedEmail = email.toLowerCase().trim();
+        if (!checkRateLimit(`ip:${ipAddress}`, ipAttemptMap, IP_RATE_LIMIT) ||
+            !checkRateLimit(`email:${normalizedEmail}`, emailAttemptMap, EMAIL_RATE_LIMIT)) {
+            return Response.json({
+                success: false,
+                error: 'Too many password reset requests. Please try again later.'
+            }, { status: 429 });
         }
 
         // Create base44 client - asServiceRole will use service token automatically

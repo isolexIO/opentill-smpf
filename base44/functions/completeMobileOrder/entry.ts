@@ -63,10 +63,39 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: 'Order does not belong to this merchant' }, { status: 403 });
     }
 
+    // SECURITY: Prevent completing an order that is already completed or cancelled.
+    // Re-completing a paid order could trigger duplicate loyalty/reward payouts and
+    // double-count merchant revenue.
+    if (order.status === 'completed' || order.status === 'cancelled' || order.status === 'refunded') {
+      return Response.json({ success: false, error: `Order is already ${order.status} and cannot be completed` }, { status: 400 });
+    }
+
+    // SECURITY: Determine the effective payment method. The client may supply a
+    // payment_method, but it must not be allowed to downgrade a non-cash order to
+    // 'cash' to bypass payment-confirmation requirements. If the order already has
+    // a non-cash payment_method set, keep it; otherwise use the client-supplied value.
+    const effectivePaymentMethod = payment_method || order.payment_method || 'cash';
+
+    // SECURITY: For non-cash payments, require non-empty payment_details as evidence
+    // that the payment was actually processed (Stripe PI ID, Solana signature, etc.).
+    // Cash has no gateway payload; its trust signal is the cashier's approval.
+    const isCashPayment = effectivePaymentMethod === 'cash';
+    const hasPaymentDetails = payment_details && typeof payment_details === 'object' && Object.keys(payment_details).length > 0;
+    if (!isCashPayment && !hasPaymentDetails) {
+      return Response.json({ success: false, error: 'Payment confirmation details are required to complete this order' }, { status: 400 });
+    }
+
+    // SECURITY: Validate the order total is positive before completing. A zero or
+    // negative total would allow free orders to be completed without payment.
+    const orderTotal = Number(order.total);
+    if (!Number.isFinite(orderTotal) || orderTotal <= 0) {
+      return Response.json({ success: false, error: 'Order total must be greater than zero to complete' }, { status: 400 });
+    }
+
     // Update order to completed
     const updated = await base44.asServiceRole.entities.Order.update(order_id, {
       status: 'completed',
-      payment_method: payment_method || order.payment_method,
+      payment_method: effectivePaymentMethod,
       payment_details: {
         ...(order.payment_details || {}),
         ...(payment_details || {}),
