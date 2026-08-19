@@ -10,6 +10,26 @@ export default function NotificationBanner() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const dismissedKey = (uid) => `smpf_dismissed_notifications_${uid || 'anon'}`;
+
+  const getLocalDismissed = (uid) => {
+    try {
+      return new Set(JSON.parse(localStorage.getItem(dismissedKey(uid)) || '[]'));
+    } catch {
+      return new Set();
+    }
+  };
+
+  const addLocalDismissed = (uid, notifId) => {
+    try {
+      const set = getLocalDismissed(uid);
+      set.add(notifId);
+      localStorage.setItem(dismissedKey(uid), JSON.stringify([...set]));
+    } catch {
+      // localStorage may be unavailable; local dismiss just won't persist
+    }
+  };
+
   useEffect(() => {
     loadNotifications();
     // Poll for new notifications every 60 seconds
@@ -63,6 +83,7 @@ export default function NotificationBanner() {
       }
 
       // Filter notifications for this merchant
+      const localDismissed = getLocalDismissed(currentUser.id);
       const relevantNotifications = allNotifications.filter(notification => {
         // Check if expired
         if (notification.expires_at && notification.expires_at < now) return false;
@@ -70,6 +91,10 @@ export default function NotificationBanner() {
         // Check if dismissed by this user (applies to all notifications,
         // so a user-closed popup does not reappear on the next poll)
         if (notification.dismissed_by?.includes(currentUser.id)) return false;
+
+        // Also check local dismissals — the server update is admin-only and
+        // silently fails for regular merchant users.
+        if (localDismissed.has(notification.id)) return false;
 
         // Check if targeted to this merchant (or all merchants)
         if (!notification.target_merchants || notification.target_merchants.length === 0) return true;
@@ -108,14 +133,18 @@ export default function NotificationBanner() {
   const handleDismiss = async (notification) => {
     // Always remove the popup locally so the user can close any notification.
     setNotifications(prev => prev.filter(n => n.id !== notification.id));
+    // Persist locally so the poll doesn't re-show it.
+    addLocalDismissed(user?.id, notification.id);
     if (!user) return;
 
+    // Best-effort server-side dismiss; this is admin-only and will fail
+    // silently for regular merchant users — the local record above covers them.
     try {
       await base44.entities.MerchantNotification.update(notification.id, {
         dismissed_by: [...(notification.dismissed_by || []), user.id]
       });
     } catch (error) {
-      console.error('Error dismissing notification:', error);
+      // Expected for non-admin users; local dismissal already handled.
     }
   };
 
