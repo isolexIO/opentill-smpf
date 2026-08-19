@@ -65,43 +65,49 @@ export default function PendingMerchants() {
     try {
       const ownerEmail = selectedMerchant.owner_email.toLowerCase().trim();
 
-      // Step 1: Activate merchant and send branded credentials email via backend.
-      // Pass pin + temp_password so the branded email includes the login credentials.
+      // Step 1: Create the merchant admin user account with the generated PIN.
+      // User records can't be created directly (405) — use the platform
+      // inviteUser, then set the PIN/merchant link via update. This MUST happen
+      // before activateMerchant so the owner is a registered user when the
+      // activation email is sent (SendEmail only delivers to registered users
+      // on this plan; a non-registered recipient is silently rejected).
+      let adminUser = null;
+      const existingUsers = await base44.entities.User.filter({ email: ownerEmail });
+      if (existingUsers && existingUsers.length > 0) {
+        adminUser = existingUsers[0];
+      } else {
+        try {
+          await base44.users.inviteUser(ownerEmail, 'admin');
+        } catch (inviteErr) {
+          // Throws if already invited — fall through and look it up.
+        }
+        const afterInvite = await base44.entities.User.filter({ email: ownerEmail });
+        adminUser = afterInvite?.[0] || null;
+      }
+
+      if (!adminUser) {
+        throw new Error('Failed to create merchant admin user. Please invite the user manually from the Users page, then activate again.');
+      }
+
+      await base44.entities.User.update(adminUser.id, {
+        full_name: selectedMerchant.owner_name || adminUser.full_name || ownerEmail.split('@')[0],
+        role: 'admin',
+        pin,
+        temp_password: tempPassword,
+        merchant_id: selectedMerchant.id,
+        dealer_id: selectedMerchant.dealer_id || null,
+        is_active: true,
+      });
+
+      // Step 2: Activate merchant and send branded credentials email via backend.
+      // Now that the owner is a registered user, SendEmail will deliver. Pass
+      // pin + temp_password so the branded email includes the login credentials.
       await base44.functions.invoke('activateMerchant', {
         merchant_id: selectedMerchant.id,
         action: 'activate',
         pin,
         temp_password: tempPassword
       });
-
-      // Step 2: Create the merchant admin User record with the generated PIN.
-      // authenticatePinUser looks up User by { pin, merchant_id }, so the PIN
-      // only works if a User record exists with it. Match the staff-creation
-      // pattern (entities.User.create from the client). If a user with this
-      // email already exists, link/update it instead of creating a duplicate.
-      const existingUsers = await base44.entities.User.filter({ email: ownerEmail });
-      if (existingUsers && existingUsers.length > 0) {
-        await base44.entities.User.update(existingUsers[0].id, {
-          full_name: selectedMerchant.owner_name || existingUsers[0].full_name || ownerEmail.split('@')[0],
-          role: 'admin',
-          pin,
-          temp_password: tempPassword,
-          merchant_id: selectedMerchant.id,
-          dealer_id: selectedMerchant.dealer_id || null,
-          is_active: true,
-        });
-      } else {
-        await base44.entities.User.create({
-          email: ownerEmail,
-          full_name: selectedMerchant.owner_name || ownerEmail.split('@')[0],
-          role: 'admin',
-          pin,
-          temp_password: tempPassword,
-          merchant_id: selectedMerchant.id,
-          dealer_id: selectedMerchant.dealer_id || null,
-          is_active: true,
-        });
-      }
 
       // Step 3: Set up demo data if requested
       if (selectedMerchant.settings?.demo_data_requested) {
