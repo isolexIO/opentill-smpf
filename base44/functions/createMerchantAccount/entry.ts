@@ -53,11 +53,78 @@ Deno.serve(async (req) => {
                 }, { status: 403 });
             }
 
+            // Look up the merchant so we can create a proper admin user
+            const existingMerchant = await base44.asServiceRole.entities.Merchant.get(merchant_id);
+            if (!existingMerchant) {
+                return Response.json({
+                    success: false,
+                    error: 'Merchant not found'
+                }, { status: 404 });
+            }
+
             if (activate) {
                 await base44.asServiceRole.entities.Merchant.update(merchant_id, {
                     status: 'active',
-                    activated_at: new Date().toISOString()
+                    activated_at: new Date().toISOString(),
+                    trial_ends_at: null
                 });
+            }
+
+            // Create the merchant admin user with the generated PIN so they
+            // can log in via PinLogin. Skip if a user already exists for this
+            // merchant + email.
+            if (pin) {
+                const existingUsers = await base44.asServiceRole.entities.User.filter({
+                    merchant_id: merchant_id,
+                    email: (owner_email || existingMerchant.owner_email).toLowerCase().trim()
+                });
+
+                if (!existingUsers || existingUsers.length === 0) {
+                    // Ensure the PIN is unique across all users
+                    let uniquePin = pin;
+                    const pinInUse = await base44.asServiceRole.entities.User.filter({ pin: uniquePin });
+                    if (pinInUse && pinInUse.length > 0) {
+                        const randomBytes = crypto.getRandomValues(new Uint32Array(1));
+                        uniquePin = (100000 + (randomBytes[0] % 900000)).toString();
+                    }
+
+                    await base44.asServiceRole.entities.User.create({
+                        full_name: (owner_name || existingMerchant.owner_name || 'Merchant Admin').trim(),
+                        email: (owner_email || existingMerchant.owner_email).toLowerCase().trim(),
+                        role: 'admin',
+                        merchant_id: merchant_id,
+                        dealer_id: existingMerchant.dealer_id || null,
+                        pin: uniquePin,
+                        employee_id: `MERCHANT-${Date.now()}`,
+                        is_active: true,
+                        permissions: [
+                            'manage_products',
+                            'manage_inventory',
+                            'manage_orders',
+                            'view_reports',
+                            'manage_settings',
+                            'process_refunds',
+                            'submit_tickets'
+                        ],
+                        can_view_all_merchants: false,
+                        can_view_all_dealers: false,
+                        wallet_address: null,
+                        wallet_provider: null,
+                        pos_settings: {},
+                        last_login: null,
+                        hourly_rate: 0
+                    });
+
+                    // Invite via platform so they get the magic-link / Google login email
+                    try {
+                        await base44.users.inviteUser(
+                            (owner_email || existingMerchant.owner_email).toLowerCase().trim(),
+                            'user'
+                        );
+                    } catch (inviteError) {
+                        console.warn('Failed to send platform invitation (non-fatal):', inviteError);
+                    }
+                }
             }
 
             return Response.json({
