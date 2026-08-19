@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+// activateMerchant — handles merchant activation/rejection with branded HTML emails
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
