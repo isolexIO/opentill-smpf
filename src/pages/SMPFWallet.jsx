@@ -24,6 +24,7 @@ import TransactionHistoryTab from '@/components/smpf/TransactionHistoryTab';
 import SendScreen from '@/components/smpf/SendScreen';
 import DucPresaleCard from '@/components/smpf/DucPresaleCard';
 import ConnectRewardsCard from '@/components/smpf/ConnectRewardsCard';
+import RestoreFromBackup from '@/components/smpf/RestoreFromBackup';
 
 export default function SMPFWallet() {
   const [user, setUser] = useState(null);
@@ -673,11 +674,10 @@ export default function SMPFWallet() {
                 }}
               />
             ) : (
-              <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg text-amber-300 text-xs space-y-3 text-center">
-                <AlertCircle className="w-5 h-5 mx-auto text-amber-400" />
-                <p>No local keypair is available on this device. Sending requires the wallet's private key, which is only present on the device where the wallet was created.</p>
-                <p className="text-white/50">Restore your wallet from your encrypted backup file to enable sending.</p>
-              </div>
+              <RestoreFromBackup
+                expectedAddress={solAddress}
+                onRestored={() => initWallet()}
+              />
             )}
           </DialogContent>
         </Dialog>
