@@ -63,51 +63,26 @@ export default function PendingMerchants() {
     setActivationError('');
     
     try {
-      const ownerEmail = selectedMerchant.owner_email.toLowerCase().trim();
-
-      // Step 1: Create the merchant admin user account with the generated PIN.
-      // User records can't be created directly (405) — use the platform
-      // inviteUser, then set the PIN/merchant link via update. This MUST happen
-      // before activateMerchant so the owner is a registered user when the
-      // activation email is sent (SendEmail only delivers to registered users
-      // on this plan; a non-registered recipient is silently rejected).
-      let adminUser = null;
-      const existingUsers = await base44.entities.User.filter({ email: ownerEmail });
-      if (existingUsers && existingUsers.length > 0) {
-        adminUser = existingUsers[0];
-      } else {
-        try {
-          await base44.users.inviteUser(ownerEmail, 'admin');
-        } catch (inviteErr) {
-          // Throws if already invited — fall through and look it up.
-        }
-        const afterInvite = await base44.entities.User.filter({ email: ownerEmail });
-        adminUser = afterInvite?.[0] || null;
-      }
-
-      if (!adminUser) {
-        throw new Error('Failed to create merchant admin user. Please invite the user manually from the Users page, then activate again.');
-      }
-
-      await base44.entities.User.update(adminUser.id, {
-        full_name: selectedMerchant.owner_name || adminUser.full_name || ownerEmail.split('@')[0],
-        role: 'admin',
-        pin,
-        temp_password: tempPassword,
-        merchant_id: selectedMerchant.id,
-        dealer_id: selectedMerchant.dealer_id || null,
-        is_active: true,
-      });
-
-      // Step 2: Activate merchant and send branded credentials email via backend.
-      // Now that the owner is a registered user, SendEmail will deliver. Pass
-      // pin + temp_password so the branded email includes the login credentials.
+      // Step 1: Activate merchant and set trial period via backend
       await base44.functions.invoke('activateMerchant', {
         merchant_id: selectedMerchant.id,
-        action: 'activate',
-        pin,
-        temp_password: tempPassword
+        action: 'activate'
       });
+
+      // Step 2: Create admin user via backend function
+      const response = await base44.functions.invoke('createMerchantAccount', {
+        merchant_id: selectedMerchant.id,
+        owner_email: selectedMerchant.owner_email,
+        owner_name: selectedMerchant.owner_name,
+        dealer_id: selectedMerchant.dealer_id || null,
+        pin: pin,
+        temp_password: tempPassword,
+        activate: true
+      });
+
+      if (!response.data?.success) {
+        throw new Error(response.data?.error || 'Failed to create merchant account');
+      }
 
       // Step 3: Set up demo data if requested
       if (selectedMerchant.settings?.demo_data_requested) {
@@ -120,7 +95,34 @@ export default function PendingMerchants() {
         }
       }
 
-      alert(`✅ Account activated successfully!\n\nMerchant: ${selectedMerchant.business_name}\nStatus: Active\nAdmin user created for: ${selectedMerchant.owner_email}\n\nCredentials:\nPIN: ${pin}\nPassword: ${tempPassword}\n\n${selectedMerchant.settings?.demo_data_requested ? 'Demo data has been set up.\n\n' : ''}An activation email has been sent.`);
+      // Step 4: Send activation email
+      try {
+        await base44.functions.invoke('sendEmail', {
+          to: selectedMerchant.owner_email,
+          subject: 'openTILL POS - Your Account is Ready!',
+          body: `
+Great news, ${selectedMerchant.owner_name}!
+
+Your openTILL POS account has been activated and is ready to use.
+
+Your Login Credentials:
+Email: ${selectedMerchant.owner_email}
+PIN: ${pin}
+Temporary Password: ${tempPassword}
+
+You can now log in at ${window.location.origin}/PinLogin using your 6-digit PIN for quick access.
+
+Your 30-day free trial has started!
+
+Best regards,
+openTILL POS Team
+          `
+        });
+      } catch (emailError) {
+        console.warn('Email failed, but user was created successfully:', emailError);
+      }
+
+      alert(`✅ Account activated successfully!\n\nMerchant: ${selectedMerchant.business_name}\nStatus: Trial (30 days)\nAdmin user created for: ${selectedMerchant.owner_email}\n\nCredentials:\nPIN: ${pin}\nPassword: ${tempPassword}\n\n${selectedMerchant.settings?.demo_data_requested ? 'Demo data has been set up.\n\n' : ''}An activation email has been sent.`);
       
       queryClient.invalidateQueries({ queryKey: ['pending-merchants'] });
       setSelectedMerchant(null);
