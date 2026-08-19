@@ -208,7 +208,7 @@ Deno.serve(async (req) => {
             await sendEmail(
               interestedEmail,
               `Your Referral Has Been Activated: ${bizName}`,
-              `Good news! A merchant you referred has been activated on openTILL.\n\nBusiness: ${bizName}\nOwner: ${ownerName}\nStatus: Active\n\nYou can view this merchant's progress from your ambassador dashboard.\n\nBest regards,\nThe openTILL Team`
+              `Good news! A merchant you referred has been activated on openTILL.\n\nBusiness: ${bizName}\nOwner: ${ownerName}\nTrial Expires: ${trialExpires}\n\nYou can view this merchant's progress from your ambassador dashboard.\n\nBest regards,\nThe openTILL Team`
             );
           }
         } catch (ambassadorError) {
