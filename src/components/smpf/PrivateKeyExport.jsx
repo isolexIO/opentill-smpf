@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Key, Lock, Copy, CheckCircle2, ShieldAlert, Loader2, X } from 'lucide-react';
+import { Key, Lock, Copy, CheckCircle2, ShieldAlert, Loader2, X, QrCode, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { getWallet } from '@/lib/smpfWalletStore';
 import { decryptWallet } from '@/lib/smpfCrypto';
 import bs58 from 'bs58';
 import nacl from 'tweetnacl';
+import QRCode from 'qrcode';
 
 // A valid Solana secret key is 64 bytes: [32-byte seed || 32-byte public key],
 // where the public key is derived from the seed. Solflare/Phantom derive the
@@ -32,6 +33,17 @@ export default function PrivateKeyExport({ wallet, session, onClose }) {
   const [decrypting, setDecrypting] = useState(false);
   const [exportedKey, setExportedKey] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState(null);
+  const [showQr, setShowQr] = useState(false);
+
+  // Generate a QR code from the exported base58 key so it can be scanned by
+  // Phantom / Solflare mobile apps for direct import.
+  useEffect(() => {
+    if (!exportedKey) { setQrDataUrl(null); return; }
+    QRCode.toDataURL(exportedKey, { width: 240, margin: 1, color: { dark: '#000000', light: '#ffffff' } })
+      .then(setQrDataUrl)
+      .catch(() => setQrDataUrl(null));
+  }, [exportedKey]);
 
   const handleExport = async (e) => {
     e.preventDefault();
@@ -145,6 +157,27 @@ export default function PrivateKeyExport({ wallet, session, onClose }) {
               <div className="p-3 bg-slate-950 border border-white/10 rounded-lg break-all font-mono text-xs text-emerald-400">
                 {exportedKey}
               </div>
+
+              {qrDataUrl && (
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowQr((s) => !s)}
+                    className="w-full flex items-center justify-center gap-2 text-xs text-indigo-300 hover:text-indigo-200 transition-colors py-1"
+                  >
+                    <QrCode className="w-4 h-4" />
+                    {showQr ? 'Hide QR code' : 'Show QR code for mobile import'}
+                  </button>
+                  {showQr && (
+                    <div className="flex flex-col items-center gap-2 p-3 bg-white rounded-lg">
+                      <img src={qrDataUrl} alt="Private key QR code" className="w-48 h-48" />
+                      <p className="text-[10px] text-slate-600 text-center">
+                        Open Phantom or Solflare on your phone, choose <strong>Import Private Key</strong>, then scan this code.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
 
               <Button
                 onClick={copyKey}
