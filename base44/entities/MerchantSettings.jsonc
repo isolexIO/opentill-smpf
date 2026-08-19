@@ -250,6 +250,52 @@
               }
             }
           }
+        },
+        "scales": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "usb",
+                  "bluetooth",
+                  "ethernet",
+                  "serial"
+                ]
+              },
+              "connection_type": {
+                "type": "string",
+                "enum": [
+                  "usb",
+                  "bluetooth",
+                  "ethernet",
+                  "serial"
+                ]
+              },
+              "ip_address": {
+                "type": "string"
+              },
+              "port": {
+                "type": "number"
+              },
+              "is_connected": {
+                "type": "boolean",
+                "default": false
+              },
+              "last_tested": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
         }
       }
     }

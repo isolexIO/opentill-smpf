@@ -1178,6 +1178,24 @@ export default function POSPage() {
           return newCart;
         }
 
+        // Weight-priced items: always add as a new line (weight varies per entry)
+        if (product.pricing_type === 'weight' && product._calculated_price != null) {
+          const newCart = [...currentCart, {
+            ...product,
+            quantity: 1,
+            modifiers: [],
+            modifierTotal: 0,
+            itemTotal: product._calculated_price,
+            weight: product._weight,
+            weight_unit: product._weight_unit,
+            ebt_eligible: product.ebt_eligible || false,
+            age_restricted: product.age_restricted || false,
+            minimum_age: product.minimum_age || null
+          }];
+          console.log('POS: Added weight item, new cart length:', newCart.length);
+          return newCart;
+        }
+
         // For regular products, check if an identical item exists
         const existingItemIndex = currentCart.findIndex(
           item => item.id === product.id &&

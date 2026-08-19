@@ -1,10 +1,10 @@
-
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Heart } from 'lucide-react';
+import { Plus, Heart, Scale } from 'lucide-react';
 import ModifierDialog from '../online-menu/ModifierDialog';
+import WeightEntryDialog from './WeightEntryDialog';
 
 export default function ProductGrid({ 
   products = [], 
@@ -16,14 +16,27 @@ export default function ProductGrid({
   isFavorite = null
 }) {
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [weightProduct, setWeightProduct] = useState(null);
 
   const handleProductClick = (product) => {
     console.log('ProductGrid: Product clicked:', product.name);
-    if (product.modifiers && product.modifiers.length > 0) {
+    if (product.pricing_type === 'weight') {
+      setWeightProduct(product);
+    } else if (product.modifiers && product.modifiers.length > 0) {
       setSelectedProduct(product);
     } else {
       onAddToCart(product, []);
     }
+  };
+
+  const handleWeightConfirm = (weight) => {
+    const product = { ...weightProduct };
+    const unit = product.weight_unit || 'lb';
+    product._weight = weight;
+    product._weight_unit = unit;
+    product._calculated_price = weight * (product.price || 0);
+    onAddToCart(product, []);
+    setWeightProduct(null);
   };
 
   const handleModifiersConfirm = (product, selectedModifiers) => {
@@ -94,9 +107,17 @@ export default function ProductGrid({
               </div>
               
               <div className="flex items-center justify-between mt-2">
-                <span className="font-bold text-green-600">
-                  ${(product.price || 0).toFixed(2)}
-                </span>
+                {product.pricing_type === 'weight' ? (
+                  <span className="font-bold text-green-600 flex items-center gap-1">
+                    ${(product.price || 0).toFixed(2)}
+                    <span className="text-xs font-normal text-gray-500">/{product.weight_unit || 'lb'}</span>
+                    <Scale className="w-3.5 h-3.5 text-amber-500" />
+                  </span>
+                ) : (
+                  <span className="font-bold text-green-600">
+                    ${(product.price || 0).toFixed(2)}
+                  </span>
+                )}
                 {product.modifiers && product.modifiers.length > 0 && (
                   <Badge variant="outline" className="text-xs">
                     Customizable
@@ -127,6 +148,15 @@ export default function ProductGrid({
           product={selectedProduct}
           onAddToCart={handleModifiersConfirm}
           onCancel={() => setSelectedProduct(null)}
+        />
+      )}
+
+      {weightProduct && (
+        <WeightEntryDialog
+          product={weightProduct}
+          open={true}
+          onClose={() => setWeightProduct(null)}
+          onConfirm={handleWeightConfirm}
         />
       )}
     </>

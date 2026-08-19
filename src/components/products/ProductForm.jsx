@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,6 +49,8 @@ export default function ProductForm({ product, onSave, onCancel, posMode }) {
     minimum_age: 21,
     restriction_type: 'alcohol',
     tippable: true, // Added new field with a default value
+    pricing_type: 'fixed', // 'fixed' or 'weight'
+    weight_unit: 'lb', // 'lb', 'oz', 'kg', 'g'
     ...(product || {}) // Spread product at the end to override defaults
   });
 
@@ -123,8 +124,58 @@ export default function ProductForm({ product, onSave, onCancel, posMode }) {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="price">Price</Label>
+                  <Label htmlFor="pricing_type">Pricing Type</Label>
+                  <Select
+                    value={formData.pricing_type || 'fixed'}
+                    onValueChange={(value) => handleChange('pricing_type', value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="fixed">Fixed Price (per item)</SelectItem>
+                      <SelectItem value="weight">Sell by Weight</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {formData.pricing_type === 'weight'
+                      ? 'POS will prompt for weight at checkout'
+                      : 'Standard pricing — one flat price per item'}
+                  </p>
+                </div>
+                {formData.pricing_type === 'weight' && (
+                  <div>
+                    <Label htmlFor="weight_unit">Weight Unit</Label>
+                    <Select
+                      value={formData.weight_unit || 'lb'}
+                      onValueChange={(value) => handleChange('weight_unit', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="lb">Pounds (lb)</SelectItem>
+                        <SelectItem value="oz">Ounces (oz)</SelectItem>
+                        <SelectItem value="kg">Kilograms (kg)</SelectItem>
+                        <SelectItem value="g">Grams (g)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="price">
+                    {formData.pricing_type === 'weight'
+                      ? `Price per ${formData.weight_unit || 'lb'}`
+                      : 'Price'}
+                  </Label>
                   <Input id="price" type="number" step="0.01" value={formData.price} onChange={(e) => handleChange("price", parseFloat(e.target.value) || 0)} required />
+                  {formData.pricing_type === 'weight' && (
+                    <p className="text-xs text-amber-600 mt-1">
+                      e.g. $2.99/lb — customer pays weight × this price
+                    </p>
+                  )}
                 </div>
                 <div>
                   <Label htmlFor="department">Department *</Label>

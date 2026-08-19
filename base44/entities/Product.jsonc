@@ -24,7 +24,27 @@
     },
     "price": {
       "type": "number",
-      "description": "Base price"
+      "description": "Base price (per unit for fixed, per weight_unit for weight-priced items)"
+    },
+    "pricing_type": {
+      "type": "string",
+      "enum": [
+        "fixed",
+        "weight"
+      ],
+      "default": "fixed",
+      "description": "fixed = flat price per item, weight = price per weight_unit (e.g. per lb). Weight items prompt for weight at POS."
+    },
+    "weight_unit": {
+      "type": "string",
+      "enum": [
+        "lb",
+        "oz",
+        "kg",
+        "g"
+      ],
+      "default": "lb",
+      "description": "Unit of weight used when pricing_type is 'weight'. Price is per this unit."
     },
     "department": {
       "type": "string",

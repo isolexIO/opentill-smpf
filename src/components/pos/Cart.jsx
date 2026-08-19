@@ -134,6 +134,11 @@ export default function Cart({
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <p className="font-semibold">{item.name}</p>
+                    {item.pricing_type === 'weight' && item.weight != null && (
+                      <Badge variant="secondary" className="text-xs bg-amber-100 text-amber-800">
+                        {item.weight} {item.weight_unit || 'lb'}
+                      </Badge>
+                    )}
                     {item.ebt_eligible && (
                       <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">
                         EBT
@@ -157,30 +162,34 @@ export default function Cart({
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="flex items-center border rounded-md">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 min-h-[44px] md:min-h-[32px]"
-                      onClick={() => handleOptimisticUpdate(index, item.quantity - 1)}
-                    >
-                      <Minus className="w-3 h-3" />
-                    </Button>
-                    <Input
-                      type="number"
-                      value={item.quantity}
-                      onChange={(e) => handleOptimisticUpdate(index, parseInt(e.target.value) || 1)}
-                      className="w-12 h-8 text-center border-none focus-visible:ring-0"
-                    />
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 min-h-[44px] md:min-h-[32px]"
-                      onClick={() => handleOptimisticUpdate(index, item.quantity + 1)}
-                    >
-                      <Plus className="w-3 h-3" />
-                    </Button>
-                  </div>
+                  {item.pricing_type === 'weight' ? (
+                    <span className="text-xs text-gray-400 italic mr-1">weighed</span>
+                  ) : (
+                    <div className="flex items-center border rounded-md">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 min-h-[44px] md:min-h-[32px]"
+                        onClick={() => handleOptimisticUpdate(index, item.quantity - 1)}
+                      >
+                        <Minus className="w-3 h-3" />
+                      </Button>
+                      <Input
+                        type="number"
+                        value={item.quantity}
+                        onChange={(e) => handleOptimisticUpdate(index, parseInt(e.target.value) || 1)}
+                        className="w-12 h-8 text-center border-none focus-visible:ring-0"
+                      />
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 min-h-[44px] md:min-h-[32px]"
+                        onClick={() => handleOptimisticUpdate(index, item.quantity + 1)}
+                      >
+                        <Plus className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  )}
                   <Button
                     variant="ghost"
                     size="icon"
