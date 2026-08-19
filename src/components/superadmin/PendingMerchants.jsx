@@ -63,20 +63,28 @@ export default function PendingMerchants() {
     setActivationError('');
     
     try {
-      // Single backend call: activates the merchant, creates the admin User
-      // with the PIN + temp_password, and sends the branded credentials email.
-      const response = await base44.functions.invoke('activateMerchant', {
+      // Step 1: Activate merchant and set trial period via backend
+      await base44.functions.invoke('activateMerchant', {
         merchant_id: selectedMerchant.id,
-        action: 'activate',
+        action: 'activate'
+      });
+
+      // Step 2: Create admin user via backend function
+      const response = await base44.functions.invoke('createMerchantAccount', {
+        merchant_id: selectedMerchant.id,
+        owner_email: selectedMerchant.owner_email,
+        owner_name: selectedMerchant.owner_name,
+        dealer_id: selectedMerchant.dealer_id || null,
         pin: pin,
-        temp_password: tempPassword
+        temp_password: tempPassword,
+        activate: true
       });
 
       if (!response.data?.success) {
-        throw new Error(response.data?.error || 'Failed to activate merchant');
+        throw new Error(response.data?.error || 'Failed to create merchant account');
       }
 
-      // Set up demo data if requested
+      // Step 3: Set up demo data if requested
       if (selectedMerchant.settings?.demo_data_requested) {
         try {
           await base44.functions.invoke('setupDemoMenu', {
@@ -87,7 +95,34 @@ export default function PendingMerchants() {
         }
       }
 
-      alert(`✅ Account activated successfully!\n\nMerchant: ${selectedMerchant.business_name}\nStatus: Active\nAdmin user created for: ${selectedMerchant.owner_email}\n\nCredentials:\nPIN: ${pin}\nPassword: ${tempPassword}\n\n${selectedMerchant.settings?.demo_data_requested ? 'Demo data has been set up.\n\n' : ''}A branded activation email with credentials has been sent.`);
+      // Step 4: Send activation email
+      try {
+        await base44.functions.invoke('sendEmail', {
+          to: selectedMerchant.owner_email,
+          subject: 'openTILL POS - Your Account is Ready!',
+          body: `
+Great news, ${selectedMerchant.owner_name}!
+
+Your openTILL POS account has been activated and is ready to use.
+
+Your Login Credentials:
+Email: ${selectedMerchant.owner_email}
+PIN: ${pin}
+Temporary Password: ${tempPassword}
+
+You can now log in at ${window.location.origin}/PinLogin using your 6-digit PIN for quick access.
+
+Your 30-day free trial has started!
+
+Best regards,
+openTILL POS Team
+          `
+        });
+      } catch (emailError) {
+        console.warn('Email failed, but user was created successfully:', emailError);
+      }
+
+      alert(`✅ Account activated successfully!\n\nMerchant: ${selectedMerchant.business_name}\nStatus: Trial (30 days)\nAdmin user created for: ${selectedMerchant.owner_email}\n\nCredentials:\nPIN: ${pin}\nPassword: ${tempPassword}\n\n${selectedMerchant.settings?.demo_data_requested ? 'Demo data has been set up.\n\n' : ''}An activation email has been sent.`);
       
       queryClient.invalidateQueries({ queryKey: ['pending-merchants'] });
       setSelectedMerchant(null);

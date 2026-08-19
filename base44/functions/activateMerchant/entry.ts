@@ -1,9 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
-import bcrypt from 'npm:bcryptjs@2.4.3';
 
-// activateMerchant — handles merchant activation/rejection with branded HTML emails.
-// Also creates/updates the merchant admin User with PIN + temp_password so the
-// credentials in the activation email actually work at login.
+// activateMerchant — handles merchant activation/rejection with branded HTML emails
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -83,9 +80,8 @@ Deno.serve(async (req) => {
 </body>
 </html>`;
 
-    // Send the branded welcome email via the built-in SendEmail integration.
-    // The merchant owner is invited via base44.users.inviteUser below, which
-    // creates their auth account — SendEmail reliably reaches registered users.
+    // Use the built-in SendEmail integration instead of nodemailer — direct
+    // SMTP connections time out in the edge function environment.
     const sendEmail = async (to, subject, htmlBody) => {
       try {
         await base44.asServiceRole.integrations.Core.SendEmail({
@@ -111,70 +107,6 @@ Deno.serve(async (req) => {
         status: 'active',
         activated_at: now
       });
-
-      // Provision the merchant admin User so the PIN / temp_password in the
-      // branded activation email actually work at login. We create the User
-      // directly via asServiceRole (same pattern as createDealerAccount) — no
-      // platform invitation email, the branded email below carries credentials.
-      if (pin || temp_password) {
-        const emailLower = (merchantData.owner_email || '').toLowerCase().trim();
-        const tempPasswordHash = temp_password ? bcrypt.hashSync(temp_password, 10) : null;
-
-        try {
-          const existingUsers = await base44.asServiceRole.entities.User.filter({ email: emailLower });
-
-          if (existingUsers && existingUsers.length > 0) {
-            await base44.asServiceRole.entities.User.update(existingUsers[0].id, {
-              pin: pin || existingUsers[0].pin,
-              temp_password: tempPasswordHash,
-              merchant_id: merchant_id,
-              dealer_id: merchantData.dealer_id || existingUsers[0].dealer_id,
-              is_active: true
-            });
-          } else {
-            await base44.asServiceRole.entities.User.create({
-              full_name: merchantData.owner_name || merchantData.business_name,
-              email: emailLower,
-              role: 'user',
-              merchant_id: merchant_id,
-              dealer_id: merchantData.dealer_id || null,
-              pin: pin || null,
-              temp_password: tempPasswordHash,
-              is_active: true,
-              permissions: [
-                'process_orders',
-                'manage_inventory',
-                'view_reports',
-                'manage_customers',
-                'process_refunds',
-                'admin_settings',
-                'manage_users',
-                'access_marketplace',
-                'configure_devices',
-                'configure_payments',
-                'submit_tickets',
-                'view_all_tickets'
-              ]
-            });
-          }
-
-          // Invite the merchant owner via base44 so a real auth account is
-          // created. Without this, the User entity row exists but the merchant
-          // has no auth account — they can't log in and SendEmail silently
-          // drops them (only reaches registered users). Same pattern as
-          // createDealerAccount.
-          try {
-            await base44.users.inviteUser(emailLower, 'user');
-            console.log('Invitation sent to merchant owner:', emailLower);
-          } catch (inviteError) {
-            // Ignore "already invited" errors — the user may already have an
-            // auth account from a previous activation attempt.
-            console.error('Failed to send invitation (may already exist):', inviteError);
-          }
-        } catch (userError) {
-          console.error('Failed to provision merchant admin user:', userError);
-        }
-      }
 
       const bizName = sanitizeForEmail(merchantData.business_name);
       const ownerName = sanitizeForEmail(merchantData.owner_name) || 'Merchant';
