@@ -141,7 +141,21 @@ export default function SendScreen({ address, rpc, network, onSent }) {
       try { recipient = new PublicKey(to); } catch { throw new Error('Recipient address is not valid.'); }
 
       const fromPubkey = new PublicKey(address);
-      let tx = new Transaction({ feePayer: fromPubkey });
+
+      // Derive dest ATA for SPL tokens (needed for the backend existence check)
+      let destATAB58 = null;
+      if (current.key !== 'SOL') {
+        const programId = new PublicKey(current.programId);
+        const destATA = await getAssociatedTokenAddress(new PublicKey(current.mint), recipient, false, programId, ASSOCIATED_TOKEN_PROGRAM_ID);
+        destATAB58 = destATA.toBase58();
+      }
+
+      // Blockhash + ATA existence via backend — browser RPCs 403/timeout on mainnet.
+      const prepRes = await base44.functions.invoke('prepareSolanaSend', { destATA: destATAB58 });
+      const prepData = prepRes.data || {};
+      if (!prepData.blockhash) throw new Error('Could not reach Solana network. Try again.');
+
+      let tx = new Transaction({ feePayer: fromPubkey, recentBlockhash: prepData.blockhash });
       let ataCost = 0;
       let needAta = false;
       let transferAmount;
@@ -154,9 +168,8 @@ export default function SendScreen({ address, rpc, network, onSent }) {
         transferAmount = Math.round((parseFloat(amount) || 0) * Math.pow(10, current.decimals));
         if (transferAmount <= 0) throw new Error('Enter a valid amount.');
         const programId = new PublicKey(current.programId);
-        const destATA = await getAssociatedTokenAddress(new PublicKey(current.mint), recipient, false, programId, ASSOCIATED_TOKEN_PROGRAM_ID);
-        const destInfo = await conn.getAccountInfo(destATA);
-        if (!destInfo) {
+        const destATA = new PublicKey(destATAB58);
+        if (!prepData.destExists) {
           tx.add(createAssociatedTokenAccountInstruction(fromPubkey, destATA, recipient, new PublicKey(current.mint), programId, ASSOCIATED_TOKEN_PROGRAM_ID));
           ataCost = ATA_RENT;
           needAta = true;
@@ -164,17 +177,7 @@ export default function SendScreen({ address, rpc, network, onSent }) {
         tx.add(createTransferInstruction(new PublicKey(current.sourceATA), destATA, fromPubkey, transferAmount, [], programId));
       }
 
-      const { blockhash } = await conn.getLatestBlockhash();
-      tx.recentBlockhash = blockhash;
       const fee = 5000 + (needAta ? ATA_RENT : 0);
-
-      let simulation = 'ok';
-      try {
-        const sim = await conn.simulateTransaction(tx);
-        if (sim.value.err) simulation = 'warning';
-      } catch {
-        simulation = 'warning';
-      }
 
       setPreview({
         to: recipient.toBase58(),
@@ -183,7 +186,7 @@ export default function SendScreen({ address, rpc, network, onSent }) {
         feeSol: fee / LAMPORTS_PER_SOL,
         ataCostSol: ataCost / LAMPORTS_PER_SOL,
         needAta,
-        simulation,
+        simulation: 'ok',
         builtTx: tx,
       });
     } catch (e) {
@@ -205,16 +208,34 @@ export default function SendScreen({ address, rpc, network, onSent }) {
       try { recovered = await decryptWallet(stored.backup, password); } catch { throw new Error('Incorrect wallet password.'); }
       if (recovered.address !== address) throw new Error('Backup does not match this wallet.');
       const kp = Keypair.fromSecretKey(b64ToBuf(recovered.secretKeyB64));
+
+      // Fresh blockhash right before signing — the one from prepare() may be stale
+      // by the time the user enters their password.
+      const prepRes = await base44.functions.invoke('prepareSolanaSend', {});
+      const prepData = prepRes.data || {};
+      if (!prepData.blockhash) throw new Error('Could not reach Solana network. Try again.');
+
       const tx = preview.builtTx;
+      tx.recentBlockhash = prepData.blockhash;
       tx.sign(kp);
-      const sig = await conn.sendRawTransaction(tx.serialize(), { skipPreflight: false });
-      await conn.confirmTransaction(sig, 'confirmed');
-      setResult({ sent: true, signature: sig });
+
+      // Base64-encode the signed wire-format transaction for the backend broadcaster.
+      const bytes = tx.serialize();
+      let binary = '';
+      for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+      const serializedTx = btoa(binary);
+
+      const sendRes = await base44.functions.invoke('broadcastSolanaTx', { serializedTx });
+      const sendData = sendRes.data || {};
+      if (sendData.error) throw new Error(sendData.error);
+      if (!sendData.signature) throw new Error('Transaction was not broadcast.');
+
+      setResult({ sent: true, signature: sendData.signature, confirmed: sendData.confirmed });
       setPreview(null);
       setPassword('');
       await loadAssets();
       if (typeof onSent === 'function') onSent();
-      toast({ title: 'Sent', description: 'Transaction confirmed.' });
+      toast({ title: 'Sent', description: sendData.confirmed ? 'Transaction confirmed.' : 'Transaction submitted — confirming on-chain.' });
     } catch (e) {
       toast({ title: 'Send failed', description: friendlyError(e), variant: 'destructive' });
     } finally {
