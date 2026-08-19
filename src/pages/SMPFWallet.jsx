@@ -666,6 +666,8 @@ export default function SMPFWallet() {
                 address={solAddress}
                 rpc={getNetworkRpcList(settings)[0] || 'https://api.mainnet-beta.solana.com'}
                 network={settings?.default_network || 'mainnet'}
+                settings={settings}
+                ducBalance={ducBalance}
                 onSent={() => {
                   refreshBalance();
                   refreshDuc();

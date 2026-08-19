@@ -15,6 +15,7 @@ import { decryptWallet } from '@/lib/smpfCrypto';
 import { base44 } from '@/api/base44Client';
 import { withTimeout } from '@/lib/smpfRpc';
 import { listContacts } from '@/lib/smpfAddressBook';
+import { getTokenMeta } from '@/lib/smpfTokenMeta';
 import { useToast } from '@/components/ui/use-toast';
 
 function friendlyError(err) {
@@ -27,7 +28,7 @@ function friendlyError(err) {
 
 const ATA_RENT = 2039280;
 
-export default function SendScreen({ address, rpc, network, onSent }) {
+export default function SendScreen({ address, rpc, network, settings, ducBalance, onSent }) {
   const { toast } = useToast();
   const [assets, setAssets] = useState([]);
   const [selAsset, setSelAsset] = useState('SOL');
@@ -105,11 +106,13 @@ export default function SendScreen({ address, rpc, network, onSent }) {
         }
       }
     }
+    const ducMint = settings?.verified_duc_mint;
     for (const t of (tokens || [])) {
       if (t.balance <= 0) continue;
+      const isDuc = ducMint && t.mint === ducMint;
       list.push({
         key: t.mint,
-        label: `${t.mint.slice(0, 4)}…${t.mint.slice(-4)}`,
+        label: isDuc ? '$DUC' : `${t.mint.slice(0, 4)}…${t.mint.slice(-4)}`,
         decimals: t.decimals,
         balance: t.balance,
         programId: t.programId,
@@ -117,7 +120,31 @@ export default function SendScreen({ address, rpc, network, onSent }) {
         sourceATA: t.sourceATA,
       });
     }
+    // Ensure $DUC is always an option even if getTokenAccounts missed it
+    // (RPC can omit zero-rounding or lag). Use the verified mint + ducBalance.
+    if (ducMint && !list.some((a) => a.mint === ducMint) && ducBalance && Number(ducBalance) > 0) {
+      list.push({
+        key: ducMint,
+        label: '$DUC',
+        decimals: settings?.duc_decimals || 6,
+        balance: Number(ducBalance),
+        programId: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
+        mint: ducMint,
+        sourceATA: null, // resolved at send time via getTokenAccounts if needed
+      });
+    }
     setAssets([...list]);
+    // Best-effort: resolve token symbols via on-chain metadata for friendlier labels.
+    for (const a of list) {
+      if (a.key === 'SOL' || a.label === '$DUC') continue;
+      try {
+        const m = await getTokenMeta(a.mint, settings);
+        if (m?.symbol) {
+          a.label = m.symbol;
+          setAssets((prev) => [...prev.map((x) => (x.key === a.key ? { ...x, label: m.symbol } : x))]);
+        }
+      } catch {}
+    }
   }
 
   const current = assets.find((a) => a.key === selAsset) || assets[0];
@@ -169,12 +196,18 @@ export default function SendScreen({ address, rpc, network, onSent }) {
         if (transferAmount <= 0) throw new Error('Enter a valid amount.');
         const programId = new PublicKey(current.programId);
         const destATA = new PublicKey(destATAB58);
+        // Resolve source ATA if missing (e.g. DUC added from ducBalance without RPC lookup)
+        let sourceATA = current.sourceATA;
+        if (!sourceATA) {
+          const derived = await getAssociatedTokenAddress(new PublicKey(current.mint), fromPubkey, false, programId, ASSOCIATED_TOKEN_PROGRAM_ID);
+          sourceATA = derived.toBase58();
+        }
         if (!prepData.destExists) {
           tx.add(createAssociatedTokenAccountInstruction(fromPubkey, destATA, recipient, new PublicKey(current.mint), programId, ASSOCIATED_TOKEN_PROGRAM_ID));
           ataCost = ATA_RENT;
           needAta = true;
         }
-        tx.add(createTransferInstruction(new PublicKey(current.sourceATA), destATA, fromPubkey, transferAmount, [], programId));
+        tx.add(createTransferInstruction(new PublicKey(sourceATA), destATA, fromPubkey, transferAmount, [], programId));
       }
 
       const fee = 5000 + (needAta ? ATA_RENT : 0);
