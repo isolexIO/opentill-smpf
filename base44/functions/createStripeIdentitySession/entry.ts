@@ -20,9 +20,14 @@ Deno.serve(async (req) => {
     let user = null;
     try { user = await base44.auth.me(); } catch { /* anonymous onboarding */ }
 
-    // Validate return_url against this app's origin to prevent open-redirect /
-    // phishing via attacker-supplied return_url.
-    const appOrigin = new URL(req.url).origin;
+    // Validate return_url against the calling app's origin to prevent
+    // open-redirect / phishing via attacker-supplied return_url. The browser
+    // sends the frontend origin in the `Origin` header (or `Referer` as
+    // fallback); req.url's origin is the function host, NOT the app, so it
+    // must not be used here.
+    const appOrigin = req.headers.get('origin')
+      || (req.headers.get('referer') ? new URL(req.headers.get('referer')).origin : null)
+      || new URL(req.url).origin;
     let safeReturnUrl = null;
     if (return_url) {
       try {
