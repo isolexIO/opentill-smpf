@@ -49,10 +49,15 @@ Deno.serve(async (req) => {
         }
 
         // Create transporter with SMTP credentials from environment
+        const smtpPortNum = parseInt(Deno.env.get('SMTP_PORT') || '465');
         const transporter = nodemailer.createTransport({
             host: smtpHost,
-            port: parseInt(Deno.env.get('SMTP_PORT') || '465'),
-            secure: true,
+            port: smtpPortNum,
+            secure: smtpPortNum === 465,
+            requireTLS: smtpPortNum !== 465,
+            connectionTimeout: 15000,
+            greetingTimeout: 15000,
+            socketTimeout: 15000,
             auth: {
                 user: smtpUser,
                 pass: smtpPass

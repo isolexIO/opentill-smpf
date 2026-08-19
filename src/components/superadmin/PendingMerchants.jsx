@@ -63,10 +63,12 @@ export default function PendingMerchants() {
     setActivationError('');
     
     try {
-      // Step 1: Activate merchant and set trial period via backend
+      // Step 1: Activate merchant — sends branded welcome email with credentials via SMTP
       await base44.functions.invoke('activateMerchant', {
         merchant_id: selectedMerchant.id,
-        action: 'activate'
+        action: 'activate',
+        pin: pin,
+        temp_password: tempPassword
       });
 
       // Step 2: Create admin user via backend function
@@ -95,34 +97,7 @@ export default function PendingMerchants() {
         }
       }
 
-      // Step 4: Send activation email
-      try {
-        await base44.functions.invoke('sendEmail', {
-          to: selectedMerchant.owner_email,
-          subject: 'openTILL POS - Your Account is Ready!',
-          body: `
-Great news, ${selectedMerchant.owner_name}!
-
-Your openTILL POS account has been activated and is ready to use.
-
-Your Login Credentials:
-Email: ${selectedMerchant.owner_email}
-PIN: ${pin}
-Temporary Password: ${tempPassword}
-
-You can now log in at ${window.location.origin}/PinLogin using your 6-digit PIN for quick access.
-
-Your 30-day free trial has started!
-
-Best regards,
-openTILL POS Team
-          `
-        });
-      } catch (emailError) {
-        console.warn('Email failed, but user was created successfully:', emailError);
-      }
-
-      alert(`✅ Account activated successfully!\n\nMerchant: ${selectedMerchant.business_name}\nStatus: Trial (30 days)\nAdmin user created for: ${selectedMerchant.owner_email}\n\nCredentials:\nPIN: ${pin}\nPassword: ${tempPassword}\n\n${selectedMerchant.settings?.demo_data_requested ? 'Demo data has been set up.\n\n' : ''}An activation email has been sent.`);
+      alert(`✅ Account activated successfully!\n\nMerchant: ${selectedMerchant.business_name}\nStatus: Active\nAdmin user created for: ${selectedMerchant.owner_email}\n\nCredentials:\nPIN: ${pin}\nPassword: ${tempPassword}\n\n${selectedMerchant.settings?.demo_data_requested ? 'Demo data has been set up.\n\n' : ''}A welcome email with credentials has been sent.`);
       
       queryClient.invalidateQueries({ queryKey: ['pending-merchants'] });
       setSelectedMerchant(null);

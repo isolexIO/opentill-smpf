@@ -137,7 +137,8 @@ Deno.serve(async (req) => {
 
       const updated = await base44.asServiceRole.entities.Merchant.update(merchant_id, {
         status: 'active',
-        activated_at: now
+        activated_at: now,
+        trial_ends_at: null
       });
 
       const bizName = sanitizeForEmail(merchantData.business_name);
