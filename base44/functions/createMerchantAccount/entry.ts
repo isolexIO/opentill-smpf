@@ -115,15 +115,7 @@ Deno.serve(async (req) => {
                         hourly_rate: 0
                     });
 
-                    // Invite via platform so they get the magic-link / Google login email
-                    try {
-                        await base44.users.inviteUser(
-                            (owner_email || existingMerchant.owner_email).toLowerCase().trim(),
-                            'user'
-                        );
-                    } catch (inviteError) {
-                        console.warn('Failed to send platform invitation (non-fatal):', inviteError);
-                    }
+
                 }
             }
 
