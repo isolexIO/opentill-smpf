@@ -46,6 +46,7 @@ Deno.serve(async (req) => {
         // which would bypass admin approval controls. Use /functions/activateMerchant
         // for activations.
         if (merchant_id) {
+            console.log('createMerchantAccount: merchant_id path', { merchant_id, isAdmin, hasPin: !!pin, activate });
             if (!isAdmin) {
                 return Response.json({
                     success: false,
@@ -74,9 +75,10 @@ Deno.serve(async (req) => {
             // can log in via PinLogin. Skip if a user already exists for this
             // merchant + email.
             if (pin) {
+                const userEmail = (owner_email || existingMerchant.owner_email).toLowerCase().trim();
                 const existingUsers = await base44.asServiceRole.entities.User.filter({
                     merchant_id: merchant_id,
-                    email: (owner_email || existingMerchant.owner_email).toLowerCase().trim()
+                    email: userEmail
                 });
 
                 if (!existingUsers || existingUsers.length === 0) {
@@ -88,32 +90,30 @@ Deno.serve(async (req) => {
                         uniquePin = (100000 + (randomBytes[0] % 900000)).toString();
                     }
 
-                    await base44.asServiceRole.entities.User.create({
-                        full_name: (owner_name || existingMerchant.owner_name || 'Merchant Admin').trim(),
-                        email: (owner_email || existingMerchant.owner_email).toLowerCase().trim(),
-                        role: 'admin',
-                        merchant_id: merchant_id,
-                        dealer_id: existingMerchant.dealer_id || null,
-                        pin: uniquePin,
-                        employee_id: `MERCHANT-${Date.now()}`,
-                        is_active: true,
-                        permissions: [
-                            'manage_products',
-                            'manage_inventory',
-                            'manage_orders',
-                            'view_reports',
-                            'manage_settings',
-                            'process_refunds',
-                            'submit_tickets'
-                        ],
-                        can_view_all_merchants: false,
-                        can_view_all_dealers: false,
-                        wallet_address: null,
-                        wallet_provider: null,
-                        pos_settings: {},
-                        last_login: null,
-                        hourly_rate: 0
-                    });
+                    try {
+                        const newUser = await base44.asServiceRole.entities.User.create({
+                            full_name: (owner_name || existingMerchant.owner_name || 'Merchant Admin').trim(),
+                            email: userEmail,
+                            role: 'admin',
+                            merchant_id: merchant_id,
+                            dealer_id: existingMerchant.dealer_id || null,
+                            pin: uniquePin,
+                            temp_password: temp_password || null,
+                            is_active: true,
+                            permissions: [
+                                'manage_products',
+                                'manage_inventory',
+                                'manage_orders',
+                                'view_reports',
+                                'manage_settings',
+                                'process_refunds',
+                                'submit_tickets'
+                            ]
+                        });
+                        console.log('Merchant admin user created:', newUser?.id, 'for email:', userEmail);
+                    } catch (userCreateError) {
+                        console.error('Failed to create merchant admin user:', userCreateError?.message || userCreateError, userCreateError?.status, JSON.stringify(userCreateError?.data || {}));
+                    }
 
 
                 }
