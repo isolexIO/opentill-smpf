@@ -727,13 +727,13 @@ export default function POSPage() {
       if (pinUserJSON) {
         try {
           const local = JSON.parse(pinUserJSON);
-          if (local && local.merchant_id && local.merchant_id === sessionUser.merchant_id) {
+          if (local && (local.is_impersonating || (local.merchant_id && local.merchant_id === sessionUser.merchant_id))) {
             pinUser = local;
           }
         } catch (e) { /* ignore malformed snapshot */ }
       }
       if (!pinUser) pinUser = sessionUser;
-      localStorage.setItem('pinLoggedInUser', JSON.stringify(pinUser));
+      if (!pinUser.is_impersonating) localStorage.setItem('pinLoggedInUser', JSON.stringify(pinUser));
       // Prefer the merchant_id from the station link URL when present (it
       // identifies the merchant this terminal should operate against);
       // otherwise fall back to the session user's merchant_id.

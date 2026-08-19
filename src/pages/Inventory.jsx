@@ -52,14 +52,15 @@ export default function InventoryPage() {
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      const currentUser = await base44.auth.me(); // Renamed 'user' to 'currentUser' for consistency with outline
+      const pinUserJSON = localStorage.getItem('pinLoggedInUser');
+      const currentUser = pinUserJSON ? JSON.parse(pinUserJSON) : await base44.auth.me();
 
       let inventoryList = [];
       let alertList = [];
       let currentMerchant = null;
 
       if (currentUser) {
-        if (currentUser.role === 'admin') {
+        if (currentUser.role === 'admin' && !currentUser.is_impersonating) {
           // Admin sees all inventory
           inventoryList = await base44.entities.MerchantInventory.list();
 
