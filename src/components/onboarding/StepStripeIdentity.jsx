@@ -37,6 +37,9 @@ export default function StepStripeIdentity({ formData, onChange, onNext, onBack 
       url.searchParams.delete('verification_session_id');
       url.searchParams.delete('stripe_identity');
       window.history.replaceState({}, document.title, url.toString());
+      // Auto-advance to the next step now that identity is verified
+      const t = setTimeout(() => { if (typeof onNext === 'function') onNext(); }, 400);
+      return () => clearTimeout(t);
     }
   }, []);
 

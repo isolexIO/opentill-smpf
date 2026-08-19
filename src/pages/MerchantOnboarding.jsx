@@ -55,8 +55,9 @@ export default function MerchantOnboarding() {
     // Restore form data if returning from Stripe Identity redirect
     const restored = loadOnboardingForm();
     if (restored) {
-      setFormData(prev => ({ ...restored, ...prev }));
+      setFormData(prev => ({ ...prev, ...restored }));
       // If identity was verified via redirect, jump to the identity step
+      // (StepStripeIdentity will detect the params and auto-advance to step 4)
       if (params.get('stripe_identity') === 'verified') {
         setStep(3);
       }
