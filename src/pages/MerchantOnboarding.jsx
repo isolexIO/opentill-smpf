@@ -63,7 +63,9 @@ export default function MerchantOnboarding() {
 
     // Returning from Stripe Identity verification: set verified flags and
     // jump straight to step 4 (Payment Preferences) with all form data intact.
-    if (stripeStatus === 'verified' && stripeSessionId) {
+    // Stripe appends verification_session_id on redirect (it may drop the
+    // stripe_identity param we added), so that alone is the reliable signal.
+    if (stripeSessionId) {
       setFormData(prev => ({
         ...prev,
         stripe_identity_verified: true,

@@ -28,8 +28,7 @@ export default function StepStripeIdentity({ formData, onChange, onNext, onBack 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const sessionId = params.get('verification_session_id');
-    const status = params.get('stripe_identity');
-    if (sessionId && status === 'verified') {
+    if (sessionId) {
       onChange('stripe_verification_session_id', sessionId);
       onChange('stripe_identity_verified', true);
       // Clean the URL
