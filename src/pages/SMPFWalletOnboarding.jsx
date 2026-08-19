@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Wallet, Plus, Link2, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Wallet, Plus, Link2, ArrowLeft, ArrowRight, Smartphone } from 'lucide-react';
 import { listWallets, getCurrentUserId, setSession } from '@/lib/smpfWalletStore';
 import GenerationScreen from '@/components/smpf/GenerationScreen';
 import BackupScreen from '@/components/smpf/BackupScreen';
 import ActivationScreen from '@/components/smpf/ActivationScreen';
+import ImportKeyScreen from '@/components/smpf/ImportKeyScreen';
 import { createPageUrl } from '@/utils';
 
 const DUC_LOGO =
   'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6970e2871534100b4ebb8d45/8e45f76fe_DUC3.png';
 
 export default function SMPFWalletOnboarding() {
-  const [step, setStep] = useState('choice'); // choice | generate | backup | activate
+  const [step, setStep] = useState('choice'); // choice | generate | backup | activate | import
   const [kp, setKp] = useState(null); // { address, secretKeyB64, publicKeyB64 }
   const [existingWallet, setExistingWallet] = useState(null);
 
@@ -110,6 +111,24 @@ export default function SMPFWalletOnboarding() {
                 </button>
                 )}
 
+                {!existingWallet && (
+                <button
+                  onClick={() => setStep('import')}
+                  className="w-full text-left p-5 rounded-xl bg-gradient-to-r from-indigo-500/20 to-purple-600/10 border-2 border-indigo-400/40 hover:border-indigo-400 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-indigo-500/30 flex items-center justify-center">
+                      <Smartphone className="w-5 h-5 text-indigo-200" />
+                    </div>
+                    <div className="flex-1">
+                      <span className="text-white font-bold">Import from Another Device</span>
+                      <p className="text-white/60 text-xs mt-1">Scan a QR code or paste your private key to restore your wallet here.</p>
+                    </div>
+                    <ArrowRight className="w-5 h-5 text-white/60" />
+                  </div>
+                </button>
+                )}
+
                 {existingWallet && (
                   <div className="text-center pt-2 space-y-3">
                     <p className="text-amber-300/80 text-xs">Only one wallet may be bound per email. You already have a wallet bound to your account:</p>
@@ -138,6 +157,16 @@ export default function SMPFWalletOnboarding() {
 
         {step === 'activate' && kp && (
           <ActivationScreen address={kp.address} onOpenWallet={openWallet} />
+        )}
+
+        {step === 'import' && (
+          <ImportKeyScreen
+            onDone={(keypair) => {
+              setKp(keypair);
+              setStep('activate');
+            }}
+            onBack={() => setStep('choice')}
+          />
         )}
 
         {step !== 'choice' && (
