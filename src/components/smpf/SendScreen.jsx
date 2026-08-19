@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Connection, Transaction, PublicKey, LAMPORTS_PER_SOL, SystemProgram, Keypair } from '@solana/web3.js';
 import {
-  ASSOCIATED_TOKEN_PROGRAM_ID,
+  TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID,
   getAssociatedTokenAddress, createAssociatedTokenAccountInstruction, createTransferInstruction,
 } from '@solana/spl-token';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,7 @@ import { b64ToBuf } from '@/lib/smpfCrypto';
 import { getWallet, getSession } from '@/lib/smpfWalletStore';
 import { decryptWallet } from '@/lib/smpfCrypto';
 import { base44 } from '@/api/base44Client';
+import { withTimeout } from '@/lib/smpfRpc';
 import { listContacts } from '@/lib/smpfAddressBook';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -57,21 +58,65 @@ export default function SendScreen({ address, rpc, network, onSent }) {
       list.push({ key: 'SOL', label: 'SOL', decimals: 9, balance: 0, programId: null, mint: null, sourceATA: null });
     }
     setAssets([...list]);
-    // SPL tokens via backend — browser RPCs 403/timeout on getTokenAccountsByOwner.
+    // SPL tokens — try backend first, then multi-RPC browser failover.
+    let tokens = null;
     try {
-      const { data } = await base44.functions.invoke('getTokenAccounts', { address });
-      for (const t of data.tokens || []) {
-        list.push({
-          key: t.mint,
-          label: `${t.mint.slice(0, 4)}…${t.mint.slice(-4)}`,
-          decimals: t.decimals,
-          balance: t.balance,
-          programId: t.programId,
-          mint: t.mint,
-          sourceATA: t.sourceATA,
-        });
+      const res = await base44.functions.invoke('getTokenAccounts', { address });
+      const data = res.data || {};
+      if (Array.isArray(data.tokens)) tokens = data.tokens;
+    } catch (e) {
+      console.warn('getTokenAccounts backend failed, falling back to browser RPC', e);
+    }
+    if (!tokens) {
+      // Browser-side multi-RPC failover (same approach as TokensTab).
+      const rpcs = Array.from(new Set([
+        rpc,
+        'https://solana-rpc.publicnode.com',
+        'https://api.mainnet-beta.solana.com',
+      ]));
+      for (const r of rpcs) {
+        if (tokens) break;
+        try {
+          const c = new Connection(r, 'confirmed');
+          const owned = [];
+          for (const programId of [TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID]) {
+            try {
+              const res = await withTimeout(
+                c.getParsedTokenAccountsByOwner(pub, { programId }),
+                8000,
+                'token-accounts',
+              );
+              for (const acc of res.value) {
+                const info = acc.account.data?.parsed?.info;
+                if (!info) continue;
+                owned.push({
+                  mint: info.mint,
+                  decimals: Number(info.tokenAmount?.decimals || 0),
+                  balance: Number(info.tokenAmount?.uiAmount || 0),
+                  programId: programId.toBase58(),
+                  sourceATA: acc.pubkey.toBase58(),
+                });
+              }
+            } catch {}
+          }
+          tokens = owned;
+        } catch (e) {
+          console.warn('Token fetch failed on', r, e);
+        }
       }
-    } catch (e) { /* ignore — SOL still available */ }
+    }
+    for (const t of (tokens || [])) {
+      if (t.balance <= 0) continue;
+      list.push({
+        key: t.mint,
+        label: `${t.mint.slice(0, 4)}…${t.mint.slice(-4)}`,
+        decimals: t.decimals,
+        balance: t.balance,
+        programId: t.programId,
+        mint: t.mint,
+        sourceATA: t.sourceATA,
+      });
+    }
     setAssets([...list]);
   }
 
