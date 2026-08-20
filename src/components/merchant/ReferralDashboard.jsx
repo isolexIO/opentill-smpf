@@ -79,7 +79,9 @@ export default function ReferralDashboard() {
             const amb = ambassadors[0];
             setAmbassador(amb);
             setUserType('ambassador');
-            const code = amb.slug || dealerId;
+            // Use the legacy_dealer_id (not the slug) so the share link matches
+            // the working direct link and the brochure share card.
+            const code = dealerId;
             setReferralCode(code);
             setShareUrl(`${window.location.origin}/?dealer_id=${encodeURIComponent(code)}`);
             setLoading(false);

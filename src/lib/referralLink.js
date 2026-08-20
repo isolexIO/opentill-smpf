@@ -82,12 +82,9 @@ export async function resolveReferral({ merchantId } = {}) {
   }
 
   if (sessionDealerId) {
-    try {
-      const ambassadors = await base44.entities.Ambassador.filter({ legacy_dealer_id: sessionDealerId });
-      if (ambassadors?.[0]) {
-        return { type: 'dealer', code: ambassadors[0].slug || sessionDealerId };
-      }
-    } catch { /* ignore */ }
+    // Always use the legacy_dealer_id as the dealer_id code — this is the
+    // identifier the home page and direct share links resolve against, so the
+    // brochure link matches the working direct link (e.g. ?dealer_id=<id>).
     return { type: 'dealer', code: sessionDealerId };
   }
 
