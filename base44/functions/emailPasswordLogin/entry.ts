@@ -40,49 +40,84 @@ Deno.serve(async (req) => {
       }, { status: 429 });
     }
 
-    // Find user by email
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Find user by email in the User entity
     const users = await base44.asServiceRole.entities.User.filter({ 
-      email: email.toLowerCase().trim() 
+      email: normalizedEmail 
     });
 
-    if (!users || users.length === 0) {
+    let user = null;
+    let isVirtualUser = false;
+
+    if (users && users.length > 0) {
+      user = users[0];
+    } else {
+      // Fallback: no User record exists (the platform blocks User.create,
+      // so merchant admins activated before accepting their invite have no
+      // User record yet). Look up the Merchant by owner_email and authenticate
+      // against the admin_pin that was set at activation.
+      const merchants = await base44.asServiceRole.entities.Merchant.filter({ 
+        owner_email: normalizedEmail 
+      });
+      const merchant = merchants?.[0];
+      if (merchant && merchant.status === 'active' && merchant.admin_pin) {
+        // The password entered at EmailLogin is compared against the PIN that
+        // was emailed to the merchant owner at activation.
+        if (String(password) === String(merchant.admin_pin)) {
+          isVirtualUser = true;
+          user = {
+            id: `merchant_${merchant.id}`,
+            email: merchant.owner_email,
+            full_name: merchant.owner_name || 'Merchant Admin',
+            role: 'admin',
+            merchant_id: merchant.id,
+            dealer_id: merchant.dealer_id || null,
+            is_active: true,
+            temp_password: null // virtual users have no bcrypt password
+          };
+        }
+      }
+    }
+
+    if (!user) {
       return Response.json({ 
         success: false, 
         error: 'Invalid email or password' 
       }, { status: 401 });
     }
 
-    const user = users[0];
-
-    // Check if user is active
-    if (user.is_active === false) {
+    // Check if user is active (skip for virtual merchant-admin users)
+    if (!isVirtualUser && user.is_active === false) {
       return Response.json({ 
         success: false, 
         error: 'Account is inactive. Please contact support.' 
       }, { status: 401 });
     }
 
-    // Verify password against the stored temp_password, which is kept as a
-    // bcrypt HASH. The plaintext temp password is only ever emailed to the
-    // user; the database never stores it in cleartext.
-    if (!user.temp_password) {
-      return Response.json({ 
-        success: false, 
-        error: 'No password set for this account. Please use password reset.' 
-      }, { status: 401 });
-    }
+    // Verify password against the stored temp_password (bcrypt hash) for real
+    // User records. Virtual merchant-admin users were already authenticated
+    // above by matching the admin_pin.
+    if (!isVirtualUser) {
+      if (!user.temp_password) {
+        return Response.json({ 
+          success: false, 
+          error: 'No password set for this account. Please use password reset.' 
+        }, { status: 401 });
+      }
 
-    let passwordValid = false;
-    try {
-      passwordValid = await bcrypt.compare(password, user.temp_password);
-    } catch (e) {
-      passwordValid = false;
-    }
-    if (!passwordValid) {
-      return Response.json({ 
-        success: false, 
-        error: 'Invalid email or password' 
-      }, { status: 401 });
+      let passwordValid = false;
+      try {
+        passwordValid = await bcrypt.compare(password, user.temp_password);
+      } catch (e) {
+        passwordValid = false;
+      }
+      if (!passwordValid) {
+        return Response.json({ 
+          success: false, 
+          error: 'Invalid email or password' 
+        }, { status: 401 });
+      }
     }
 
     // Check if 2FA is enabled
@@ -121,8 +156,8 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Clear temp password after first successful login
-    if (user.temp_password) {
+    // Clear temp password after first successful login (real users only)
+    if (!isVirtualUser && user.temp_password) {
       await base44.asServiceRole.entities.User.update(user.id, {
         temp_password: null
       });
@@ -132,10 +167,11 @@ Deno.serve(async (req) => {
     await base44.asServiceRole.entities.SystemLog.create({
       log_type: 'security',
       action: 'User Email Login',
-      description: `User ${user.email} logged in via email/password${user.two_factor_enabled ? ' with 2FA' : ''}`,
+      description: `User ${user.email} logged in via email/password${isVirtualUser ? ' (merchant admin_pin)' : (user.two_factor_enabled ? ' with 2FA' : '')}`,
       user_id: user.id,
       user_email: user.email,
       user_role: user.role,
+      merchant_id: user.merchant_id || null,
       severity: 'info'
     });
 
