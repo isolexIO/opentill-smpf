@@ -62,11 +62,71 @@ Deno.serve(async (req) => {
         }
         
         if (!users || users.length === 0) {
-            // Don't reveal if user exists or not for security
-            return Response.json({
-                success: true,
-                message: 'If an account with this email exists, a password reset link has been sent.'
+            // No User record — check the Merchant entity (merchant admins
+            // activated before accepting their platform invite have no User
+            // record yet; their temp_password lives on the Merchant).
+            const merchants = await base44.asServiceRole.entities.Merchant.filter({ owner_email: email });
+            const merchant = merchants?.[0];
+            if (!merchant) {
+                return Response.json({
+                    success: true,
+                    message: 'If an account with this email exists, a password reset link has been sent.'
+                });
+            }
+
+            // Generate a single-use, expiring reset token (same scheme as User).
+            const tokenBytes = crypto.getRandomValues(new Uint8Array(32));
+            const token = btoa(String.fromCharCode(...tokenBytes))
+                .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+            const exp = Date.now() + 60 * 60 * 1000; // 1 hour
+            const resetValue = `${token}.${exp}`;
+            const resetTokenHash = bcrypt.hashSync(resetValue, 10);
+
+            await base44.asServiceRole.entities.Merchant.update(merchant.id, {
+                temp_password: resetTokenHash
             });
+
+            const origin = new URL(req.url).origin;
+            const resetLink = `${origin}/ResetPassword?email=${encodeURIComponent(merchant.owner_email)}&token=${encodeURIComponent(token)}&exp=${exp}`;
+
+            try {
+                const smtpHost = Deno.env.get('SMTP_HOST');
+                const smtpPort = Deno.env.get('SMTP_PORT');
+                const smtpUser = Deno.env.get('SMTP_USER');
+                const smtpPass = Deno.env.get('SMTP_PASS');
+                if (!smtpHost || !smtpPort || !smtpUser || !smtpPass) {
+                    throw new Error('SMTP configuration is incomplete.');
+                }
+                const nodemailer = await import('npm:nodemailer@6.9.7');
+                const smtpPortNum = parseInt(smtpPort);
+                const transporter = nodemailer.default.createTransport({
+                    host: smtpHost,
+                    port: smtpPortNum,
+                    secure: smtpPortNum === 465,
+                    requireTLS: smtpPortNum !== 465,
+                    connectionTimeout: 15000,
+                    greetingTimeout: 15000,
+                    socketTimeout: 15000,
+                    auth: { user: smtpUser, pass: smtpPass }
+                });
+                const emailBody = `Hello ${merchant.owner_name || 'Merchant Admin'},\n\nWe received a request to reset the password for your openTILL account.\n\nClick the link below to choose a new password. This link expires in 1 hour and can only be used once:\n\n${resetLink}\n\nIf you did not request a password reset, you can safely ignore this email — your password has not been changed.\n\nThank you,\nopenTILL SMPF Team`;
+                await transporter.sendMail({
+                    from: `"openTILL" <${smtpUser}>`,
+                    to: merchant.owner_email,
+                    subject: 'Password Reset - openTILL',
+                    text: emailBody,
+                    html: emailBody.replace(/\n/g, '<br>')
+                });
+                console.log('Password reset email sent to merchant:', merchant.owner_email);
+            } catch (emailError) {
+                console.error('Error sending merchant reset email:', emailError);
+                return Response.json({
+                    success: false,
+                    error: 'Failed to send reset email. Please contact support.'
+                }, { status: 500 });
+            }
+
+            return Response.json({ success: true, message: 'Password reset email sent successfully' });
         }
 
         const user = users[0];

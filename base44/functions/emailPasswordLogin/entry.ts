@@ -56,15 +56,20 @@ Deno.serve(async (req) => {
       // Fallback: no User record exists (the platform blocks User.create,
       // so merchant admins activated before accepting their invite have no
       // User record yet). Look up the Merchant by owner_email and authenticate
-      // against the admin_pin that was set at activation.
+      // against the bcrypt-hashed temp_password stored on the Merchant record
+      // at activation (or via password reset).
       const merchants = await base44.asServiceRole.entities.Merchant.filter({ 
         owner_email: normalizedEmail 
       });
       const merchant = merchants?.[0];
-      if (merchant && merchant.status === 'active' && merchant.admin_pin) {
-        // The password entered at EmailLogin is compared against the PIN that
-        // was emailed to the merchant owner at activation.
-        if (String(password) === String(merchant.admin_pin)) {
+      if (merchant && merchant.status === 'active' && merchant.temp_password) {
+        let merchantPwValid = false;
+        try {
+          merchantPwValid = await bcrypt.compare(String(password), merchant.temp_password);
+        } catch (e) {
+          merchantPwValid = false;
+        }
+        if (merchantPwValid) {
           isVirtualUser = true;
           user = {
             id: `merchant_${merchant.id}`,
@@ -74,8 +79,10 @@ Deno.serve(async (req) => {
             merchant_id: merchant.id,
             dealer_id: merchant.dealer_id || null,
             is_active: true,
-            temp_password: null // virtual users have no bcrypt password
+            temp_password: null // virtual users have no User-record password
           };
+          // Track the merchant id so we can clear temp_password after login
+          user._merchant_id_for_clear = merchant.id;
         }
       }
     }
@@ -156,11 +163,22 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Clear temp password after first successful login (real users only)
+    // Clear temp password after first successful login.
+    // Real User records: clear on the User entity.
+    // Virtual merchant-admin users: clear on the Merchant entity.
     if (!isVirtualUser && user.temp_password) {
       await base44.asServiceRole.entities.User.update(user.id, {
         temp_password: null
       });
+    }
+    if (isVirtualUser && user._merchant_id_for_clear) {
+      try {
+        await base44.asServiceRole.entities.Merchant.update(user._merchant_id_for_clear, {
+          temp_password: null
+        });
+      } catch (e) {
+        console.warn('Could not clear merchant temp_password:', e);
+      }
     }
 
     // Log the login

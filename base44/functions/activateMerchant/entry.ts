@@ -149,6 +149,14 @@ Deno.serve(async (req) => {
       if (pin) {
         updateData.admin_pin = String(pin);
       }
+      // Store the temp password as a bcrypt hash on the Merchant record so
+      // emailPasswordLogin can verify it before the owner has a User record
+      // (the platform blocks User.create, so the Merchant entity is the only
+      // place to store credentials until the invite is accepted).
+      if (temp_password) {
+        const bcrypt = await import('npm:bcryptjs@2.4.3');
+        updateData.temp_password = bcrypt.default.hashSync(String(temp_password), 10);
+      }
       const updated = await base44.asServiceRole.entities.Merchant.update(merchant_id, updateData);
 
       const bizName = sanitizeForEmail(merchantData.business_name);

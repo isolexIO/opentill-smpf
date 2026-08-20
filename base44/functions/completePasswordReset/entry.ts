@@ -30,7 +30,44 @@ Deno.serve(async (req) => {
       users = await base44.entities.User.filter({ email: email });
     }
     if (!users || users.length === 0) {
-      return Response.json({ success: false, error: 'Invalid or expired reset link.' }, { status: 401 });
+      // No User record — check the Merchant entity (merchant admins without a
+      // User record store their reset token in Merchant.temp_password).
+      const merchants = await base44.asServiceRole.entities.Merchant.filter({ owner_email: email });
+      const merchant = merchants?.[0];
+      if (!merchant || !merchant.temp_password) {
+        return Response.json({ success: false, error: 'Invalid or expired reset link.' }, { status: 401 });
+      }
+
+      const resetValue = `${token}.${exp}`;
+      let tokenValid = false;
+      try {
+        tokenValid = bcrypt.compareSync(resetValue, merchant.temp_password);
+      } catch (e) {
+        tokenValid = false;
+      }
+      if (!tokenValid) {
+        return Response.json({ success: false, error: 'Invalid or expired reset link.' }, { status: 401 });
+      }
+
+      const newPasswordHash = bcrypt.hashSync(String(new_password), 10);
+      await base44.asServiceRole.entities.Merchant.update(merchant.id, {
+        temp_password: newPasswordHash
+      });
+
+      try {
+        await base44.asServiceRole.entities.SystemLog.create({
+          log_type: 'security',
+          action: 'Password Reset Completed',
+          description: `Merchant ${merchant.owner_email} completed a password reset via secure link.`,
+          merchant_id: merchant.id,
+          user_email: merchant.owner_email,
+          severity: 'info'
+        });
+      } catch (logError) {
+        console.log('Could not log password reset completion:', logError);
+      }
+
+      return Response.json({ success: true, message: 'Password updated. You can now log in.' });
     }
     const user = users[0];
 

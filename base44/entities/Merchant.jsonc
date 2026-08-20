@@ -23,6 +23,10 @@
       "type": "string",
       "description": "Initial admin PIN for quick POS login (set at activation, before the user accepts their platform invite)"
     },
+    "temp_password": {
+      "type": "string",
+      "description": "Bcrypt hash of the temporary or reset password for email login. Cleared after first successful login (set by activateMerchant or resetUserPassword)."
+    },
     "phone": {
       "type": "string"
     },
