@@ -100,7 +100,10 @@ Deno.serve(async (req) => {
             id: `merchant_${merchant.id}`,
             email: merchant.owner_email,
             full_name: merchant.owner_name || 'Merchant Admin',
-            role: 'admin',
+            // Use 'merchant_admin' (merchant-scoped), NOT 'admin' (platform-wide
+            // super-admin). 'admin' would bypass feature gating in
+            // useMerchantFeatures and unlock every feature for every merchant.
+            role: 'merchant_admin',
             merchant_id: merchant.id,
             dealer_id: merchant.dealer_id || null,
             is_active: true,
