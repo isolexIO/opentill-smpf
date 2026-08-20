@@ -32,12 +32,30 @@ export function appendRefParam(baseUrl, refParam) {
  *
  * Returns { type: 'merchant' | 'dealer', code } or null.
  */
+/**
+ * Canonicalize a dealer identifier (which may be a slug or a legacy_dealer_id)
+ * to the ambassador's legacy_dealer_id — the identifier the home page and
+ * direct share links resolve against. Falls back to the input if no
+ * ambassador matches.
+ */
+async function canonicalDealerCode(raw) {
+  if (!raw) return raw;
+  try {
+    // Try matching by slug first, then by legacy_dealer_id.
+    const bySlug = await base44.entities.Ambassador.filter({ slug: raw });
+    if (bySlug?.[0]?.legacy_dealer_id) return bySlug[0].legacy_dealer_id;
+    const byLegacy = await base44.entities.Ambassador.filter({ legacy_dealer_id: raw });
+    if (byLegacy?.[0]?.legacy_dealer_id) return byLegacy[0].legacy_dealer_id;
+  } catch { /* ignore */ }
+  return raw;
+}
+
 export async function resolveReferral({ merchantId } = {}) {
   // 1. URL params
   const params = new URLSearchParams(window.location.search);
   const urlDealer = params.get('dealer_id') || params.get('dealerid') || params.get('dealer');
   const urlRef = params.get('ref') || params.get('referral') || params.get('code');
-  if (urlDealer) return { type: 'dealer', code: urlDealer };
+  if (urlDealer) return { type: 'dealer', code: await canonicalDealerCode(urlDealer) };
   if (urlRef) return { type: 'merchant', code: urlRef.toUpperCase() };
 
   // 2. Explicit merchant id (customer portal context — uses the public,
