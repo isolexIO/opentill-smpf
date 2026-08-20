@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Shield, Lock, Eye, Clock, Users } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import GoogleConnectCard from '@/components/settings/GoogleConnectCard';
 
 export default function SecurityTab({ settings, onSave }) {
   const [securitySettings, setSecuritySettings] = useState({
@@ -193,6 +194,9 @@ export default function SecurityTab({ settings, onSave }) {
 
   return (
     <div className="space-y-6">
+      {/* Connected Google Account — available to all users (PIN or platform) */}
+      <GoogleConnectCard />
+
       {/* Security Check Banner */}
       <Card className="border-blue-200 bg-blue-50">
         <CardContent className="pt-6">

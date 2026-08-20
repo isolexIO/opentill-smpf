@@ -16,6 +16,10 @@
       "type": "string",
       "format": "email"
     },
+    "google_email": {
+      "type": "string",
+      "description": "Google account email linked to this merchant (verified via Google OAuth). Allows Google login even when it differs from owner_email."
+    },
     "owner_name": {
       "type": "string"
     },

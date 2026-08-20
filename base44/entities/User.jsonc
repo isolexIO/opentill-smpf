@@ -10,6 +10,10 @@
       "type": "string",
       "description": "Dealer ID for multi-tenant isolation"
     },
+    "google_email": {
+      "type": "string",
+      "description": "Google account email linked to this user (verified via Google OAuth). Allows Google login even when it differs from the user's platform email."
+    },
     "is_active": {
       "type": "boolean",
       "default": true,
@@ -39,8 +43,5 @@
       },
       "description": "List of permissions for the user"
     }
-  },
-  "required": [
-    "email"
-  ]
+  }
 }
