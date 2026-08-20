@@ -10,8 +10,11 @@ export default function BrochureMarketingCard({ dealer }) {
   const [qrUrl, setQrUrl] = useState(null);
   const [copied, setCopied] = useState(false);
 
-  const ref = dealer?.slug || dealer?.legacy_dealer_id || '';
-  const brochureUrl = `${window.location.origin}/Brochure${ref ? `?ref=${encodeURIComponent(ref)}` : ''}`;
+  // Ambassadors are referenced via ?dealer_id=<legacy_dealer_id> (the same
+  // identifier the home page and onboarding flow resolve against). Using the
+  // slug as ?ref= would be treated as a merchant referral code.
+  const ref = dealer?.legacy_dealer_id || dealer?.slug || '';
+  const brochureUrl = `${window.location.origin}/Brochure${ref ? `?dealer_id=${encodeURIComponent(ref)}` : ''}`;
 
   useEffect(() => {
     QRCode.toDataURL(brochureUrl, { width: 240, margin: 1 })
