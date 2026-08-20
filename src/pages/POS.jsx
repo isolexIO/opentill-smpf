@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import { base44 } from "@/api/base44Client";
+import { posBase44 as base44 } from "@/lib/posClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +23,7 @@ import {
   User
 } from "lucide-react";
 import { createPageUrl } from "@/utils";
+import { initPOSSession } from "@/lib/posInit";
 
 import { useActiveStaff } from "@/hooks/useActiveStaff";
 import StaffLockScreen from "../components/pos/StaffLockScreen";
@@ -157,7 +158,7 @@ export default function POSPage() {
         console.log('POS: Starting initialization...');
 
         // **THE FIX**: Ensure settings are loaded BEFORE anything else.
-        await loadSettingsAndMerchant();
+        await initPOSSession({ setSettings, setStationId, setStationName, setInitError });
 
         // Now that settings (including merchant_id) are guaranteed to be loaded,
         // load the rest of the data.
@@ -668,258 +669,6 @@ export default function POSPage() {
       setCustomers([]); // Ensure customers array is empty if loading fails
     } finally {
       loadingCustomersRef.current = false;
-    }
-  };
-
-  const loadSettingsAndMerchant = async () => {
-    // Default barcode scanner settings
-    const defaultBarcodeScannerSettings = {
-      enabled: false,
-      type: "keyboard",
-      prefix: "",
-      playBeep: true,
-      autoSearch: false,
-      minLength: 4,
-      scanTimeout: 150,
-    };
-
-    try {
-      console.log('POS: Loading settings and merchant...');
-
-      // Entity calls (Merchant, Products, Orders) require an authenticated base44
-      // session for RLS. PIN/email logins only store a local snapshot — they do NOT
-      // create a session. So always verify a live session first; if there is none,
-      // send the user through the platform login (the only flow that creates a real
-      // session), preserving this station link so they return straight to the POS.
-      let pinUser = null;
-      let sessionUser = null;
-      try {
-        sessionUser = await base44.auth.me();
-      } catch (e) {
-        console.warn('POS: No authenticated session.');
-      }
-
-      // Station links carry both merchant_id and station_id so the POS can
-      // restore the exact merchant context after a login redirect. Preserve
-      // BOTH params in the returnTo URL — previously only station_id was kept,
-      // which caused the wrong/missing merchant after redirection.
-      const up = new URLSearchParams(window.location.search);
-      const urlStationId = up.get('station_id') || '';
-      const urlMerchantId = up.get('merchant_id') || '';
-
-      if (!sessionUser || !sessionUser.id) {
-        const params = new URLSearchParams();
-        if (urlStationId) params.set('station_id', urlStationId);
-        if (urlMerchantId) params.set('merchant_id', urlMerchantId);
-        const qs = params.toString();
-        const returnTo = qs ? `${createPageUrl('POS')}?${qs}` : createPageUrl('POS');
-        try {
-          await base44.auth.redirectToLogin(returnTo);
-        } catch (err) {
-          console.error('POS: redirectToLogin failed:', err);
-          setInitError('Authentication is required to use this station. Please sign in and reopen the station link.');
-        }
-        return;
-      }
-
-      // Prefer the staff PIN identity when it belongs to the same merchant as the session
-      const pinUserJSON = localStorage.getItem('pinLoggedInUser');
-      if (pinUserJSON) {
-        try {
-          const local = JSON.parse(pinUserJSON);
-          if (local && (local.is_impersonating || (local.merchant_id && local.merchant_id === sessionUser.merchant_id))) {
-            pinUser = local;
-          }
-        } catch (e) { /* ignore malformed snapshot */ }
-      }
-      if (!pinUser) pinUser = sessionUser;
-      if (!pinUser.is_impersonating) localStorage.setItem('pinLoggedInUser', JSON.stringify(pinUser));
-      // Prefer the merchant_id from the station link URL when present (it
-      // identifies the merchant this terminal should operate against);
-      // otherwise fall back to the session user's merchant_id.
-      const effectiveMerchantId = urlMerchantId || pinUser.merchant_id;
-      if (effectiveMerchantId) localStorage.setItem('deviceMerchantId', effectiveMerchantId);
-
-      // Proceed based on whether we are in demo mode or a real merchant
-      if (pinUser && effectiveMerchantId && effectiveMerchantId !== 'demo') {
-        console.log('POS: Loading merchant with ID:', effectiveMerchantId);
-        
-        try {
-          // Try to fetch merchant - first with user scope, then with service role if needed
-          let merchants = [];
-          
-          try {
-            merchants = await base44.entities.Merchant.filter({ id: effectiveMerchantId });
-            console.log('POS: User-scoped merchant fetch returned:', merchants.length, 'results');
-          } catch (userScopeError) {
-            console.warn('POS: User-scoped merchant fetch failed, trying to invoke repair function if no merchants found:', userScopeError.message);
-          }
-
-          // If not found, try to repair the situation
-          if (!merchants || merchants.length === 0) {
-            console.log('POS: Merchant not found with ID:', pinUser.merchant_id);
-            console.log('POS: Attempting to repair merchant connection...');
-            
-            try {
-              const repairResponse = await base44.functions.invoke('repairMerchantConnection', {
-                user_email: pinUser.email,
-                user_merchant_id: effectiveMerchantId
-              });
-
-              if (repairResponse.data?.success) {
-                console.log('POS: Repair successful:', repairResponse.data.message);
-                
-                // Refresh user data to get potentially updated merchant_id or other settings
-                const updatedUser = await base44.auth.me();
-                localStorage.setItem('pinLoggedInUser', JSON.stringify(updatedUser));
-                
-                // Try to load merchant again with the updated user info
-                merchants = await base44.entities.Merchant.filter({ id: updatedUser.merchant_id });
-                
-                if (merchants && merchants.length > 0) {
-                  pinUser = updatedUser; // Use the updated user object for subsequent steps
-                  console.log('POS: Successfully repaired and loaded merchant');
-                }
-              } else {
-                throw new Error(repairResponse.data?.error || 'Repair failed');
-              }
-            } catch (repairError) {
-              console.error('POS: Repair failed:', repairError);
-              throw new Error('Your merchant account could not be found. Please contact support with error code: MERCHANT_NOT_FOUND');
-            }
-          }
-
-          if (merchants && merchants.length > 0) {
-            const merchant = merchants[0];
-            console.log('POS: Merchant loaded:', merchant.business_name);
-
-            let effectiveStationId = urlStationId || pinUser.pos_settings?.station_id, effectiveStationName = pinUser.pos_settings?.station_name, updatedPinUser = { ...pinUser };
-            if (urlStationId) { try { const st = await base44.entities.Station.filter({ merchant_id: effectiveMerchantId, station_id: urlStationId }); effectiveStationName = st?.length ? st[0].name : urlStationId; } catch { effectiveStationName = urlStationId; } }
-
-            if (!effectiveStationId) {
-              effectiveStationId = `STATION-${Date.now()}`;
-              effectiveStationName = 'Main Station';
-
-              updatedPinUser.pos_settings = {
-                ...(updatedPinUser.pos_settings || {}),
-                station_id: effectiveStationId,
-                station_name: effectiveStationName
-              };
-              
-              // Update user with station info
-              try {
-                // Use base44.auth.updateMe for user-specific settings
-                await base44.auth.updateMe({ pos_settings: updatedPinUser.pos_settings });
-                localStorage.setItem('pinLoggedInUser', JSON.stringify(updatedPinUser));
-                pinUser = updatedPinUser; // Update pinUser for subsequent steps in this function
-              } catch (updateError) {
-                console.warn('POS: Could not update user with station info:', updateError);
-                // Don't critical fail if user update fails, but warn.
-              }
-            } else {
-              if (!effectiveStationName) {
-                effectiveStationName = 'Main Station';
-                updatedPinUser.pos_settings = {
-                  ...(updatedPinUser.pos_settings || {}),
-                  station_name: effectiveStationName
-                };
-                
-                try {
-                  // Use base44.auth.updateMe for user-specific settings
-                  await base44.auth.updateMe({ pos_settings: updatedPinUser.pos_settings });
-                  localStorage.setItem('pinLoggedInUser', JSON.stringify(updatedPinUser));
-                  pinUser = updatedPinUser; // Update pinUser for subsequent steps in this function
-                } catch (updateError) {
-                  console.warn('POS: Could not update user with station name:', updateError);
-                  // Don't critical fail if user update fails, but warn.
-                }
-              }
-            }
-
-            // Merge merchant settings with user pos_settings
-            let currentSettings = {
-              ...(merchant.settings || {}),
-              ...(pinUser.pos_settings || {}), // User's POS settings (now guaranteed to have station_id and name) override
-              merchant_id: effectiveMerchantId // Ensure merchant_id is present and correct (from station link URL or session)
-            };
-
-            // Apply hardware defaults
-            currentSettings.hardware = {
-              ...currentSettings.hardware,
-              barcodeScanner: {
-                ...defaultBarcodeScannerSettings,
-                ...(currentSettings.hardware?.barcodeScanner || {}),
-              }
-            };
-
-            // Ensure blockchain settings exist
-            if (!currentSettings.blockchain) {
-              currentSettings.blockchain = {
-                enabled: false,
-                network: 'mainnet',
-                solana_wallet_address: '',
-                btc_address: '',
-                eth_address: ''
-              };
-            }
-
-            // Ensure age_verification settings exist
-            if (!currentSettings.age_verification) {
-              currentSettings.age_verification = {
-                enabled: true,
-              };
-            }
-            
-            // Ensure kitchen_display settings exist
-            if (!currentSettings.kitchen_display) {
-              currentSettings.kitchen_display = {
-                enabled: true,
-              };
-            }
-
-            setSettings(currentSettings);
-            setStationId(effectiveStationId);
-            setStationName(effectiveStationName);
-            console.log('POS: Settings configured successfully for real merchant.');
-
-          } else {
-            // This should ideally not be reached if repair succeeded, but as a safeguard
-            throw new Error('Merchant not found after all attempts');
-          }
-        } catch (merchantError) {
-          console.error('POS: Error loading merchant data or updating user settings:', merchantError);
-          alert('Failed to load merchant data: ' + merchantError.message + '\n\nPlease contact support or try logging in again.');
-          window.location.href = createPageUrl('PinLogin');
-          return; // Stop further execution
-        }
-      } else {
-        // Demo mode
-        console.log('POS: Running in demo mode');
-        setSettings({
-          merchant_id: 'demo',
-          hardware: {
-            barcodeScanner: defaultBarcodeScannerSettings
-          },
-          blockchain: {
-            enabled: false
-          },
-          age_verification: {
-              enabled: true
-            },
-          kitchen_display: {
-            enabled: true,
-          }
-        });
-        setStationId('DEMO-STATION');
-        setStationName('Demo Station');
-        console.log('POS: Settings configured for demo mode.');
-      }
-
-    } catch (error) {
-      console.error("POS: Fatal error in loadSettingsAndMerchant:", error);
-      // Catch-all for any other unexpected errors during the entire process
-      setInitError('Failed to load POS settings: ' + error.message);
-      // Do not redirect here, as a specific initError message will be displayed.
     }
   };
 
@@ -1941,7 +1690,7 @@ export default function POSPage() {
       
       // Show success feedback
       if (settings?.hardware?.barcodeScanner?.playBeep) {
-        const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt19NEAxQp+PwtjGcUf8fyxHksBSR3x/DdkiAChRevO3rrFUUBkaP5PbdoHBmGF0fPTguAyN5wu/hkEURD1as5PCvZtByaN1ffJfeSHP4JAAAEBAEAAQA==');
+        const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt59NEAxQp+PwtjGcUf8fyxHksBSR3x/DdkiAChRevO3rrFUUBkaP5PbdoHBmGF0fPTguAyN5wu/hkEURD1as5PCvZtByaN1ffJfeSHP4JAAAEBAEAAQA==');
         audio.play().catch(() => {});
       }
 
