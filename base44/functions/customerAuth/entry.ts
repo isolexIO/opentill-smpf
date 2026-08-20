@@ -108,6 +108,7 @@ async function fetchOrders(base44, customerId) {
 }
 
 async function fetchMerchantName(base44, merchantId) {
+  if (!merchantId) return 'All Merchants';
   try {
     const merchants = await base44.asServiceRole.entities.Merchant.filter({ id: merchantId });
     if (merchants && merchants.length > 0) {
@@ -151,7 +152,7 @@ Deno.serve(async (req) => {
         return Response.json({ success: false, error: 'Too many attempts. Please try again later.' }, { status: 429 });
       }
       const customer = await findCustomer(base44, identifier);
-      if (!customer) return Response.json({ success: false, error: 'No account found' });
+      if (!customer) return Response.json({ success: false, error: 'No account found', can_register: true });
 
       const pinSet = !!customer.pin_hash;
       const response = { success: true, pin_set: pinSet };
@@ -244,6 +245,47 @@ Deno.serve(async (req) => {
       return Response.json({
         success: true,
         customer: buildCustomerData(customer, merchantName),
+        orders,
+      });
+    }
+
+    // --- Register: self-service global customer account (no merchant needed) ---
+    // Creates a global Customer record (merchant_id = null) usable at all
+    // merchants with rewards activated. The customer claims their identity by
+    // providing email or phone + a name + a PIN. No OTP needed — the identifier
+    // IS the identity claim, same as any other self-service signup.
+    if (action === 'register') {
+      const { name } = body;
+      if (!identifier || !pin || !name) return Response.json({ success: false, error: 'Name, identifier, and PIN are required' });
+      if (pin.length < 4) return Response.json({ success: false, error: 'PIN must be at least 4 digits' });
+      if (!checkRateLimit(lookupKey, LOOKUP_RATE_LIMIT)) {
+        return Response.json({ success: false, error: 'Too many attempts. Please try again later.' }, { status: 429 });
+      }
+      const existing = await findCustomer(base44, identifier);
+      if (existing) return Response.json({ success: false, error: 'An account with this email/phone already exists. Please log in instead.' });
+
+      const isEmail = identifier.includes('@');
+      const customerData = {
+        name: name.trim(),
+        merchant_id: null,
+        dealer_id: null,
+        pin_hash: await hashPin(pin),
+        last_portal_login: new Date().toISOString(),
+        loyalty_points: 0,
+        duc_balance: 0,
+        duc_lifetime_earned: 0,
+        total_spent: 0,
+        visit_count: 0,
+      };
+      if (isEmail) customerData.email = identifier.toLowerCase().trim();
+      else customerData.phone = identifier.trim();
+
+      const customer = await base44.asServiceRole.entities.Customer.create(customerData);
+      const orders = await fetchOrders(base44, customer.id);
+
+      return Response.json({
+        success: true,
+        customer: buildCustomerData(customer, 'All Merchants'),
         orders,
       });
     }

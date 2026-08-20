@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import QRCode from 'qrcode';
 import ICOLink from '@/components/vault/ICOLink';
+import CustomerInlineWallet from '@/components/portal/CustomerInlineWallet';
 
 export default function CustomerPortal() {
   const { toast } = useToast();
@@ -38,6 +39,7 @@ export default function CustomerPortal() {
   const [showQR, setShowQR] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
+  const [registerName, setRegisterName] = useState('');
 
   const handleLookup = async (e) => {
     e?.preventDefault();
@@ -59,7 +61,11 @@ export default function CustomerPortal() {
           toast({ title: 'Setup required', description: data?.error || 'Please contact your merchant.', variant: 'destructive' });
         }
       } else {
-        toast({ title: 'Not found', description: data?.error || 'No account found', variant: 'destructive' });
+        if (data?.can_register) {
+          setStep('register');
+        } else {
+          toast({ title: 'Not found', description: data?.error || 'No account found', variant: 'destructive' });
+        }
       }
     } catch (err) {
       toast({ title: 'Lookup failed', description: err.message || 'Please try again', variant: 'destructive' });
@@ -97,6 +103,33 @@ export default function CustomerPortal() {
     }
   };
 
+  const handleRegister = async (e) => {
+    e?.preventDefault();
+    if (!identifier.trim() || !registerName.trim() || !pin.trim()) return;
+    setAuthLoading(true);
+    try {
+      const { data } = await base44.functions.invoke('customerAuth', {
+        action: 'register',
+        identifier: identifier.trim(),
+        name: registerName.trim(),
+        pin: pin.trim(),
+      });
+      if (data?.success) {
+        setCustomer(data.customer);
+        setOrders(data.orders || []);
+        setStep('dashboard');
+        setPin('');
+        setRegisterName('');
+      } else {
+        toast({ title: 'Registration failed', description: data?.error || 'Please try again', variant: 'destructive' });
+      }
+    } catch (err) {
+      toast({ title: 'Registration failed', description: err.message || 'Please try again', variant: 'destructive' });
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
   const handleShowQR = async () => {
     if (!customer) return;
     try {
@@ -118,6 +151,7 @@ export default function CustomerPortal() {
     setShowQR(false);
     setQrDataUrl('');
     setVerificationCode('');
+    setRegisterName('');
   };
 
   // === QR Payment View ===
@@ -222,13 +256,8 @@ export default function CustomerPortal() {
 
           <ICOLink />
 
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={() => window.location.href = createPageUrl('SMPFWallet')}
-          >
-            <Wallet className="w-4 h-4 mr-2" /> Open SMPF Wallet
-          </Button>
+          {/* Inline SMPF Wallet */}
+          <CustomerInlineWallet />
 
           {/* Purchase History */}
           <div className="pt-2">
@@ -314,6 +343,45 @@ export default function CustomerPortal() {
             </CardContent>
           </Card>
           <button onClick={() => { setStep('lookup'); setPin(''); }} className="flex items-center gap-1 text-sm text-white/60 hover:text-white mx-auto mt-6">
+            <ArrowLeft className="w-4 h-4" /> Back
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // === Register View ===
+  if (step === 'register') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center p-6">
+        <div className="max-w-md w-full">
+          <div className="text-center text-white mb-8">
+            <div className="w-16 h-16 bg-white/15 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Coins className="w-8 h-8" />
+            </div>
+            <h1 className="text-2xl font-bold mb-1">Create Your Account</h1>
+            <p className="text-sm text-white/70">No account found for {identifier}. Create one to start earning rewards at all merchants.</p>
+          </div>
+          <Card>
+            <CardContent className="p-6">
+              <form onSubmit={handleRegister} className="space-y-4">
+                <div>
+                  <Label htmlFor="rname">Full Name</Label>
+                  <Input id="rname" value={registerName} onChange={(e) => setRegisterName(e.target.value)} placeholder="Jane Doe" className="mt-1" autoFocus />
+                </div>
+                <div>
+                  <Label htmlFor="rpin">Create PIN</Label>
+                  <Input id="rpin" type="password" inputMode="numeric" value={pin} onChange={(e) => setPin(e.target.value)} placeholder="••••" className="mt-1" />
+                  <p className="text-xs text-gray-400 mt-1">4+ digits. You'll use this to log in.</p>
+                </div>
+                <Button type="submit" className="w-full" disabled={authLoading || !registerName.trim() || !pin || pin.length < 4}>
+                  {authLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-4 h-4 mr-2" />}
+                  {authLoading ? 'Creating…' : 'Create Account'}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+          <button onClick={() => { setStep('lookup'); setPin(''); setRegisterName(''); }} className="flex items-center gap-1 text-sm text-white/60 hover:text-white mx-auto mt-6">
             <ArrowLeft className="w-4 h-4" /> Back
           </button>
         </div>

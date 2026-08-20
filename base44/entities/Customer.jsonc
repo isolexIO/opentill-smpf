@@ -8,7 +8,7 @@
     },
     "merchant_id": {
       "type": "string",
-      "description": "Merchant ID for data isolation - REQUIRED"
+      "description": "Merchant ID for per-merchant customer records. Null for global customers (usable at all merchants with rewards activated)."
     },
     "name": {
       "type": "string",
@@ -72,7 +72,6 @@
     }
   },
   "required": [
-    "merchant_id",
     "name"
   ],
   "rls": {
