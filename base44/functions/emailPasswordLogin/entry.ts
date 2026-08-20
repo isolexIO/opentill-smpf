@@ -62,12 +62,21 @@ Deno.serve(async (req) => {
         owner_email: normalizedEmail 
       });
       const merchant = merchants?.[0];
-      if (merchant && merchant.status === 'active' && merchant.temp_password) {
+      if (merchant && merchant.status === 'active') {
         let merchantPwValid = false;
-        try {
-          merchantPwValid = await bcrypt.compare(String(password), merchant.temp_password);
-        } catch (e) {
-          merchantPwValid = false;
+        // Primary: verify against bcrypt-hashed temp_password
+        if (merchant.temp_password) {
+          try {
+            merchantPwValid = await bcrypt.compare(String(password), merchant.temp_password);
+          } catch (e) {
+            merchantPwValid = false;
+          }
+        }
+        // Fallback: merchants activated before temp_password was introduced
+        // only have an admin_pin. Allow them to log in with it as the password
+        // so they aren't locked out.
+        if (!merchantPwValid && merchant.admin_pin) {
+          merchantPwValid = String(password) === String(merchant.admin_pin);
         }
         if (merchantPwValid) {
           isVirtualUser = true;
@@ -79,10 +88,12 @@ Deno.serve(async (req) => {
             merchant_id: merchant.id,
             dealer_id: merchant.dealer_id || null,
             is_active: true,
-            temp_password: null // virtual users have no User-record password
+            temp_password: null
           };
-          // Track the merchant id so we can clear temp_password after login
-          user._merchant_id_for_clear = merchant.id;
+          // Only clear temp_password (not admin_pin) after login
+          if (merchant.temp_password) {
+            user._merchant_id_for_clear = merchant.id;
+          }
         }
       }
     }
