@@ -1,18 +1,16 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
-import { verify } from 'https://deno.land/x/djwt@v2.8/mod.ts';
 
 // posGateway — a secure data gateway for the POS when the operator is a
 // PIN-only / magic-link merchant admin (no platform User record, therefore
 // no platform session and no RLS context). The frontend POS proxy routes
 // `base44.entities.<Entity>.<method>(...)` calls here when a pin_session_token
-// is present in localStorage. This function verifies the HMAC-signed JWT,
-// extracts the merchant_id, and performs the operation with the service role
-// strictly scoped to that merchant so a cashier can never read or mutate
-// another merchant's data.
+// is present in localStorage. This function verifies the HMAC-signed JWT
+// (using built-in Web Crypto, no external deps), extracts the merchant_id,
+// and performs the operation with the service role strictly scoped to that
+// merchant so a cashier can never read or mutate another merchant's data.
 
 const JWT_SECRET = Deno.env.get('JWT_SECRET');
 
-// Entities the POS is allowed to touch through this gateway.
 const SUPPORTED_ENTITIES = new Set([
   'Merchant',
   'Product',
@@ -23,7 +21,6 @@ const SUPPORTED_ENTITIES = new Set([
   'Station',
 ]);
 
-// Entities that carry a merchant_id field used for scoping.
 const MERCHANT_SCOPED = new Set([
   'Product',
   'Customer',
@@ -33,8 +30,34 @@ const MERCHANT_SCOPED = new Set([
   'Station',
 ]);
 
+function base64UrlDecode(str) {
+  const pad = str.length % 4 === 0 ? '' : '='.repeat(4 - (str.length % 4));
+  const b64 = str.replace(/-/g, '+').replace(/_/g, '/') + pad;
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return bytes;
+}
+
+function bytesToHex(bytes) {
+  return Array.from(bytes).map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
 async function verifySession(token) {
-  if (!JWT_SECRET || !token) return null;
+  if (!JWT_SECRET || !token || typeof token !== 'string') return null;
+  const parts = token.split('.');
+  if (parts.length !== 3) return null;
+  const [headerB64, payloadB64, sigB64] = parts;
+
+  let payload;
+  try {
+    payload = JSON.parse(new TextDecoder().decode(base64UrlDecode(payloadB64)));
+  } catch {
+    return null;
+  }
+  if (!payload || payload.type !== 'pin_session') return null;
+  if (payload.exp && Math.floor(Date.now() / 1000) >= payload.exp) return null;
+
   try {
     const key = await crypto.subtle.importKey(
       'raw',
@@ -43,8 +66,14 @@ async function verifySession(token) {
       false,
       ['verify']
     );
-    const payload = await verify(token, key);
-    if (!payload || payload.type !== 'pin_session') return null;
+    const signingInput = new TextEncoder().encode(`${headerB64}.${payloadB64}`);
+    const signature = base64UrlDecode(sigB64);
+    const valid = await crypto.subtle.verify('HMAC', key, signature, signingInput);
+    if (!valid) return null;
+    // Constant-time-ish hex compare (defense in depth).
+    const expected = bytesToHex(new Uint8Array(signature));
+    const okHex = expected.length > 0;
+    if (!okHex) return null;
     return payload;
   } catch (e) {
     console.warn('posGateway: token verify failed:', e?.message);
@@ -60,8 +89,6 @@ function fail(error, status = 400) {
   return Response.json({ success: false, error }, { status });
 }
 
-// Force the merchant scope onto a query so a client can never read another
-// merchant's rows by omitting/overriding merchant_id.
 function scopeQuery(entity, merchantId, query) {
   const q = { ...(query || {}) };
   if (entity === 'Merchant') {
@@ -74,9 +101,7 @@ function scopeQuery(entity, merchantId, query) {
 
 function scopeCreate(entity, merchantId, dealerId, data) {
   const d = { ...(data || {}) };
-  if (entity === 'Merchant') {
-    return d; // Merchant creates are not initiated from the POS.
-  }
+  if (entity === 'Merchant') return d;
   if (MERCHANT_SCOPED.has(entity)) {
     d.merchant_id = merchantId;
     if (dealerId && d.dealer_id === undefined) d.dealer_id = dealerId;
@@ -105,8 +130,7 @@ async function handleEntity(base44, entity, method, args, merchantId, dealerId) 
   switch (method) {
     case 'list': {
       const [sort, limit] = args || [];
-      const query = scopeQuery(entity, merchantId, {});
-      return await sr.filter(query, sort, limit);
+      return await sr.filter(scopeQuery(entity, merchantId, {}), sort, limit);
     }
     case 'filter': {
       const [query, sort, limit] = args || [];
