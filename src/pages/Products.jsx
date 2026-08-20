@@ -1,6 +1,5 @@
-
 import { useState, useEffect, useCallback } from "react";
-import { base44 } from "@/api/base44Client";
+import { posBase44 as base44 } from "@/lib/posClient";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
