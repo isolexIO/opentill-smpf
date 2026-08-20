@@ -24,9 +24,11 @@ export default function StepReferral({ formData, onChange, onNext, locked, deale
     setReferrerInfo(null);
     setCodeError(null);
     try {
-      const merchants = await base44.entities.Merchant.filter({ referral_code: code.toUpperCase().trim() });
-      if (merchants && merchants.length > 0) {
-        setReferrerInfo(merchants[0]);
+      // Use the public service-role endpoint so logged-out visitors can verify
+      // a referral code — a direct entity read is blocked by Merchant RLS.
+      const res = await base44.functions.invoke('getMerchantByReferralCode', { referral_code: code.toUpperCase().trim() });
+      if (res.data?.success && res.data.merchant) {
+        setReferrerInfo(res.data.merchant);
       } else {
         setCodeError('No merchant found with this referral code.');
       }
