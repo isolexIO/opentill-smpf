@@ -221,7 +221,11 @@ Deno.serve(async (req) => {
     }
 
     console.log('setupDemoMenu: Creating products...');
-    const posModes = menuType === 'retail' ? ['retail'] : ['restaurant', 'quick_service', 'food_truck'];
+    // Demo products are tagged with every POS mode so they are visible
+    // regardless of which mode the POS terminal is operating in. The POS
+    // defaults to "restaurant" mode, which would otherwise hide retail-only
+    // demo products (pos_mode: ['retail']).
+    const posModes = ['restaurant', 'retail', 'quick_service', 'food_truck'];
     let createdCount = 0;
     for (const prod of products) {
       await base44.asServiceRole.entities.Product.create({
