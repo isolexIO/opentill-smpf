@@ -157,6 +157,25 @@ Deno.serve(async (req) => {
         const bcrypt = await import('npm:bcryptjs@2.4.3');
         updateData.temp_password = bcrypt.default.hashSync(String(temp_password), 10);
       }
+      // Ensure the merchant has a unique referral code at activation so they
+      // can share their brochure link immediately.
+      if (!merchantData.referral_code) {
+        let referralCode;
+        let isUnique = false;
+        let attempts = 0;
+        while (!isUnique && attempts < 10) {
+          const businessSlug = (merchantData.business_name || 'merchant')
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, '')
+            .substring(0, 8) || 'merchant';
+          const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+          referralCode = `${businessSlug}${randomSuffix}`.toUpperCase();
+          const existing = await base44.asServiceRole.entities.Merchant.filter({ referral_code: referralCode });
+          isUnique = !existing || existing.length === 0;
+          attempts++;
+        }
+        if (isUnique) updateData.referral_code = referralCode;
+      }
       const updated = await base44.asServiceRole.entities.Merchant.update(merchant_id, updateData);
 
       const bizName = sanitizeForEmail(merchantData.business_name);

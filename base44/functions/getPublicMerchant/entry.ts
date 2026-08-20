@@ -15,7 +15,31 @@ Deno.serve(async (req) => {
     if (!merchants || merchants.length === 0) {
       return Response.json({ success: false, error: 'Merchant not found' }, { status: 404 });
     }
-    const m = merchants[0];
+    let m = merchants[0];
+
+    // Ensure the merchant has a unique referral code. Generate one lazily if
+    // missing so every merchant — including ones activated before referral
+    // codes were introduced — can share a referral link.
+    if (!m.referral_code) {
+      let referralCode;
+      let isUnique = false;
+      let attempts = 0;
+      while (!isUnique && attempts < 10) {
+        const businessSlug = (m.business_name || 'merchant')
+          .toLowerCase()
+          .replace(/[^a-z0-9]/g, '')
+          .substring(0, 8) || 'merchant';
+        const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+        referralCode = `${businessSlug}${randomSuffix}`.toUpperCase();
+        const existing = await base44.asServiceRole.entities.Merchant.filter({ referral_code: referralCode });
+        isUnique = !existing || existing.length === 0;
+        attempts++;
+      }
+      if (isUnique) {
+        await base44.asServiceRole.entities.Merchant.update(merchant_id, { referral_code: referralCode });
+        m = { ...m, referral_code: referralCode };
+      }
+    }
 
     // Return only display-safe settings (strip anything that could hold secrets)
     const safeSettings = { ...(m.settings || {}) };

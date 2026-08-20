@@ -91,10 +91,13 @@ export async function resolveReferral({ merchantId } = {}) {
   const sessionDealerId = sessionUser?.dealer_id || pinUser?.dealer_id;
 
   if (sessionMerchantId) {
+    // Use the service-role endpoint (works without a base44 session, which is
+    // required for PIN-only merchants — a direct entity read is blocked by
+    // RLS and would silently fall through to the dealer/ambassador code).
     try {
-      const merchants = await base44.entities.Merchant.filter({ id: sessionMerchantId });
-      if (merchants?.[0]?.referral_code) {
-        return { type: 'merchant', code: merchants[0].referral_code };
+      const { data } = await base44.functions.invoke('getPublicMerchant', { merchant_id: sessionMerchantId });
+      if (data?.success && data.merchant?.referral_code) {
+        return { type: 'merchant', code: data.merchant.referral_code };
       }
     } catch { /* ignore */ }
   }
