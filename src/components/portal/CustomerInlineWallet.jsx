@@ -16,7 +16,7 @@ import SendScreen from '@/components/smpf/SendScreen';
 import QRCode from 'qrcode';
 import { useToast } from '@/components/ui/use-toast';
 
-export default function CustomerInlineWallet() {
+export default function CustomerInlineWallet({ customerKey }) {
   const { toast } = useToast();
   const [settings, setSettings] = useState(null);
   const [wallet, setWallet] = useState(null);
@@ -48,7 +48,7 @@ export default function CustomerInlineWallet() {
       const settingsList = await base44.entities.DUCWalletSettings.list().catch(() => []);
       setSettings(settingsList?.[0] || null);
 
-      const localWallets = await listWallets(null).catch(() => []);
+      const localWallets = await listWallets(customerKey || null).catch(() => []);
       if (localWallets && localWallets.length > 0) {
         const w = localWallets[0];
         setWallet(w);
@@ -124,7 +124,7 @@ export default function CustomerInlineWallet() {
     try {
       const kp = Keypair.generate();
       const backup = await encryptWallet(kp.secretKey, createPassword, kp.publicKey.toString());
-      await saveWallet(kp.publicKey.toString(), backup, null);
+      await saveWallet(kp.publicKey.toString(), backup, customerKey || null);
       setWallet({ address: kp.publicKey.toString(), backup });
       setAddress(kp.publicKey.toString());
       setShowCreate(false);

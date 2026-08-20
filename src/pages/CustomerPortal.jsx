@@ -257,7 +257,7 @@ export default function CustomerPortal() {
           <ICOLink />
 
           {/* Inline SMPF Wallet */}
-          <CustomerInlineWallet />
+          <CustomerInlineWallet customerKey={customer?.email || identifier} />
 
           {/* Purchase History */}
           <div className="pt-2">
