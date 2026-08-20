@@ -188,7 +188,7 @@ export default function CustomerPortal() {
     ];
 
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-b from-[#0A0A12] via-[#0d1b2a] to-[#1a1a2e]">
         <div className="relative text-white px-6 py-6" style={{ backgroundImage: `url(${PORTAL_BG})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
           <div className="absolute inset-0 bg-black/50" />
 
