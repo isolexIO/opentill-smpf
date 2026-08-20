@@ -118,11 +118,6 @@ DUC_reward = (Transaction Volume × Participation Level × Network Factor)
 * 5% Marketing
 * 5% Development (Vested)
 
-### Network Mechanics:
-
-* 0.1% Transfer Fee
-* 0.05% Interest Mechanism
-
 ---
 
 ## 🏗️ Features
