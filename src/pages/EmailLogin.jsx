@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  LogIn, Mail, Lock, Loader2, AlertCircle, Shield, Chrome, Wallet, Link2
+  Mail, Loader2, AlertCircle, Chrome, Wallet
 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import WalletLogin from '@/components/auth/WalletLogin.jsx';
@@ -14,13 +14,11 @@ import WalletLogin from '@/components/auth/WalletLogin.jsx';
 export default function EmailLoginPage() {
   const [tab, setTab] = useState('email');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
   const [dealer, setDealer] = useState(null);
-  const [twoFactorRequired, setTwoFactorRequired] = useState(false);
-  const [twoFactorCode, setTwoFactorCode] = useState('');
+  const [linkSent, setLinkSent] = useState(false);
 
   useEffect(() => { loadDealer(); }, []);
 
@@ -76,28 +74,20 @@ export default function EmailLoginPage() {
     }
   };
 
-  const handleEmailLogin = async (e) => {
+  const handleSendLink = async (e) => {
     e.preventDefault();
-    if (!email || !password) { setError('Please enter both email and password'); return; }
+    if (!email) { setError('Enter your email address'); return; }
     setLoading(true);
     setError('');
     try {
-      const result = await base44.functions.invoke('emailPasswordLogin', {
-        email: email.toLowerCase().trim(),
-        password,
-        two_factor_code: twoFactorCode || null
-      });
-      if (result.data.requires_2fa) { setTwoFactorRequired(true); setLoading(false); return; }
-      if (result.data.success && result.data.user) {
-        redirectAfterLogin(result.data.user);
+      const result = await base44.functions.invoke('resetUserPassword', { email: email.toLowerCase().trim() });
+      if (result.data.success) {
+        setLinkSent(true);
       } else {
-        setError(result.data.error || 'Login failed');
+        setError(result.data.error || 'Failed to send login link');
       }
-    } catch {
-      setError('Invalid email or password');
-    } finally {
-      setLoading(false);
-    }
+    } catch { setError('Failed to send login link.'); }
+    finally { setLoading(false); }
   };
 
   const handleGoogleLogin = async () => {
@@ -109,20 +99,6 @@ export default function EmailLoginPage() {
       setError('Failed to initiate Google login');
       setGoogleLoading(false);
     }
-  };
-
-  const handleForgotPassword = async () => {
-    if (!email) { setError('Enter your email address above first'); return; }
-    setLoading(true);
-    try {
-      const result = await base44.functions.invoke('resetUserPassword', { email: email.toLowerCase().trim() });
-      if (result.data.success) {
-        alert(`✅ Login link sent to ${email}! Check your inbox.`);
-      } else {
-        setError(result.data.error || 'Failed to send reset email');
-      }
-    } catch { setError('Failed to send reset email.'); }
-    finally { setLoading(false); }
   };
 
   const brandName = dealer?.name || 'openTILL';
@@ -168,67 +144,51 @@ export default function EmailLoginPage() {
 
               {/* ─── EMAIL ─── */}
               <TabsContent value="email" className="space-y-4">
-                {twoFactorRequired && (
-                  <Alert className="bg-blue-500/20 border-blue-400/40">
-                    <Shield className="h-4 w-4 text-blue-300" />
-                    <AlertDescription className="text-blue-200">2FA enabled — enter your 6-digit code.</AlertDescription>
-                  </Alert>
-                )}
-                <form onSubmit={handleEmailLogin} className="space-y-3">
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-                    <Input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Email address"
-                      className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-purple-400"
-                      disabled={loading}
-                      autoFocus
-                    />
+                {linkSent ? (
+                  <div className="py-6 text-center space-y-3">
+                    <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center mx-auto">
+                      <Mail className="w-6 h-6 text-green-400" />
+                    </div>
+                    <p className="text-white font-semibold">Check your inbox</p>
+                    <p className="text-white/60 text-sm">
+                      We sent a login link to <span className="text-white font-medium">{email}</span>.
+                      Click the link in the email to sign in.
+                    </p>
+                    <button
+                      onClick={() => { setLinkSent(false); setEmail(''); }}
+                      className="text-xs text-purple-300/70 hover:text-white underline"
+                    >
+                      Use a different email
+                    </button>
                   </div>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-                    <Input
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Password"
-                      className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-purple-400"
-                      disabled={loading}
-                    />
-                  </div>
-                  {twoFactorRequired && (
+                ) : (
+                  <form onSubmit={handleSendLink} className="space-y-3">
                     <div className="relative">
-                      <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
                       <Input
-                        type="text"
-                        value={twoFactorCode}
-                        onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                        placeholder="000000"
-                        className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/40 text-center tracking-widest font-mono text-lg"
-                        maxLength={6}
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Email address"
+                        className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-purple-400"
+                        disabled={loading}
                         autoFocus
                       />
                     </div>
-                  )}
-                  <Button
-                    type="submit"
-                    className="w-full h-11 font-semibold"
-                    style={{ background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)` }}
-                    disabled={loading}
-                  >
-                    {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <LogIn className="w-4 h-4 mr-2" />}
-                    {loading ? 'Signing In...' : 'Sign In'}
-                  </Button>
-                </form>
-                <button
-                  onClick={handleForgotPassword}
-                  className="w-full text-xs text-purple-300/70 hover:text-white underline text-center"
-                  disabled={loading}
-                >
-                  Forgot password? Send login link
-                </button>
+                    <Button
+                      type="submit"
+                      className="w-full h-11 font-semibold"
+                      style={{ background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)` }}
+                      disabled={loading}
+                    >
+                      {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Mail className="w-4 h-4 mr-2" />}
+                      {loading ? 'Sending...' : 'Send Login Link'}
+                    </Button>
+                    <p className="text-center text-white/40 text-xs">
+                      We'll email you a secure link to log in — no password needed.
+                    </p>
+                  </form>
+                )}
               </TabsContent>
 
               {/* ─── GOOGLE ─── */}
