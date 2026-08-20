@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 // posGateway — a secure data gateway for the POS when the operator is a
 // PIN-only / magic-link merchant admin (no platform User record, therefore
@@ -39,10 +39,6 @@ function base64UrlDecode(str) {
   return bytes;
 }
 
-function bytesToHex(bytes) {
-  return Array.from(bytes).map((b) => b.toString(16).padStart(2, '0')).join('');
-}
-
 async function verifySession(token) {
   if (!JWT_SECRET || !token || typeof token !== 'string') return null;
   const parts = token.split('.');
@@ -70,10 +66,6 @@ async function verifySession(token) {
     const signature = base64UrlDecode(sigB64);
     const valid = await crypto.subtle.verify('HMAC', key, signature, signingInput);
     if (!valid) return null;
-    // Constant-time-ish hex compare (defense in depth).
-    const expected = bytesToHex(new Uint8Array(signature));
-    const okHex = expected.length > 0;
-    if (!okHex) return null;
     return payload;
   } catch (e) {
     console.warn('posGateway: token verify failed:', e?.message);
