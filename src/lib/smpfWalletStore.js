@@ -48,10 +48,16 @@ export async function getCurrentUserId() {
   try {
     const { base44 } = await import('@/api/base44Client');
     const u = await base44.auth.me();
-    return u?.id || null;
-  } catch {
-    return null;
-  }
+    if (u?.id) return u.id;
+  } catch {}
+  // Fall back to a PIN-only merchant session (no platform/Google login).
+  // The wallet is non-custodial and local, so the PIN user's id is enough
+  // to isolate wallets on a shared device.
+  try {
+    const pinUser = JSON.parse(localStorage.getItem('pinLoggedInUser') || 'null');
+    if (pinUser?.id) return pinUser.id;
+  } catch {}
+  return null;
 }
 
 export async function getWallet(address) {

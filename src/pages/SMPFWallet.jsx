@@ -164,8 +164,32 @@ export default function SMPFWallet() {
   async function initWallet() {
     setLoading(true);
     try {
-      // 1. Check logged-in user session
-      const currentUser = await base44.auth.me();
+      // 1. Resolve identity. Prefer a platform session; fall back to a
+      // PIN-only merchant session (which has no platform/Google login) so
+      // merchants who log in via PIN can still access their non-custodial
+      // SMPF wallet without being forced through Google sign-in.
+      let currentUser = null;
+      let hasPlatformSession = false;
+      try {
+        currentUser = await base44.auth.me();
+        if (currentUser) hasPlatformSession = true;
+      } catch {}
+      if (!currentUser) {
+        try {
+          const pinUser = JSON.parse(localStorage.getItem('pinLoggedInUser') || 'null');
+          if (pinUser) {
+            currentUser = {
+              id: pinUser.id,
+              email: pinUser.email || '',
+              full_name: pinUser.full_name || '',
+              role: pinUser.role || 'merchant_admin',
+              merchant_id: pinUser.merchant_id || null,
+              dealer_id: pinUser.dealer_id || null,
+              wallet_address: null,
+            };
+          }
+        } catch {}
+      }
       if (!currentUser) {
         setUser(null);
         setLoading(false);
@@ -180,7 +204,9 @@ export default function SMPFWallet() {
         setDashboardUrl(createPageUrl('SuperAdmin'));
       } else if (localStorage.getItem('dealerToken') || currentUser.dealer_id) {
         setDashboardUrl(createPageUrl('DealerDashboard'));
-      } else {
+      } else if (hasPlatformSession) {
+        // The Builder lookup requires a platform session (RLS). Skip it for
+        // PIN-only users and default to the merchant dashboard.
         try {
           const builders = await base44.entities.Builder.filter({ user_email: currentUser.email });
           if (builders && builders.length > 0) {
@@ -191,6 +217,8 @@ export default function SMPFWallet() {
         } catch {
           setDashboardUrl(createPageUrl('SystemMenu'));
         }
+      } else {
+        setDashboardUrl(createPageUrl('SystemMenu'));
       }
 
       // 2. Load global wallet settings & configurations
