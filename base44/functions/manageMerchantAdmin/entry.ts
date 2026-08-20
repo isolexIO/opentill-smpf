@@ -5,17 +5,35 @@ Deno.serve(async (req) => {
     let body = {};
     try { body = await req.json(); } catch {}
 
-    const { action, email, merchant_id, data } = body;
+    const { action, merchant_id, data } = body;
 
-    if (!action || !email || !merchant_id) {
+    if (!action || !merchant_id) {
       return Response.json({
         success: false,
-        error: 'action, email, and merchant_id are required'
+        error: 'action and merchant_id are required'
       }, { status: 400 });
     }
 
     const base44 = createClientFromRequest(req);
-    const normalizedEmail = String(email).toLowerCase().trim();
+
+    // Authenticate the caller strictly via the platform session.
+    // Never trust a request-body email for authorization decisions.
+    let user;
+    try {
+      user = await base44.auth.me();
+    } catch {
+      return Response.json({
+        success: false,
+        error: 'Authentication required'
+      }, { status: 401 });
+    }
+
+    if (!user) {
+      return Response.json({
+        success: false,
+        error: 'Authentication required'
+      }, { status: 401 });
+    }
 
     // Fetch the merchant using service role (bypasses RLS)
     const merchants = await base44.asServiceRole.entities.Merchant.filter({ id: merchant_id });
@@ -28,21 +46,14 @@ Deno.serve(async (req) => {
 
     const merchant = merchants[0];
 
-    // Verify the caller owns this merchant (email must match owner_email)
-    // or is a platform admin
+    // Authorize: platform admin, or the merchant owner (verified via session email).
+    // The caller's identity is derived from base44.auth.me(), never from the request body.
     let isAuthorized = false;
-    if (merchant.owner_email && merchant.owner_email.toLowerCase().trim() === normalizedEmail) {
+    if (user.role === 'admin') {
       isAuthorized = true;
-    }
-
-    // Also check if the caller has a real platform session with admin role
-    if (!isAuthorized) {
-      try {
-        const user = await base44.auth.me();
-        if (user && user.role === 'admin') {
-          isAuthorized = true;
-        }
-      } catch {}
+    } else if (merchant.owner_email && user.email &&
+               merchant.owner_email.toLowerCase().trim() === String(user.email).toLowerCase().trim()) {
+      isAuthorized = true;
     }
 
     if (!isAuthorized) {
