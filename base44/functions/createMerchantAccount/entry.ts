@@ -209,7 +209,7 @@ Deno.serve(async (req) => {
                         <h2>Welcome to openTILL, ${escapeHtml(owner_name)}!</h2>
                         <p>Your merchant application for <strong>${escapeHtml(business_name)}</strong> has been received successfully.</p>
                         <p>Our team will review your application and activate your account within 24 hours. You will receive a follow-up email once your account is active.</p>
-                        <p>Once activated, you can log in at: <a href="https://chainlinkpos.isolex.io">chainlinkpos.isolex.io</a></p>
+                        <p>Once activated, you can log in at: <a href="https://chainlinkpos.isolex.io/EmailLogin">chainlinkpos.isolex.io/EmailLogin</a></p>
                         <p>Thank you for choosing openTILL!</p>
                     `
                 });

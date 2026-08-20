@@ -194,7 +194,7 @@ Deno.serve(async (req) => {
 
                     <h3>How to Log In</h3>
                     <p>Use <strong>Google Sign-In</strong> with ${loginEmail} (recommended), or the magic-link invitation email from openTILL to set your password.</p>
-                    <p>Login URL: <a href="https://opentillpos.isolex.io">opentillpos.isolex.io</a></p>
+                    <p>Login URL: <a href="https://opentillpos.isolex.io/EmailLogin">opentillpos.isolex.io/EmailLogin</a></p>
 
                     <h3>Your POS Quick-Login PIN</h3>
                     <p style="font-size:28px; font-weight:bold; letter-spacing:6px; background:#f3f4f6; padding:12px 20px; border-radius:8px; display:inline-block;">${pin}</p>
