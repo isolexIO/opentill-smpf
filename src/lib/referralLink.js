@@ -58,27 +58,38 @@ export async function resolveReferral({ merchantId } = {}) {
     } catch { /* ignore */ }
   }
 
-  // 3. Logged-in user
+  // 3. Logged-in user — check both the base44 session and the PIN-logged-in
+  //    user (ambassadors/dealers log in via PIN, which is stored in localStorage
+  //    and is not reflected in base44.auth.me()).
+  let sessionUser = null;
   try {
-    const user = await base44.auth.me();
-    if (user?.merchant_id) {
-      try {
-        const merchants = await base44.entities.Merchant.filter({ id: user.merchant_id });
-        if (merchants?.[0]?.referral_code) {
-          return { type: 'merchant', code: merchants[0].referral_code };
-        }
-      } catch { /* ignore */ }
-    }
-    if (user?.dealer_id) {
-      try {
-        const ambassadors = await base44.entities.Ambassador.filter({ legacy_dealer_id: user.dealer_id });
-        if (ambassadors?.[0]) {
-          return { type: 'dealer', code: ambassadors[0].slug || user.dealer_id };
-        }
-      } catch { /* ignore */ }
-      return { type: 'dealer', code: user.dealer_id };
-    }
-  } catch { /* not logged in — public viewer */ }
+    sessionUser = await base44.auth.me();
+  } catch { /* not logged in via base44 session */ }
+
+  const pinUserJSON = typeof localStorage !== 'undefined' ? localStorage.getItem('pinLoggedInUser') : null;
+  const pinUser = pinUserJSON ? (() => { try { return JSON.parse(pinUserJSON); } catch { return null; } })() : null;
+
+  const sessionMerchantId = sessionUser?.merchant_id || pinUser?.merchant_id;
+  const sessionDealerId = sessionUser?.dealer_id || pinUser?.dealer_id;
+
+  if (sessionMerchantId) {
+    try {
+      const merchants = await base44.entities.Merchant.filter({ id: sessionMerchantId });
+      if (merchants?.[0]?.referral_code) {
+        return { type: 'merchant', code: merchants[0].referral_code };
+      }
+    } catch { /* ignore */ }
+  }
+
+  if (sessionDealerId) {
+    try {
+      const ambassadors = await base44.entities.Ambassador.filter({ legacy_dealer_id: sessionDealerId });
+      if (ambassadors?.[0]) {
+        return { type: 'dealer', code: ambassadors[0].slug || sessionDealerId };
+      }
+    } catch { /* ignore */ }
+    return { type: 'dealer', code: sessionDealerId };
+  }
 
   return null;
 }
