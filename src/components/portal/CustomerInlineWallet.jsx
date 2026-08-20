@@ -1,18 +1,19 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Keypair, Connection, PublicKey } from '@solana/web3.js';
+import { Connection, PublicKey } from '@solana/web3.js';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Wallet, Send, ArrowDownLeft, Copy, Check, Loader2, Plus, KeyRound, RefreshCw, Coins, ExternalLink } from 'lucide-react';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Wallet, Send, ArrowDownLeft, Copy, Check, Loader2, Plus, KeyRound, RefreshCw, Link2, ArrowRight, Smartphone, ArrowLeft } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
-import { listWallets, saveWallet } from '@/lib/smpfWalletStore';
-import { encryptWallet } from '@/lib/smpfCrypto';
+import { listWallets, setSession } from '@/lib/smpfWalletStore';
 import { getNetworkRpcList } from '@/lib/smpfRpc';
 import { getPrice, WSOL } from '@/lib/smpfPrices';
 import { DUC_LOGO_URL } from '@/lib/smpfConstants';
 import SendScreen from '@/components/smpf/SendScreen';
+import GenerationScreen from '@/components/smpf/GenerationScreen';
+import BackupScreen from '@/components/smpf/BackupScreen';
+import ActivationScreen from '@/components/smpf/ActivationScreen';
+import ImportKeyScreen from '@/components/smpf/ImportKeyScreen';
 import QRCode from 'qrcode';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -32,11 +33,10 @@ export default function CustomerInlineWallet({ customerKey }) {
   const [qrUrl, setQrUrl] = useState('');
   const [refreshing, setRefreshing] = useState(false);
 
-  // Wallet creation state
-  const [showCreate, setShowCreate] = useState(false);
-  const [createPassword, setCreatePassword] = useState('');
-  const [createConfirm, setCreateConfirm] = useState('');
-  const [creating, setCreating] = useState(false);
+  // Onboarding flow state
+  const [showOnboard, setShowOnboard] = useState(false);
+  const [onboardStep, setOnboardStep] = useState('choice'); // choice | generate | backup | activate | import
+  const [kp, setKp] = useState(null);
 
   const rpc = settings ? getNetworkRpcList(settings)[0] : 'https://api.mainnet-beta.solana.com';
   const network = settings?.default_network || 'mainnet';
@@ -110,32 +110,14 @@ export default function CustomerInlineWallet({ customerKey }) {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleCreateWallet = async (e) => {
-    e.preventDefault();
-    if (createPassword.length < 6) {
-      toast({ title: 'Password too short', description: 'Use at least 6 characters', variant: 'destructive' });
-      return;
-    }
-    if (createPassword !== createConfirm) {
-      toast({ title: 'Passwords don\'t match', variant: 'destructive' });
-      return;
-    }
-    setCreating(true);
-    try {
-      const kp = Keypair.generate();
-      const backup = await encryptWallet(kp.secretKey, createPassword, kp.publicKey.toString());
-      await saveWallet(kp.publicKey.toString(), backup, customerKey || null);
-      setWallet({ address: kp.publicKey.toString(), backup });
-      setAddress(kp.publicKey.toString());
-      setShowCreate(false);
-      setCreatePassword('');
-      setCreateConfirm('');
-      toast({ title: 'Wallet created!', description: 'Your SMPF wallet is ready to use.' });
-    } catch (err) {
-      toast({ title: 'Wallet creation failed', description: err.message, variant: 'destructive' });
-    } finally {
-      setCreating(false);
-    }
+  const finishOnboarding = (keypair) => {
+    if (keypair) setSession(keypair.secretKeyB64, keypair.address);
+    setWallet({ address: keypair?.address || kp?.address });
+    setAddress(keypair?.address || kp?.address);
+    setShowOnboard(false);
+    setOnboardStep('choice');
+    setKp(null);
+    toast({ title: 'Wallet ready!', description: 'Your SMPF wallet is now active.' });
   };
 
   if (loading) {
@@ -148,7 +130,7 @@ export default function CustomerInlineWallet({ customerKey }) {
     );
   }
 
-  // No wallet yet — show create/import prompt
+  // No wallet yet — show onboarding entry
   if (!wallet) {
     return (
       <>
@@ -164,36 +146,105 @@ export default function CustomerInlineWallet({ customerKey }) {
               </div>
             </div>
             <p className="text-sm text-gray-600 mb-4">
-              Create a wallet to hold your $DUC rewards, send payments, and receive crypto from anyone.
+              Create a custom $DUC, SMPF, or TILL vanity address — or import an existing wallet.
             </p>
-            <Button className="w-full bg-gradient-to-r from-purple-600 to-blue-600" onClick={() => setShowCreate(true)}>
-              <Plus className="w-4 h-4 mr-2" /> Create Wallet
+            <Button className="w-full bg-gradient-to-r from-purple-600 to-blue-600" onClick={() => setShowOnboard(true)}>
+              <Plus className="w-4 h-4 mr-2" /> Set Up Wallet
             </Button>
           </CardContent>
         </Card>
 
-        <Dialog open={showCreate} onOpenChange={setShowCreate}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2"><KeyRound className="w-5 h-5" /> Create Your Wallet</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleCreateWallet} className="space-y-4">
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
-                Choose a strong password — it encrypts your wallet on this device. If you forget it, your wallet cannot be recovered.
-              </div>
-              <div>
-                <Label htmlFor="wpass">Wallet Password</Label>
-                <Input id="wpass" type="password" value={createPassword} onChange={(e) => setCreatePassword(e.target.value)} placeholder="At least 6 characters" className="mt-1" autoFocus />
-              </div>
-              <div>
-                <Label htmlFor="wpass2">Confirm Password</Label>
-                <Input id="wpass2" type="password" value={createConfirm} onChange={(e) => setCreateConfirm(e.target.value)} placeholder="Re-enter password" className="mt-1" />
-              </div>
-              <Button type="submit" className="w-full" disabled={creating || !createPassword || !createConfirm}>
-                {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <KeyRound className="w-4 h-4 mr-2" />}
-                {creating ? 'Creating…' : 'Create Wallet'}
-              </Button>
-            </form>
+        <Dialog open={showOnboard} onOpenChange={(open) => { if (!open) { setOnboardStep('choice'); setKp(null); } setShowOnboard(open); }}>
+          <DialogContent className="max-w-lg bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 border-white/20">
+            <div className="space-y-6">
+              {onboardStep !== 'choice' && (
+                <Button variant="ghost" className="text-white/60 hover:text-white" onClick={() => setOnboardStep('choice')}>
+                  <ArrowLeft className="w-4 h-4 mr-2" /> Start over
+                </Button>
+              )}
+
+              {onboardStep === 'choice' && (
+                <div className="space-y-5">
+                  <div className="text-center">
+                    <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-yellow-500 to-orange-600 flex items-center justify-center mb-3">
+                      <Wallet className="w-7 h-7 text-white" />
+                    </div>
+                    <h2 className="text-xl font-bold text-white">Choose your wallet</h2>
+                    <p className="text-white/60 text-sm mt-1">
+                      Create a custom $DUC, SMPF, or TILL address — or a standard Solana keypair.
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => setOnboardStep('generate')}
+                    className="w-full text-left p-5 rounded-xl bg-gradient-to-r from-emerald-500/20 to-emerald-600/10 border-2 border-emerald-400/50 hover:border-emerald-400 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-emerald-500/30 flex items-center justify-center">
+                        <Plus className="w-5 h-5 text-emerald-300" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-white font-bold">Create My SMPF Wallet</span>
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-400/20 text-emerald-200 font-semibold">Recommended</span>
+                        </div>
+                        <p className="text-white/60 text-xs mt-1">A real Solana wallet with a custom $DUC, SMPF, or TILL vanity address.</p>
+                      </div>
+                      <ArrowRight className="w-5 h-5 text-white/60" />
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => setOnboardStep('import')}
+                    className="w-full text-left p-5 rounded-xl bg-gradient-to-r from-indigo-500/20 to-purple-600/10 border-2 border-indigo-400/40 hover:border-indigo-400 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-indigo-500/30 flex items-center justify-center">
+                        <Smartphone className="w-5 h-5 text-indigo-200" />
+                      </div>
+                      <div className="flex-1">
+                        <span className="text-white font-bold">Import from Another Device</span>
+                        <p className="text-white/60 text-xs mt-1">Scan a QR code or paste your private key to restore your wallet.</p>
+                      </div>
+                      <ArrowRight className="w-5 h-5 text-white/60" />
+                    </div>
+                  </button>
+                </div>
+              )}
+
+              {onboardStep === 'generate' && (
+                <GenerationScreen
+                  onFound={(keypair) => { setKp(keypair); setOnboardStep('backup'); }}
+                  onBack={() => setOnboardStep('choice')}
+                  currentUserEmail={customerKey}
+                />
+              )}
+
+              {onboardStep === 'backup' && kp && (
+                <BackupScreen
+                  secretKeyB64={kp.secretKeyB64}
+                  address={kp.address}
+                  userId={customerKey}
+                  onDone={() => setOnboardStep('activate')}
+                  onBack={() => setOnboardStep('generate')}
+                />
+              )}
+
+              {onboardStep === 'activate' && kp && (
+                <ActivationScreen
+                  address={kp.address}
+                  onOpenWallet={() => finishOnboarding(kp)}
+                />
+              )}
+
+              {onboardStep === 'import' && (
+                <ImportKeyScreen
+                  userId={customerKey}
+                  onDone={(keypair) => finishOnboarding(keypair)}
+                  onBack={() => setOnboardStep('choice')}
+                />
+              )}
+            </div>
           </DialogContent>
         </Dialog>
       </>
@@ -224,7 +275,6 @@ export default function CustomerInlineWallet({ customerKey }) {
           </div>
 
           <div className="space-y-2">
-            {/* SOL Balance */}
             <div className="flex items-center justify-between bg-white rounded-lg p-3">
               <div className="flex items-center gap-2">
                 <div className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center text-white text-xs font-bold">S</div>
@@ -236,7 +286,6 @@ export default function CustomerInlineWallet({ customerKey }) {
               </div>
             </div>
 
-            {/* $DUC Balance */}
             <div className="flex items-center justify-between bg-white rounded-lg p-3">
               <div className="flex items-center gap-2">
                 <img src={DUC_LOGO_URL} alt="$DUC" className="w-7 h-7 rounded-full" />
@@ -259,18 +308,15 @@ export default function CustomerInlineWallet({ customerKey }) {
         </CardContent>
       </Card>
 
-      {/* Receive Modal */}
       <Dialog open={showReceive} onOpenChange={setShowReceive}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Receive $DUC / SOL</DialogTitle>
-          </DialogHeader>
           <div className="flex flex-col items-center gap-4">
+            <h2 className="text-lg font-bold">Receive $DUC / SOL</h2>
             {qrUrl && <img src={qrUrl} alt="Wallet QR" className="w-56 h-56 rounded-lg border" />}
             <div className="w-full">
-              <Label>Your Wallet Address</Label>
-              <div className="flex items-center gap-2 mt-1">
-                <Input value={address} readOnly className="text-xs font-mono" />
+              <p className="text-sm font-medium text-gray-700 mb-1">Your Wallet Address</p>
+              <div className="flex items-center gap-2">
+                <input value={address} readOnly className="flex-1 text-xs font-mono px-3 py-2 border rounded-md bg-gray-50" />
                 <Button size="icon" variant="outline" onClick={handleCopy}>
                   {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
                 </Button>
@@ -280,12 +326,8 @@ export default function CustomerInlineWallet({ customerKey }) {
         </DialogContent>
       </Dialog>
 
-      {/* Send Modal */}
       <Dialog open={showSend} onOpenChange={setShowSend}>
         <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Send from your wallet</DialogTitle>
-          </DialogHeader>
           <SendScreen
             address={address}
             rpc={rpc}

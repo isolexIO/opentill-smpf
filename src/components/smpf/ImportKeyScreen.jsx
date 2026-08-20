@@ -24,7 +24,7 @@ function decodeKey(input) {
   return { address, secretKeyB64, secretBytes: sk };
 }
 
-export default function ImportKeyScreen({ onDone, onBack, expectedAddress }) {
+export default function ImportKeyScreen({ onDone, onBack, expectedAddress, userId }) {
   const { toast } = useToast();
   const [keyInput, setKeyInput] = useState('');
   const [password, setPassword] = useState('');
@@ -110,8 +110,8 @@ export default function ImportKeyScreen({ onDone, onBack, expectedAddress }) {
         throw new Error(`This key is for a different wallet (${address.slice(0, 6)}…${address.slice(-4)}) than the one linked to your account (${expectedAddress.slice(0, 6)}…${expectedAddress.slice(-4)}).`);
       }
       const backup = await encryptWallet(secretBytes, password, address);
-      const userId = await getCurrentUserId();
-      await saveWallet(address, backup, userId);
+      const uid = userId !== undefined ? userId : await getCurrentUserId();
+      await saveWallet(address, backup, uid);
       setSession(secretKeyB64, address);
       toast({ title: 'Wallet imported', description: `${address.slice(0, 6)}…${address.slice(-6)} is ready on this device.` });
       onDone({ address, secretKeyB64 });
