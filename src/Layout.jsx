@@ -426,26 +426,30 @@ export default function Layout({ children, currentPageName }) {
         )}
       </div>
 
-      {!dealer?.settings?.hide_opentill_branding && (
-        <div className="fixed bottom-20 right-4 flex flex-col items-end gap-2 z-50 md:bottom-4">
+      <div className="fixed bottom-20 right-4 flex flex-col items-end gap-2 z-50 md:bottom-4">
+        {!dealer?.settings?.hide_opentill_branding && (
           <div className="text-xs text-gray-500 bg-white px-3 py-1 rounded-full shadow-sm">
             © Isolex Corporation
           </div>
-          <div className="text-xs bg-white rounded-full shadow-sm overflow-hidden">
-            <Link to={createPageUrl('CustomerPortal')} className="px-3 py-1 inline-block text-blue-600 hover:text-blue-700 transition-colors">
-              Customer Portal
-            </Link>
-            <span className="text-gray-300">|</span>
-            <Link to={createPageUrl('License')} className="px-3 py-1 inline-block text-blue-600 hover:text-blue-700 transition-colors">
-              License
-            </Link>
-            <span className="text-gray-300">|</span>
-            <Link to={createPageUrl('Copyright')} className="px-3 py-1 inline-block text-blue-600 hover:text-blue-700 transition-colors">
-              Copyright
-            </Link>
-          </div>
+        )}
+        <div className="text-xs bg-white rounded-full shadow-sm overflow-hidden">
+          <Link to={createPageUrl('CustomerPortal')} className="px-3 py-1 inline-block text-blue-600 hover:text-blue-700 transition-colors">
+            Customer Portal
+          </Link>
+          {!dealer?.settings?.hide_opentill_branding && (
+            <>
+              <span className="text-gray-300">|</span>
+              <Link to={createPageUrl('License')} className="px-3 py-1 inline-block text-blue-600 hover:text-blue-700 transition-colors">
+                License
+              </Link>
+              <span className="text-gray-300">|</span>
+              <Link to={createPageUrl('Copyright')} className="px-3 py-1 inline-block text-blue-600 hover:text-blue-700 transition-colors">
+                Copyright
+              </Link>
+            </>
+          )}
         </div>
-      )}
+      </div>
     </div>
     
   );

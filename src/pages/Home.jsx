@@ -1194,6 +1194,11 @@ export default function HomePage() {
                     Ambassador Portal
                   </a>
                 </li>
+                <li>
+                  <a href={createPageUrl('CustomerPortal')} className="text-gray-300 hover:text-white text-sm transition-colors">
+                    Customer Portal
+                  </a>
+                </li>
               </ul>
             </div>
 
