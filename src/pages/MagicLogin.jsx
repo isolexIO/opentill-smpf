@@ -44,6 +44,7 @@ export default function MagicLogin() {
         if (result.data.success && result.data.user) {
           const user = result.data.user;
           localStorage.setItem('pinLoggedInUser', JSON.stringify(user));
+          if (result.data.session_token) localStorage.setItem('pinSessionToken', result.data.session_token);
           if (user.merchant_id) localStorage.setItem('deviceMerchantId', user.merchant_id);
 
           const role = user.role;

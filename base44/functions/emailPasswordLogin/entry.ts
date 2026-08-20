@@ -1,6 +1,33 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import * as OTPAuth from 'npm:otpauth@9.3.6';
 import bcrypt from 'npm:bcryptjs@2.4.3';
+import { create } from 'https://deno.land/x/djwt@v2.8/mod.ts';
+
+const JWT_SECRET = Deno.env.get('JWT_SECRET');
+
+// Mints a short-lived HMAC-signed JWT so PIN-only / magic-link merchant admins
+// (who have no platform User record and thus no platform session) can authorize
+// against backend functions like manageMerchantAdmin. Mirrors authenticatePinUser.
+async function generatePinSessionToken(user) {
+  if (!JWT_SECRET) return null;
+  const key = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(JWT_SECRET),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  const payload = {
+    sub: user.id,
+    email: user.email,
+    role: user.role,
+    merchant_id: user.merchant_id || null,
+    dealer_id: user.dealer_id || null,
+    type: 'pin_session',
+    exp: Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60) // 7 days
+  };
+  return await create({ alg: 'HS256', typ: 'JWT' }, payload, key);
+}
 
 // Simple in-memory rate limiting (in production, use Redis)
 const rateLimitMap = new Map();
@@ -224,8 +251,10 @@ Deno.serve(async (req) => {
     });
 
     // Return user data
+    const session_token = await generatePinSessionToken(user);
     return Response.json({
       success: true,
+      session_token,
       user: {
         id: user.id,
         email: user.email,
