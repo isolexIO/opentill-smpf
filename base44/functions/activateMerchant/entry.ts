@@ -176,9 +176,9 @@ Deno.serve(async (req) => {
           </table>
         </div>
         <div style="text-align:center;margin:32px 0;">
-          <a href="${appUrl}/PinLogin" style="display:inline-block;padding:14px 40px;background:linear-gradient(90deg,#7B2FD6 0%,#0FD17A 100%);color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;border-radius:10px;box-shadow:0 2px 8px rgba(123,47,214,0.3);">Log In to Your POS &rarr;</a>
+          <a href="${appUrl}/PinLogin?merchant_id=${encodeURIComponent(merchant_id)}" style="display:inline-block;padding:14px 40px;background:linear-gradient(90deg,#7B2FD6 0%,#0FD17A 100%);color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;border-radius:10px;box-shadow:0 2px 8px rgba(123,47,214,0.3);">Log In to Your POS &rarr;</a>
         </div>
-        <p style="margin:16px 0 0 0;font-size:13px;color:#a1a1aa;text-align:center;">Or visit <span style="color:#7B2FD6;font-weight:600;">${appUrl}/PinLogin</span> and enter your 6-digit PIN.</p>` : '';
+        <p style="margin:16px 0 0 0;font-size:13px;color:#a1a1aa;text-align:center;">Or visit <span style="color:#7B2FD6;font-weight:600;">${appUrl}/PinLogin?merchant_id=${encodeURIComponent(merchant_id)}</span> and enter your 6-digit PIN.</p>` : '';
 
       // 1. Merchant activation confirmation — branded HTML with credentials
       await sendEmail(
