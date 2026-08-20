@@ -123,6 +123,25 @@ export default function SettingsPage() {
         }
       }
 
+      // Backend function fallback: use service-role function that bypasses RLS
+      // (needed for virtual/pin-login users who have no real Base44 platform session)
+      if (!merchantData) {
+        try {
+          console.log('Settings: Trying manageMerchantAdmin backend function...');
+          const { data: adminResult } = await base44.functions.invoke('manageMerchantAdmin', {
+            action: 'get',
+            email: currentUser.email,
+            merchant_id: currentUser.merchant_id
+          });
+          if (adminResult && adminResult.success && adminResult.merchant) {
+            merchantData = adminResult.merchant;
+            console.log('Settings: Loaded merchant via manageMerchantAdmin:', merchantData?.business_name);
+          }
+        } catch (adminError) {
+          console.error('Settings: manageMerchantAdmin fallback failed:', adminError);
+        }
+      }
+
       if (!merchantData) {
         throw new Error(`Merchant not found (ID: ${currentUser.merchant_id}). The merchant may have been deleted or you may not have access.`);
       }
@@ -179,13 +198,41 @@ export default function SettingsPage() {
         settings: updatedSettings
       };
 
-      await base44.entities.Merchant.update(merchant.id, updatedMerchant);
-      
+      let saveSuccess = false;
+      try {
+        await base44.entities.Merchant.update(merchant.id, updatedMerchant);
+        saveSuccess = true;
+      } catch (updateError) {
+        console.warn('Settings: SDK update failed, trying backend function...', updateError.message);
+      }
+
+      if (!saveSuccess) {
+        const { data: adminResult } = await base44.functions.invoke('manageMerchantAdmin', {
+          action: 'update',
+          email: user.email,
+          merchant_id: merchant.id,
+          data: updatedMerchant
+        });
+        if (!adminResult || !adminResult.success) {
+          throw new Error(adminResult?.error || 'Failed to save settings via backend function');
+        }
+      }
+
       console.log('Settings: Saved successfully');
-      
-      const refreshedMerchant = await base44.entities.Merchant.get(merchant.id);
+
+      let refreshedMerchant = null;
+      try {
+        refreshedMerchant = await base44.entities.Merchant.get(merchant.id);
+      } catch (refreshError) {
+        const { data: refreshResult } = await base44.functions.invoke('manageMerchantAdmin', {
+          action: 'get',
+          email: user.email,
+          merchant_id: merchant.id
+        });
+        refreshedMerchant = refreshResult?.merchant || updatedMerchant;
+      }
       setMerchant(refreshedMerchant);
-      
+
       alert('Settings saved successfully!');
     } catch (error) {
       console.error('Settings: Save error:', error);
