@@ -24,6 +24,7 @@ import {
 import QRCode from 'qrcode';
 import ICOLink from '@/components/vault/ICOLink';
 import CustomerInlineWallet from '@/components/portal/CustomerInlineWallet';
+import BrochureShareCard from '@/components/shared/BrochureShareCard';
 
 const PORTAL_BG = 'https://media.base44.com/images/public/6970e2871534100b4ebb8d45/e5026a0a1_ChatGPTImageAug2202611_33_54AM.png';
 
@@ -260,6 +261,13 @@ export default function CustomerPortal() {
           )}
 
           <ICOLink />
+
+          {/* Share the brochure */}
+          <BrochureShareCard
+            merchantId={customer.merchant_id}
+            title="Share openTILL SMPF"
+            description="Share the platform brochure with friends. Your merchant's referral is attached so they get credited."
+          />
 
           {/* Inline SMPF Wallet */}
           <CustomerInlineWallet customerKey={customer?.email || identifier} />

@@ -5,6 +5,7 @@ import { Link, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Loader2, ArrowLeft, ArrowRight, Check, Sparkles, QrCode as QrIcon } from 'lucide-react';
 import { DEFAULT_SECTIONS, ICONS } from './Brochure';
+import { resolveReferral, buildRefParam, appendRefParam } from '@/lib/referralLink';
 
 const IMG_BASE = 'https://media.base44.com/images/public/6970e2871534100b4ebb8d45/';
 
@@ -197,6 +198,7 @@ export default function BrochureFeature() {
   const { id } = useParams();
   const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [refParam, setRefParam] = useState('');
 
   useEffect(() => {
     load();
@@ -205,6 +207,8 @@ export default function BrochureFeature() {
 
   async function load() {
     try {
+      const ref = await resolveReferral();
+      setRefParam(buildRefParam(ref));
       const records = await base44.entities.BrochureSettings.list().catch(() => []);
       const found = records && records[0];
       setSettings(found || {});
@@ -278,7 +282,7 @@ export default function BrochureFeature() {
           </div>
           <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, ${accent}33 0%, #05060fcc 50%, #05060f 100%)` }} />
           <div className="relative max-w-4xl mx-auto px-6 pt-16 pb-28">
-            <Link to="/Brochure" className="inline-flex items-center gap-2 text-sm text-white/60 hover:text-white mb-10 glass-card px-4 py-2 rounded-full">
+            <Link to={appendRefParam('/Brochure', refParam)} className="inline-flex items-center gap-2 text-sm text-white/60 hover:text-white mb-10 glass-card px-4 py-2 rounded-full">
               <ArrowLeft className="w-4 h-4" /> Back to brochure
             </Link>
             <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6" style={{ background: `linear-gradient(135deg, ${accent}, ${secondary})`, boxShadow: `0 12px 40px -10px ${accent}aa` }}>
@@ -318,7 +322,7 @@ export default function BrochureFeature() {
               <h3 className="text-2xl sm:text-3xl font-black tracking-tight">Ready to put {section.title} to work?</h3>
               <p className="text-white/60 mt-3">Join the openTILL SMPF platform and run your whole business in one place.</p>
               <Button asChild className="mt-6 rounded-full px-7 py-5 text-base font-bold text-white border-0" style={{ background: `linear-gradient(135deg, ${accent}, ${secondary})`, boxShadow: `0 10px 40px -10px ${secondary}aa` }}>
-                <a href={settings?.cta_url || '/'}>
+                <a href={appendRefParam(settings?.cta_url || '/', refParam)}>
                   {settings?.cta_text || 'Get Started'} <ArrowRight className="w-4 h-4 ml-1" />
                 </a>
               </Button>
@@ -337,7 +341,7 @@ export default function BrochureFeature() {
                 return (
                   <Link
                     key={rel.id}
-                    to={`/Brochure/feature/${rel.id}`}
+                    to={appendRefParam(`/Brochure/feature/${rel.id}`, refParam)}
                     className="glass-card group rounded-2xl overflow-hidden"
                   >
                     <div className="h-28 overflow-hidden">

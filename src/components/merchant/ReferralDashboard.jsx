@@ -5,10 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 import { Users, Copy, CheckCircle, Gift, TrendingUp, Wallet } from 'lucide-react';
+import BrochureShareCard from '@/components/shared/BrochureShareCard';
 
 export default function ReferralDashboard() {
   const [loading, setLoading] = useState(true);
   const [merchant, setMerchant] = useState(null);
+  const [ambassador, setAmbassador] = useState(null);
+  const [userType, setUserType] = useState('merchant'); // 'merchant' | 'ambassador' | 'other'
   const [referralCode, setReferralCode] = useState('');
   const [shareUrl, setShareUrl] = useState('');
   const [copied, setCopied] = useState(false);
@@ -29,41 +32,64 @@ export default function ReferralDashboard() {
     try {
       const pinUserJSON = localStorage.getItem('pinLoggedInUser');
       const pinUser = pinUserJSON ? JSON.parse(pinUserJSON) : null;
-      const user = await base44.auth.me();
+      const user = await base44.auth.me().catch(() => null);
       const merchantId = pinUser?.merchant_id || user?.merchant_id;
+      const dealerId = pinUser?.dealer_id || user?.dealer_id;
 
-      // Get merchant
-      const merchants = await base44.entities.Merchant.filter({ id: merchantId });
-      if (merchants && merchants.length > 0) {
-        const merchantData = merchants[0];
-        setMerchant(merchantData);
-        
-        if (merchantData.referral_code) {
-          setReferralCode(merchantData.referral_code);
-          setShareUrl(`${window.location.origin}/?ref=${merchantData.referral_code}`);
+      // Get merchant (merchants + merchant_admin)
+      if (merchantId) {
+        const merchants = await base44.entities.Merchant.filter({ id: merchantId });
+        if (merchants && merchants.length > 0) {
+          const merchantData = merchants[0];
+          setMerchant(merchantData);
+          setUserType('merchant');
+
+          if (merchantData.referral_code) {
+            setReferralCode(merchantData.referral_code);
+            setShareUrl(`${window.location.origin}/?ref=${merchantData.referral_code}`);
+          }
+
+          // Get referrals
+          const referralData = await base44.entities.MerchantReferral.filter({
+            referrer_merchant_id: merchantId
+          });
+          setReferrals(referralData || []);
+
+          const total = referralData?.length || 0;
+          const active = referralData?.filter(r => r.status === 'active').length || 0;
+          const pending = referralData?.filter(r => r.status === 'pending').length || 0;
+          const totalRewards = referralData?.reduce((sum, r) => sum + (r.total_rewards_earned || 0), 0) || 0;
+
+          setStats({
+            total_referrals: total,
+            active_referrals: active,
+            pending_referrals: pending,
+            total_rewards: totalRewards
+          });
+          setLoading(false);
+          return;
         }
       }
 
-      // Get referrals
-      const referralData = await base44.entities.MerchantReferral.filter({
-        referrer_merchant_id: merchantId
-      });
-      
-      setReferrals(referralData || []);
+      // Ambassador / dealer: referral link uses their slug as ?dealer_id=
+      if (dealerId) {
+        try {
+          const ambassadors = await base44.entities.Ambassador.filter({ legacy_dealer_id: dealerId });
+          if (ambassadors && ambassadors.length > 0) {
+            const amb = ambassadors[0];
+            setAmbassador(amb);
+            setUserType('ambassador');
+            const code = amb.slug || dealerId;
+            setReferralCode(code);
+            setShareUrl(`${window.location.origin}/?dealer_id=${encodeURIComponent(code)}`);
+            setLoading(false);
+            return;
+          }
+        } catch { /* fall through */ }
+      }
 
-      // Calculate stats
-      const total = referralData?.length || 0;
-      const active = referralData?.filter(r => r.status === 'active').length || 0;
-      const pending = referralData?.filter(r => r.status === 'pending').length || 0;
-      const totalRewards = referralData?.reduce((sum, r) => sum + (r.total_rewards_earned || 0), 0) || 0;
-
-      setStats({
-        total_referrals: total,
-        active_referrals: active,
-        pending_referrals: pending,
-        total_rewards: totalRewards
-      });
-
+      // Other user types (builders, plain users, customers)
+      setUserType('other');
     } catch (error) {
       console.error('Error loading referral data:', error);
     } finally {
@@ -116,77 +142,100 @@ export default function ReferralDashboard() {
           <Users className="w-6 h-6" />
           Referral Program
         </h2>
-        <p className="text-gray-500">Refer other merchants and earn $DUC rewards</p>
+        <p className="text-gray-500">
+          {userType === 'ambassador'
+            ? 'Share your ambassador link to onboard merchants under your brand'
+            : userType === 'merchant'
+              ? 'Refer other merchants and earn $DUC rewards'
+              : 'Share openTILL SMPF and earn from every signup'}
+        </p>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Total Referrals</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.total_referrals}</div>
-          </CardContent>
-        </Card>
+      {/* Brochure share — available to every user type */}
+      <BrochureShareCard
+        description={
+          userType === 'ambassador'
+            ? 'Share the openTILL SMPF brochure. Your ambassador link (?dealer_id) is attached so new merchants sign up under you.'
+            : userType === 'merchant'
+              ? 'Share the openTILL SMPF brochure. Your merchant referral code is attached so signups are credited to you.'
+              : 'Share the openTILL SMPF brochure with your network.'
+        }
+      />
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Active Referrals</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{stats.active_referrals}</div>
-          </CardContent>
-        </Card>
+      {/* Stats Grid — merchant referrals only */}
+      {userType === 'merchant' && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">Total Referrals</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.total_referrals}</div>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Pending</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">{stats.pending_referrals}</div>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">Active Referrals</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">{stats.active_referrals}</div>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Total Rewards Earned</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-purple-600">
-              {stats.total_rewards.toFixed(2)} $DUC
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">Pending</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-yellow-600">{stats.pending_referrals}</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">Total Rewards Earned</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-purple-600">
+                {stats.total_rewards.toFixed(2)} $DUC
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Referral Code Section */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Gift className="w-5 h-5" />
-            Your Referral Code
+            {userType === 'ambassador' ? 'Your Ambassador Link' : 'Your Referral Code'}
           </CardTitle>
           <CardDescription>
-            Share your code with other businesses and earn rewards when they process payments
+            {userType === 'ambassador'
+              ? 'Share this link with businesses — they sign up under your ambassador account.'
+              : 'Share your code with other businesses and earn rewards when they process payments.'}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {referralCode ? (
             <>
-              <div>
-                <label className="text-sm font-medium">Referral Code</label>
-                <div className="flex gap-2 mt-1">
-                  <Input value={referralCode} readOnly className="font-mono text-lg" />
-                  <Button
-                    onClick={() => copyToClipboard(referralCode)}
-                    variant="outline"
-                    className="shrink-0"
-                  >
-                    {copied ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                  </Button>
+              {userType === 'merchant' && (
+                <div>
+                  <label className="text-sm font-medium">Referral Code</label>
+                  <div className="flex gap-2 mt-1">
+                    <Input value={referralCode} readOnly className="font-mono text-lg" />
+                    <Button
+                      onClick={() => copyToClipboard(referralCode)}
+                      variant="outline"
+                      className="shrink-0"
+                    >
+                      {copied ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                    </Button>
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div>
                 <label className="text-sm font-medium">Share Link</label>
@@ -205,7 +254,9 @@ export default function ReferralDashboard() {
               <div className="flex gap-2 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                 <TrendingUp className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
                 <p className="text-sm text-blue-800 dark:text-blue-300">
-                  Earn rewards every time your referred merchants earn $DUC! The more they process, the more you earn.
+                  {userType === 'ambassador'
+                    ? 'Every merchant that signs up through your link joins your ambassador network and earns you commission.'
+                    : 'Earn rewards every time your referred merchants earn $DUC! The more they process, the more you earn.'}
                 </p>
               </div>
             </>
@@ -221,8 +272,8 @@ export default function ReferralDashboard() {
         </CardContent>
       </Card>
 
-      {/* Referral List */}
-      {referrals.length > 0 && (
+      {/* Referral List — merchant referrals only */}
+      {userType === 'merchant' && referrals.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>Your Referrals</CardTitle>
@@ -267,11 +318,22 @@ export default function ReferralDashboard() {
         </CardHeader>
         <CardContent>
           <ol className="list-decimal list-inside space-y-2 text-gray-600">
-            <li>Share your referral code or link with other businesses</li>
-            <li>When they sign up using your code, they become your referral</li>
-            <li>Once they're activated and start processing payments, you earn rewards</li>
-            <li>You get a percentage of the $DUC rewards they earn from CC processing</li>
-            <li>All rewards are automatically added to your vault and are claimable</li>
+            {userType === 'ambassador' ? (
+              <>
+                <li>Share your ambassador link or the brochure with businesses</li>
+                <li>When they sign up using your link, they join your ambassador network</li>
+                <li>Once they're activated, you earn commission on their activity</li>
+                <li>Track payouts and commission from your dealer dashboard</li>
+              </>
+            ) : (
+              <>
+                <li>Share your referral code or link with other businesses</li>
+                <li>When they sign up using your code, they become your referral</li>
+                <li>Once they're activated and start processing payments, you earn rewards</li>
+                <li>You get a percentage of the $DUC rewards they earn from CC processing</li>
+                <li>All rewards are automatically added to your vault and are claimable</li>
+              </>
+            )}
           </ol>
         </CardContent>
       </Card>

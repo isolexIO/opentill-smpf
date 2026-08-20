@@ -28,6 +28,7 @@ Deno.serve(async (req) => {
         id: m.id,
         business_name: m.business_name,
         display_name: m.display_name,
+        referral_code: m.referral_code || null,
         settings: safeSettings
       }
     });

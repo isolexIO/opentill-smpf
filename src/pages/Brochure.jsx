@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, ArrowRight, Check, QrCode as QrIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import QRCode from 'qrcode';
+import { resolveReferral, buildRefParam, appendRefParam, brochureUrlFor } from '@/lib/referralLink';
 import {
   ShoppingCart,
   DollarSign,
@@ -184,6 +185,7 @@ export default function Brochure() {
   const [loading, setLoading] = useState(true);
   const [notEnabled, setNotEnabled] = useState(false);
   const [qrUrl, setQrUrl] = useState('');
+  const [refParam, setRefParam] = useState('');
 
   useEffect(() => {
     load();
@@ -191,6 +193,12 @@ export default function Brochure() {
 
   async function load() {
     try {
+      // Resolve the viewer's referral identity (URL param or logged-in user)
+      // so every link and QR code in the brochure carries the correct referrer.
+      const ref = await resolveReferral();
+      const rp = buildRefParam(ref);
+      setRefParam(rp);
+
       const records = await base44.entities.BrochureSettings.list().catch(() => []);
       const found = records && records[0];
       if (!found || !found.enabled) {
@@ -201,7 +209,7 @@ export default function Brochure() {
       setSettings(found);
       if (found.show_qr) {
         try {
-          const url = `${window.location.origin}${createPageUrl('Brochure')}`;
+          const url = brochureUrlFor(rp);
           const dataUrl = await QRCode.toDataURL(url, { width: 240, margin: 1 });
           setQrUrl(dataUrl);
         } catch (e) {
@@ -295,7 +303,7 @@ export default function Brochure() {
             )}
             <div className="flex flex-wrap items-center justify-center gap-4 mt-10">
               <Button asChild className="rounded-full px-7 py-6 text-base font-bold text-white border-0" style={{ background: `linear-gradient(135deg, ${accent}, ${secondary})`, boxShadow: `0 10px 40px -10px ${accent}aa` }}>
-                <a href={settings?.cta_url || '/'}>
+                <a href={appendRefParam(settings?.cta_url || '/', refParam)}>
                   {settings?.cta_text || 'Get Started'} <ArrowRight className="w-4 h-4 ml-1" />
                 </a>
               </Button>
@@ -337,7 +345,7 @@ export default function Brochure() {
               return (
                 <Link
                   key={key}
-                  to={`/Brochure/feature/${key}`}
+                  to={appendRefParam(`/Brochure/feature/${key}`, refParam)}
                   className="glass-card group block rounded-2xl p-6"
                 >
                   <div
@@ -385,7 +393,7 @@ export default function Brochure() {
                 )}
                 <div className="space-y-3 text-left">
                   <Button asChild className="rounded-full px-7 py-5 text-base font-bold text-white border-0" style={{ background: `linear-gradient(135deg, ${accent}, ${secondary})`, boxShadow: `0 10px 40px -10px ${secondary}aa` }}>
-                    <a href={settings?.cta_url || '/'}>{settings?.cta_text || 'Get Started'}</a>
+                    <a href={appendRefParam(settings?.cta_url || '/', refParam)}>{settings?.cta_text || 'Get Started'}</a>
                   </Button>
                   {(settings?.website || settings?.contact_email) && (
                     <div className="text-sm text-white/60">
