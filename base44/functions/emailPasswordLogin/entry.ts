@@ -52,6 +52,22 @@ Deno.serve(async (req) => {
 
     if (users && users.length > 0) {
       user = users[0];
+      // Enrich: if the User record doesn't have merchant_id, check if they
+      // own a Merchant account so the redirect lands on the right dashboard.
+      if (!user.merchant_id) {
+        try {
+          const merchants = await base44.asServiceRole.entities.Merchant.filter({
+            owner_email: normalizedEmail
+          });
+          const merchant = merchants?.[0];
+          if (merchant) {
+            user.merchant_id = merchant.id;
+            if (!user.dealer_id) user.dealer_id = merchant.dealer_id;
+          }
+        } catch (e) {
+          console.warn('Could not enrich user with merchant data:', e);
+        }
+      }
     } else {
       // Fallback: no User record exists (the platform blocks User.create,
       // so merchant admins activated before accepting their invite have no
