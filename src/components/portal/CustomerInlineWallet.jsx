@@ -327,7 +327,7 @@ export default function CustomerInlineWallet({ customerKey }) {
       </Dialog>
 
       <Dialog open={showSend} onOpenChange={setShowSend}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md bg-slate-900 border-white/20">
           <SendScreen
             address={address}
             rpc={rpc}
