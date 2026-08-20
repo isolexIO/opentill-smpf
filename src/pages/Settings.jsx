@@ -131,7 +131,8 @@ export default function SettingsPage() {
           const { data: adminResult } = await base44.functions.invoke('manageMerchantAdmin', {
             action: 'get',
             email: currentUser.email,
-            merchant_id: currentUser.merchant_id
+            merchant_id: currentUser.merchant_id,
+            session_token: localStorage.getItem('pinSessionToken')
           });
           if (adminResult && adminResult.success && adminResult.merchant) {
             merchantData = adminResult.merchant;
@@ -211,7 +212,8 @@ export default function SettingsPage() {
           action: 'update',
           email: user.email,
           merchant_id: merchant.id,
-          data: updatedMerchant
+          data: updatedMerchant,
+          session_token: localStorage.getItem('pinSessionToken')
         });
         if (!adminResult || !adminResult.success) {
           throw new Error(adminResult?.error || 'Failed to save settings via backend function');
@@ -227,7 +229,8 @@ export default function SettingsPage() {
         const { data: refreshResult } = await base44.functions.invoke('manageMerchantAdmin', {
           action: 'get',
           email: user.email,
-          merchant_id: merchant.id
+          merchant_id: merchant.id,
+          session_token: localStorage.getItem('pinSessionToken')
         });
         refreshedMerchant = refreshResult?.merchant || updatedMerchant;
       }

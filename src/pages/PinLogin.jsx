@@ -105,6 +105,7 @@ export default function PinLoginPage() {
 
       const user = data.user;
       localStorage.setItem('pinLoggedInUser', JSON.stringify(user));
+      if (data.session_token) localStorage.setItem('pinSessionToken', data.session_token);
       if (user.merchant_id) localStorage.setItem('deviceMerchantId', user.merchant_id);
 
       // Return to the station POS link if this login was triggered from one

@@ -177,12 +177,14 @@ export default function Layout({ children, currentPageName }) {
   const handlePinLogout = () => {
     if (confirm('Are you sure you want to clock out?')) {
       localStorage.removeItem('pinLoggedInUser');
+      localStorage.removeItem('pinSessionToken');
       base44.auth.logout(createPageUrl('Home'));
     }
   };
 
   const handleExitImpersonation = () => {
     localStorage.removeItem('pinLoggedInUser');
+    localStorage.removeItem('pinSessionToken');
     localStorage.removeItem('impersonationData');
     navigate(createPageUrl('SuperAdmin'));
   };

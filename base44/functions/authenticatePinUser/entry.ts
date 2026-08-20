@@ -1,4 +1,34 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { create } from 'https://deno.land/x/djwt@v2.8/mod.ts';
+
+const JWT_SECRET = Deno.env.get('JWT_SECRET');
+
+// Mints a short-lived HMAC-signed JWT that authenticates PIN-only merchant
+// admins (who have no platform User record) when calling backend functions
+// that need to authorize the caller (e.g. manageMerchantAdmin). Without this
+// token, a PIN-logged-in merchant owner cannot load or update their own
+// merchant record because RLS and base44.auth.me() both require a platform
+// session that PIN login never establishes.
+async function generatePinSessionToken(user) {
+  if (!JWT_SECRET) return null;
+  const key = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(JWT_SECRET),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  const payload = {
+    sub: user.id,
+    email: user.email,
+    role: user.role,
+    merchant_id: user.merchant_id || null,
+    dealer_id: user.dealer_id || null,
+    type: 'pin_session',
+    exp: Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60) // 7 days
+  };
+  return await create({ alg: 'HS256', typ: 'JWT' }, payload, key);
+}
 
 // In-memory rate limiting (in production, use Redis). Two buckets are tracked
 // so attackers rotating IP addresses cannot brute-force short staff PINs:
@@ -147,8 +177,10 @@ Deno.serve(async (req) => {
     // Return user (without sensitive fields)
     // SECURITY: Do NOT return pos_settings — it may contain gateway API keys,
     // wallet addresses, and other private configuration that cashiers must not see.
+    const session_token = await generatePinSessionToken(user);
     return Response.json({
       success: true,
+      session_token,
       user: {
         id: user.id,
         email: user.email,
