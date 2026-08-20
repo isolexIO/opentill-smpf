@@ -81,4 +81,12 @@ const entitiesProxy = new Proxy(base44.entities, {
   },
 });
 
-export const posBase44 = { ...base44, entities: entitiesProxy };
+// Use a Proxy (not a spread) so getters like `asServiceRole` are only accessed
+// when explicitly called — spreading base44 would eagerly invoke them and
+// throw "Service token is required" because the client has no serviceToken.
+export const posBase44 = new Proxy(base44, {
+  get(target, prop) {
+    if (prop === 'entities') return entitiesProxy;
+    return target[prop];
+  },
+});
