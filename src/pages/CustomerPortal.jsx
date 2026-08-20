@@ -25,6 +25,7 @@ import QRCode from 'qrcode';
 import ICOLink from '@/components/vault/ICOLink';
 import CustomerInlineWallet from '@/components/portal/CustomerInlineWallet';
 import BrochureShareCard from '@/components/shared/BrochureShareCard';
+import { PLATFORM_DEFAULT_REFERRAL_CODE } from '@/lib/referralLink';
 
 const PORTAL_BG = 'https://media.base44.com/images/public/6970e2871534100b4ebb8d45/e5026a0a1_ChatGPTImageAug2202611_33_54AM.png';
 
@@ -265,6 +266,7 @@ export default function CustomerPortal() {
           {/* Share the brochure */}
           <BrochureShareCard
             merchantId={customer.merchant_id}
+            defaultReferralCode={PLATFORM_DEFAULT_REFERRAL_CODE}
             title="Share openTILL SMPF"
             description="Share the platform brochure with friends. Your merchant's referral is attached so they get credited."
           />

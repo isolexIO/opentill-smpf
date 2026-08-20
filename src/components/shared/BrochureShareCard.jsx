@@ -14,7 +14,7 @@ import { resolveReferral, buildRefParam, appendRefParam, brochureUrlFor } from '
  * Pass `merchantId` to share a specific merchant's referral link (used by the
  * customer portal, where the viewer is a PIN-logged-in customer).
  */
-export default function BrochureShareCard({ merchantId, title = 'Share the Brochure', description }) {
+export default function BrochureShareCard({ merchantId, defaultReferralCode, title = 'Share the Brochure', description }) {
   const [brochureUrl, setBrochureUrl] = useState('');
   const [signupUrl, setSignupUrl] = useState('');
   const [qrUrl, setQrUrl] = useState('');
@@ -26,7 +26,10 @@ export default function BrochureShareCard({ merchantId, title = 'Share the Broch
     let active = true;
     (async () => {
       try {
-        const ref = await resolveReferral({ merchantId });
+        const resolved = await resolveReferral({ merchantId });
+        // Fall back to the platform default code when nothing else resolved, so
+        // share links always carry a referral code (e.g. global customers).
+        const ref = resolved || (defaultReferralCode ? { type: 'merchant', code: defaultReferralCode } : null);
         const refParam = buildRefParam(ref);
         if (active) {
           setBrochureUrl(brochureUrlFor(refParam));
@@ -47,7 +50,7 @@ export default function BrochureShareCard({ merchantId, title = 'Share the Broch
       if (active) setLoading(false);
     })();
     return () => { active = false; };
-  }, [merchantId]);
+  }, [merchantId, defaultReferralCode]);
 
   const copy = (which) => {
     const text = which === 'brochure' ? brochureUrl : signupUrl;

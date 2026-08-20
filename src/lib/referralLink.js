@@ -2,6 +2,13 @@ import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 
 /**
+ * The platform-level default referral code, used as a fallback for viewers
+ * who have no merchant or ambassador context (e.g. self-registered global
+ * customers in the customer portal) so their share links always carry a code.
+ */
+export const PLATFORM_DEFAULT_REFERRAL_CODE = 'ISOLEXCOJES7';
+
+/**
  * Build a query string (?ref=CODE or ?dealer_id=SLUG) from a referral object.
  * Returns '' when there is no referral.
  */
