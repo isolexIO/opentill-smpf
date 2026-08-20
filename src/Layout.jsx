@@ -190,7 +190,7 @@ export default function Layout({ children, currentPageName }) {
   // If user is not authenticated (via base44.auth.me) and is trying to access a non-authentication
   // or non-home page, redirect them to the Home page.
   // Allow root_admin to access dealer pages
-  if (!user && !['EmailLogin', 'MerchantOnboarding', 'PinLogin', 'WalletLoginPage', 'Home', 'PrivacyPolicy', 'TermsOfService', 'License', 'Copyright', 'About', 'Contact', 'CustomerDisplay', 'KitchenDisplay', 'OnlineMenu', 'DeviceShop', 'DealerOnboarding', 'DealerDashboard', 'DealerLanding', 'Marketplace', 'ChipDetail', 'DriverDashboard', 'PayInvoice', 'POS', 'MobileStationDisplay', 'CustomerPortal'].includes(currentPageName)) {
+  if (!user && !['EmailLogin', 'MerchantOnboarding', 'PinLogin', 'WalletLoginPage', 'Home', 'PrivacyPolicy', 'TermsOfService', 'License', 'Copyright', 'About', 'Contact', 'CustomerDisplay', 'KitchenDisplay', 'OnlineMenu', 'DeviceShop', 'DealerOnboarding', 'DealerDashboard', 'DealerLanding', 'Marketplace', 'ChipDetail', 'DriverDashboard', 'PayInvoice', 'POS', 'MobileStationDisplay', 'CustomerPortal', 'SystemMenu', 'SuperAdmin', 'Settings', 'Products', 'Inventory', 'Orders', 'Customers', 'Reports', 'Users', 'Departments', 'Modifiers', 'Devices', 'Subscriptions', 'Support', 'Motherboard', 'DUCVault', 'LoyaltyProgram', 'OnlineOrders', 'DeviceMonitor', 'AIAssistant', 'AIWebsiteGenerator', 'ReferralDashboard'].includes(currentPageName)) {
     return <Home />;
   }
 

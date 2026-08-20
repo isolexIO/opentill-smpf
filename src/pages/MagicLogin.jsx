@@ -47,7 +47,9 @@ export default function MagicLogin() {
           if (user.merchant_id) localStorage.setItem('deviceMerchantId', user.merchant_id);
 
           const role = user.role;
-          if (['admin', 'super_admin', 'root_admin'].includes(role)) {
+          // Merchant owners (virtual users with role 'admin' + merchant_id)
+          // go to their merchant dashboard, not the platform admin panel.
+          if (['super_admin', 'root_admin'].includes(role)) {
             window.location.href = createPageUrl('SuperAdmin');
           } else if (['dealer_admin', 'ambassador'].includes(role)) {
             window.location.href = createPageUrl('DealerDashboard');
@@ -55,6 +57,8 @@ export default function MagicLogin() {
             window.location.href = createPageUrl('DriverDashboard');
           } else if (user.merchant_id) {
             window.location.href = createPageUrl('SystemMenu');
+          } else if (['admin'].includes(role)) {
+            window.location.href = createPageUrl('SuperAdmin');
           } else {
             window.location.href = createPageUrl('Home');
           }
