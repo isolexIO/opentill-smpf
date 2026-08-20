@@ -12,8 +12,7 @@ import { verify } from 'https://deno.land/x/djwt@v2.8/mod.ts';
 
 const JWT_SECRET = Deno.env.get('JWT_SECRET');
 
-// Entities the POS is allowed to touch through this gateway. Anything else
-// is rejected so the endpoint can't be abused as a generic data API.
+// Entities the POS is allowed to touch through this gateway.
 const SUPPORTED_ENTITIES = new Set([
   'Merchant',
   'Product',
@@ -165,8 +164,9 @@ Deno.serve(async (req) => {
     return fail('Unknown operation: ' + operation);
   } catch (error) {
     console.error('posGateway error:', error);
-    const status = String(error?.message || '').startsWith('Forbidden') ? 403
-      : String(error?.message || '').startsWith('Unauthorized') ? 401 : 500;
-    return fail(error?.message || 'Gateway error', status);
+    const msg = String(error?.message || '');
+    const status = msg.startsWith('Forbidden') ? 403
+      : msg.startsWith('Unauthorized') ? 401 : 500;
+    return fail(msg || 'Gateway error', status);
   }
 });
