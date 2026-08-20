@@ -13,6 +13,7 @@ import DriverDashboard from './pages/DriverDashboard';
 import Invoices from './pages/Invoices';
 import PayInvoice from './pages/PayInvoice';
 import ResetPassword from './pages/ResetPassword';
+import MagicLogin from './pages/MagicLogin';
 import Login from './pages/Login';
 import CustomerPortal from './pages/CustomerPortal';
 import OpenTILLPayments from './pages/OpenTILLPayments';
@@ -96,6 +97,7 @@ const AuthenticatedApp = () => {
         </LayoutWrapper>
       } />
       <Route path="/ResetPassword" element={<ResetPassword />} />
+      <Route path="/MagicLogin" element={<MagicLogin />} />
       <Route path="/Login" element={
         <LayoutWrapper currentPageName="Login">
           <Login />

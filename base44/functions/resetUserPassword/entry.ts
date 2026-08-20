@@ -10,6 +10,7 @@ const emailAttemptMap = new Map();
 const RATE_LIMIT_WINDOW = 15 * 60 * 1000; // 15 minutes
 const IP_RATE_LIMIT = 3;       // max reset requests per IP per window
 const EMAIL_RATE_LIMIT = 2;    // max reset requests per email per window
+const MAGIC_LINK_BASE = 'https://node1.openTILL.io';
 
 function checkRateLimit(key, map, limit) {
   const now = Date.now();
@@ -94,8 +95,7 @@ Deno.serve(async (req) => {
                 temp_password: resetTokenHash
             });
 
-            const origin = new URL(req.url).origin;
-            const resetLink = `${origin}/ResetPassword?email=${encodeURIComponent(merchant.owner_email)}&token=${encodeURIComponent(token)}&exp=${exp}`;
+            const resetLink = `${MAGIC_LINK_BASE}/MagicLogin?email=${encodeURIComponent(merchant.owner_email)}&token=${encodeURIComponent(token)}&exp=${exp}`;
 
             try {
                 const smtpHost = Deno.env.get('SMTP_HOST');
@@ -117,11 +117,11 @@ Deno.serve(async (req) => {
                     socketTimeout: 15000,
                     auth: { user: smtpUser, pass: smtpPass }
                 });
-                const emailBody = `Hello ${merchant.owner_name || 'Merchant Admin'},\n\nWe received a request to reset the password for your openTILL account.\n\nClick the link below to choose a new password. This link expires in 1 hour and can only be used once:\n\n${resetLink}\n\nIf you did not request a password reset, you can safely ignore this email — your password has not been changed.\n\nThank you,\nopenTILL SMPF Team`;
+                const emailBody = `Hello ${merchant.owner_name || 'Merchant Admin'},\n\nClick the link below to log in to your openTILL account. This link expires in 1 hour and can only be used once:\n\n${resetLink}\n\nIf you did not request this login link, you can safely ignore this email.\n\nThank you,\nopenTILL SMPF Team`;
                 await transporter.sendMail({
                     from: `"openTILL" <${smtpUser}>`,
                     to: merchant.owner_email,
-                    subject: 'Password Reset - openTILL',
+                    subject: 'Your openTILL Login Link',
                     text: emailBody,
                     html: emailBody.replace(/\n/g, '<br>')
                 });
@@ -162,8 +162,7 @@ Deno.serve(async (req) => {
             });
         }
 
-        const origin = new URL(req.url).origin;
-        const resetLink = `${origin}/ResetPassword?email=${encodeURIComponent(user.email)}&token=${encodeURIComponent(token)}&exp=${exp}`;
+        const resetLink = `${MAGIC_LINK_BASE}/MagicLogin?email=${encodeURIComponent(user.email)}&token=${encodeURIComponent(token)}&exp=${exp}`;
 
         // Send email with temporary password using custom SMTP
         try {
@@ -194,13 +193,11 @@ Deno.serve(async (req) => {
 
             const emailBody = `Hello ${user.full_name},
 
-We received a request to reset the password for your openTILL account.
-
-Click the link below to choose a new password. This link expires in 1 hour and can only be used once:
+Click the link below to log in to your openTILL account. This link expires in 1 hour and can only be used once:
 
 ${resetLink}
 
-If you did not request a password reset, you can safely ignore this email — your password has not been changed.
+If you did not request this login link, you can safely ignore this email.
 
 Thank you,
 openTILL SMPF Team`;
@@ -208,7 +205,7 @@ openTILL SMPF Team`;
             await transporter.sendMail({
                 from: `"openTILL" <${smtpUser}>`,
                 to: user.email,
-                subject: 'Password Reset - openTILL',
+                subject: 'Your openTILL Login Link',
                 text: emailBody,
                 html: emailBody.replace(/\n/g, '<br>')
             });

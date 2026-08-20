@@ -117,7 +117,7 @@ export default function EmailLoginPage() {
     try {
       const result = await base44.functions.invoke('resetUserPassword', { email: email.toLowerCase().trim() });
       if (result.data.success) {
-        alert(`✅ Temporary password sent to ${email}! Check your inbox.`);
+        alert(`✅ Login link sent to ${email}! Check your inbox.`);
       } else {
         setError(result.data.error || 'Failed to send reset email');
       }
@@ -227,7 +227,7 @@ export default function EmailLoginPage() {
                   className="w-full text-xs text-purple-300/70 hover:text-white underline text-center"
                   disabled={loading}
                 >
-                  Forgot password? Click to reset
+                  Forgot password? Send login link
                 </button>
               </TabsContent>
 
