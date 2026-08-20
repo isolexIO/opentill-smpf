@@ -9,7 +9,19 @@ import bcrypt from 'npm:bcryptjs@2.4.3';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { email, token, exp, new_password } = await req.json();
+    let body;
+    try {
+      body = await req.json();
+    } catch (e) {
+      const url = new URL(req.url);
+      body = {
+        email: url.searchParams.get('email'),
+        token: url.searchParams.get('token'),
+        exp: url.searchParams.get('exp'),
+        new_password: url.searchParams.get('new_password')
+      };
+    }
+    const { email, token, exp, new_password } = body;
 
     if (!email || !token || !exp || !new_password) {
       return Response.json({ success: false, error: 'Missing required fields' }, { status: 400 });

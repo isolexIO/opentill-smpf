@@ -27,7 +27,15 @@ Deno.serve(async (req) => {
   try {
         console.log('resetUserPassword: Starting...');
 
-        const body = await req.json();
+        let body;
+        try {
+          body = await req.json();
+        } catch (e) {
+          // Body may be empty if the request was sent without a JSON payload
+          // (e.g. a GET request or a redirect). Fall back to URL query params.
+          const url = new URL(req.url);
+          body = { email: url.searchParams.get('email') };
+        }
         const { email } = body;
 
         if (!email) {
