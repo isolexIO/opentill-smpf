@@ -216,8 +216,11 @@ export default function BrochureFeature() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-950">
-        <Loader2 className="w-8 h-8 animate-spin text-white/70" />
+      <div className="min-h-screen flex items-center justify-center bg-[#05060f]">
+        <div className="relative">
+          <div className="absolute inset-0 rounded-full blur-xl animate-pulse" style={{ background: `radial-gradient(circle, ${settings?.accent_color || '#7B2FD6'}55, transparent)` }} />
+          <Loader2 className="w-8 h-8 animate-spin text-white/80 relative" />
+        </div>
       </div>
     );
   }
@@ -228,10 +231,11 @@ export default function BrochureFeature() {
 
   if (!section) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-950 px-6 text-center">
-        <div>
-          <h1 className="text-3xl font-black text-white">Section not found</h1>
-          <Button asChild variant="outline" className="mt-6 rounded-full border-white/30 bg-transparent text-white">
+      <div className="min-h-screen flex items-center justify-center bg-[#05060f] px-6 text-center relative overflow-hidden">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full blur-[120px] opacity-40" style={{ background: '#7B2FD6' }} />
+        <div className="relative">
+          <h1 className="text-4xl font-black text-white tracking-tight">Section not found</h1>
+          <Button asChild variant="outline" className="mt-6 rounded-full border-white/20 bg-white/5 backdrop-blur text-white hover:bg-white/10">
             <Link to="/Brochure"><ArrowLeft className="w-4 h-4 mr-2" /> Back to brochure</Link>
           </Button>
         </div>
@@ -247,111 +251,116 @@ export default function BrochureFeature() {
   const related = allSections.filter((s) => s.id !== section.id && s.id).slice(0, 4);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
-      {/* Hero */}
-      <header className="relative overflow-hidden">
-        <div className="absolute inset-0">
-          <img src={img} alt={section.title} className="w-full h-full object-cover" />
-        </div>
-        <div
-          className="absolute inset-0"
-          style={{ background: `linear-gradient(180deg, ${accent}55 0%, #0b1120cc 55%, #0b1120 100%)` }}
-        />
-        <div className="relative max-w-4xl mx-auto px-6 pt-16 pb-24">
-          <Link
-            to="/Brochure"
-            className="inline-flex items-center gap-2 text-sm text-white/70 hover:text-white mb-8"
-          >
-            <ArrowLeft className="w-4 h-4" /> Back to brochure
-          </Link>
-          <div
-            className="w-14 h-14 rounded-2xl flex items-center justify-center mb-5"
-            style={{ background: `linear-gradient(135deg, ${accent}, ${secondary})` }}
-          >
-            <Icon className="w-7 h-7 text-white" />
+    <div className="min-h-screen bg-[#05060f] text-white relative overflow-hidden">
+      <style>{`
+        @keyframes auroraFloat { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(40px,-30px) scale(1.1)} }
+        @keyframes auroraFloat2 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-30px,40px) scale(1.15)} }
+        .aurora-1 { animation: auroraFloat 18s ease-in-out infinite; }
+        .aurora-2 { animation: auroraFloat2 22s ease-in-out infinite; }
+        .grid-overlay { background-image: linear-gradient(rgba(255,255,255,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px); background-size: 60px 60px; }
+        .glass-card { background: rgba(255,255,255,0.04); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.08); transition: all .35s cubic-bezier(.2,.8,.2,1); }
+        .glass-card:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.18); transform: translateY(-4px); box-shadow: 0 20px 40px -20px ${accent}66; }
+        .text-glow { text-shadow: 0 0 40px ${accent}88; }
+      `}</style>
+
+      {/* Ambient aurora orbs */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="aurora-1 absolute top-[-10%] left-[-5%] w-[40rem] h-[40rem] rounded-full blur-[140px] opacity-25" style={{ background: accent }} />
+        <div className="aurora-2 absolute bottom-[-15%] right-[-10%] w-[45rem] h-[45rem] rounded-full blur-[160px] opacity-20" style={{ background: secondary }} />
+      </div>
+      <div className="fixed inset-0 grid-overlay pointer-events-none z-0" style={{ maskImage: 'radial-gradient(ellipse at center, black 30%, transparent 75%)', WebkitMaskImage: 'radial-gradient(ellipse at center, black 30%, transparent 75%)' }} />
+
+      <div className="relative z-10">
+        {/* Hero */}
+        <header className="relative overflow-hidden">
+          <div className="absolute inset-0">
+            <img src={img} alt={section.title} className="w-full h-full object-cover opacity-60" />
           </div>
-          <h1 className="text-4xl sm:text-5xl font-black leading-tight">{section.title}</h1>
-          <p className="text-lg text-white/80 mt-4 max-w-2xl">{section.description}</p>
-        </div>
-      </header>
-
-      {/* Pitch */}
-      <section className="max-w-3xl mx-auto px-6 py-14">
-        <div
-          className="h-1 w-16 rounded-full mb-8"
-          style={{ background: `linear-gradient(90deg, ${accent}, ${secondary})` }}
-        />
-        <p className="text-xl sm:text-2xl font-semibold leading-relaxed text-white/95">{pitch.lead}</p>
-        {pitch.body && <p className="text-white/70 mt-6 leading-relaxed text-lg">{pitch.body}</p>}
-
-        {/* Benefits */}
-        {section.bullets && section.bullets.length > 0 && (
-          <div className="mt-10 rounded-2xl border border-white/10 bg-white/5 p-6">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-white/60 mb-4">What you get</h2>
-            <ul className="grid sm:grid-cols-2 gap-4">
-              {section.bullets.map((b, bi) => (
-                <li key={bi} className="flex items-start gap-3 text-white/85">
-                  <Check className="w-5 h-5 mt-0.5 shrink-0" style={{ color: secondary }} />
-                  <span>{b}</span>
-                </li>
-              ))}
-            </ul>
+          <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, ${accent}33 0%, #05060fcc 50%, #05060f 100%)` }} />
+          <div className="relative max-w-4xl mx-auto px-6 pt-16 pb-28">
+            <Link to="/Brochure" className="inline-flex items-center gap-2 text-sm text-white/60 hover:text-white mb-10 glass-card px-4 py-2 rounded-full">
+              <ArrowLeft className="w-4 h-4" /> Back to brochure
+            </Link>
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6" style={{ background: `linear-gradient(135deg, ${accent}, ${secondary})`, boxShadow: `0 12px 40px -10px ${accent}aa` }}>
+              <Icon className="w-8 h-8 text-white" />
+            </div>
+            <h1 className="text-4xl sm:text-6xl font-black leading-[1.05] tracking-tight text-glow">{section.title}</h1>
+            <p className="text-lg sm:text-xl text-white/70 mt-5 max-w-2xl leading-relaxed">{section.description}</p>
           </div>
-        )}
+        </header>
 
-        {/* CTA */}
-        <div
-          className="mt-10 rounded-2xl p-8 text-center"
-          style={{ background: `linear-gradient(135deg, ${accent}22, ${secondary}22)` }}
-        >
-          <h3 className="text-2xl font-black">Ready to put {section.title} to work?</h3>
-          <p className="text-white/70 mt-2">Join the openTILL SMPF platform and run your whole business in one place.</p>
-          <Button asChild className="mt-5 rounded-full px-6 text-slate-900" style={{ background: secondary }}>
-            <a href={settings?.cta_url || '/'}>
-              {settings?.cta_text || 'Get Started'} <ArrowRight className="w-4 h-4 ml-1" />
-            </a>
-          </Button>
-        </div>
-      </section>
+        {/* Pitch */}
+        <section className="max-w-3xl mx-auto px-6 py-16">
+          <div className="h-1 w-16 rounded-full mb-8" style={{ background: `linear-gradient(90deg, ${accent}, ${secondary})` }} />
+          <p className="text-xl sm:text-2xl font-semibold leading-relaxed text-white/95">{pitch.lead}</p>
+          {pitch.body && <p className="text-white/60 mt-6 leading-relaxed text-lg">{pitch.body}</p>}
 
-      {/* Related */}
-      {related.length > 0 && (
-        <section className="max-w-5xl mx-auto px-6 pb-20">
-          <h2 className="text-xl font-black mb-5">Explore more of openTILL SMPF</h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {related.map((rel) => {
-              const RIcon = ICONS[rel.icon] || Sparkles;
-              const rImg = SECTION_IMAGES[rel.id] ? `${IMG_BASE}${SECTION_IMAGES[rel.id]}` : FALLBACK_IMG;
-              return (
-                <Link
-                  key={rel.id}
-                  to={`/Brochure/feature/${rel.id}`}
-                  className="group rounded-2xl overflow-hidden border border-white/10 bg-white/5 hover:border-white/25 transition-colors"
-                >
-                  <div className="h-28 overflow-hidden">
-                    <img
-                      src={rImg}
-                      alt={rel.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                    />
-                  </div>
-                  <div className="p-4">
-                    <div className="flex items-center gap-2 mb-1">
-                      <RIcon className="w-4 h-4 text-white/70" />
-                      <h3 className="font-bold text-sm">{rel.title}</h3>
-                    </div>
-                    <p className="text-xs text-white/55 line-clamp-2">{rel.description}</p>
-                  </div>
-                </Link>
-              );
-            })}
+          {/* Benefits */}
+          {section.bullets && section.bullets.length > 0 && (
+            <div className="mt-12 rounded-2xl glass-card p-7">
+              <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-white/50 mb-5">What you get</h2>
+              <ul className="grid sm:grid-cols-2 gap-4">
+                {section.bullets.map((b, bi) => (
+                  <li key={bi} className="flex items-start gap-3 text-white/85">
+                    <Check className="w-5 h-5 mt-0.5 shrink-0" style={{ color: secondary }} />
+                    <span>{b}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* CTA */}
+          <div className="mt-10 relative rounded-3xl glass-card p-10 text-center overflow-hidden">
+            <div className="absolute -top-16 -left-16 w-56 h-56 rounded-full blur-[90px] opacity-30" style={{ background: accent }} />
+            <div className="absolute -bottom-16 -right-16 w-56 h-56 rounded-full blur-[90px] opacity-30" style={{ background: secondary }} />
+            <div className="relative">
+              <h3 className="text-2xl sm:text-3xl font-black tracking-tight">Ready to put {section.title} to work?</h3>
+              <p className="text-white/60 mt-3">Join the openTILL SMPF platform and run your whole business in one place.</p>
+              <Button asChild className="mt-6 rounded-full px-7 py-5 text-base font-bold text-white border-0" style={{ background: `linear-gradient(135deg, ${accent}, ${secondary})`, boxShadow: `0 10px 40px -10px ${secondary}aa` }}>
+                <a href={settings?.cta_url || '/'}>
+                  {settings?.cta_text || 'Get Started'} <ArrowRight className="w-4 h-4 ml-1" />
+                </a>
+              </Button>
+            </div>
           </div>
         </section>
-      )}
 
-      <footer className="text-center text-xs text-white/40 py-8 border-t border-white/10">
-        © Isolex Corporation · openTILL SMPF · Powered by Solana
-      </footer>
+        {/* Related */}
+        {related.length > 0 && (
+          <section className="max-w-5xl mx-auto px-6 pb-24">
+            <h2 className="text-xl font-black mb-6 tracking-tight">Explore more of openTILL SMPF</h2>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {related.map((rel) => {
+                const RIcon = ICONS[rel.icon] || Sparkles;
+                const rImg = SECTION_IMAGES[rel.id] ? `${IMG_BASE}${SECTION_IMAGES[rel.id]}` : FALLBACK_IMG;
+                return (
+                  <Link
+                    key={rel.id}
+                    to={`/Brochure/feature/${rel.id}`}
+                    className="glass-card group rounded-2xl overflow-hidden"
+                  >
+                    <div className="h-28 overflow-hidden">
+                      <img src={rImg} alt={rel.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                    </div>
+                    <div className="p-4">
+                      <div className="flex items-center gap-2 mb-1">
+                        <RIcon className="w-4 h-4 text-white/70" />
+                        <h3 className="font-bold text-sm tracking-tight">{rel.title}</h3>
+                      </div>
+                      <p className="text-xs text-white/50 line-clamp-2">{rel.description}</p>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        <footer className="text-center text-xs text-white/30 py-8 border-t border-white/10 tracking-widest uppercase">
+          © Isolex Corporation · openTILL SMPF · Powered by Solana
+        </footer>
+      </div>
     </div>
   );
 }

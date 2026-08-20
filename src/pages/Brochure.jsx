@@ -216,18 +216,24 @@ export default function Brochure() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-950">
-        <Loader2 className="w-8 h-8 animate-spin text-white/70" />
+      <div className="min-h-screen flex items-center justify-center bg-[#05060f]">
+        <div className="relative">
+          <div className="absolute inset-0 rounded-full blur-xl animate-pulse" style={{ background: `radial-gradient(circle, ${settings?.accent_color || '#7B2FD6'}55, transparent)` }} />
+          <Loader2 className="w-8 h-8 animate-spin text-white/80 relative" />
+        </div>
       </div>
     );
   }
 
   if (notEnabled) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-950 px-6 text-center">
-        <div>
-          <h1 className="text-3xl font-black text-white">openTILL SMPF</h1>
-          <p className="text-white/60 mt-3 max-w-md mx-auto">
+      <div className="min-h-screen flex items-center justify-center bg-[#05060f] px-6 text-center relative overflow-hidden">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full blur-[120px] opacity-40" style={{ background: '#7B2FD6' }} />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full blur-[120px] opacity-30" style={{ background: '#0FD17A' }} />
+        <div className="relative">
+          <img src={DUC_LOGO} alt="openTILL" className="w-16 h-16 rounded-full mx-auto mb-5 animate-pulse" />
+          <h1 className="text-4xl font-black text-white tracking-tight">openTILL SMPF</h1>
+          <p className="text-white/50 mt-3 max-w-md mx-auto">
             Our interactive brochure is being prepared. Please check back soon.
           </p>
         </div>
@@ -241,157 +247,173 @@ export default function Brochure() {
   const heroBg = settings?.hero_image_url || null;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
-      {/* Hero */}
-      <header
-        className="relative overflow-hidden"
-        style={{ background: `linear-gradient(135deg, ${accent} 0%, #0b1120 60%, ${secondary}120 100%)` }}
-      >
-        {heroBg && (
-          <div
-            className="absolute inset-0 bg-cover bg-center opacity-30"
-            style={{ backgroundImage: `url(${heroBg})` }}
-          />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/40 to-slate-950" />
-        <div className="relative max-w-5xl mx-auto px-6 pt-20 pb-28 text-center">
-          <div className="flex items-center justify-center gap-3 mb-6">
-            <img src={DUC_LOGO} alt="$DUC" className="w-12 h-12 rounded-full bg-white/10 p-1" />
-            <span className="text-sm font-bold tracking-widest uppercase text-white/80">openTILL SMPF</span>
-          </div>
-          <h1 className="text-4xl sm:text-6xl font-black leading-tight">{settings?.title || 'openTILL SMPF'}</h1>
-          <p className="text-lg sm:text-xl text-white/80 mt-4 max-w-2xl mx-auto font-medium">
-            {settings?.tagline}
-          </p>
-          {settings?.description && (
-            <p className="text-white/60 mt-4 max-w-2xl mx-auto">{settings.description}</p>
+    <div className="min-h-screen bg-[#05060f] text-white relative overflow-hidden">
+      <style>{`
+        @keyframes auroraFloat { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(40px,-30px) scale(1.1)} }
+        @keyframes auroraFloat2 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-30px,40px) scale(1.15)} }
+        @keyframes gridPulse { 0%,100%{opacity:.15} 50%{opacity:.3} }
+        @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+        .aurora-1 { animation: auroraFloat 18s ease-in-out infinite; }
+        .aurora-2 { animation: auroraFloat2 22s ease-in-out infinite; }
+        .grid-overlay { background-image: linear-gradient(rgba(255,255,255,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px); background-size: 60px 60px; }
+        .glass-card { background: rgba(255,255,255,0.04); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.08); }
+        .glass-card:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.18); transform: translateY(-4px); box-shadow: 0 20px 40px -20px ${accent}66; }
+        .glass-card { transition: all .35s cubic-bezier(.2,.8,.2,1); }
+        .text-glow { text-shadow: 0 0 40px ${accent}88; }
+      `}</style>
+
+      {/* Ambient aurora orbs */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="aurora-1 absolute top-[-10%] left-[-5%] w-[40rem] h-[40rem] rounded-full blur-[140px] opacity-25" style={{ background: accent }} />
+        <div className="aurora-2 absolute bottom-[-15%] right-[-10%] w-[45rem] h-[45rem] rounded-full blur-[160px] opacity-20" style={{ background: secondary }} />
+        <div className="absolute top-1/3 right-1/4 w-80 h-80 rounded-full blur-[120px] opacity-15 aurora-1" style={{ background: '#3b82f6' }} />
+      </div>
+
+      {/* Grid overlay */}
+      <div className="fixed inset-0 grid-overlay pointer-events-none z-0" style={{ maskImage: 'radial-gradient(ellipse at center, black 30%, transparent 75%)', WebkitMaskImage: 'radial-gradient(ellipse at center, black 30%, transparent 75%)' }} />
+
+      <div className="relative z-10">
+        {/* Hero */}
+        <header className="relative overflow-hidden">
+          {heroBg && (
+            <div className="absolute inset-0 bg-cover bg-center opacity-20" style={{ backgroundImage: `url(${heroBg})` }} />
           )}
-          <div className="flex flex-wrap items-center justify-center gap-3 mt-8">
-            <Button
-              asChild
-              className="bg-white text-slate-900 hover:bg-white/90 rounded-full px-6"
-            >
-              <a href={settings?.cta_url || '/'}>
-                {settings?.cta_text || 'Get Started'} <ArrowRight className="w-4 h-4 ml-1" />
-              </a>
-            </Button>
-            <Button variant="outline" className="rounded-full px-6 border-white/30 bg-transparent text-white hover:bg-white/10">
-              <a href="#explore">Explore the platform</a>
-            </Button>
-          </div>
-        </div>
-        <div className="absolute -bottom-px left-0 right-0 h-16 bg-gradient-to-b from-transparent to-slate-950" />
-      </header>
-
-      {/* Stats strip */}
-      <section className="max-w-5xl mx-auto px-6 -mt-12 relative z-10">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {[
-            { v: '20+', l: 'Platform modules' },
-            { v: 'Cash · Card · Crypto · EBT', l: 'Payment methods' },
-            { v: 'Solana', l: 'Blockchain rail' },
-            { v: 'White-label', l: 'Ambassador ready' },
-          ].map((s) => (
-            <div key={s.l} className="rounded-xl border border-white/10 bg-white/5 backdrop-blur p-4 text-center">
-              <div className="text-base sm:text-lg font-bold">{s.v}</div>
-              <div className="text-xs text-white/60 mt-0.5">{s.l}</div>
+          <div className="absolute inset-0 bg-gradient-to-b from-[#05060f]/40 via-[#05060f]/60 to-[#05060f]" />
+          <div className="relative max-w-5xl mx-auto px-6 pt-24 pb-32 text-center">
+            <div className="inline-flex items-center gap-3 mb-8 px-4 py-2 rounded-full glass-card">
+              <img src={DUC_LOGO} alt="$DUC" className="w-7 h-7 rounded-full" />
+              <span className="text-xs font-bold tracking-[0.25em] uppercase text-white/80">openTILL SMPF</span>
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Sections grid */}
-      <section id="explore" className="max-w-6xl mx-auto px-6 py-16">
-        <div className="text-center mb-10">
-          <h2 className="text-3xl font-black">Everything openTILL SMPF does</h2>
-          <p className="text-white/60 mt-2">One platform — from the register to the blockchain.</p>
-        </div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {sections.map((sec, i) => {
-            const Icon = ICONS[sec.icon] || Sparkles;
-            const key = sec.id || i;
-            return (
-              <Link
-                key={key}
-                to={`/Brochure/feature/${key}`}
-                className="group block rounded-2xl border border-white/10 bg-white/5 p-5 hover:border-white/25 hover:bg-white/[0.07] transition-colors"
-              >
-                <div
-                  className="w-11 h-11 rounded-xl flex items-center justify-center mb-3"
-                  style={{ background: `linear-gradient(135deg, ${accent}, ${secondary})` }}
-                >
-                  <Icon className="w-5 h-5 text-white" />
-                </div>
-                <h3 className="font-bold text-lg">{sec.title}</h3>
-                <p className="text-sm text-white/60 mt-1">{sec.description}</p>
-                {sec.bullets && sec.bullets.length > 0 && (
-                  <ul className="mt-3 space-y-1.5">
-                    {sec.bullets.map((b, bi) => (
-                      <li key={bi} className="flex items-start gap-2 text-sm text-white/75">
-                        <Check className="w-4 h-4 mt-0.5 shrink-0" style={{ color: secondary }} />
-                        <span>{b}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </Link>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* QR / share + CTA */}
-      <section className="max-w-4xl mx-auto px-6 pb-20">
-        <div
-          className="rounded-3xl border border-white/10 p-8 sm:p-12 text-center"
-          style={{ background: `linear-gradient(135deg, ${accent}22, ${secondary}22)` }}
-        >
-          <h2 className="text-2xl sm:text-3xl font-black">Take openTILL SMPF with you</h2>
-          <p className="text-white/70 mt-2 max-w-xl mx-auto">
-            Scan the code or open the link on any device to revisit the full platform overview.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mt-8">
-            {qrUrl && (
-              <div className="bg-white p-3 rounded-2xl">
-                <img src={qrUrl} alt="openTILL SMPF brochure QR" className="w-40 h-40" />
-                <p className="text-[10px] text-slate-500 mt-1 flex items-center justify-center gap-1">
-                  <QrIcon className="w-3 h-3" /> Scan to open
-                </p>
-              </div>
+            <h1 className="text-5xl sm:text-7xl font-black leading-[1.05] tracking-tight text-glow">
+              {settings?.title || 'openTILL SMPF'}
+            </h1>
+            <p className="text-lg sm:text-2xl text-white/75 mt-6 max-w-2xl mx-auto font-medium tracking-wide">
+              {settings?.tagline}
+            </p>
+            {settings?.description && (
+              <p className="text-white/50 mt-4 max-w-2xl mx-auto leading-relaxed">{settings.description}</p>
             )}
-            <div className="space-y-3">
-              <Button
-                asChild
-                className="rounded-full px-6 text-slate-900"
-                style={{ background: secondary }}
-              >
-                <a href={settings?.cta_url || '/'}>{settings?.cta_text || 'Get Started'}</a>
+            <div className="flex flex-wrap items-center justify-center gap-4 mt-10">
+              <Button asChild className="rounded-full px-7 py-6 text-base font-bold text-white border-0" style={{ background: `linear-gradient(135deg, ${accent}, ${secondary})`, boxShadow: `0 10px 40px -10px ${accent}aa` }}>
+                <a href={settings?.cta_url || '/'}>
+                  {settings?.cta_text || 'Get Started'} <ArrowRight className="w-4 h-4 ml-1" />
+                </a>
               </Button>
-              {(settings?.website || settings?.contact_email) && (
-                <div className="text-sm text-white/70">
-                  {settings?.website && (
-                    <div>
-                      <a href={settings.website} target="_blank" rel="noreferrer" className="underline">
-                        {settings.website}
-                      </a>
-                    </div>
+              <Button variant="outline" className="rounded-full px-7 py-6 text-base border-white/20 bg-white/5 backdrop-blur text-white hover:bg-white/10 hover:border-white/40">
+                <a href="#explore">Explore the platform</a>
+              </Button>
+            </div>
+          </div>
+        </header>
+
+        {/* Stats strip */}
+        <section className="max-w-5xl mx-auto px-6 -mt-16 relative z-20">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {[
+              { v: '20+', l: 'Platform modules' },
+              { v: 'Cash · Card · Crypto · EBT', l: 'Payment methods' },
+              { v: 'Solana', l: 'Blockchain rail' },
+              { v: 'White-label', l: 'Ambassador ready' },
+            ].map((s) => (
+              <div key={s.l} className="glass-card rounded-2xl p-5 text-center">
+                <div className="text-base sm:text-lg font-bold tracking-tight" style={{ color: 'white' }}>{s.v}</div>
+                <div className="text-xs text-white/50 mt-1 tracking-wide">{s.l}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Sections grid */}
+        <section id="explore" className="max-w-6xl mx-auto px-6 py-20">
+          <div className="text-center mb-14">
+            <div className="inline-block h-1 w-12 rounded-full mb-5" style={{ background: `linear-gradient(90deg, ${accent}, ${secondary})` }} />
+            <h2 className="text-3xl sm:text-4xl font-black tracking-tight">Everything openTILL SMPF does</h2>
+            <p className="text-white/50 mt-3 tracking-wide">One platform — from the register to the blockchain.</p>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {sections.map((sec, i) => {
+              const Icon = ICONS[sec.icon] || Sparkles;
+              const key = sec.id || i;
+              return (
+                <Link
+                  key={key}
+                  to={`/Brochure/feature/${key}`}
+                  className="glass-card group block rounded-2xl p-6"
+                >
+                  <div
+                    className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110"
+                    style={{ background: `linear-gradient(135deg, ${accent}, ${secondary})`, boxShadow: `0 8px 24px -8px ${accent}88` }}
+                  >
+                    <Icon className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="font-bold text-lg tracking-tight">{sec.title}</h3>
+                  <p className="text-sm text-white/55 mt-1.5 leading-relaxed">{sec.description}</p>
+                  {sec.bullets && sec.bullets.length > 0 && (
+                    <ul className="mt-4 space-y-2">
+                      {sec.bullets.map((b, bi) => (
+                        <li key={bi} className="flex items-start gap-2 text-sm text-white/70">
+                          <Check className="w-4 h-4 mt-0.5 shrink-0" style={{ color: secondary }} />
+                          <span>{b}</span>
+                        </li>
+                      ))}
+                    </ul>
                   )}
-                  {settings?.contact_email && (
-                    <div>
-                      <a href={`mailto:${settings.contact_email}`} className="underline">
-                        {settings.contact_email}
-                      </a>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* QR / share + CTA */}
+        <section className="max-w-4xl mx-auto px-6 pb-24">
+          <div className="relative rounded-3xl glass-card p-10 sm:p-14 text-center overflow-hidden">
+            <div className="absolute -top-20 -left-20 w-72 h-72 rounded-full blur-[100px] opacity-30" style={{ background: accent }} />
+            <div className="absolute -bottom-20 -right-20 w-72 h-72 rounded-full blur-[100px] opacity-30" style={{ background: secondary }} />
+            <div className="relative">
+              <h2 className="text-2xl sm:text-4xl font-black tracking-tight">Take openTILL SMPF with you</h2>
+              <p className="text-white/60 mt-3 max-w-xl mx-auto">
+                Scan the code or open the link on any device to revisit the full platform overview.
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-8 mt-10">
+                {qrUrl && (
+                  <div className="bg-white p-3 rounded-2xl shadow-2xl">
+                    <img src={qrUrl} alt="openTILL SMPF brochure QR" className="w-40 h-40" />
+                    <p className="text-[10px] text-slate-500 mt-1 flex items-center justify-center gap-1">
+                      <QrIcon className="w-3 h-3" /> Scan to open
+                    </p>
+                  </div>
+                )}
+                <div className="space-y-3 text-left">
+                  <Button asChild className="rounded-full px-7 py-5 text-base font-bold text-white border-0" style={{ background: `linear-gradient(135deg, ${accent}, ${secondary})`, boxShadow: `0 10px 40px -10px ${secondary}aa` }}>
+                    <a href={settings?.cta_url || '/'}>{settings?.cta_text || 'Get Started'}</a>
+                  </Button>
+                  {(settings?.website || settings?.contact_email) && (
+                    <div className="text-sm text-white/60">
+                      {settings?.website && (
+                        <div>
+                          <a href={settings.website} target="_blank" rel="noreferrer" className="underline hover:text-white">
+                            {settings.website}
+                          </a>
+                        </div>
+                      )}
+                      {settings?.contact_email && (
+                        <div>
+                          <a href={`mailto:${settings.contact_email}`} className="underline hover:text-white">
+                            {settings.contact_email}
+                          </a>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
-              )}
+              </div>
             </div>
           </div>
-        </div>
-        <p className="text-center text-xs text-white/40 mt-8">
-          © Isolex Corporation · openTILL SMPF · Powered by Solana
-        </p>
-      </section>
+          <p className="text-center text-xs text-white/30 mt-10 tracking-widest uppercase">
+            © Isolex Corporation · openTILL SMPF · Powered by Solana
+          </p>
+        </section>
+      </div>
     </div>
   );
 }
