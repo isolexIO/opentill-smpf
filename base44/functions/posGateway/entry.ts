@@ -1,6 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
-// posGateway — a secure data gateway for the POS when the operator is a
+// posGateway (rev 2) — a secure data gateway for the POS when the operator is a
 // PIN-only / magic-link merchant admin (no platform User record, therefore
 // no platform session and no RLS context). The frontend POS proxy routes
 // `base44.entities.<Entity>.<method>(...)` calls here when a pin_session_token
