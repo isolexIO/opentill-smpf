@@ -25,6 +25,8 @@ import QRCode from 'qrcode';
 import ICOLink from '@/components/vault/ICOLink';
 import CustomerInlineWallet from '@/components/portal/CustomerInlineWallet';
 
+const PORTAL_BG = 'https://media.base44.com/images/public/6970e2871534100b4ebb8d45/e5026a0a1_ChatGPTImageAug2202611_33_54AM.png';
+
 export default function CustomerPortal() {
   const { toast } = useToast();
 
@@ -157,16 +159,17 @@ export default function CustomerPortal() {
   // === QR Payment View ===
   if (showQR && customer) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-600 to-blue-600 flex flex-col items-center justify-center p-6 text-white">
-        <button onClick={() => setShowQR(false)} className="absolute top-4 left-4 flex items-center gap-1 text-white/80 hover:text-white">
+      <div className="min-h-screen relative flex flex-col items-center justify-center p-6 text-white" style={{ backgroundImage: `url(${PORTAL_BG})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+        <div className="absolute inset-0 bg-black/60" />
+        <button onClick={() => setShowQR(false)} className="absolute top-4 left-4 z-10 flex items-center gap-1 text-white/80 hover:text-white">
           <ArrowLeft className="w-5 h-5" /> Back
         </button>
-        <h2 className="text-xl font-bold mb-1">Pay with $DUC</h2>
-        <p className="text-sm text-white/70 mb-6">Show this QR code to the cashier</p>
-        <div className="bg-white rounded-2xl p-4 shadow-xl">
+        <h2 className="relative z-10 text-xl font-bold mb-1">Pay with $DUC</h2>
+        <p className="relative z-10 text-sm text-white/70 mb-6">Show this QR code to the cashier</p>
+        <div className="relative z-10 bg-white rounded-2xl p-4 shadow-xl">
           {qrDataUrl && <img src={qrDataUrl} alt="Payment QR" className="w-64 h-64" />}
         </div>
-        <div className="mt-6 text-center">
+        <div className="relative z-10 mt-6 text-center">
           <p className="text-sm text-white/70">Available Balance</p>
           <p className="text-3xl font-bold">{customer.duc_balance.toFixed(2)} $DUC</p>
           <p className="text-xs text-white/50 mt-2">{customer.name}</p>
@@ -186,8 +189,10 @@ export default function CustomerPortal() {
 
     return (
       <div className="min-h-screen bg-gray-50">
-        <div className="bg-gradient-to-br from-blue-600 to-purple-600 text-white px-6 py-6">
-          <div className="max-w-md mx-auto">
+        <div className="relative text-white px-6 py-6" style={{ backgroundImage: `url(${PORTAL_BG})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+          <div className="absolute inset-0 bg-black/50" />
+
+          <div className="relative z-10 max-w-md mx-auto">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h1 className="text-xl font-bold">My Rewards</h1>
@@ -311,8 +316,9 @@ export default function CustomerPortal() {
   // === Set PIN View ===
   if (step === 'set_pin') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center p-6">
-        <div className="max-w-md w-full">
+      <div className="min-h-screen relative flex items-center justify-center p-6" style={{ backgroundImage: `url(${PORTAL_BG})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+        <div className="absolute inset-0 bg-black/60" />
+        <div className="relative max-w-md w-full">
           <div className="text-center text-white mb-8">
             <div className="w-16 h-16 bg-white/15 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Lock className="w-8 h-8" />
@@ -353,8 +359,9 @@ export default function CustomerPortal() {
   // === Register View ===
   if (step === 'register') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center p-6">
-        <div className="max-w-md w-full">
+      <div className="min-h-screen relative flex items-center justify-center p-6" style={{ backgroundImage: `url(${PORTAL_BG})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+        <div className="absolute inset-0 bg-black/60" />
+        <div className="relative max-w-md w-full">
           <div className="text-center text-white mb-8">
             <div className="w-16 h-16 bg-white/15 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Coins className="w-8 h-8" />
@@ -392,8 +399,9 @@ export default function CustomerPortal() {
   // === PIN Login View ===
   if (step === 'pin') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center p-6">
-        <div className="max-w-md w-full">
+      <div className="min-h-screen relative flex items-center justify-center p-6" style={{ backgroundImage: `url(${PORTAL_BG})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+        <div className="absolute inset-0 bg-black/60" />
+        <div className="relative max-w-md w-full">
           <div className="text-center text-white mb-8">
             <div className="w-16 h-16 bg-white/15 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Lock className="w-8 h-8" />
