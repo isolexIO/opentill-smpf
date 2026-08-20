@@ -254,7 +254,7 @@ export default function CustomerPortal() {
             {customer.duc_balance > 0 ? 'Pay with $DUC (QR)' : 'No $DUC Available'}
           </Button>
           {customer.duc_balance <= 0 && (
-            <p className="text-center text-xs text-gray-400">
+            <p className="text-center text-xs text-white/50">
               Earn $DUC by shopping — loyalty rewards are credited automatically after each purchase.
             </p>
           )}
@@ -267,8 +267,8 @@ export default function CustomerPortal() {
           {/* Purchase History */}
           <div className="pt-2">
             <div className="flex items-center gap-2 mb-3">
-              <Receipt className="w-4 h-4 text-gray-600" />
-              <h3 className="font-semibold text-gray-900">Purchase History</h3>
+              <Receipt className="w-4 h-4 text-white/70" />
+              <h3 className="font-semibold text-white">Purchase History</h3>
             </div>
             {orders.length === 0 ? (
               <Card>
