@@ -1,5 +1,6 @@
 import './App.css'
 import { Toaster } from "@/components/ui/toaster"
+import ErrorBoundary from '@/components/ErrorBoundary'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import VisualEditAgent from '@/lib/VisualEditAgent'
@@ -141,7 +142,9 @@ function App() {
       <QueryClientProvider client={queryClientInstance}>
         <Router>
           <NavigationTracker />
-          <AuthenticatedApp />
+          <ErrorBoundary>
+            <AuthenticatedApp />
+          </ErrorBoundary>
           <FeedbackButton />
         </Router>
         <Toaster />
