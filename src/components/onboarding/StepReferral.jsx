@@ -27,10 +27,10 @@ export default function StepReferral({ formData, onChange, onNext, locked, deale
       // Use the public service-role endpoint so logged-out visitors can verify
       // a referral code — a direct entity read is blocked by Merchant RLS.
       const res = await base44.functions.invoke('getMerchantByReferralCode', { referral_code: code.toUpperCase().trim() });
-      if (res.data?.success && res.data.merchant) {
-        setReferrerInfo(res.data.merchant);
+      if (res.data?.success && res.data.referrer) {
+        setReferrerInfo(res.data.referrer);
       } else {
-        setCodeError('No merchant found with this referral code.');
+        setCodeError(res.data?.error || 'No merchant found with this referral code.');
       }
     } catch (e) {
       setCodeError('Could not verify code. You can still continue.');
@@ -115,7 +115,10 @@ export default function StepReferral({ formData, onChange, onNext, locked, deale
             <CheckCircle className="w-5 h-5 text-cyan-500 shrink-0" />
             <div>
               <p className="text-sm font-bold text-cyan-800">Valid referral code!</p>
-              <p className="text-xs text-cyan-600">Referred by: <strong>{referrerInfo.business_name}</strong></p>
+              <p className="text-xs text-cyan-600">
+                Referred by: <strong>{referrerInfo.name || referrerInfo.business_name}</strong>
+                {referrerInfo.type === 'customer' && <span className="ml-1">(openTILL Customer)</span>}
+              </p>
             </div>
           </div>
         )}

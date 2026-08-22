@@ -17,19 +17,28 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const merchants = await base44.asServiceRole.entities.Merchant.filter({ referral_code });
 
-    if (!merchants || merchants.length === 0) {
-      return Response.json({ success: false, error: 'No merchant found with this referral code.' }, { status: 404 });
+    if (merchants && merchants.length > 0) {
+      const m = merchants[0];
+      return Response.json({
+        success: true,
+        merchant: { id: m.id, business_name: m.business_name, referral_code: m.referral_code },
+        referrer: { type: 'merchant', name: m.business_name, referral_code: m.referral_code },
+      });
     }
 
-    const m = merchants[0];
-    return Response.json({
-      success: true,
-      merchant: {
-        id: m.id,
-        business_name: m.business_name,
-        referral_code: m.referral_code
-      }
-    });
+    // No merchant matched — a customer's personal referral code also qualifies
+    // (customers earn $DUC for referring merchants). Return it as a referrer.
+    const customers = await base44.asServiceRole.entities.Customer.filter({ referral_code });
+    if (customers && customers.length > 0) {
+      const c = customers[0];
+      return Response.json({
+        success: true,
+        merchant: null,
+        referrer: { type: 'customer', name: c.name || 'openTILL Customer', referral_code: c.referral_code },
+      });
+    }
+
+    return Response.json({ success: false, error: 'No merchant found with this referral code.' }, { status: 404 });
   } catch (error) {
     console.error('getMerchantByReferralCode error:', error);
     return Response.json({ success: false, error: 'Failed to look up referral code' }, { status: 500 });
