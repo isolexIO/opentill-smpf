@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
@@ -24,8 +24,8 @@ import {
 import QRCode from 'qrcode';
 import ICOLink from '@/components/vault/ICOLink';
 import CustomerInlineWallet from '@/components/portal/CustomerInlineWallet';
-import BrochureShareCard from '@/components/shared/BrochureShareCard';
-import { PLATFORM_DEFAULT_REFERRAL_CODE } from '@/lib/referralLink';
+import CustomerReferralCard from '@/components/portal/CustomerReferralCard';
+import CustomerMerchantsManager from '@/components/portal/CustomerMerchantsManager';
 
 const PORTAL_BG = 'https://media.base44.com/images/public/6970e2871534100b4ebb8d45/e5026a0a1_ChatGPTImageAug2202611_33_54AM.png';
 
@@ -44,6 +44,31 @@ export default function CustomerPortal() {
   const [qrDataUrl, setQrDataUrl] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [registerName, setRegisterName] = useState('');
+  const [linkedMerchants, setLinkedMerchants] = useState([]);
+  const sessionPinRef = useRef('');
+
+  // Fetch the customer's referral code, referral stats, and linked merchants
+  // (lazily creates a referral code for existing customers who don't have one).
+  const loadPortalData = async (custId, pin) => {
+    try {
+      const { data } = await base44.functions.invoke('manageCustomerPortal', {
+        action: 'get_portal_data',
+        customer_id: custId,
+        pin,
+      });
+      if (data?.success) {
+        setCustomer((prev) => prev ? {
+          ...prev,
+          referral_code: data.referral_code,
+          ref_clicks: data.ref_clicks,
+          ref_shares: data.ref_shares,
+          ref_conversions: data.ref_conversions,
+          ref_duc_earned: data.ref_duc_earned,
+        } : prev);
+        setLinkedMerchants(data.linked_merchants || []);
+      }
+    } catch { /* ignore */ }
+  };
 
   const handleLookup = async (e) => {
     e?.preventDefault();
@@ -93,9 +118,11 @@ export default function CustomerPortal() {
       }
       const { data } = await base44.functions.invoke('customerAuth', payload);
       if (data?.success) {
+        sessionPinRef.current = pin.trim();
         setCustomer(data.customer);
         setOrders(data.orders || []);
         setStep('dashboard');
+        loadPortalData(data.customer.id, pin.trim());
         setPin('');
       } else {
         toast({ title: 'Authentication failed', description: data?.error || 'Please try again', variant: 'destructive' });
@@ -119,9 +146,11 @@ export default function CustomerPortal() {
         pin: pin.trim(),
       });
       if (data?.success) {
+        sessionPinRef.current = pin.trim();
         setCustomer(data.customer);
         setOrders(data.orders || []);
         setStep('dashboard');
+        loadPortalData(data.customer.id, pin.trim());
         setPin('');
         setRegisterName('');
       } else {
@@ -149,6 +178,8 @@ export default function CustomerPortal() {
   const handleSignOut = () => {
     setCustomer(null);
     setOrders([]);
+    setLinkedMerchants([]);
+    sessionPinRef.current = '';
     setIdentifier('');
     setPin('');
     setStep('lookup');
@@ -263,12 +294,15 @@ export default function CustomerPortal() {
 
           <ICOLink />
 
-          {/* Share the brochure */}
-          <BrochureShareCard
-            merchantId={customer.merchant_id}
-            defaultReferralCode={PLATFORM_DEFAULT_REFERRAL_CODE}
-            title="Share openTILL SMPF"
-            description="Share the platform brochure with friends. Your merchant's referral is attached so they get credited."
+          {/* Referral link + stats */}
+          <CustomerReferralCard customer={customer} />
+
+          {/* Add / manage merchants */}
+          <CustomerMerchantsManager
+            customerId={customer.id}
+            sessionPin={sessionPinRef.current}
+            linkedMerchants={linkedMerchants}
+            setLinkedMerchants={setLinkedMerchants}
           />
 
           {/* Inline SMPF Wallet */}

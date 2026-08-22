@@ -147,12 +147,22 @@ Deno.serve(async (req) => {
 
         // Handle referral code if provided
         let referrerMerchant = null;
+        let referrerCustomer = null;
         if (referral_code) {
             const referrers = await base44.asServiceRole.entities.Merchant.filter({
                 referral_code: referral_code.toUpperCase().trim()
             });
             if (referrers && referrers.length > 0) {
                 referrerMerchant = referrers[0];
+            } else {
+                // No merchant matched — check if this is a customer's personal
+                // referral code, so the customer (not a merchant) gets credited.
+                const customers = await base44.asServiceRole.entities.Customer.filter({
+                    referral_code: referral_code.toUpperCase().trim()
+                });
+                if (customers && customers.length > 0) {
+                    referrerCustomer = customers[0];
+                }
             }
         }
 
@@ -191,6 +201,22 @@ Deno.serve(async (req) => {
                 referred_name: merchant.business_name,
                 referral_code: referral_code.toUpperCase().trim(),
                 status: 'pending'
+            });
+        }
+
+        // If the referral code belonged to a customer, create a pending
+        // customer→merchant referral link. The customer earns $DUC once this
+        // merchant processes $100 via openTILL Payments.
+        if (referrerCustomer) {
+            await base44.asServiceRole.entities.CustomerMerchantLink.create({
+                customer_id: referrerCustomer.id,
+                customer_phone: referrerCustomer.phone || null,
+                merchant_id: merchant.id,
+                merchant_name: merchant.business_name,
+                dealer_id: merchant.dealer_id || null,
+                link_type: 'referred',
+                referral_status: 'pending',
+                added_at: new Date().toISOString()
             });
         }
 

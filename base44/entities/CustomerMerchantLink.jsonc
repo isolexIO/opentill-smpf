@@ -1,0 +1,84 @@
+{
+  "name": "CustomerMerchantLink",
+  "type": "object",
+  "properties": {
+    "customer_id": {
+      "type": "string",
+      "description": "Customer who linked or referred this merchant"
+    },
+    "customer_phone": {
+      "type": "string",
+      "description": "Customer phone (denormalized for lookup)"
+    },
+    "merchant_id": {
+      "type": "string",
+      "description": "Merchant linked to the customer"
+    },
+    "merchant_name": {
+      "type": "string",
+      "description": "Merchant business name (denormalized for display)"
+    },
+    "dealer_id": {
+      "type": "string",
+      "description": "Dealer ID of the merchant (for isolation)"
+    },
+    "link_type": {
+      "type": "string",
+      "enum": [
+        "added",
+        "referred"
+      ],
+      "description": "added = customer manually added this merchant to their portal; referred = merchant signed up via this customer's referral link"
+    },
+    "referral_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "converted"
+      ],
+      "description": "For referred links: pending = merchant signed up but hasn't processed $100 yet; converted = threshold reached and $DUC issued. Null for added links."
+    },
+    "reward_amount_duc": {
+      "type": "number",
+      "default": 0,
+      "description": "$DUC credited to the customer when this referral converted"
+    },
+    "converted_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the referred merchant hit the $100 processing threshold"
+    },
+    "added_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the customer added this merchant (added links) or when the referral was created (referred links)"
+    }
+  },
+  "required": [
+    "customer_id",
+    "merchant_id",
+    "link_type"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

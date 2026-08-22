@@ -69,6 +69,30 @@
       "type": "string",
       "format": "date-time",
       "description": "When the customer last logged into the portal"
+    },
+    "referral_code": {
+      "type": "string",
+      "description": "This customer's personal referral code. Used in brochure/signup links so referrals are credited to the customer (not the merchant)."
+    },
+    "ref_clicks": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of times this customer's referral link was clicked"
+    },
+    "ref_shares": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of times this customer shared their referral link"
+    },
+    "ref_conversions": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of merchants referred by this customer that hit the processing threshold and earned the customer $DUC"
+    },
+    "ref_duc_earned": {
+      "type": "number",
+      "default": 0,
+      "description": "Total $DUC earned by this customer from referral conversions"
     }
   },
   "required": [

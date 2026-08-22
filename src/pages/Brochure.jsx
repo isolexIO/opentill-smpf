@@ -191,6 +191,23 @@ export default function Brochure() {
     load();
   }, []);
 
+  // Track a referral click when the brochure is opened via a ?ref= link.
+  // Counts once per browser session per code to avoid inflating clicks.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get('ref') || params.get('referral') || params.get('code');
+    if (!ref) return;
+    const code = ref.toUpperCase();
+    const key = `ref_click_${code}`;
+    try {
+      if (sessionStorage.getItem(key)) return;
+      sessionStorage.setItem(key, '1');
+    } catch { /* ignore */ }
+    base44.functions
+      .invoke('manageCustomerPortal', { action: 'track_click', referral_code: code })
+      .catch(() => {});
+  }, []);
+
   async function load() {
     try {
       // Resolve the viewer's referral identity (URL param or logged-in user)
