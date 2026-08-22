@@ -26,12 +26,20 @@ import {
 import Home from '@/pages/Home';
 import NotificationBanner from '@/components/notifications/NotificationBanner';
 import MobileBottomNav from '@/components/mobile/MobileBottomNav';
+import PublicNavbar from '@/components/layout/PublicNavbar';
+import PublicFooter from '@/components/layout/PublicFooter';
 import { useNavigate } from 'react-router-dom';
 
 const PUBLIC_PAGES = ['Home', 'Login', 'PinLogin', 'EmailLogin', 'WalletLoginPage', 'OnlineMenu', 'CustomerDisplay', 'KitchenDisplay', 'MerchantOnboarding', 'POS', 'PrivacyPolicy', 'TermsOfService', 'License', 'Copyright', 'About', 'Contact', 'DeviceShop', 'DealerLanding', 'DealerDashboard', 'DealerHome', 'SuperAdmin', 'Marketplace', 'ChipDetail', 'Builders', 'BuilderOnboarding', 'DriverDashboard', 'PayInvoice', 'OpenTILLPayments', 'MobileStationDisplay', 'CustomerPortal'];
 
 function PublicLayout({ children }) {
-  return <div className="min-h-screen">{children}</div>;
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-800 to-cyan-900">
+      <PublicNavbar />
+      {children}
+      <PublicFooter />
+    </div>
+  );
 }
 
 const ROOT_PAGES = ['Home', 'SystemMenu', 'PinLogin', 'EmailLogin', 'WalletLoginPage', 'MerchantOnboarding'];

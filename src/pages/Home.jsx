@@ -28,7 +28,6 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import PriceTicker from '@/components/vault/PriceTicker';
-import CommunityLinks from '@/components/shared/CommunityLinks';
 import OpenTILLPaymentsSection from '@/components/home/OpenTILLPaymentsSection';
 import DUCPresaleSection from '@/components/home/DUCPresaleSection';
 
@@ -143,7 +142,6 @@ function FeaturedChipsSection() {
 
 export default function HomePage() {
   const [isScrolled, setIsScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [subscriptionPlans, setSubscriptionPlans] = useState([]);
   const [isLoadingPlans, setIsLoadingPlans] = useState(true);
   const [settings, setSettings] = useState(null);
@@ -337,90 +335,6 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-800 to-cyan-900">
-      {/* Navbar */}
-      <nav className="bg-black/30 backdrop-blur-md border-b border-white/10 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.location.href = createPageUrl('Home')}>
-              <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6970e2871534100b4ebb8d45/8e45f76fe_DUC3.png" alt="openTILL" className="w-8 h-8" />
-              <span className="text-2xl font-bold text-white">openTILL</span>
-            </div>
-            <div className="hidden md:flex items-center gap-6">
-              <a href={createPageUrl('Home')} className="text-green-300 font-semibold">
-                Home
-              </a>
-              <a href={createPageUrl('Marketplace')} className="text-white hover:text-green-300 transition-colors">
-                Marketplace
-              </a>
-              <a href="#features" className="text-white hover:text-green-300 transition-colors">
-                Features
-              </a>
-              <a href="#pricing" className="text-white hover:text-green-300 transition-colors">
-                Pricing
-              </a>
-              {subscriptionPlansEnabled && (
-                <a href="#support-tiers" className="text-white hover:text-green-300 transition-colors">
-                  Support Tiers
-                </a>
-              )}
-              <a href={createPageUrl('About')} className="text-white hover:text-green-300 transition-colors">
-                About
-              </a>
-              <a href={createPageUrl('Contact')} className="text-white hover:text-green-300 transition-colors">
-                Contact
-              </a>
-              <a href="https://ico.opentill.io/" target="_blank" rel="noopener noreferrer" className="text-green-300 font-semibold hover:text-green-200 transition-colors">
-                $DUC Presale
-              </a>
-              <Button
-                onClick={() => window.location.href = createPageUrl('EmailLogin')}
-                className="bg-green-500 hover:bg-green-600 text-white"
-              >
-                Sign In
-              </Button>
-            </div>
-            <div className="md:hidden flex items-center gap-2">
-              <Button onClick={() => window.location.href = createPageUrl('EmailLogin')} size="sm" className="bg-green-500 hover:bg-green-600 text-white text-xs px-3">
-                Sign In
-              </Button>
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="text-white p-2 rounded-md hover:bg-white/10 transition-colors"
-                aria-label="Toggle menu"
-              >
-                {mobileMenuOpen ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Mobile Menu Dropdown */}
-      {mobileMenuOpen && (
-        <div className="md:hidden bg-black/80 backdrop-blur-md border-b border-white/10 px-6 py-4 space-y-3">
-          <a href={createPageUrl('Home')} className="block text-green-300 font-semibold py-2">Home</a>
-          <a href={createPageUrl('Marketplace')} className="block text-white hover:text-green-300 py-2">Marketplace</a>
-          <a href="#features" onClick={() => setMobileMenuOpen(false)} className="block text-white hover:text-green-300 py-2">Features</a>
-          <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="block text-white hover:text-green-300 py-2">Pricing</a>
-          {subscriptionPlansEnabled && (
-            <a href="#support-tiers" onClick={() => setMobileMenuOpen(false)} className="block text-white hover:text-green-300 py-2">Support Tiers</a>
-          )}
-          <a href={createPageUrl('About')} className="block text-white hover:text-green-300 py-2">About</a>
-          <a href={createPageUrl('Contact')} className="block text-white hover:text-green-300 py-2">Contact</a>
-          <a href="https://ico.opentill.io/" target="_blank" rel="noopener noreferrer" className="block text-green-300 font-semibold py-2">$DUC Presale</a>
-          <div className="pt-2 border-t border-white/10">
-            <CommunityLinks variant="compact" className="[&_a]:text-gray-300 [&_a]:hover:text-white justify-start" />
-          </div>
-          <Button onClick={() => window.location.href = buildOnboardingUrl()} className="w-full bg-white text-purple-700 hover:bg-gray-100 font-semibold mt-2">
-            Get Started Free
-          </Button>
-        </div>
-      )}
-
       {/* Hero Section */}
       <section
         className="relative py-20 px-4 overflow-hidden"
@@ -1136,96 +1050,6 @@ export default function HomePage() {
 
       {/* $DUC Presale */}
       <DUCPresaleSection />
-
-      {/* Footer */}
-      <footer className="bg-black/30 backdrop-blur-md border-t border-white/10 py-12">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            {/* Company Info */}
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6970e2871534100b4ebb8d45/8e45f76fe_DUC3.png" alt="openTILL" className="w-6 h-6" />
-                <span className="text-xl font-bold text-white">openTILL</span>
-              </div>
-              <p className="text-gray-300 text-sm mb-4">
-                {settings?.company_info?.tagline || 'The next-generation point of sale system for modern businesses.'}
-              </p>
-              <p className="text-gray-300 text-sm">
-                📞 +1 (419) 729-3889
-              </p>
-              <p className="text-gray-300 text-sm">
-                ✉️ SMPF@openTILL.io
-              </p>
-            </div>
-
-            {/* Product */}
-            <div>
-              <h3 className="text-white font-semibold mb-4">Product</h3>
-              <ul className="space-y-2">
-                <li><a href="#features" className="text-gray-300 hover:text-white text-sm transition-colors">Features</a></li>
-                <li><a href="#pricing" className="text-gray-300 hover:text-white text-sm transition-colors">Pricing</a></li>
-                <li><a href={createPageUrl('DeviceShop')} className="text-gray-300 hover:text-white text-sm transition-colors">Device Shop</a></li>
-                <li>
-                  <a href="https://ico.opentill.io/" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white text-sm transition-colors">
-                    $DUC Presale
-                  </a>
-                </li>
-                <li>
-                  <a href={createPageUrl('DealerLanding')} className="text-gray-300 hover:text-white text-sm transition-colors">
-                    Become an Ambassador
-                  </a>
-                </li>
-                <li>
-                  <a href="/builders" className="text-gray-300 hover:text-white text-sm transition-colors">
-                    Build with Us
-                  </a>
-                </li>
-              </ul>
-            </div>
-
-            {/* Company */}
-            <div>
-              <h3 className="text-white font-semibold mb-4">Company</h3>
-              <ul className="space-y-2">
-                <li><a href={createPageUrl('About')} className="text-gray-300 hover:text-white text-sm transition-colors">About</a></li>
-                <li><a href={createPageUrl('Contact')} className="text-gray-300 hover:text-white text-sm transition-colors">Contact</a></li>
-                <li>
-                  <a href={createPageUrl('DealerLanding')} className="text-gray-300 hover:text-white text-sm transition-colors">
-                    Ambassador Portal
-                  </a>
-                </li>
-                <li>
-                  <a href={createPageUrl('CustomerPortal')} className="text-gray-300 hover:text-white text-sm transition-colors">
-                    Customer Portal
-                  </a>
-                </li>
-              </ul>
-            </div>
-
-            {/* Legal */}
-             <div>
-               <h3 className="text-white font-semibold mb-4">Legal</h3>
-               <ul className="space-y-2">
-                 <li><a href={createPageUrl('PrivacyPolicy')} className="text-gray-300 hover:text-white text-sm transition-colors">Privacy Policy</a></li>
-                 <li><a href={createPageUrl('TermsOfService')} className="text-gray-300 hover:text-white text-sm transition-colors">Terms of Service</a></li>
-                 <li><a href={createPageUrl('License')} className="text-gray-300 hover:text-white text-sm transition-colors">License</a></li>
-                 <li><a href={createPageUrl('Copyright')} className="text-gray-300 hover:text-white text-sm transition-colors">Copyright</a></li>
-               </ul>
-             </div>
-          </div>
-
-          <div className="border-t border-white/10 mt-8 pt-8">
-            <div className="mb-6">
-              <p className="text-center text-gray-400 text-xs mb-3 uppercase tracking-widest">Community</p>
-              <CommunityLinks className="[&_a]:text-gray-300 [&_a]:hover:text-white [&_a]:bg-white/10 [&_a]:hover:bg-white/20 [&_a]:border-white/10" />
-            </div>
-            
-            <p className="text-gray-400 text-sm text-center">
-              {settings?.company_info?.copyright_text || '© 2026 Isolex Corporation. All rights reserved.'}
-            </p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
