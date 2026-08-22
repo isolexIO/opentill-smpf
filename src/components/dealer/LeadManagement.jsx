@@ -13,10 +13,12 @@ import LeadDetailDialog from './LeadDetailDialog';
 import LeadImportDialog from './LeadImportDialog';
 import LeadBulkActionBar from './LeadBulkActionBar';
 import LeadListsPanel from './LeadListsPanel';
+import LeadAssignDialog from './LeadAssignDialog';
+import StaffEarningsPanel from './StaffEarningsPanel';
 import {
   Plus, Search, Mail, Phone, Building2, TrendingUp, Target,
   Copy, Check, Calendar, Tag, Trash2, Edit, UserPlus, ChevronRight, Clock,
-  Upload, Square, CheckSquare
+  Upload, Square, CheckSquare, UserCircle, DollarSign, UserCog
 } from 'lucide-react';
 
 const STATUS_CONFIG = {
@@ -80,9 +82,13 @@ export default function LeadManagement({ dealerId }) {
   const [selectedLeadIds, setSelectedLeadIds] = useState(new Set());
   const [showImport, setShowImport] = useState(false);
   const [bulkBusy, setBulkBusy] = useState(false);
+  const [staff, setStaff] = useState([]);
+  const [staffFilter, setStaffFilter] = useState('all');
+  const [assigningLead, setAssigningLead] = useState(null);
+  const [activeTab, setActiveTab] = useState('leads');
   const token = typeof window !== 'undefined' ? localStorage.getItem('dealerToken') : null;
 
-  useEffect(() => { loadLeads(); loadLists(); }, [dealerId]);
+  useEffect(() => { loadLeads(); loadLists(); loadStaff(); }, [dealerId]);
 
   const loadLists = async () => {
     try {
@@ -90,6 +96,15 @@ export default function LeadManagement({ dealerId }) {
       if (res.data?.success) setLists(res.data.lists || []);
     } catch (e) {
       console.error('Error loading lists:', e);
+    }
+  };
+
+  const loadStaff = async () => {
+    try {
+      const res = await base44.functions.invoke('manageLead', { action: 'list_staff', token, dealer_id: dealerId });
+      if (res.data?.success) setStaff(res.data.staff || []);
+    } catch (e) {
+      console.error('Error loading staff:', e);
     }
   };
 
@@ -418,6 +433,25 @@ export default function LeadManagement({ dealerId }) {
     await loadLists();
   };
 
+  // --- Assignment ---
+  const handleAssigned = (updatedLead) => {
+    setLeads((prev) => prev.map((l) => (l.id === updatedLead.id ? updatedLead : l)));
+  };
+
+  const handleBulkAssign = async (staffId, staffName, commissionRate) => {
+    const ids = Array.from(selectedLeadIds);
+    setBulkBusy(true);
+    try {
+      await base44.functions.invoke('manageLead', {
+        action: 'bulk_assign_staff', token, dealer_id: dealerId, lead_ids: ids,
+        staff_id: staffId, staff_name: staffName, commission_rate: commissionRate,
+      });
+      clearSelection();
+      await loadLeads();
+    } catch (e) { alert('Bulk assign failed: ' + e.message); }
+    finally { setBulkBusy(false); }
+  };
+
   const filteredLeads = leads.filter((lead) => {
     const matchesSearch =
       !searchTerm ||
@@ -426,7 +460,9 @@ export default function LeadManagement({ dealerId }) {
       lead.email?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || lead.status === statusFilter;
     const matchesList = !selectedListId || (lead.list_ids || []).includes(selectedListId);
-    return matchesSearch && matchesStatus && matchesList;
+    const matchesStaff = staffFilter === 'all'
+      || (staffFilter === 'unassigned' ? !lead.assigned_to : lead.assigned_to === staffFilter);
+    return matchesSearch && matchesStatus && matchesList && matchesStaff;
   });
 
   const stats = {
@@ -449,6 +485,25 @@ export default function LeadManagement({ dealerId }) {
 
   return (
     <div className="space-y-6">
+      {/* Tabs */}
+      <div className="flex gap-1 border-b">
+        <button
+          onClick={() => setActiveTab('leads')}
+          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'leads' ? 'border-purple-600 text-purple-700' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+        >
+          <Target className="w-4 h-4 inline mr-1.5" /> Leads
+        </button>
+        <button
+          onClick={() => setActiveTab('earnings')}
+          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'earnings' ? 'border-purple-600 text-purple-700' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+        >
+          <DollarSign className="w-4 h-4 inline mr-1.5" /> Staff Earnings
+        </button>
+      </div>
+
+      {activeTab === 'earnings' && <StaffEarningsPanel dealerId={dealerId} token={token} />}
+
+      <div style={{ display: activeTab === 'leads' ? 'block' : 'none' }} className="space-y-6">
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <Card><CardContent className="p-4">
@@ -521,6 +576,16 @@ export default function LeadManagement({ dealerId }) {
               ))}
             </SelectContent>
           </Select>
+          <Select value={staffFilter} onValueChange={setStaffFilter}>
+            <SelectTrigger className="w-44"><SelectValue placeholder="All Staff" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Staff</SelectItem>
+              <SelectItem value="unassigned">Unassigned</SelectItem>
+              {staff.map((s) => (
+                <SelectItem key={s.id} value={s.id}>{s.full_name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" className="gap-2" onClick={() => setShowImport(true)}>
@@ -576,6 +641,17 @@ export default function LeadManagement({ dealerId }) {
                         {upcomingAppts.length > 0 && (
                           <Badge variant="outline" className="text-xs text-blue-600 border-blue-300">
                             <Calendar className="w-2 h-2 mr-1" />{upcomingAppts.length} appt
+                          </Badge>
+                        )}
+                        {lead.assigned_to && (
+                          <Badge variant="outline" className="text-xs text-purple-600 border-purple-300">
+                            <UserCircle className="w-2 h-2 mr-1" />{lead.assigned_to_name || 'Assigned'}
+                            {lead.commission_rate > 0 && <span className="ml-0.5">({lead.commission_rate}%)</span>}
+                          </Badge>
+                        )}
+                        {lead.status === 'converted' && lead.earned_amount > 0 && (
+                          <Badge className="text-xs bg-green-100 text-green-700">
+                            <DollarSign className="w-2 h-2 mr-0.5" />${lead.earned_amount.toFixed(2)} earned
                           </Badge>
                         )}
                       </div>
@@ -651,6 +727,9 @@ export default function LeadManagement({ dealerId }) {
                         <Button size="sm" variant="outline" onClick={() => handleOpenDetail(lead)} title="Details, notes & appointments" className="gap-1">
                           <Calendar className="w-4 h-4" />Details
                         </Button>
+                        <Button size="sm" variant="ghost" onClick={() => setAssigningLead(lead)} title="Assign to staff" className="gap-1">
+                          <UserCog className="w-4 h-4" />
+                        </Button>
                         {lead.email && (
                           <Button size="sm" variant="ghost" onClick={() => handleSendInvite(lead)} title="Send invite email" className="gap-1">
                             <Mail className="w-4 h-4" />
@@ -709,6 +788,17 @@ export default function LeadManagement({ dealerId }) {
         dealerId={dealerId}
         lists={lists}
       />
+
+      {/* Assign Dialog */}
+      <LeadAssignDialog
+        open={!!assigningLead}
+        onOpenChange={(o) => { if (!o) setAssigningLead(null); }}
+        dealerId={dealerId}
+        token={token}
+        lead={assigningLead}
+        onAssigned={handleAssigned}
+      />
+      </div>
     </div>
   );
 }

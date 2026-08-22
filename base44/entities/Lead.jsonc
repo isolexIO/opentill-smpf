@@ -96,6 +96,24 @@
       "type": "string",
       "description": "External CRM record ID, used to deduplicate on re-import"
     },
+    "assigned_to": {
+      "type": "string",
+      "description": "User ID of the staff member assigned to this lead"
+    },
+    "assigned_to_name": {
+      "type": "string",
+      "description": "Denormalized name of the assigned staff member for display"
+    },
+    "commission_rate": {
+      "type": "number",
+      "default": 0,
+      "description": "Commission percentage the assigned staff earns when this lead converts (e.g. 10 = 10% of estimated_value)"
+    },
+    "earned_amount": {
+      "type": "number",
+      "default": 0,
+      "description": "Calculated earning amount recorded when the lead converted (estimated_value * commission_rate / 100)"
+    },
     "activities": {
       "type": "array",
       "items": {
@@ -109,7 +127,8 @@
               "call",
               "status_change",
               "appointment",
-              "meeting"
+              "meeting",
+              "assignment"
             ],
             "description": "Type of activity"
           },

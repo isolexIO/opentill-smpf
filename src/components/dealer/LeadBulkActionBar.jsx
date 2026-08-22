@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Mail, Trash2, ListPlus, ListX, X, CheckSquare } from 'lucide-react';
+import { Mail, Trash2, ListPlus, ListX, X, CheckSquare, UserCog } from 'lucide-react';
 
 const STATUS_OPTIONS = [
   { value: 'new', label: 'New' },

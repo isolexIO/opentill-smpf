@@ -1,0 +1,115 @@
+{
+  "name": "StaffEarning",
+  "type": "object",
+  "properties": {
+    "dealer_id": {
+      "type": "string",
+      "description": "Ambassador/dealer ID that owns this earning record"
+    },
+    "staff_id": {
+      "type": "string",
+      "description": "User ID of the staff member who earned the commission"
+    },
+    "staff_name": {
+      "type": "string",
+      "description": "Denormalized staff member name for display"
+    },
+    "lead_id": {
+      "type": "string",
+      "description": "Reference to the Lead that generated this earning"
+    },
+    "lead_name": {
+      "type": "string",
+      "description": "Denormalized business name of the converted lead"
+    },
+    "commission_rate": {
+      "type": "number",
+      "default": 0,
+      "description": "Commission percentage applied (e.g. 10 = 10%)"
+    },
+    "deal_value": {
+      "type": "number",
+      "default": 0,
+      "description": "Estimated value of the lead at the time of conversion"
+    },
+    "amount": {
+      "type": "number",
+      "default": 0,
+      "description": "Calculated earning amount (deal_value * commission_rate / 100)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "paid"
+      ],
+      "default": "pending",
+      "description": "Payout status of this earning"
+    },
+    "paid_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the earning was marked as paid"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Optional notes about this earning"
+    }
+  },
+  "required": [
+    "dealer_id",
+    "staff_id",
+    "lead_id",
+    "amount"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.dealer_id": "{{user.data.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.dealer_id": "{{user.data.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.dealer_id": "{{user.data.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.dealer_id": "{{user.data.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

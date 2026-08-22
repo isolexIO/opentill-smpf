@@ -92,7 +92,8 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json();
     const { action, token, dealer_id, lead_data, lead_id, note, appointment, invite_link,
-            leads: leadsPayload, lead_ids, updates, list_data, list_id, add_to_list, import_source } = body;
+            leads: leadsPayload, lead_ids, updates, list_data, list_id, add_to_list, import_source,
+            staff_id, staff_name, commission_rate, earning_id, earning_updates } = body;
 
     const base44 = createClientFromRequest(req);
 
@@ -166,8 +167,37 @@ Deno.serve(async (req) => {
       if (!existing || existing.length === 0) {
         return Response.json({ success: false, error: 'Lead not found' }, { status: 404 });
       }
-      const lead = await base44.asServiceRole.entities.Lead.update(lead_id, lead_data);
-      return Response.json({ success: true, lead });
+      const lead = existing[0];
+      const updates = { ...lead_data };
+      if (updates.status === 'converted' && lead.status !== 'converted') {
+        updates.converted_at = new Date().toISOString();
+      }
+      const updated = await base44.asServiceRole.entities.Lead.update(lead_id, updates);
+      // Auto-create earning record when lead converts with an assigned staff
+      if (updates.status === 'converted' && lead.status !== 'converted' && lead.assigned_to) {
+        const rate = parseFloat(lead.commission_rate) || 0;
+        const dealValue = parseFloat(lead.estimated_value) || 0;
+        const amount = dealValue * rate / 100;
+        if (amount > 0) {
+          try {
+            await base44.asServiceRole.entities.StaffEarning.create({
+              dealer_id: resolvedDealerId,
+              staff_id: lead.assigned_to,
+              staff_name: lead.assigned_to_name || '',
+              lead_id: lead.id,
+              lead_name: lead.business_name || '',
+              commission_rate: rate,
+              deal_value: dealValue,
+              amount,
+              status: 'pending',
+            });
+            await base44.asServiceRole.entities.Lead.update(lead_id, { earned_amount: amount });
+          } catch (e) {
+            console.error('Failed to create StaffEarning:', e);
+          }
+        }
+      }
+      return Response.json({ success: true, lead: updated });
     }
 
     // DELETE
@@ -364,6 +394,40 @@ Deno.serve(async (req) => {
         set.last_contacted_at = new Date().toISOString();
         if (set.status === 'converted') set.converted_at = new Date().toISOString();
       }
+      // If converting, auto-create earning records for assigned leads
+      if (set.status === 'converted') {
+        const matching = await base44.asServiceRole.entities.Lead.filter(
+          { id: { $in: ids }, dealer_id: resolvedDealerId, status: { $ne: 'converted' } }
+        );
+        const toCreate = [];
+        const earnedUpdates = [];
+        for (const lead of (matching || [])) {
+          if (!lead.assigned_to) continue;
+          const rate = parseFloat(lead.commission_rate) || 0;
+          const dealValue = parseFloat(lead.estimated_value) || 0;
+          const amount = dealValue * rate / 100;
+          if (amount > 0) {
+            toCreate.push({
+              dealer_id: resolvedDealerId,
+              staff_id: lead.assigned_to,
+              staff_name: lead.assigned_to_name || '',
+              lead_id: lead.id,
+              lead_name: lead.business_name || '',
+              commission_rate: rate,
+              deal_value: dealValue,
+              amount,
+              status: 'pending',
+            });
+            earnedUpdates.push({ id: lead.id, earned_amount: amount });
+          }
+        }
+        if (toCreate.length > 0) {
+          try { await base44.asServiceRole.entities.StaffEarning.bulkCreate(toCreate); } catch (e) { console.error('bulkCreate earnings:', e); }
+        }
+        if (earnedUpdates.length > 0) {
+          try { await base44.asServiceRole.entities.Lead.bulkUpdate(earnedUpdates); } catch (e) { console.error('bulkUpdate earned_amount:', e); }
+        }
+      }
       const result = await base44.asServiceRole.entities.Lead.updateMany(
         { id: { $in: ids }, dealer_id: resolvedDealerId },
         { $set: set }
@@ -515,6 +579,136 @@ Deno.serve(async (req) => {
       }
       await base44.asServiceRole.entities.LeadList.deleteMany({ id: list_id, dealer_id: resolvedDealerId });
       return Response.json({ success: true });
+    }
+
+    // LIST STAFF — dealer staff members available for assignment
+    if (action === 'list_staff') {
+      const users = await base44.asServiceRole.entities.User.list();
+      const dealerStaff = (users || []).filter(
+        (u) => u.dealer_id === resolvedDealerId && u.role !== 'admin'
+      );
+      return Response.json({
+        success: true,
+        staff: dealerStaff.map((u) => ({
+          id: u.id,
+          full_name: u.full_name || u.email,
+          email: u.email,
+          default_commission_rate: u.default_commission_rate || 0,
+        })),
+      });
+    }
+
+    // SET STAFF DEFAULT COMMISSION RATE
+    if (action === 'set_staff_commission') {
+      if (!staff_id) {
+        return Response.json({ success: false, error: 'Staff ID required' }, { status: 400 });
+      }
+      await base44.asServiceRole.entities.User.update(staff_id, {
+        default_commission_rate: parseFloat(commission_rate) || 0,
+      });
+      return Response.json({ success: true });
+    }
+
+    // ASSIGN LEAD TO STAFF
+    if (action === 'assign_staff') {
+      const existing = await base44.asServiceRole.entities.Lead.filter({ id: lead_id, dealer_id: resolvedDealerId });
+      if (!existing || existing.length === 0) {
+        return Response.json({ success: false, error: 'Lead not found' }, { status: 404 });
+      }
+      const lead = existing[0];
+      const activities = lead.activities || [];
+      const assignmentText = staff_id
+        ? `Assigned to ${staff_name || 'staff'} (${parseFloat(commission_rate) || 0}% commission)`
+        : 'Assignment cleared';
+      activities.push({
+        type: 'assignment',
+        text: assignmentText,
+        timestamp: new Date().toISOString(),
+        author: authorEmail,
+      });
+      const updated = await base44.asServiceRole.entities.Lead.update(lead_id, {
+        assigned_to: staff_id || '',
+        assigned_to_name: staff_id ? (staff_name || '') : '',
+        commission_rate: staff_id ? (parseFloat(commission_rate) || 0) : 0,
+        activities,
+      });
+      return Response.json({ success: true, lead: updated });
+    }
+
+    // BULK ASSIGN STAFF
+    if (action === 'bulk_assign_staff') {
+      const ids = Array.isArray(lead_ids) ? lead_ids : [];
+      if (ids.length === 0) {
+        return Response.json({ success: false, error: 'No leads selected' }, { status: 400 });
+      }
+      const matching = await base44.asServiceRole.entities.Lead.filter(
+        { id: { $in: ids }, dealer_id: resolvedDealerId }
+      );
+      if (!matching || matching.length === 0) {
+        return Response.json({ success: false, error: 'No matching leads' }, { status: 404 });
+      }
+      const rate = parseFloat(commission_rate) || 0;
+      const now = new Date().toISOString();
+      const updatesBatch = matching.map((lead) => {
+        const activities = lead.activities || [];
+        activities.push({
+          type: 'assignment',
+          text: staff_id
+            ? `Assigned to ${staff_name || 'staff'} (${rate}% commission)`
+            : 'Assignment cleared',
+          timestamp: now,
+          author: authorEmail,
+        });
+        return {
+          id: lead.id,
+          assigned_to: staff_id || '',
+          assigned_to_name: staff_id ? (staff_name || '') : '',
+          commission_rate: staff_id ? rate : 0,
+          activities,
+        };
+      });
+      await base44.asServiceRole.entities.Lead.bulkUpdate(updatesBatch);
+      return Response.json({ success: true, updated: updatesBatch.length });
+    }
+
+    // LIST EARNINGS — all StaffEarning records for the dealer
+    if (action === 'list_earnings') {
+      const earnings = await base44.asServiceRole.entities.StaffEarning.filter(
+        { dealer_id: resolvedDealerId },
+        '-created_date'
+      );
+      return Response.json({ success: true, earnings: earnings || [] });
+    }
+
+    // MARK EARNING PAID
+    if (action === 'mark_earning_paid') {
+      const existing = await base44.asServiceRole.entities.StaffEarning.filter(
+        { id: earning_id, dealer_id: resolvedDealerId }
+      );
+      if (!existing || existing.length === 0) {
+        return Response.json({ success: false, error: 'Earning not found' }, { status: 404 });
+      }
+      const earning = existing[0];
+      const updated = await base44.asServiceRole.entities.StaffEarning.update(earning_id, {
+        status: 'paid',
+        paid_at: new Date().toISOString(),
+        notes: earning_updates?.notes ?? earning.notes,
+      });
+      return Response.json({ success: true, earning: updated });
+    }
+
+    // BULK MARK EARNINGS PAID
+    if (action === 'bulk_mark_earnings_paid') {
+      const ids = Array.isArray(lead_ids) ? lead_ids : [];
+      if (ids.length === 0) {
+        return Response.json({ success: false, error: 'No earnings selected' }, { status: 400 });
+      }
+      const now = new Date().toISOString();
+      await base44.asServiceRole.entities.StaffEarning.updateMany(
+        { id: { $in: ids }, dealer_id: resolvedDealerId },
+        { $set: { status: 'paid', paid_at: now } }
+      );
+      return Response.json({ success: true, updated: ids.length });
     }
 
     return Response.json({ success: false, error: 'Invalid action' }, { status: 400 });
