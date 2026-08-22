@@ -69,6 +69,18 @@ export default function Motherboard() {
     enabled: !!user?.merchant_id
   });
 
+  const { data: merchant } = useQuery({
+    queryKey: ['motherboard-merchant', user?.merchant_id],
+    queryFn: async () => {
+      if (!user?.merchant_id) return null;
+      const merchants = await base44.entities.Merchant.filter({ id: user.merchant_id });
+      return merchants?.[0] || null;
+    },
+    enabled: !!user?.merchant_id
+  });
+
+  const isDemoMerchant = merchant?.is_demo === true;
+
   const toggleInstallMutation = useMutation({
     mutationFn: async ({ chipId, isCurrentlyInstalled }) => {
       if (isCurrentlyInstalled) {
@@ -101,6 +113,7 @@ export default function Motherboard() {
   });
 
   const canAccessChip = (chip) => {
+    if (isDemoMerchant) return true;
     if (chip.billing_type === 'ONE_TIME') {
       return ownedMints.some(m => m.chip_id === chip.id);
     } else {

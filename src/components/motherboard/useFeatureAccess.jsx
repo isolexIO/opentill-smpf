@@ -34,6 +34,19 @@ export function useFeatureAccess(requiredFlags = []) {
         return;
       }
 
+      // Demo merchants get full access to all features
+      if (user?.merchant_id) {
+        try {
+          const merchants = await base44.entities.Merchant.filter({ id: user.merchant_id });
+          if (merchants?.[0]?.is_demo) {
+            setHasAccess(true);
+            setMissingFlags([]);
+            setLoading(false);
+            return;
+          }
+        } catch (_) {}
+      }
+
       // Get installed chips
       const ownerType = user.merchant_id ? 'merchant' : 'ambassador';
       const ownerId = user.merchant_id || user.ambassador_id;
