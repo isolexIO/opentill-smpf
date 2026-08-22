@@ -31,6 +31,48 @@ const brandedEmail = (innerHtml) => `<!DOCTYPE html>
 <tr><td style="height:6px;background:linear-gradient(90deg,#0FD17A 0%,#7B2FD6 100%);font-size:0;line-height:0;">&nbsp;</td></tr>
 </table></td></tr></table></body></html>`;
 
+// Send via SMTP directly so emails reach leads who may not be registered Base44
+// users (Core.SendEmail has per-recipient daily limits). Falls back to
+// Core.SendEmail if SMTP is not configured.
+const sendEmail = async (base44, to, subject, htmlBody) => {
+  const html = brandedEmail(htmlBody);
+  const smtpHost = Deno.env.get('SMTP_HOST');
+  const smtpPort = Deno.env.get('SMTP_PORT');
+  const smtpUser = Deno.env.get('SMTP_USER');
+  const smtpPass = Deno.env.get('SMTP_PASS');
+
+  if (smtpHost && smtpUser && smtpPass) {
+    try {
+      const nodemailer = await import('npm:nodemailer@6.9.7');
+      const smtpPortNum = parseInt(smtpPort || '465');
+      const transporter = nodemailer.default.createTransport({
+        host: smtpHost,
+        port: smtpPortNum,
+        secure: smtpPortNum === 465,
+        requireTLS: smtpPortNum !== 465,
+        connectionTimeout: 15000,
+        greetingTimeout: 15000,
+        socketTimeout: 15000,
+        auth: { user: smtpUser, pass: smtpPass }
+      });
+      await transporter.sendMail({
+        from: `"openTILL SMPF" <${smtpUser}>`,
+        to,
+        subject,
+        html,
+        text: html.replace(/<[^>]+>/g, '')
+      });
+      console.log(`Email sent via SMTP to ${to}: ${subject}`);
+      return;
+    } catch (smtpError) {
+      console.error(`SMTP send failed for ${to}, falling back to Core.SendEmail:`, smtpError);
+    }
+  }
+
+  // Fallback: Core.SendEmail
+  await base44.asServiceRole.integrations.Core.SendEmail({ to, subject, body: html });
+};
+
 async function verifyToken(token) {
   try {
     const key = await crypto.subtle.importKey(
@@ -208,10 +250,11 @@ Deno.serve(async (req) => {
         return Response.json({ success: false, error: 'No email on file' }, { status: 400 });
       }
 
-      await base44.asServiceRole.integrations.Core.SendEmail({
-        to: lead.email,
-        subject: 'Join Our Network - openTILL POS',
-        body: brandedEmail(`
+      await sendEmail(
+        base44,
+        lead.email,
+        'Join Our Network - openTILL POS',
+        `
           <p style="margin:0 0 8px 0;font-size:14px;color:#71717a;">You're invited to join our network,</p>
           <h2 style="margin:0 0 20px 0;font-size:22px;font-weight:700;color:#18181b;">${escapeHtml(lead.contact_name || 'there')}!</h2>
           <p style="margin:0 0 16px 0;font-size:16px;color:#3f3f46;line-height:1.7;">
@@ -231,8 +274,8 @@ Deno.serve(async (req) => {
             Best regards,<br>
             <strong style="color:#7B2FD6;">The openTILL SMPF Team</strong>
           </p>
-        `),
-      });
+        `
+      );
 
       const activities = lead.activities || [];
       activities.push({
