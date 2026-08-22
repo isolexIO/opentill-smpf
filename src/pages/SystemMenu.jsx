@@ -527,7 +527,7 @@ export default function SystemMenu() {
 
   const renderTile = (item) => {
     const requiredFlag = FEATURE_REQUIREMENTS[item.id];
-    const isLocked = !featureIsAdmin && requiredFlag && !hasFeature(requiredFlag) && !ALWAYS_ENABLED.has(item.id);
+    const isLocked = !featuresLoading && !featureIsAdmin && requiredFlag && !hasFeature(requiredFlag) && !ALWAYS_ENABLED.has(item.id);
     if (isLocked) return <LockedFeatureTile key={item.id} item={item} />;
     return (
       <Card
