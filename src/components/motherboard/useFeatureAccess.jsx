@@ -17,8 +17,15 @@ export function useFeatureAccess(requiredFlags = []) {
 
   const checkAccess = async () => {
     try {
-      const user = await base44.auth.me();
-      
+      // Try PIN user first (merchant staff may not have a platform session)
+      let pinUser = null;
+      try {
+        const json = localStorage.getItem('pinLoggedInUser');
+        if (json) pinUser = JSON.parse(json);
+      } catch (_) {}
+
+      let user = pinUser || await base44.auth.me();
+
       // Super admin has access to everything
       if (user?.role === 'admin' || user?.role === 'root_admin' || user?.role === 'super_admin') {
         setHasAccess(true);
