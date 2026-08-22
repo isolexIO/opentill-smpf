@@ -42,6 +42,9 @@ function PublicLayout({ children }) {
   );
 }
 
+// Full-screen operational POS screens render with no header/footer wrapper
+const BARE_PAGES = ['POS', 'CustomerDisplay', 'KitchenDisplay', 'MobileStationDisplay'];
+
 const ROOT_PAGES = ['Home', 'SystemMenu', 'PinLogin', 'EmailLogin', 'WalletLoginPage', 'MerchantOnboarding'];
 
 export default function Layout({ children, currentPageName }) {
@@ -202,6 +205,11 @@ export default function Layout({ children, currentPageName }) {
   // Allow root_admin to access dealer pages
   if (!user && !['EmailLogin', 'MerchantOnboarding', 'PinLogin', 'WalletLoginPage', 'Home', 'PrivacyPolicy', 'TermsOfService', 'License', 'Copyright', 'About', 'Contact', 'CustomerDisplay', 'KitchenDisplay', 'OnlineMenu', 'DeviceShop', 'DealerOnboarding', 'DealerDashboard', 'DealerLanding', 'Marketplace', 'ChipDetail', 'DriverDashboard', 'PayInvoice', 'POS', 'MobileStationDisplay', 'CustomerPortal', 'SystemMenu', 'SuperAdmin', 'Settings', 'Products', 'Inventory', 'Orders', 'Customers', 'Reports', 'Users', 'Departments', 'Modifiers', 'Devices', 'Subscriptions', 'Support', 'Motherboard', 'DUCVault', 'LoyaltyProgram', 'OnlineOrders', 'DeviceMonitor', 'AIAssistant', 'AIWebsiteGenerator', 'ReferralDashboard'].includes(currentPageName)) {
     return <Home />;
+  }
+
+  // Full-screen POS operational screens render with no header/footer wrapper
+  if (BARE_PAGES.includes(currentPageName)) {
+    return <>{children}</>;
   }
 
   // Always allow public pages to render, including 'Home' if accessed directly
