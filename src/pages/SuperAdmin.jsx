@@ -56,6 +56,7 @@ import UserManagement from '../components/superadmin/UserManagement';
 import FeedbackManager from '../components/superadmin/FeedbackManager';
 import BrochureManager from '../components/superadmin/BrochureManager';
 import ComplianceRuleManager from '../components/superadmin/ComplianceRuleManager';
+import CustomerReferralSettings from '../components/superadmin/CustomerReferralSettings';
 
 export default function SuperAdminPage() {
   const [user, setUser] = useState(null);
@@ -627,6 +628,9 @@ export default function SuperAdminPage() {
                 </Button>
               </CardContent>
             </Card>
+
+              {/* Customer Referral Reward Settings */}
+              <CustomerReferralSettings />
 
               {/* Other Settings components */}
               <SubscriptionPlansManager />

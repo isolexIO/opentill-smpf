@@ -7,6 +7,22 @@ const PROCESSING_THRESHOLD_USD = 100;
 // Payment methods that count as "openTILL Payments" processing volume.
 const PROCESSING_METHODS = ['card', 'opentill'];
 
+// Read the configurable reward amount + processing threshold from PlatformSettings.
+// Falls back to the defaults above when no setting has been saved.
+async function getReferralRewardConfig(base44) {
+  try {
+    const settings = await base44.asServiceRole.entities.PlatformSettings.filter({ setting_key: 'customer_referral_rewards' });
+    if (settings && settings.length > 0 && settings[0].setting_value) {
+      const v = settings[0].setting_value;
+      return {
+        reward_duc: typeof v.reward_duc === 'number' ? v.reward_duc : CUSTOMER_REFERRAL_REWARD_DUC,
+        threshold_usd: typeof v.threshold_usd === 'number' ? v.threshold_usd : PROCESSING_THRESHOLD_USD,
+      };
+    }
+  } catch { /* ignore — use defaults */ }
+  return { reward_duc: CUSTOMER_REFERRAL_REWARD_DUC, threshold_usd: PROCESSING_THRESHOLD_USD };
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -39,6 +55,8 @@ Deno.serve(async (req) => {
       return Response.json({ success: true, message: 'No pending customer referrals' });
     }
 
+    const { reward_duc, threshold_usd } = await getReferralRewardConfig(base44);
+
     // Compute the merchant's openTILL Payments processing volume from completed orders.
     const orders = await base44.asServiceRole.entities.Order.filter(
       { merchant_id, status: 'completed' },
@@ -49,10 +67,10 @@ Deno.serve(async (req) => {
       .filter((o) => PROCESSING_METHODS.includes(o.payment_method))
       .reduce((sum, o) => sum + (o.total || 0), 0);
 
-    if (processed < PROCESSING_THRESHOLD_USD) {
+    if (processed < threshold_usd) {
       return Response.json({
         success: true,
-        message: `Processed $${processed.toFixed(2)} < $${PROCESSING_THRESHOLD_USD}`,
+        message: `Processed $${processed.toFixed(2)} < $${threshold_usd}`,
       });
     }
 
@@ -62,17 +80,17 @@ Deno.serve(async (req) => {
       await base44.asServiceRole.entities.CustomerMerchantLink.update(link.id, {
         referral_status: 'converted',
         converted_at: new Date().toISOString(),
-        reward_amount_duc: CUSTOMER_REFERRAL_REWARD_DUC,
+        reward_amount_duc: reward_duc,
       });
 
       const customers = await base44.asServiceRole.entities.Customer.filter({ id: link.customer_id });
       const customer = customers && customers[0];
       if (customer) {
         await base44.asServiceRole.entities.Customer.update(customer.id, {
-          duc_balance: Math.round(((customer.duc_balance || 0) + CUSTOMER_REFERRAL_REWARD_DUC) * 1e6) / 1e6,
-          duc_lifetime_earned: Math.round(((customer.duc_lifetime_earned || 0) + CUSTOMER_REFERRAL_REWARD_DUC) * 1e6) / 1e6,
+          duc_balance: Math.round(((customer.duc_balance || 0) + reward_duc) * 1e6) / 1e6,
+          duc_lifetime_earned: Math.round(((customer.duc_lifetime_earned || 0) + reward_duc) * 1e6) / 1e6,
           ref_conversions: (customer.ref_conversions || 0) + 1,
-          ref_duc_earned: Math.round(((customer.ref_duc_earned || 0) + CUSTOMER_REFERRAL_REWARD_DUC) * 1e6) / 1e6,
+          ref_duc_earned: Math.round(((customer.ref_duc_earned || 0) + reward_duc) * 1e6) / 1e6,
         });
       }
 
@@ -80,12 +98,12 @@ Deno.serve(async (req) => {
         merchant_id,
         log_type: 'merchant_action',
         action: 'Customer Referral Converted',
-        description: `Customer ${link.customer_id} earned ${CUSTOMER_REFERRAL_REWARD_DUC} $DUC — referred merchant processed $${processed.toFixed(2)}.`,
+        description: `Customer ${link.customer_id} earned ${reward_duc} $DUC — referred merchant processed $${processed.toFixed(2)}.`,
         severity: 'info',
         metadata: {
           customer_id: link.customer_id,
           merchant_id,
-          reward_duc: CUSTOMER_REFERRAL_REWARD_DUC,
+          reward_duc,
           processed_usd: processed,
         },
       });
@@ -95,7 +113,7 @@ Deno.serve(async (req) => {
     return Response.json({
       success: true,
       converted,
-      reward_each: CUSTOMER_REFERRAL_REWARD_DUC,
+      reward_each: reward_duc,
       processed_usd: processed,
     });
   } catch (error) {
