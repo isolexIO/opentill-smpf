@@ -38,7 +38,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    return Response.json({ success: false, error: 'No merchant found with this referral code.' }, { status: 404 });
+    return Response.json({ success: false, error: 'No merchant found with this referral code.' });
   } catch (error) {
     console.error('getMerchantByReferralCode error:', error);
     return Response.json({ success: false, error: 'Failed to look up referral code' }, { status: 500 });
