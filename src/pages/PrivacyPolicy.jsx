@@ -6,47 +6,6 @@ import { createPageUrl } from '@/utils';
 export default function PrivacyPolicyPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-800 to-cyan-900">
-      {/* Navbar */}
-      <nav className="bg-black/30 backdrop-blur-md border-b border-white/10 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.location.href = createPageUrl('Home')}>
-              <Link2 className="w-8 h-8 text-white" />
-              <span className="text-2xl font-bold text-white">openTILL</span>
-            </div>
-            <div className="hidden md:flex items-center gap-6">
-              <a href={createPageUrl('Home')} className="text-white hover:text-green-300 transition-colors">
-                Home
-              </a>
-              <a href={createPageUrl('About')} className="text-white hover:text-green-300 transition-colors">
-                About
-              </a>
-              <a href={createPageUrl('Contact')} className="text-white hover:text-green-300 transition-colors">
-                Contact
-              </a>
-              <a href={createPageUrl('DeviceShop')} className="text-white hover:text-green-300 transition-colors">
-                Device Shop
-              </a>
-              <Button 
-                onClick={() => window.location.href = createPageUrl('EmailLogin')}
-                className="bg-green-500 hover:bg-green-600 text-white"
-              >
-                Sign In
-              </Button>
-            </div>
-            <div className="md:hidden">
-              <Button 
-                onClick={() => window.location.href = createPageUrl('EmailLogin')}
-                size="sm"
-                className="bg-green-500 hover:bg-green-600 text-white"
-              >
-                Sign In
-              </Button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
       <div className="container mx-auto max-w-4xl px-6 py-12">
         {/* Title */}
         <div className="text-center mb-12">

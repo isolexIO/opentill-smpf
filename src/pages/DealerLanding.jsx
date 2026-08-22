@@ -172,28 +172,6 @@ export default function DealerLanding() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900">
-      {/* Nav */}
-      <nav className="border-b border-white/10 backdrop-blur-md sticky top-0 z-50 bg-black/20">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6970e2871534100b4ebb8d45/8e45f76fe_DUC3.png" alt="openTILL" className="w-9 h-9" />
-            <span className="text-xl font-bold text-white">openTILL <span className="text-emerald-400">Ambassadors</span></span>
-          </div>
-          <div className="hidden md:flex items-center gap-6 text-sm text-white/70">
-            <a href="#features" className="hover:text-white transition-colors">Features</a>
-            <a href="#how-it-works" className="hover:text-white transition-colors">How It Works</a>
-            <a href="#testimonials" className="hover:text-white transition-colors">Success Stories</a>
-            <Button
-              size="sm"
-              className="bg-emerald-500 hover:bg-emerald-400 text-white"
-              onClick={() => setMode('register')}
-            >
-              Apply Now
-            </Button>
-          </div>
-        </div>
-      </nav>
-
       <div className="max-w-7xl mx-auto px-6 py-16">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
           {/* Left: Hero */}
@@ -502,21 +480,6 @@ export default function DealerLanding() {
           </Button>
         </div>
       </div>
-
-      {/* Footer */}
-      <footer className="border-t border-white/10 mt-20 py-8">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4 text-white/40 text-sm">
-          <span>© {new Date().getFullYear()} Isolex Corporation</span>
-          <div className="flex gap-4">
-            <span className="flex items-center gap-1"><Phone className="w-3 h-3" /> +1 (419) 729-3889</span>
-            <span className="flex items-center gap-1"><Mail className="w-3 h-3" /> ambassadors@isolex.io</span>
-          </div>
-          <div className="flex gap-4">
-            <a href={createPageUrl('PrivacyPolicy')} className="hover:text-white transition-colors">Privacy</a>
-            <a href={createPageUrl('TermsOfService')} className="hover:text-white transition-colors">Terms</a>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
