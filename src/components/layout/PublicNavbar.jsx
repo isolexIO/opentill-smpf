@@ -88,8 +88,7 @@ export default function PublicNavbar() {
               {isAuthenticated ? (
                 <Button
                   onClick={handleSignOut}
-                  variant="outline"
-                  className="border-white/40 text-white hover:bg-white/10 hover:text-white"
+                  className="bg-red-500 hover:bg-red-600 text-white border-0"
                 >
                   Sign Out
                 </Button>
@@ -104,7 +103,7 @@ export default function PublicNavbar() {
             </div>
             <div className="md:hidden flex items-center gap-2">
               {isAuthenticated ? (
-                <Button onClick={handleSignOut} size="sm" variant="outline" className="border-white/40 text-white hover:bg-white/10 hover:text-white text-xs px-3">
+                <Button onClick={handleSignOut} size="sm" className="bg-red-500 hover:bg-red-600 text-white border-0 text-xs px-3">
                   Sign Out
                 </Button>
               ) : (
@@ -144,7 +143,7 @@ export default function PublicNavbar() {
             <CommunityLinks variant="compact" className="[&_a]:text-gray-300 [&_a]:hover:text-white justify-start" />
           </div>
           {isAuthenticated ? (
-            <Button onClick={handleSignOut} variant="outline" className="w-full border-white/40 text-white hover:bg-white/10 hover:text-white font-semibold mt-2">
+            <Button onClick={handleSignOut} className="w-full bg-red-500 hover:bg-red-600 text-white border-0 font-semibold mt-2">
               Sign Out
             </Button>
           ) : (
