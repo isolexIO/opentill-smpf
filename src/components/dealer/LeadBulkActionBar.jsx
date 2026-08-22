@@ -21,13 +21,25 @@ export default function LeadBulkActionBar({
   onBulkAddToList,
   onBulkRemoveFromList,
   onBulkSendInvite,
+  onBulkAssign,
   lists,
+  staff,
   busy,
 }) {
   const [listAction, setListAction] = useState('add');
   const [targetList, setTargetList] = useState('');
+  const [assignStaffId, setAssignStaffId] = useState('');
+  const [assignRate, setAssignRate] = useState(0);
 
   if (selectedCount === 0) return null;
+
+  const handleBulkAssign = () => {
+    if (!assignStaffId) return;
+    const s = (staff || []).find((u) => u.id === assignStaffId);
+    onBulkAssign(assignStaffId, s?.full_name || '', assignRate || 0);
+    setAssignStaffId('');
+    setAssignRate(0);
+  };
 
   return (
     <div className="sticky bottom-4 z-30 bg-white border border-gray-200 rounded-xl shadow-lg p-3 flex flex-wrap items-center gap-3">
@@ -52,6 +64,37 @@ export default function LeadBulkActionBar({
           <Mail className="w-3.5 h-3.5" /> Send invites
         </Button>
       </div>
+
+      {staff?.length > 0 && (
+        <div className="flex items-center gap-2">
+          <Select value={assignStaffId} onValueChange={(v) => {
+            setAssignStaffId(v);
+            const s = staff.find((u) => u.id === v);
+            if (s?.default_commission_rate) setAssignRate(s.default_commission_rate);
+          }}>
+            <SelectTrigger className="w-40 h-8 text-xs"><SelectValue placeholder="Assign to…" /></SelectTrigger>
+            <SelectContent>
+              {staff.map((s) => (
+                <SelectItem key={s.id} value={s.id}>{s.full_name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <input
+            type="number"
+            min="0"
+            max="100"
+            step="0.5"
+            value={assignRate}
+            onChange={(e) => setAssignRate(e.target.value)}
+            placeholder="%"
+            className="w-14 h-8 text-xs border rounded-md px-2"
+            disabled={!assignStaffId}
+          />
+          <Button variant="outline" size="sm" onClick={handleBulkAssign} disabled={!assignStaffId || busy} className="gap-1 h-8">
+            <UserCog className="w-3.5 h-3.5" /> Assign
+          </Button>
+        </div>
+      )}
 
       <div className="flex items-center gap-2 ml-auto">
         <Select value={targetList} onValueChange={setTargetList}>

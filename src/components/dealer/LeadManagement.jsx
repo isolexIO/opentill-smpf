@@ -776,7 +776,9 @@ export default function LeadManagement({ dealerId }) {
         onBulkAddToList={(listId) => handleBulkSetList(listId, true)}
         onBulkRemoveFromList={(listId) => handleBulkSetList(listId, false)}
         onBulkSendInvite={handleBulkSendInvite}
+        onBulkAssign={handleBulkAssign}
         lists={lists}
+        staff={staff}
         busy={bulkBusy}
       />
 
