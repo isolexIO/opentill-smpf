@@ -91,7 +91,8 @@ async function verifyToken(token) {
 Deno.serve(async (req) => {
   try {
     const body = await req.json();
-    const { action, token, dealer_id, lead_data, lead_id, note, appointment, invite_link } = body;
+    const { action, token, dealer_id, lead_data, lead_id, note, appointment, invite_link,
+            leads: leadsPayload, lead_ids, updates, list_data, list_id, add_to_list, import_source } = body;
 
     const base44 = createClientFromRequest(req);
 
@@ -312,6 +313,208 @@ Deno.serve(async (req) => {
         last_contacted_at: new Date().toISOString(),
       });
       return Response.json({ success: true, lead: updated });
+    }
+
+    // IMPORT LEADS (bulk create from CSV / CRM export)
+    if (action === 'import_leads') {
+      const incoming = Array.isArray(leadsPayload) ? leadsPayload : [];
+      if (incoming.length === 0) {
+        return Response.json({ success: false, error: 'No leads provided' }, { status: 400 });
+      }
+      const now = new Date().toISOString();
+      const records = incoming.map((l) => ({
+        dealer_id: resolvedDealerId,
+        business_name: (l.business_name || '').trim(),
+        contact_name: (l.contact_name || '').trim(),
+        email: (l.email || '').trim(),
+        phone: (l.phone || '').trim(),
+        status: l.status || 'new',
+        source: l.source || 'other',
+        business_type: l.business_type || 'other',
+        estimated_value: parseFloat(l.estimated_value) || 0,
+        notes: l.notes || '',
+        tags: Array.isArray(l.tags) ? l.tags : [],
+        list_ids: Array.isArray(l.list_ids) ? l.list_ids : [],
+        import_source: import_source || 'csv',
+        external_id: l.external_id || '',
+        activities: [{
+          type: 'note',
+          text: `Lead imported${import_source ? ` from ${import_source}` : ''}`,
+          timestamp: now,
+          author: authorEmail,
+        }],
+      })).filter((r) => r.business_name);
+
+      if (records.length === 0) {
+        return Response.json({ success: false, error: 'No valid leads (business name required)' }, { status: 400 });
+      }
+
+      const created = await base44.asServiceRole.entities.Lead.bulkCreate(records);
+      return Response.json({ success: true, imported: created.length, leads: created });
+    }
+
+    // BULK UPDATE (e.g. change status for many leads)
+    if (action === 'bulk_update') {
+      const ids = Array.isArray(lead_ids) ? lead_ids : [];
+      if (ids.length === 0) {
+        return Response.json({ success: false, error: 'No leads selected' }, { status: 400 });
+      }
+      const set = { ...updates };
+      if (set.status) {
+        set.last_contacted_at = new Date().toISOString();
+        if (set.status === 'converted') set.converted_at = new Date().toISOString();
+      }
+      const result = await base44.asServiceRole.entities.Lead.updateMany(
+        { id: { $in: ids }, dealer_id: resolvedDealerId },
+        { $set: set }
+      );
+      return Response.json({ success: true, updated: result?.modified || ids.length });
+    }
+
+    // BULK DELETE
+    if (action === 'bulk_delete') {
+      const ids = Array.isArray(lead_ids) ? lead_ids : [];
+      if (ids.length === 0) {
+        return Response.json({ success: false, error: 'No leads selected' }, { status: 400 });
+      }
+      await base44.asServiceRole.entities.Lead.deleteMany({ id: { $in: ids }, dealer_id: resolvedDealerId });
+      return Response.json({ success: true, deleted: ids.length });
+    }
+
+    // BULK SET LIST (add or remove a list from many leads)
+    if (action === 'bulk_set_list') {
+      const ids = Array.isArray(lead_ids) ? lead_ids : [];
+      if (ids.length === 0 || !list_id) {
+        return Response.json({ success: false, error: 'Leads and list required' }, { status: 400 });
+      }
+      const matching = await base44.asServiceRole.entities.Lead.filter(
+        { id: { $in: ids }, dealer_id: resolvedDealerId }
+      );
+      if (!matching || matching.length === 0) {
+        return Response.json({ success: false, error: 'No matching leads' }, { status: 404 });
+      }
+      const updatesBatch = matching.map((lead) => {
+        let listIds = lead.list_ids || [];
+        if (add_to_list) {
+          if (!listIds.includes(list_id)) listIds = [...listIds, list_id];
+        } else {
+          listIds = listIds.filter((id) => id !== list_id);
+        }
+        return { id: lead.id, list_ids: listIds };
+      });
+      await base44.asServiceRole.entities.Lead.bulkUpdate(updatesBatch);
+      return Response.json({ success: true, updated: updatesBatch.length });
+    }
+
+    // BULK SEND INVITE
+    if (action === 'bulk_send_invite') {
+      const ids = Array.isArray(lead_ids) ? lead_ids : [];
+      if (ids.length === 0) {
+        return Response.json({ success: false, error: 'No leads selected' }, { status: 400 });
+      }
+      const matching = await base44.asServiceRole.entities.Lead.filter(
+        { id: { $in: ids }, dealer_id: resolvedDealerId }
+      );
+      if (!matching) {
+        return Response.json({ success: false, error: 'No matching leads' }, { status: 404 });
+      }
+      let sent = 0;
+      const now = new Date().toISOString();
+      const updatesBatch = [];
+      for (const lead of matching) {
+        if (!lead.email) continue;
+        try {
+          await sendEmail(
+            base44,
+            lead.email,
+            'Join Our Network - openTILL POS',
+            `
+              <p style="margin:0 0 8px 0;font-size:14px;color:#71717a;">You're invited to join our network,</p>
+              <h2 style="margin:0 0 20px 0;font-size:22px;font-weight:700;color:#18181b;">${escapeHtml(lead.contact_name || 'there')}!</h2>
+              <p style="margin:0 0 16px 0;font-size:16px;color:#3f3f46;line-height:1.7;">
+                You've been invited to sign up for <strong style="color:#7B2FD6;">openTILL POS</strong> and join our merchant network.
+              </p>
+              <p style="margin:0 0 16px 0;font-size:15px;color:#3f3f46;line-height:1.7;">
+                Click the button below to get started. This link will automatically associate your account with our network.
+              </p>
+              <div style="text-align:center;margin:32px 0;">
+                <a href="${escapeHtml(invite_link || '')}" style="display:inline-block;padding:14px 40px;background:linear-gradient(90deg,#7B2FD6 0%,#0FD17A 100%);color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;border-radius:10px;box-shadow:0 4px 16px rgba(123,47,214,0.35);">Accept Invitation &rarr;</a>
+              </div>
+              <p style="margin:24px 0 0 0;font-size:13px;color:#71717a;line-height:1.6;">
+                If the button doesn't work, copy and paste this link into your browser:<br>
+                <span style="color:#7B2FD6;word-break:break-all;">${escapeHtml(invite_link || '')}</span>
+              </p>
+              <p style="margin:24px 0 0 0;font-size:14px;color:#52525b;line-height:1.7;">
+                Best regards,<br>
+                <strong style="color:#7B2FD6;">The openTILL SMPF Team</strong>
+              </p>
+            `
+          );
+          const activities = lead.activities || [];
+          activities.push({ type: 'email', text: 'Invitation email sent (bulk)', timestamp: now, author: authorEmail });
+          updatesBatch.push({
+            id: lead.id,
+            status: lead.status === 'new' ? 'contacted' : lead.status,
+            last_contacted_at: now,
+            activities,
+          });
+          sent++;
+        } catch (e) {
+          console.error(`Bulk invite failed for ${lead.email}:`, e);
+        }
+      }
+      if (updatesBatch.length > 0) {
+        await base44.asServiceRole.entities.Lead.bulkUpdate(updatesBatch);
+      }
+      return Response.json({ success: true, sent });
+    }
+
+    // LIST CRUD — LeadList entity
+    if (action === 'list_list') {
+      const lists = await base44.asServiceRole.entities.LeadList.filter(
+        { dealer_id: resolvedDealerId },
+        'name'
+      );
+      return Response.json({ success: true, lists: lists || [] });
+    }
+
+    if (action === 'list_create') {
+      if (!list_data?.name) {
+        return Response.json({ success: false, error: 'List name required' }, { status: 400 });
+      }
+      const list = await base44.asServiceRole.entities.LeadList.create({
+        dealer_id: resolvedDealerId,
+        name: list_data.name.trim(),
+        description: list_data.description || '',
+        color: list_data.color || '#7B2FD6',
+      });
+      return Response.json({ success: true, list });
+    }
+
+    if (action === 'list_update') {
+      const existing = await base44.asServiceRole.entities.LeadList.filter({ id: list_id, dealer_id: resolvedDealerId });
+      if (!existing || existing.length === 0) {
+        return Response.json({ success: false, error: 'List not found' }, { status: 404 });
+      }
+      const list = await base44.asServiceRole.entities.LeadList.update(list_id, list_data);
+      return Response.json({ success: true, list });
+    }
+
+    if (action === 'list_delete') {
+      const existing = await base44.asServiceRole.entities.LeadList.filter({ id: list_id, dealer_id: resolvedDealerId });
+      if (!existing || existing.length === 0) {
+        return Response.json({ success: false, error: 'List not found' }, { status: 404 });
+      }
+      // Remove the list id from all leads that reference it
+      const affected = await base44.asServiceRole.entities.Lead.filter({ dealer_id: resolvedDealerId });
+      const updatesBatch = (affected || [])
+        .filter((l) => (l.list_ids || []).includes(list_id))
+        .map((l) => ({ id: l.id, list_ids: (l.list_ids || []).filter((id) => id !== list_id) }));
+      if (updatesBatch.length > 0) {
+        await base44.asServiceRole.entities.Lead.bulkUpdate(updatesBatch);
+      }
+      await base44.asServiceRole.entities.LeadList.deleteMany({ id: list_id, dealer_id: resolvedDealerId });
+      return Response.json({ success: true });
     }
 
     return Response.json({ success: false, error: 'Invalid action' }, { status: 400 });

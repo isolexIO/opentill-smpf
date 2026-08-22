@@ -80,6 +80,22 @@
       "default": [],
       "description": "Custom tags for categorizing leads"
     },
+    "list_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "IDs of LeadList records this lead belongs to"
+    },
+    "import_source": {
+      "type": "string",
+      "description": "Where the lead was imported from (e.g. 'vtiger', 'csv', 'hubspot', 'manual')"
+    },
+    "external_id": {
+      "type": "string",
+      "description": "External CRM record ID, used to deduplicate on re-import"
+    },
     "activities": {
       "type": "array",
       "items": {

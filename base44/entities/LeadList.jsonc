@@ -1,0 +1,77 @@
+{
+  "name": "LeadList",
+  "type": "object",
+  "properties": {
+    "dealer_id": {
+      "type": "string",
+      "description": "Ambassador/dealer ID that owns this list"
+    },
+    "name": {
+      "type": "string",
+      "description": "List name (e.g. 'Hot Prospects', 'Restaurant Leads')"
+    },
+    "description": {
+      "type": "string",
+      "description": "Optional description of the list"
+    },
+    "color": {
+      "type": "string",
+      "default": "#7B2FD6",
+      "description": "Accent color for the list badge"
+    }
+  },
+  "required": [
+    "dealer_id",
+    "name"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.dealer_id": "{{user.data.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.dealer_id": "{{user.data.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.dealer_id": "{{user.data.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.dealer_id": "{{user.data.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

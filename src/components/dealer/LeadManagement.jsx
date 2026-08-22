@@ -10,9 +10,13 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import LeadDetailDialog from './LeadDetailDialog';
+import LeadImportDialog from './LeadImportDialog';
+import LeadBulkActionBar from './LeadBulkActionBar';
+import LeadListsPanel from './LeadListsPanel';
 import {
   Plus, Search, Mail, Phone, Building2, TrendingUp, Target,
-  Copy, Check, Calendar, Tag, Trash2, Edit, UserPlus, ChevronRight, Clock
+  Copy, Check, Calendar, Tag, Trash2, Edit, UserPlus, ChevronRight, Clock,
+  Upload, Square, CheckSquare
 } from 'lucide-react';
 
 const STATUS_CONFIG = {
@@ -71,9 +75,23 @@ export default function LeadManagement({ dealerId }) {
   const [showDetail, setShowDetail] = useState(false);
   const [quickNote, setQuickNote] = useState({});
   const [savingNoteId, setSavingNoteId] = useState(null);
+  const [lists, setLists] = useState([]);
+  const [selectedListId, setSelectedListId] = useState(null);
+  const [selectedLeadIds, setSelectedLeadIds] = useState(new Set());
+  const [showImport, setShowImport] = useState(false);
+  const [bulkBusy, setBulkBusy] = useState(false);
   const token = typeof window !== 'undefined' ? localStorage.getItem('dealerToken') : null;
 
-  useEffect(() => { loadLeads(); }, [dealerId]);
+  useEffect(() => { loadLeads(); loadLists(); }, [dealerId]);
+
+  const loadLists = async () => {
+    try {
+      const res = await base44.functions.invoke('manageLead', { action: 'list_list', token, dealer_id: dealerId });
+      if (res.data?.success) setLists(res.data.lists || []);
+    } catch (e) {
+      console.error('Error loading lists:', e);
+    }
+  };
 
   const loadLeads = async () => {
     try {
@@ -303,6 +321,103 @@ export default function LeadManagement({ dealerId }) {
     setShowDetail(true);
   };
 
+  // --- Bulk actions ---
+  const toggleSelect = (leadId) => {
+    setSelectedLeadIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(leadId)) next.delete(leadId);
+      else next.add(leadId);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    setSelectedLeadIds((prev) => {
+      if (prev.size === filteredLeads.length && filteredLeads.length > 0) return new Set();
+      return new Set(filteredLeads.map((l) => l.id));
+    });
+  };
+
+  const clearSelection = () => setSelectedLeadIds(new Set());
+
+  const handleBulkStatus = async (newStatus) => {
+    const ids = Array.from(selectedLeadIds);
+    setBulkBusy(true);
+    try {
+      await base44.functions.invoke('manageLead', { action: 'bulk_update', token, dealer_id: dealerId, lead_ids: ids, updates: { status: newStatus } });
+      clearSelection();
+      await loadLeads();
+    } catch (e) { alert('Bulk update failed: ' + e.message); }
+    finally { setBulkBusy(false); }
+  };
+
+  const handleBulkDelete = async () => {
+    const ids = Array.from(selectedLeadIds);
+    if (!confirm(`Delete ${ids.length} leads? This cannot be undone.`)) return;
+    setBulkBusy(true);
+    try {
+      await base44.functions.invoke('manageLead', { action: 'bulk_delete', token, dealer_id: dealerId, lead_ids: ids });
+      clearSelection();
+      await loadLeads();
+    } catch (e) { alert('Bulk delete failed: ' + e.message); }
+    finally { setBulkBusy(false); }
+  };
+
+  const handleBulkSetList = async (listId, addToList) => {
+    const ids = Array.from(selectedLeadIds);
+    setBulkBusy(true);
+    try {
+      await base44.functions.invoke('manageLead', { action: 'bulk_set_list', token, dealer_id: dealerId, lead_ids: ids, list_id: listId, add_to_list: addToList });
+      clearSelection();
+      await loadLeads();
+    } catch (e) { alert('Bulk list update failed: ' + e.message); }
+    finally { setBulkBusy(false); }
+  };
+
+  const handleBulkSendInvite = async () => {
+    const ids = Array.from(selectedLeadIds);
+    setBulkBusy(true);
+    try {
+      const res = await base44.functions.invoke('manageLead', { action: 'bulk_send_invite', token, dealer_id: dealerId, lead_ids: ids, invite_link: getInviteLink() });
+      const sent = res.data?.sent || 0;
+      alert(`Sent ${sent} invitation${sent !== 1 ? 's' : ''}.`);
+      clearSelection();
+      await loadLeads();
+    } catch (e) { alert('Bulk invite failed: ' + e.message); }
+    finally { setBulkBusy(false); }
+  };
+
+  // --- List CRUD ---
+  const handleCreateList = async (listData) => {
+    try {
+      await base44.functions.invoke('manageLead', { action: 'list_create', token, dealer_id: dealerId, list_data: listData });
+      await loadLists();
+    } catch (e) { alert('Failed to create list: ' + e.message); }
+  };
+
+  const handleUpdateList = async (listId, listData) => {
+    try {
+      await base44.functions.invoke('manageLead', { action: 'list_update', token, dealer_id: dealerId, list_id: listId, list_data: listData });
+      await loadLists();
+    } catch (e) { alert('Failed to update list: ' + e.message); }
+  };
+
+  const handleDeleteList = async (listId) => {
+    try {
+      await base44.functions.invoke('manageLead', { action: 'list_delete', token, dealer_id: dealerId, list_id: listId });
+      if (selectedListId === listId) setSelectedListId(null);
+      await loadLists();
+      await loadLeads();
+    } catch (e) { alert('Failed to delete list: ' + e.message); }
+  };
+
+  // --- Import ---
+  const handleImport = async (leads, importSource) => {
+    await base44.functions.invoke('manageLead', { action: 'import_leads', token, dealer_id: dealerId, leads, import_source: importSource });
+    await loadLeads();
+    await loadLists();
+  };
+
   const filteredLeads = leads.filter((lead) => {
     const matchesSearch =
       !searchTerm ||
@@ -310,7 +425,8 @@ export default function LeadManagement({ dealerId }) {
       lead.contact_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       lead.email?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || lead.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesList = !selectedListId || (lead.list_ids || []).includes(selectedListId);
+    return matchesSearch && matchesStatus && matchesList;
   });
 
   const stats = {
@@ -322,6 +438,14 @@ export default function LeadManagement({ dealerId }) {
   };
 
   if (loading) return <div className="text-center py-8">Loading leads...</div>;
+
+  const leadCounts = {
+    all: leads.length,
+    ...lists.reduce((acc, l) => {
+      acc[l.id] = leads.filter((lead) => (lead.list_ids || []).includes(l.id)).length;
+      return acc;
+    }, {}),
+  };
 
   return (
     <div className="space-y-6">
@@ -365,6 +489,22 @@ export default function LeadManagement({ dealerId }) {
         </CardContent>
       </Card>
 
+      {/* Lists Panel */}
+      <Card>
+        <CardContent className="p-3">
+          <LeadListsPanel
+            lists={lists}
+            selectedListId={selectedListId}
+            onSelectList={setSelectedListId}
+            onCreateList={handleCreateList}
+            onUpdateList={handleUpdateList}
+            onDeleteList={handleDeleteList}
+            leadCounts={leadCounts}
+            busy={bulkBusy}
+          />
+        </CardContent>
+      </Card>
+
       {/* Toolbar */}
       <div className="flex flex-col sm:flex-row gap-3 justify-between">
         <div className="flex gap-2 flex-1">
@@ -382,107 +522,31 @@ export default function LeadManagement({ dealerId }) {
             </SelectContent>
           </Select>
         </div>
+        <div className="flex gap-2">
+          <Button variant="outline" className="gap-2" onClick={() => setShowImport(true)}>
+            <Upload className="w-4 h-4" /> Import
+          </Button>
         <Dialog open={showForm} onOpenChange={(open) => { setShowForm(open); if (!open) { setEditingLead(null); setFormData(EMPTY_LEAD); } }}>
           <DialogTrigger asChild>
             <Button className="gap-2"><Plus className="w-4 h-4" /> Add Lead</Button>
           </DialogTrigger>
-          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>{editingLead ? 'Edit Lead' : 'Add New Lead'}</DialogTitle>
-              <DialogDescription>Track a prospect through your sales pipeline</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label>Business Name *</Label>
-                <Input value={formData.business_name} onChange={(e) => setFormData(f => ({ ...f, business_name: e.target.value }))} placeholder="Acme Restaurant" />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label>Contact Name</Label>
-                  <Input value={formData.contact_name} onChange={(e) => setFormData(f => ({ ...f, contact_name: e.target.value }))} placeholder="John Doe" />
-                </div>
-                <div>
-                  <Label>Phone</Label>
-                  <Input value={formData.phone} onChange={(e) => setFormData(f => ({ ...f, phone: e.target.value }))} placeholder="(555) 123-4567" />
-                </div>
-              </div>
-              <div>
-                <Label>Email</Label>
-                <Input type="email" value={formData.email} onChange={(e) => setFormData(f => ({ ...f, email: e.target.value }))} placeholder="contact@acme.com" />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label>Status</Label>
-                  <Select value={formData.status} onValueChange={(v) => setFormData(f => ({ ...f, status: v }))}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
-                        <SelectItem key={key} value={key}>{cfg.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>Source</Label>
-                  <Select value={formData.source} onValueChange={(v) => setFormData(f => ({ ...f, source: v }))}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(SOURCE_LABELS).map(([key, label]) => (
-                        <SelectItem key={key} value={key}>{label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label>Business Type</Label>
-                  <Select value={formData.business_type} onValueChange={(v) => setFormData(f => ({ ...f, business_type: v }))}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(BUSINESS_LABELS).map(([key, label]) => (
-                        <SelectItem key={key} value={key}>{label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>Est. Monthly Value ($)</Label>
-                  <Input type="number" value={formData.estimated_value} onChange={(e) => setFormData(f => ({ ...f, estimated_value: e.target.value }))} placeholder="5000" />
-                </div>
-              </div>
-              <div>
-                <Label>Next Follow-up</Label>
-                <Input type="date" value={formData.next_follow_up} onChange={(e) => setFormData(f => ({ ...f, next_follow_up: e.target.value }))} />
-              </div>
-              <div>
-                <Label>Tags</Label>
-                <div className="flex gap-2">
-                  <Input value={tagInput} onChange={(e) => setTagInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddTag(); } }} placeholder="Add tag..." />
-                  <Button type="button" variant="outline" size="sm" onClick={handleAddTag}>Add</Button>
-                </div>
-                {formData.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {formData.tags.map(tag => (
-                      <Badge key={tag} variant="secondary" className="cursor-pointer" onClick={() => handleRemoveTag(tag)}>{tag} ×</Badge>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <div>
-                <Label>Notes</Label>
-                <Textarea value={formData.notes} onChange={(e) => setFormData(f => ({ ...f, notes: e.target.value }))} rows={3} placeholder="Any details about this prospect..." />
-              </div>
-              <div className="flex gap-2 justify-end">
-                <Button variant="outline" onClick={() => { setShowForm(false); setEditingLead(null); setFormData(EMPTY_LEAD); }}>Cancel</Button>
-                <Button onClick={handleSave}>{editingLead ? 'Update Lead' : 'Create Lead'}</Button>
-              </div>
-            </div>
-          </DialogContent>
+...
         </Dialog>
+        </div>
       </div>
 
       {/* Leads List */}
+      {filteredLeads.length > 0 && (
+        <div className="flex items-center gap-2 text-sm text-gray-500">
+          <button onClick={toggleSelectAll} className="flex items-center gap-1.5 hover:text-gray-700">
+            {selectedLeadIds.size === filteredLeads.length && filteredLeads.length > 0
+              ? <CheckSquare className="w-4 h-4 text-purple-600" />
+              : <Square className="w-4 h-4" />}
+            {selectedLeadIds.size === filteredLeads.length && filteredLeads.length > 0 ? 'Deselect all' : 'Select all'}
+          </button>
+          {selectedLeadIds.size > 0 && <span className="text-xs text-purple-600">{selectedLeadIds.size} selected</span>}
+        </div>
+      )}
       <div className="grid gap-3">
         {filteredLeads.length === 0 ? (
           <Card><CardContent className="py-12 text-center">
@@ -496,9 +560,14 @@ export default function LeadManagement({ dealerId }) {
             const upcomingAppts = (lead.appointments || []).filter(a => a.status === 'scheduled');
             const recentActivities = (lead.activities || []).slice(-2).reverse();
             return (
-              <Card key={lead.id} className="hover:shadow-md transition-shadow">
+              <Card key={lead.id} className={`hover:shadow-md transition-shadow ${selectedLeadIds.has(lead.id) ? 'ring-2 ring-purple-400' : ''}`}>
                 <CardContent className="p-4">
                   <div className="flex flex-col lg:flex-row lg:items-start gap-3">
+                    <button onClick={() => toggleSelect(lead.id)} className="mt-1 shrink-0" title="Select lead">
+                      {selectedLeadIds.has(lead.id)
+                        ? <CheckSquare className="w-5 h-5 text-purple-600" />
+                        : <Square className="w-5 h-5 text-gray-300 hover:text-gray-400" />}
+                    </button>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap mb-1">
                         <h3 className="font-semibold text-gray-900 truncate">{lead.business_name}</h3>
@@ -519,6 +588,19 @@ export default function LeadManagement({ dealerId }) {
                       {lead.tags?.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-2">
                           {lead.tags.map(tag => <Badge key={tag} variant="outline" className="text-xs"><Tag className="w-2 h-2 mr-1" />{tag}</Badge>)}
+                        </div>
+                      )}
+                      {lead.list_ids?.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1.5">
+                          {lead.list_ids.map(id => {
+                            const list = lists.find(l => l.id === id);
+                            if (!list) return null;
+                            return (
+                              <Badge key={id} variant="outline" className="text-xs" style={{ borderColor: list.color, color: list.color }}>
+                                <span className="w-1.5 h-1.5 rounded-full mr-1" style={{ background: list.color }} />{list.name}
+                              </Badge>
+                            );
+                          })}
                         </div>
                       )}
                       {lead.notes && <p className="text-sm text-gray-600 mt-2 line-clamp-2">{lead.notes}</p>}
@@ -604,6 +686,28 @@ export default function LeadManagement({ dealerId }) {
         onLogCall={handleLogCall}
         onSendInvite={handleSendInvite}
         inviteLink={getInviteLink()}
+      />
+
+      {/* Bulk Action Bar */}
+      <LeadBulkActionBar
+        selectedCount={selectedLeadIds.size}
+        onClearSelection={clearSelection}
+        onBulkStatus={handleBulkStatus}
+        onBulkDelete={handleBulkDelete}
+        onBulkAddToList={(listId) => handleBulkSetList(listId, true)}
+        onBulkRemoveFromList={(listId) => handleBulkSetList(listId, false)}
+        onBulkSendInvite={handleBulkSendInvite}
+        lists={lists}
+        busy={bulkBusy}
+      />
+
+      {/* Import Dialog */}
+      <LeadImportDialog
+        open={showImport}
+        onOpenChange={setShowImport}
+        onImport={handleImport}
+        dealerId={dealerId}
+        lists={lists}
       />
     </div>
   );
