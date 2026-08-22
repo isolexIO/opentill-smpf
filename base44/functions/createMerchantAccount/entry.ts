@@ -8,6 +8,26 @@ const escapeHtml = (value) => String(value ?? '')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 
+// Brochure-themed email wrapper (deep-space gradient + glowing white glass card).
+const brandedEmail = (innerHtml) => `<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#0a0618;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0a0618;padding:40px 0;"><tr><td align="center">
+<table width="600" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 8px 40px rgba(123,47,214,0.28);">
+<tr><td style="height:6px;background:linear-gradient(90deg,#7B2FD6 0%,#0FD17A 100%);font-size:0;line-height:0;">&nbsp;</td></tr>
+<tr><td style="padding:44px 48px 20px 48px;text-align:center;">
+<img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6970e2871534100b4ebb8d45/8e45f76fe_DUC3.png" alt="openTILL" width="64" height="64" style="display:block;margin:0 auto 16px auto;border-radius:16px;box-shadow:0 0 24px rgba(123,47,214,0.45);" />
+<h1 style="margin:0;font-size:26px;font-weight:800;color:#18181b;letter-spacing:-0.5px;">openTILL <span style="color:#7B2FD6;">SMPF</span></h1>
+<p style="margin:8px 0 0 0;font-size:12px;color:#71717a;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;">Structured Merchant Participation Framework</p>
+</td></tr>
+<tr><td style="padding:8px 48px 40px 48px;">${innerHtml}</td></tr>
+<tr><td style="padding:28px 48px;background:#fafafa;border-top:1px solid #e4e4e7;">
+<p style="margin:0 0 8px 0;font-size:13px;color:#52525b;line-height:1.6;"><strong style="color:#18181b;">openTILL SMPF</strong> — The blockchain-integrated Point of Sale for modern commerce.</p>
+<p style="margin:0;font-size:12px;color:#a1a1aa;line-height:1.6;">&copy; ${new Date().getFullYear()} Isolex Corporation. All rights reserved.<br>This is an automated message — please do not reply directly to this email.</p>
+</td></tr>
+<tr><td style="height:6px;background:linear-gradient(90deg,#0FD17A 0%,#7B2FD6 100%);font-size:0;line-height:0;">&nbsp;</td></tr>
+</table></td></tr></table></body></html>`;
+
 Deno.serve(async (req) => {
     try {
         const body = await req.json();
@@ -231,13 +251,29 @@ Deno.serve(async (req) => {
                 await base44.asServiceRole.integrations.Core.SendEmail({
                     to: owner_email.toLowerCase().trim(),
                     subject: 'Welcome to openTILL — Application Received',
-                    body: `
-                        <h2>Welcome to openTILL, ${escapeHtml(owner_name)}!</h2>
-                        <p>Your merchant application for <strong>${escapeHtml(business_name)}</strong> has been received successfully.</p>
-                        <p>Our team will review your application and activate your account within 24 hours. You will receive a follow-up email once your account is active.</p>
-                        <p>Once activated, you can log in at: <a href="https://chainlinkpos.isolex.io/EmailLogin">chainlinkpos.isolex.io/EmailLogin</a></p>
-                        <p>Thank you for choosing openTILL!</p>
-                    `
+                    body: brandedEmail(`
+                        <p style="margin:0 0 8px 0;font-size:14px;color:#71717a;">Welcome to openTILL,</p>
+                        <h2 style="margin:0 0 20px 0;font-size:22px;font-weight:700;color:#18181b;">${escapeHtml(owner_name)}!</h2>
+                        <p style="margin:0 0 16px 0;font-size:16px;color:#3f3f46;line-height:1.7;">
+                            Your merchant application for <strong style="color:#7B2FD6;">${escapeHtml(business_name)}</strong> has been received successfully.
+                        </p>
+                        <div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:16px 20px;margin:24px 0;">
+                            <p style="margin:0;font-size:14px;color:#065f46;">
+                                <strong>&#9989; Application Received</strong><br>
+                                <span style="font-size:13px;color:#047857;">Our team will review your application and activate your account within 24 hours.</span>
+                            </p>
+                        </div>
+                        <p style="margin:0 0 16px 0;font-size:15px;color:#3f3f46;line-height:1.7;">
+                            Once activated, you'll receive a follow-up email with your login credentials and can sign in at:
+                        </p>
+                        <div style="text-align:center;margin:32px 0;">
+                            <a href="https://chainlinkpos.isolex.io/EmailLogin" style="display:inline-block;padding:14px 40px;background:linear-gradient(90deg,#7B2FD6 0%,#0FD17A 100%);color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;border-radius:10px;box-shadow:0 4px 16px rgba(123,47,214,0.35);">Go to Login &rarr;</a>
+                        </div>
+                        <p style="margin:24px 0 0 0;font-size:14px;color:#52525b;line-height:1.7;">
+                            Thank you for choosing openTILL!<br>
+                            <strong style="color:#7B2FD6;">The openTILL SMPF Team</strong>
+                        </p>
+                    `)
                 });
                 console.log('Welcome email sent to merchant owner:', owner_email);
             } catch (emailError) {
