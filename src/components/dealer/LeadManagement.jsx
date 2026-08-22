@@ -14,11 +14,12 @@ import LeadImportDialog from './LeadImportDialog';
 import LeadBulkActionBar from './LeadBulkActionBar';
 import LeadListsPanel from './LeadListsPanel';
 import LeadAssignDialog from './LeadAssignDialog';
+import LeadBoardView from './LeadBoardView';
 import StaffEarningsPanel from './StaffEarningsPanel';
 import {
   Plus, Search, Mail, Phone, Building2, TrendingUp, Target,
   Copy, Check, Calendar, Tag, Trash2, Edit, UserPlus, ChevronRight, Clock,
-  Upload, Square, CheckSquare, UserCircle, DollarSign, UserCog
+  Upload, Square, CheckSquare, UserCircle, DollarSign, UserCog, LayoutGrid, Columns3
 } from 'lucide-react';
 
 const STATUS_CONFIG = {
@@ -86,6 +87,7 @@ export default function LeadManagement({ dealerId }) {
   const [staffFilter, setStaffFilter] = useState('all');
   const [assigningLead, setAssigningLead] = useState(null);
   const [activeTab, setActiveTab] = useState('leads');
+  const [viewMode, setViewMode] = useState('list');
   const token = typeof window !== 'undefined' ? localStorage.getItem('dealerToken') : null;
 
   useEffect(() => { loadLeads(); loadLists(); loadStaff(); }, [dealerId]);
@@ -588,6 +590,22 @@ export default function LeadManagement({ dealerId }) {
           </Select>
         </div>
         <div className="flex gap-2">
+          <div className="flex items-center rounded-md border border-gray-200 overflow-hidden">
+            <button
+              onClick={() => setViewMode('list')}
+              className={`px-2.5 py-2 text-sm flex items-center gap-1.5 transition-colors ${viewMode === 'list' ? 'bg-purple-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+              title="List view"
+            >
+              <LayoutGrid className="w-4 h-4" /> List
+            </button>
+            <button
+              onClick={() => setViewMode('board')}
+              className={`px-2.5 py-2 text-sm flex items-center gap-1.5 transition-colors ${viewMode === 'board' ? 'bg-purple-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+              title="Board view"
+            >
+              <Columns3 className="w-4 h-4" /> Board
+            </button>
+          </div>
           <Button variant="outline" className="gap-2" onClick={() => setShowImport(true)}>
             <Upload className="w-4 h-4" /> Import
           </Button>
@@ -600,7 +618,25 @@ export default function LeadManagement({ dealerId }) {
         </div>
       </div>
 
+      {/* Board View */}
+      {viewMode === 'board' && filteredLeads.length > 0 && (
+        <LeadBoardView
+          leads={filteredLeads}
+          onStatusChange={handleStatusChange}
+          onOpenDetail={handleOpenDetail}
+        />
+      )}
+      {viewMode === 'board' && filteredLeads.length === 0 && (
+        <Card><CardContent className="py-12 text-center">
+          <Building2 className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+          <p className="text-gray-500 mb-1">No leads yet</p>
+          <p className="text-sm text-gray-400">Add your first prospect to start tracking your sales pipeline</p>
+        </CardContent></Card>
+      )}
+
       {/* Leads List */}
+      {viewMode === 'list' && (
+        <>
       {filteredLeads.length > 0 && (
         <div className="flex items-center gap-2 text-sm text-gray-500">
           <button onClick={toggleSelectAll} className="flex items-center gap-1.5 hover:text-gray-700">
@@ -753,6 +789,8 @@ export default function LeadManagement({ dealerId }) {
           })
         )}
       </div>
+      </>
+      )}
 
       {/* Detail Dialog */}
       <LeadDetailDialog
