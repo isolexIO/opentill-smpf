@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
 
 // Public lookup of a merchant by referral code. Used by the onboarding
 // referral step, which is viewed by logged-out visitors — a direct entity

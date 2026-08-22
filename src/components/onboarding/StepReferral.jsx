@@ -33,7 +33,8 @@ export default function StepReferral({ formData, onChange, onNext, locked, deale
         setCodeError(res.data?.error || 'No merchant found with this referral code.');
       }
     } catch (e) {
-      setCodeError('Could not verify code. You can still continue.');
+      const detail = e?.response?.data?.error || e?.message || 'Could not verify code. You can still continue.';
+      setCodeError(detail);
     } finally {
       setChecking(false);
     }
