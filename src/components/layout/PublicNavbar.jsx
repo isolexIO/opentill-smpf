@@ -7,6 +7,7 @@ import CommunityLinks from '@/components/shared/CommunityLinks';
 export default function PublicNavbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [subscriptionPlansEnabled, setSubscriptionPlansEnabled] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -19,8 +20,23 @@ export default function PublicNavbar() {
         // keep default
       }
     };
+    const checkAuth = async () => {
+      try {
+        const authed = await base44.auth.isAuthenticated();
+        setIsAuthenticated(authed);
+      } catch (e) {
+        setIsAuthenticated(false);
+      }
+    };
     loadSettings();
+    checkAuth();
   }, []);
+
+  const handleSignOut = () => {
+    localStorage.removeItem('pinLoggedInUser');
+    localStorage.removeItem('pinSessionToken');
+    base44.auth.logout(createPageUrl('Home'));
+  };
 
   const buildOnboardingUrl = () => {
     const params = new URLSearchParams(window.location.search);
@@ -69,17 +85,33 @@ export default function PublicNavbar() {
               <a href="https://ico.opentill.io/" target="_blank" rel="noopener noreferrer" className="text-green-300 font-semibold hover:text-green-200 transition-colors">
                 $DUC Presale
               </a>
-              <Button
-                onClick={() => window.location.href = createPageUrl('EmailLogin')}
-                className="bg-green-500 hover:bg-green-600 text-white"
-              >
-                Sign In
-              </Button>
+              {isAuthenticated ? (
+                <Button
+                  onClick={handleSignOut}
+                  variant="outline"
+                  className="border-white/40 text-white hover:bg-white/10 hover:text-white"
+                >
+                  Sign Out
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => window.location.href = createPageUrl('EmailLogin')}
+                  className="bg-green-500 hover:bg-green-600 text-white"
+                >
+                  Sign In
+                </Button>
+              )}
             </div>
             <div className="md:hidden flex items-center gap-2">
-              <Button onClick={() => window.location.href = createPageUrl('EmailLogin')} size="sm" className="bg-green-500 hover:bg-green-600 text-white text-xs px-3">
-                Sign In
-              </Button>
+              {isAuthenticated ? (
+                <Button onClick={handleSignOut} size="sm" variant="outline" className="border-white/40 text-white hover:bg-white/10 hover:text-white text-xs px-3">
+                  Sign Out
+                </Button>
+              ) : (
+                <Button onClick={() => window.location.href = createPageUrl('EmailLogin')} size="sm" className="bg-green-500 hover:bg-green-600 text-white text-xs px-3">
+                  Sign In
+                </Button>
+              )}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="text-white p-2 rounded-md hover:bg-white/10 transition-colors"
@@ -111,9 +143,15 @@ export default function PublicNavbar() {
           <div className="pt-2 border-t border-white/10">
             <CommunityLinks variant="compact" className="[&_a]:text-gray-300 [&_a]:hover:text-white justify-start" />
           </div>
-          <Button onClick={() => window.location.href = buildOnboardingUrl()} className="w-full bg-white text-purple-700 hover:bg-gray-100 font-semibold mt-2">
-            Get Started Free
-          </Button>
+          {isAuthenticated ? (
+            <Button onClick={handleSignOut} variant="outline" className="w-full border-white/40 text-white hover:bg-white/10 hover:text-white font-semibold mt-2">
+              Sign Out
+            </Button>
+          ) : (
+            <Button onClick={() => window.location.href = buildOnboardingUrl()} className="w-full bg-white text-purple-700 hover:bg-gray-100 font-semibold mt-2">
+              Get Started Free
+            </Button>
+          )}
         </div>
       )}
     </>
