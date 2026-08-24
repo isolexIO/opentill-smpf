@@ -24,7 +24,8 @@ import {
   Monitor,
   FileText,
   Truck,
-  Terminal
+  Terminal,
+  Code
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import PriceTicker from '@/components/vault/PriceTicker';
@@ -149,6 +150,7 @@ export default function HomePage() {
   const [stats, setStats] = useState({
     activeMerchants: 0,
     activeAmbassadors: 0,
+    builderCount: 0,
     loading: true
   });
 
@@ -182,30 +184,30 @@ export default function HomePage() {
   };
 
   const loadStats = async () => {
+    let builderCount = 0;
+    let activeMerchants = 0;
+    let activeAmbassadors = 0;
+
+    // Builder count is publicly readable (verified builders bypass RLS)
+    try {
+      const builders = await base44.entities.Builder.filter({ status: 'verified' });
+      builderCount = builders.length;
+    } catch (e) {
+      console.error('Error loading builders:', e);
+    }
+
+    // Merchant/ambassador counts come from the public stats backend function
     try {
       const response = await base44.functions.invoke('getPublicStats');
-      
-      if (response.data.success && response.data.stats) {
-        setStats({
-          activeMerchants: response.data.stats.activeMerchants,
-          activeAmbassadors: response.data.stats.activeDealers,
-          loading: false
-        });
-      } else {
-        setStats({
-          activeMerchants: 0,
-          activeAmbassadors: 0,
-          loading: false
-        });
+      if (response.data?.success && response.data?.stats) {
+        activeMerchants = response.data.stats.activeMerchants || 0;
+        activeAmbassadors = response.data.stats.activeDealers || 0;
       }
-    } catch (error) {
-      console.error('Error loading stats:', error);
-      setStats({
-        activeMerchants: 0,
-        activeAmbassadors: 0,
-        loading: false
-      });
+    } catch (e) {
+      console.error('Error loading public stats:', e);
     }
+
+    setStats({ activeMerchants, activeAmbassadors, builderCount, loading: false });
   };
 
   const formatCurrency = (amount) => {
@@ -279,7 +281,6 @@ export default function HomePage() {
   };
 
   const heroSettings = settings?.hero || {};
-  const statsData = settings?.stats || [];
   const subscriptionPlansEnabled = settings?.subscription_plans_enabled !== false;
 
   const displayStats = [
@@ -294,9 +295,9 @@ export default function HomePage() {
       label: 'Active Ambassadors'
     },
     {
-      icon: Activity,
-      value: statsData[1]?.value || '99.9%',
-      label: statsData[1]?.label || 'Uptime'
+      icon: Code,
+      value: stats.loading ? '...' : stats.builderCount.toLocaleString(),
+      label: 'Builders'
     }
   ];
 
