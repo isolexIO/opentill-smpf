@@ -2,6 +2,11 @@
   "name": "MerchantReferral",
   "type": "object",
   "properties": {
+    "description": {
+      "type": "string",
+      "description": "Optional description for search visibility and SEO (up to 1000 characters)",
+      "maxLength": 1000
+    },
     "referrer_merchant_id": {
       "type": "string",
       "description": "Merchant who referred (the one who gets rewards)"

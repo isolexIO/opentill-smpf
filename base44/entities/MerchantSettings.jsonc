@@ -2,6 +2,11 @@
   "name": "MerchantSettings",
   "type": "object",
   "properties": {
+    "description": {
+      "type": "string",
+      "description": "Optional description for search visibility and SEO (up to 1000 characters)",
+      "maxLength": 1000
+    },
     "merchant_id": {
       "type": "string",
       "description": "Unique merchant identifier"

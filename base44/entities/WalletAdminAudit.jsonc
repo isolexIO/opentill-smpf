@@ -2,6 +2,11 @@
   "name": "WalletAdminAudit",
   "type": "object",
   "properties": {
+    "description": {
+      "type": "string",
+      "description": "Optional description for search visibility and SEO (up to 1000 characters)",
+      "maxLength": 1000
+    },
     "action_type": {
       "type": "string",
       "enum": [

@@ -2,6 +2,11 @@
   "name": "Merchant",
   "type": "object",
   "properties": {
+    "description": {
+      "type": "string",
+      "description": "Optional description for search visibility and SEO (up to 1000 characters)",
+      "maxLength": 1000
+    },
     "dealer_id": {
       "type": "string",
       "description": "Parent dealer/reseller ID - REQUIRED for multi-tenant isolation"

@@ -2,6 +2,11 @@
   "name": "CustomerMerchantLink",
   "type": "object",
   "properties": {
+    "description": {
+      "type": "string",
+      "description": "Optional description for search visibility and SEO (up to 1000 characters)",
+      "maxLength": 1000
+    },
     "customer_id": {
       "type": "string",
       "description": "Customer who linked or referred this merchant"

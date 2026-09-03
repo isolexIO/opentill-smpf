@@ -2,6 +2,11 @@
   "name": "DUCWalletSettings",
   "type": "object",
   "properties": {
+    "description": {
+      "type": "string",
+      "description": "Optional description for search visibility and SEO (up to 1000 characters)",
+      "maxLength": 1000
+    },
     "verified_duc_mint": {
       "type": "string",
       "description": "Verified $DUC mainnet mint address (Solana public key). Null until an admin verifies it."

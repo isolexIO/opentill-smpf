@@ -2,6 +2,11 @@
   "name": "ComplianceRule",
   "type": "object",
   "properties": {
+    "description": {
+      "type": "string",
+      "description": "Optional description for search visibility and SEO (up to 1000 characters)",
+      "maxLength": 1000
+    },
     "jurisdiction_country": {
       "type": "string",
       "description": "Country code (US, CA) the rule applies to"
