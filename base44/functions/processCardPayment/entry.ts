@@ -34,9 +34,27 @@ Deno.serve(async (req) => {
 
     // SECURITY: Never read API keys from the database entity. Use the platform
     // secret environment variable instead to avoid exposing secrets at the DB layer.
-    const stripeSecretKey = Deno.env.get('STRIPE_SECRET_KEY');
+    const stripeSecretKey = Deno.env.get('STRIPE_CONNECT_KEY') || Deno.env.get('STRIPE_SECRET_KEY');
     if (!stripeSecretKey) {
       return new Response(JSON.stringify({ error: "Payment processor not configured" }), { status: 500, headers: { "Content-Type": "application/json" } });
+    }
+
+    // Each merchant processes payments through their OWN Stripe Connect account.
+    // Resolve the connected account id (merchant's own, or parent dealer's) so
+    // the charge is created on the merchant's account, not the platform's.
+    let connectedAccountId = merchant.settings?.payment_gateways?.stripe?.account_id;
+    if (!connectedAccountId && merchant.dealer_id) {
+      try {
+        const dealers = await base44.asServiceRole.entities.Ambassador.filter({ legacy_dealer_id: merchant.dealer_id });
+        if (dealers && dealers.length > 0) {
+          connectedAccountId = dealers[0].stripe_account_id;
+        }
+      } catch (e) {
+        console.log('Could not load dealer for Stripe fallback:', e);
+      }
+    }
+    if (!connectedAccountId) {
+      return new Response(JSON.stringify({ error: "No Stripe Connect account found. Complete Stripe Connect onboarding before accepting card payments." }), { status: 400, headers: { "Content-Type": "application/json" } });
     }
 
     // SECURITY: Never trust a client-supplied amount. Load the authoritative
@@ -61,6 +79,7 @@ Deno.serve(async (req) => {
 
     const stripe = new Stripe(stripeSecretKey);
 
+    // Direct charge on the merchant's connected Stripe account (Stripe Connect).
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(billableAmount * 100), // Amount in cents, from DB order total
       currency: currency,
@@ -74,7 +93,7 @@ Deno.serve(async (req) => {
         order_id: orderId,
         merchant_id: merchantId,
       }
-    });
+    }, { stripeAccount: connectedAccountId });
 
     // Confirmation-time funding-type capture + surcharge settlement snapshot.
     // The cart-time calculation used UNKNOWN funding (fail-closed for credit-only
@@ -84,7 +103,7 @@ Deno.serve(async (req) => {
     let cardLast4 = null;
     try {
       if (paymentIntent.payment_method) {
-        const pm = await stripe.paymentMethods.retrieve(paymentIntent.payment_method);
+        const pm = await stripe.paymentMethods.retrieve(paymentIntent.payment_method, {}, { stripeAccount: connectedAccountId });
         cardFundingType = pm?.card?.funding || 'unknown'; // 'credit' | 'debit' | 'prepaid' | 'unknown'
         cardLast4 = pm?.card?.last4 || null;
       }

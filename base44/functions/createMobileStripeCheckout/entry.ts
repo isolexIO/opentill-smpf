@@ -95,9 +95,25 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: 'Card payments not enabled for this merchant' }, { status: 400 });
     }
 
-    const stripeSecretKey = Deno.env.get('STRIPE_SECRET_KEY');
+    const stripeSecretKey = Deno.env.get('STRIPE_CONNECT_KEY') || Deno.env.get('STRIPE_SECRET_KEY');
     if (!stripeSecretKey) {
       return Response.json({ success: false, error: 'Payment processor not configured' }, { status: 500 });
+    }
+
+    // Each merchant processes through their OWN Stripe Connect account.
+    let connectedAccountId = merchant.settings?.payment_gateways?.stripe?.account_id;
+    if (!connectedAccountId && merchant.dealer_id) {
+      try {
+        const dealers = await base44.asServiceRole.entities.Ambassador.filter({ legacy_dealer_id: merchant.dealer_id });
+        if (dealers && dealers.length > 0) {
+          connectedAccountId = dealers[0].stripe_account_id;
+        }
+      } catch (e) {
+        console.log('Could not load dealer for Stripe fallback:', e);
+      }
+    }
+    if (!connectedAccountId) {
+      return Response.json({ success: false, error: 'No Stripe Connect account found. Complete Stripe Connect onboarding before accepting card payments.' }, { status: 400 });
     }
 
     const stripe = new Stripe(stripeSecretKey);
@@ -151,7 +167,7 @@ Deno.serve(async (req) => {
         merchant_id: station.merchant_id,
         station_id: station.station_id,
       },
-    });
+    }, { stripeAccount: connectedAccountId });
 
     // Update order status
     await base44.asServiceRole.entities.Order.update(order_id, {
