@@ -96,7 +96,7 @@ export default function OpenTILLPaymentsSection() {
             viewport={{ once: true }}
             className="flex justify-center mb-6"
           >
-            <OpenTILLPaymentsLogo width="w-[350px]" height="h-[130px]" cover />
+            <OpenTILLPaymentsLogo width="w-[260px] sm:w-[350px]" height="h-[110px] sm:h-[130px]" cover />
           </motion.div>
 
           <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900 dark:text-white">
@@ -213,7 +213,7 @@ export default function OpenTILLPaymentsSection() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
               size="lg"
-              className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
+              className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-4 sm:px-8 h-auto sm:h-10 whitespace-normal sm:whitespace-nowrap"
               onClick={() => {
                 const params = new URLSearchParams(window.location.search);
                 const ref = params.get('ref') || params.get('referral') || params.get('code');

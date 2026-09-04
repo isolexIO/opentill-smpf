@@ -355,7 +355,7 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border mb-6 ${getBadgeColor()}`}>
+            <div className={`inline-flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full border mb-6 max-w-full text-center ${getBadgeColor()}`}>
               <span className="relative flex h-2 w-2">
                 <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${
                   settings?.hero?.badge_status === 'coming_soon' ? 'bg-orange-400' : 'bg-green-400'
@@ -364,23 +364,23 @@ export default function HomePage() {
                   settings?.hero?.badge_status === 'coming_soon' ? 'bg-orange-500' : 'bg-green-500'
                 }`}></span>
               </span>
-              <span className="text-lg md:text-xl font-bold">
+              <span className="text-sm md:text-xl font-bold break-words">
                 {getBadgeText()}
               </span>
             </div>
 
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 text-white">
+            <h1 className="text-3xl sm:text-5xl md:text-7xl font-bold mb-6 text-white">
               {heroSettings.headline || 'The Future of Point of Sale'}
             </h1>
 
-            <p className="text-xl md:text-2xl text-white/90 mb-8 max-w-3xl mx-auto">
+            <p className="text-base sm:text-xl md:text-2xl text-white/90 mb-8 max-w-3xl mx-auto">
               {heroSettings.subheadline || 'Accept cash, card, crypto, and EBT with openTILL\'s dual-pricing compliant POS system'}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                className="text-lg px-8 py-6 bg-white text-purple-600 hover:bg-gray-100 font-semibold shadow-2xl"
+                className="text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 bg-white text-purple-600 hover:bg-gray-100 font-semibold shadow-2xl"
                 onClick={() => window.location.href = buildOnboardingUrl()}
               >
                 {heroSettings.cta_primary_text || 'Start Free Trial'}
@@ -390,7 +390,7 @@ export default function HomePage() {
               <Button
                 size="lg"
                 variant="outline"
-                className="text-lg px-8 py-6 bg-white/20 backdrop-blur-sm border-2 border-white text-white hover:bg-white hover:text-purple-600 font-semibold transition-all"
+                className="text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 bg-white/20 backdrop-blur-sm border-2 border-white text-white hover:bg-white hover:text-purple-600 font-semibold transition-all"
                 onClick={() => window.location.href = createPageUrl('EmailLogin')}
               >
                 {heroSettings.cta_secondary_text || 'Merchant Login'}

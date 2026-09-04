@@ -68,7 +68,7 @@ export default function DUCPresaleSection() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
               size="lg"
-              className="text-lg px-8 py-6 bg-white text-purple-700 hover:bg-gray-100 font-semibold shadow-2xl"
+              className="text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 bg-white text-purple-700 hover:bg-gray-100 font-semibold shadow-2xl"
               onClick={() => window.open(ICO_URL, '_blank')}
             >
               <Rocket className="mr-2 w-5 h-5" />
@@ -78,7 +78,7 @@ export default function DUCPresaleSection() {
             <Button
               size="lg"
               variant="outline"
-              className="text-lg px-8 py-6 bg-white/20 backdrop-blur-sm border-2 border-white text-white hover:bg-white hover:text-purple-700 font-semibold transition-all"
+              className="text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 bg-white/20 backdrop-blur-sm border-2 border-white text-white hover:bg-white hover:text-purple-700 font-semibold transition-all"
               onClick={() => window.open(ICO_URL, '_blank')}
             >
               Learn More
