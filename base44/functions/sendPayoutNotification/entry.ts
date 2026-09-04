@@ -149,7 +149,7 @@ Deno.serve(async (req) => {
 
     // Send email notification
     try {
-      await base44.integrations.Core.SendEmail({
+      await base44.asServiceRole.integrations.Core.SendEmail({
         to: ambassador.contact_email || ambassador.owner_email,
         subject,
         body: `
@@ -209,7 +209,7 @@ Deno.serve(async (req) => {
             <pre>${safeDetailsJson}</pre>
           `;
 
-          await base44.integrations.Core.SendEmail({
+          await base44.asServiceRole.integrations.Core.SendEmail({
             to: admin.email,
             subject: adminSubject,
             body: `
