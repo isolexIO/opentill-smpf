@@ -89,14 +89,14 @@ Deno.serve(async (req) => {
           merchant_id: merchant_id,
           log_type: 'merchant_action',
           action: 'Subdomain Requested',
-          description: `Merchant requested subdomain: ${uniqueSubdomain}.opentill-pos.sol`,
+          description: `Merchant requested subdomain: ${uniqueSubdomain}.openTILL.io`,
           user_email: user.email,
           severity: 'info'
         });
 
         return Response.json({
           success: true,
-          subdomain: `${uniqueSubdomain}.opentill-pos.sol`,
+          subdomain: `${uniqueSubdomain}.openTILL.io`,
           status: 'pending'
         });
       }
@@ -119,14 +119,14 @@ Deno.serve(async (req) => {
           merchant_id: merchant_id,
           log_type: 'super_admin_action',
           action: 'Subdomain Approved',
-          description: `Super Admin approved subdomain: ${merchant.opentill_subdomain}.opentill-pos.sol`,
+          description: `Super Admin approved subdomain: ${merchant.opentill_subdomain}.openTILL.io`,
           user_email: user.email,
           severity: 'info'
         });
 
         return Response.json({
           success: true,
-          subdomain: `${merchant.opentill_subdomain}.opentill-pos.sol`,
+          subdomain: `${merchant.opentill_subdomain}.openTILL.io`,
           status: 'active'
         });
       }
@@ -154,7 +154,7 @@ Deno.serve(async (req) => {
 
         return Response.json({
           success: true,
-          subdomain: `${uniqueSubdomain}.opentill-pos.sol`,
+          subdomain: `${uniqueSubdomain}.openTILL.io`,
           status: 'pending'
         });
       }
@@ -169,7 +169,7 @@ Deno.serve(async (req) => {
           merchant_id: merchant_id,
           log_type: 'super_admin_action',
           action: 'Subdomain Disabled',
-          description: `Super Admin disabled subdomain: ${merchant.opentill_subdomain}.opentill-pos.sol`,
+          description: `Super Admin disabled subdomain: ${merchant.opentill_subdomain}.openTILL.io`,
           user_email: user.email,
           severity: 'warning'
         });
