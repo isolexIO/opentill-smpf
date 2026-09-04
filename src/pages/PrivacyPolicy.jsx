@@ -24,7 +24,7 @@ export default function PrivacyPolicyPage() {
                 Introduction
               </h2>
               <p className="text-gray-700 leading-relaxed">
-                Isolex Corporation ("we," "us," or "our") operates openTILL Point of Sale ("openTILL," "Service"). 
+                openTILL Corporation ("we," "us," or "our") operates openTILL Point of Sale ("openTILL," "Service"). 
                 This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our Service.
               </p>
               <p className="text-gray-700 leading-relaxed mt-4">
@@ -262,7 +262,7 @@ export default function PrivacyPolicyPage() {
                 If you have questions or concerns about this Privacy Policy or our data practices, please contact us:
               </p>
               <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                <p className="font-semibold text-gray-900 mb-2">Isolex Corporation</p>
+                <p className="font-semibold text-gray-900 mb-2">openTILL Corporation</p>
                 <p className="text-gray-700">Email: <a href="mailto:privacy@isolex.io" className="text-purple-600 hover:underline">privacy@isolex.io</a></p>
                 <p className="text-gray-700">Support: <a href="mailto:support@isolex.io" className="text-purple-600 hover:underline">support@isolex.io</a></p>
                 <p className="text-gray-700">Report Issues: <a href={createPageUrl('Support')} className="text-purple-600 hover:underline">Support / Ticket Portal</a></p>

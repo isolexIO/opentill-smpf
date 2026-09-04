@@ -259,7 +259,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="text-white font-semibold mb-1">Address</h3>
-                    <p className="text-white/80">Isolex Corporation</p>
+                    <p className="text-white/80">openTILL Corporation</p>
                     <p className="text-white/80">Toledo, OH</p>
                     <p className="text-white/80">United States</p>
                   </div>

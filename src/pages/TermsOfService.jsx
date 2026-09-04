@@ -252,7 +252,7 @@ export default function TermsOfServicePage() {
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 mt-6">Our Rights</h3>
             <p className="text-gray-700 leading-relaxed dark:text-gray-300">
               All rights, title, and interest in openTILL, including software, trademarks, logos, and content, 
-              are owned by Isolex Corporation. These Terms do not grant you any ownership rights.
+              are owned by openTILL Corporation. These Terms do not grant you any ownership rights.
             </p>
 
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 mt-6">Your License</h3>
@@ -290,7 +290,7 @@ export default function TermsOfServicePage() {
 
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 mt-6">Limitation of Liability</h3>
             <p className="text-gray-700 leading-relaxed mb-3 dark:text-gray-300">
-              TO THE MAXIMUM EXTENT PERMITTED BY LAW, ISOLEX CORPORATION SHALL NOT BE LIABLE FOR:
+              TO THE MAXIMUM EXTENT PERMITTED BY LAW, OPENTILL CORPORATION SHALL NOT BE LIABLE FOR:
             </p>
             <ul className="list-disc pl-6 space-y-2 text-gray-700 dark:text-gray-300">
               <li>Indirect, incidental, special, or consequential damages</li>
@@ -322,7 +322,7 @@ export default function TermsOfServicePage() {
           <section className="mb-8">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">10. Indemnification</h2>
             <p className="text-gray-700 leading-relaxed dark:text-gray-300">
-              You agree to indemnify and hold harmless Isolex Corporation, its officers, directors, employees, and 
+              You agree to indemnify and hold harmless openTILL Corporation, its officers, directors, employees, and 
               agents from any claims, damages, losses, or expenses (including legal fees) arising from:
             </p>
             <ul className="list-disc pl-6 space-y-2 text-gray-700 dark:text-gray-300">
@@ -411,7 +411,7 @@ export default function TermsOfServicePage() {
           <section className="mb-8">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">15. General Provisions</h2>
             <ul className="list-disc pl-6 space-y-2 text-gray-700 dark:text-gray-300">
-              <li><strong>Entire Agreement:</strong> These Terms constitute the entire agreement between you and Isolex Corporation</li>
+              <li><strong>Entire Agreement:</strong> These Terms constitute the entire agreement between you and openTILL Corporation</li>
               <li><strong>Severability:</strong> If any provision is invalid, the rest remains in effect</li>
               <li><strong>Waiver:</strong> Our failure to enforce a right does not waive that right</li>
               <li><strong>Assignment:</strong> You may not assign these Terms without our consent</li>
@@ -430,7 +430,7 @@ export default function TermsOfServicePage() {
               For questions about these Terms of Service, please contact us:
             </p>
             <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 dark:bg-gray-700 dark:border-gray-600">
-              <p className="font-semibold text-gray-900 dark:text-white mb-2">Isolex Corporation</p>
+              <p className="font-semibold text-gray-900 dark:text-white mb-2">openTILL Corporation</p>
               <p className="text-gray-700 dark:text-gray-300">Email: <a href="mailto:legal@isolex.io" className="text-purple-600 hover:underline">legal@isolex.io</a></p>
               <p className="text-gray-700 dark:text-gray-300">Support: <a href="mailto:support@isolex.io" className="text-purple-600 hover:underline">support@isolex.io</a></p>
               <p className="text-gray-700 dark:text-gray-300">Report Issues: <a href={createPageUrl('Support')} className="text-purple-600 hover:underline">Support / Ticket Portal</a></p>

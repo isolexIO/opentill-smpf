@@ -90,7 +90,7 @@ export default function UserGuide() {
 
               <h3 className="text-lg font-semibold mt-6">Understanding User Roles</h3>
               <ul className="list-disc pl-5 space-y-1">
-                <li><strong>Super Admin:</strong> Isolex/openTILL team — full platform access</li>
+                <li><strong>Super Admin:</strong> openTILL team — full platform access</li>
                 <li><strong>Merchant Admin:</strong> Business owner with full control over their account</li>
                 <li><strong>Manager:</strong> Can process orders, manage inventory, view reports, manage staff</li>
                 <li><strong>Cashier:</strong> Can process orders and accept payments only</li>

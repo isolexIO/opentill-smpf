@@ -435,7 +435,7 @@ export default function Brochure() {
             </div>
           </div>
           <p className="text-center text-xs text-white/30 mt-10 tracking-widest uppercase">
-            © Isolex Corporation · openTILL SMPF · Powered by Solana
+            © {new Date().getFullYear()} openTILL Corporation · openTILL SMPF · Powered by Solana
           </p>
         </section>
       </div>

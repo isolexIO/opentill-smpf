@@ -21,7 +21,7 @@ export default function AboutPage() {
               <div>
                 <h2 className="text-2xl font-bold mb-4">How It Started</h2>
                 <p className="leading-relaxed text-lg text-gray-200">
-                  openTILL was conceived by <strong className="text-white">Jason Zachrich</strong> of <strong className="text-white">Isolex Corporation</strong> — a one-person operation based out of Toledo, Ohio. 
+                  openTILL was conceived by <strong className="text-white">Jason Zachrich</strong> of <strong className="text-white">openTILL Corporation</strong> — a one-person operation based out of Toledo, Ohio. 
                   After spending years in the payment processing industry and watching merchants get nickel-and-dimed by legacy POS systems, Jason decided to just build something better.
                 </p>
                 <p className="leading-relaxed text-lg text-gray-200 mt-4">

@@ -176,7 +176,7 @@
       "properties": {
         "copyright_text": {
           "type": "string",
-          "default": "\u00a9 2024 Isolex Corporation. All rights reserved."
+          "default": "\u00a9 2026 openTILL Corporation. All rights reserved."
         },
         "tagline": {
           "type": "string",

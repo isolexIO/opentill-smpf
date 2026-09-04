@@ -85,7 +85,7 @@ export default function LandingPageEditor() {
             cta_text: 'Get Started Today'
           },
           company_info: {
-            copyright_text: '© 2024 Isolex Corporation. All rights reserved.',
+            copyright_text: `© ${new Date().getFullYear()} openTILL Corporation. All rights reserved.`,
             tagline: 'The next-generation point of sale system for modern businesses.'
           },
           subscription_plans_enabled: true

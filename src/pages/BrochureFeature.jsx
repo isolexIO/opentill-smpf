@@ -362,7 +362,7 @@ export default function BrochureFeature() {
         )}
 
         <footer className="text-center text-xs text-white/30 py-8 border-t border-white/10 tracking-widest uppercase">
-          © Isolex Corporation · openTILL SMPF · Powered by Solana
+          © {new Date().getFullYear()} openTILL Corporation · openTILL SMPF · Powered by Solana
         </footer>
       </div>
     </div>

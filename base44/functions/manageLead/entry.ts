@@ -26,7 +26,7 @@ const brandedEmail = (innerHtml) => `<!DOCTYPE html>
 <tr><td style="padding:8px 48px 40px 48px;">${innerHtml}</td></tr>
 <tr><td style="padding:28px 48px;background:#fafafa;border-top:1px solid #e4e4e7;">
 <p style="margin:0 0 8px 0;font-size:13px;color:#52525b;line-height:1.6;"><strong style="color:#18181b;">openTILL SMPF</strong> — The blockchain-integrated Point of Sale for modern commerce.</p>
-<p style="margin:0;font-size:12px;color:#a1a1aa;line-height:1.6;">&copy; ${new Date().getFullYear()} Isolex Corporation. All rights reserved.<br>This is an automated message — please do not reply directly to this email.</p>
+<p style="margin:0;font-size:12px;color:#a1a1aa;line-height:1.6;">&copy; ${new Date().getFullYear()} openTILL Corporation. All rights reserved.<br>This is an automated message — please do not reply directly to this email.</p>
 </td></tr>
 <tr><td style="height:6px;background:linear-gradient(90deg,#0FD17A 0%,#7B2FD6 100%);font-size:0;line-height:0;">&nbsp;</td></tr>
 </table></td></tr></table></body></html>`;

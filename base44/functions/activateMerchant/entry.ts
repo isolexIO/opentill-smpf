@@ -98,7 +98,7 @@ Deno.serve(async (req) => {
             <strong style="color:#3f3f46;">openTILL SMPF</strong> — The blockchain-integrated Point of Sale for modern commerce.
           </p>
           <p style="margin:0;font-size:12px;color:#a1a1aa;line-height:1.6;">
-            &copy; ${new Date().getFullYear()} Isolex Corporation. All rights reserved.<br>
+            &copy; ${new Date().getFullYear()} openTILL Corporation. All rights reserved.<br>
             This is an automated message — please do not reply directly to this email.
           </p>
         </td></tr>
