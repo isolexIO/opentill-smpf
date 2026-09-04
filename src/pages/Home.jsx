@@ -162,6 +162,18 @@ export default function HomePage() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Jump to the section named in the URL hash once the page has rendered
+  useEffect(() => {
+    if (loading) return;
+    const hash = window.location.hash;
+    if (!hash) return;
+    const el = document.querySelector(hash);
+    if (el) {
+      const t = setTimeout(() => el.scrollIntoView({ behavior: 'smooth' }), 100);
+      return () => clearTimeout(t);
+    }
+  }, [loading]);
+
   useEffect(() => {
     loadSubscriptionPlans();
     loadSettings();

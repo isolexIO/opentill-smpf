@@ -45,8 +45,8 @@ export default function PublicFooter() {
           <div>
             <h3 className="text-white font-semibold mb-4">Product</h3>
             <ul className="space-y-2">
-              <li><a href={`${createPageUrl('Home')}#features`} className="text-gray-300 hover:text-white text-sm transition-colors">Features</a></li>
-              <li><a href={`${createPageUrl('Home')}#pricing`} className="text-gray-300 hover:text-white text-sm transition-colors">Pricing</a></li>
+              <li><a href={`/#features`} className="text-gray-300 hover:text-white text-sm transition-colors">Features</a></li>
+              <li><a href={`/#pricing`} className="text-gray-300 hover:text-white text-sm transition-colors">Pricing</a></li>
               <li><a href={createPageUrl('DeviceShop')} className="text-gray-300 hover:text-white text-sm transition-colors">Device Shop</a></li>
               <li>
                 <a href="https://ico.opentill.io/" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white text-sm transition-colors">

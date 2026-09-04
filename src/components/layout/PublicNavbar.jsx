@@ -65,14 +65,14 @@ export default function PublicNavbar() {
               <a href={createPageUrl('Marketplace')} className="text-white hover:text-green-300 transition-colors">
                 Marketplace
               </a>
-              <a href={`${createPageUrl('Home')}#features`} className="text-white hover:text-green-300 transition-colors">
+              <a href={`/#features`} className="text-white hover:text-green-300 transition-colors">
                 Features
               </a>
-              <a href={`${createPageUrl('Home')}#pricing`} className="text-white hover:text-green-300 transition-colors">
+              <a href={`/#pricing`} className="text-white hover:text-green-300 transition-colors">
                 Pricing
               </a>
               {subscriptionPlansEnabled && (
-                <a href={`${createPageUrl('Home')}#support-tiers`} className="text-white hover:text-green-300 transition-colors">
+                <a href={`/#support-tiers`} className="text-white hover:text-green-300 transition-colors">
                   Support Tiers
                 </a>
               )}
@@ -131,10 +131,10 @@ export default function PublicNavbar() {
         <div className="md:hidden bg-black/80 backdrop-blur-md border-b border-white/10 px-6 py-4 space-y-3">
           <a href={createPageUrl('Home')} className="block text-green-300 font-semibold py-2">Home</a>
           <a href={createPageUrl('Marketplace')} className="block text-white hover:text-green-300 py-2">Marketplace</a>
-          <a href={`${createPageUrl('Home')}#features`} onClick={() => setMobileMenuOpen(false)} className="block text-white hover:text-green-300 py-2">Features</a>
-          <a href={`${createPageUrl('Home')}#pricing`} onClick={() => setMobileMenuOpen(false)} className="block text-white hover:text-green-300 py-2">Pricing</a>
+          <a href={`/#features`} onClick={() => setMobileMenuOpen(false)} className="block text-white hover:text-green-300 py-2">Features</a>
+          <a href={`/#pricing`} onClick={() => setMobileMenuOpen(false)} className="block text-white hover:text-green-300 py-2">Pricing</a>
           {subscriptionPlansEnabled && (
-            <a href={`${createPageUrl('Home')}#support-tiers`} onClick={() => setMobileMenuOpen(false)} className="block text-white hover:text-green-300 py-2">Support Tiers</a>
+            <a href={`/#support-tiers`} onClick={() => setMobileMenuOpen(false)} className="block text-white hover:text-green-300 py-2">Support Tiers</a>
           )}
           <a href={createPageUrl('About')} className="block text-white hover:text-green-300 py-2">About</a>
           <a href={createPageUrl('Contact')} className="block text-white hover:text-green-300 py-2">Contact</a>
