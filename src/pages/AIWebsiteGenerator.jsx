@@ -119,13 +119,14 @@ export default function AIWebsiteGenerator() {
 
     setLogoLoading(true);
     try {
-      const logoPrompt = `Create a professional, modern logo for ${businessInfo.businessName}, a ${businessInfo.industry} business. The logo should be clean, memorable, and suitable for digital and print use. Style: ${businessInfo.colors || 'modern and professional'}`;
-      
-      const logoUrl = await base44.integrations.Core.GenerateImage({
-        prompt: logoPrompt
+      const logoResult = await base44.functions.invoke('generateWebsiteAsset', {
+        businessName: businessInfo.businessName,
+        industry: businessInfo.industry,
+        colors: businessInfo.colors,
+        assetType: 'logo'
       });
 
-      setGeneratedLogo(logoUrl.url);
+      setGeneratedLogo(logoResult.data?.url);
       toast({ title: "Success", description: "Logo generated successfully!" });
     } catch (error) {
       console.error('Error generating logo:', error);
@@ -143,18 +144,19 @@ export default function AIWebsiteGenerator() {
 
     setLoading(true);
     try {
-      const imagePrompts = [
-        `Professional hero image for a ${businessInfo.industry} business: ${businessInfo.description}. High quality, modern, ${businessInfo.colors || 'professional colors'}`,
-        `Interior or product showcase for ${businessInfo.businessName} in ${businessInfo.industry}. Clean, bright, professional`,
-        `Team or service image for ${businessInfo.industry} business. Welcoming, professional, modern aesthetic`
-      ];
-
-      const imagePromises = imagePrompts.map(prompt => 
-        base44.integrations.Core.GenerateImage({ prompt })
+      const assetTypes = ['hero', 'interior', 'team'];
+      const imagePromises = assetTypes.map(assetType =>
+        base44.functions.invoke('generateWebsiteAsset', {
+          businessName: businessInfo.businessName,
+          industry: businessInfo.industry,
+          colors: businessInfo.colors,
+          description: businessInfo.description,
+          assetType
+        })
       );
 
       const results = await Promise.all(imagePromises);
-      setGeneratedImages(results.map(r => r.url));
+      setGeneratedImages(results.map(r => r.data?.url).filter(Boolean));
       toast({ title: "Success", description: "Images generated successfully!" });
     } catch (error) {
       console.error('Error generating images:', error);
@@ -184,155 +186,15 @@ export default function AIWebsiteGenerator() {
         ? `\n- Include a prominent "Order Online" button that links to: ${window.location.origin}/online-menu`
         : '';
 
-      const logoSection = generatedLogo 
-        ? `\n- Use this logo image in the header: ${generatedLogo}`
-        : '';
-
-      const imagesSection = generatedImages.length > 0
-        ? `\n- Use these generated images throughout the site: ${generatedImages.join(', ')}`
-        : '';
-
-      // Analytics tracking script
-      const analyticsScript = `
-<!-- Analytics Tracking -->
-<script>
-(function() {
-  const WEBSITE_ID = '${newWebsiteId}';
-  const API_URL = '${window.location.origin}';
-  
-  // Generate visitor ID
-  let visitorId = localStorage.getItem('visitor_id');
-  if (!visitorId) {
-    visitorId = 'v_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    localStorage.setItem('visitor_id', visitorId);
-  }
-  
-  // Generate session ID
-  let sessionId = sessionStorage.getItem('session_id');
-  if (!sessionId) {
-    sessionId = 's_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    sessionStorage.setItem('session_id', sessionId);
-  }
-  
-  function track(eventType, data = {}) {
-    fetch(API_URL + '/functions/trackWebsiteAnalytics', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        website_id: WEBSITE_ID,
-        event_type: eventType,
-        page_path: window.location.pathname,
-        visitor_id: visitorId,
-        session_id: sessionId,
-        referrer: document.referrer || 'direct',
-        ...data
-      })
-    }).catch(err => console.log('Analytics error:', err));
-  }
-  
-  // Track page view
-  track('page_view');
-  
-  // Track unique visitor (first visit only)
-  if (!localStorage.getItem('tracked_visitor')) {
-    track('unique_visitor');
-    localStorage.setItem('tracked_visitor', 'true');
-  }
-  
-  // Track button clicks
-  document.addEventListener('click', function(e) {
-    if (e.target.matches('button, a, .btn')) {
-      track('button_click', {
-        element_id: e.target.id,
-        element_text: e.target.textContent.trim()
+      const genResult = await base44.functions.invoke('generateWebsiteHTML', {
+        businessInfo,
+        websiteId: newWebsiteId,
+        logoUrl: generatedLogo,
+        imageUrls: generatedImages,
+        apiOrigin: window.location.origin,
+        onlineOrderingLink
       });
-    }
-  });
-  
-  // Track form submissions
-  document.addEventListener('submit', function(e) {
-    if (e.target.matches('form')) {
-      track('form_submission', {
-        form_data: { submitted: true }
-      });
-    }
-  });
-})();
-</script>`;
-
-      const prompt = `Generate a complete, modern, multi-page HTML/CSS/JS website for the following business:
-
-Business Name: ${businessInfo.businessName}
-Industry: ${businessInfo.industry}
-Description: ${businessInfo.description}
-Key Features/Services: ${businessInfo.features || 'Not specified'}
-Preferred Colors: ${businessInfo.colors || 'Professional theme'}
-Target Audience: ${businessInfo.targetAudience || 'General public'}
-
-Pages to Include: ${selectedPages.join(', ')}
-${onlineOrderingLink}
-${logoSection}
-${imagesSection}
-
-CRITICAL CSS REQUIREMENTS:
-- EVERY HTML file MUST include comprehensive CSS inside <style> tags in the <head> section
-- CSS must include: reset styles, typography, layout (grid/flexbox), colors, spacing, responsive breakpoints
-- Use modern CSS with transitions, hover effects, gradients, shadows, and animations
-- Include @media queries for mobile responsiveness (max-width: 768px, 480px)
-- Style ALL elements: header, nav, buttons, forms, sections, footer, cards, images
-- Add smooth transitions and hover states to interactive elements
-- Use the specified color scheme throughout all styles
-
-HTML/CSS Structure Requirements:
-- Create MULTIPLE separate HTML files (one for each page: ${selectedPages.map(p => p + '.html').join(', ')})
-- Each HTML file must have: <!DOCTYPE html>, <html>, <head> with <style> tags, <body>
-- Include consistent header with navigation and footer on every page
-- Use semantic HTML5: <header>, <nav>, <main>, <section>, <footer>
-- Add meta viewport tag: <meta name="viewport" content="width=device-width, initial-scale=1.0">
-- Use relative links between pages (e.g., <a href="about.html">About</a>)
-
-Design Elements to Include:
-- Hero section with gradient background and call-to-action buttons
-- Navigation bar with hover effects (sticky on scroll)
-- Content sections with cards, images, and proper spacing
-- Contact forms with styled inputs
-- Testimonials with rounded avatars and quotes
-- Footer with links and social media icons
-- Smooth scrolling and modern animations (fade-in, slide-up)
-- Professional color scheme with gradients and shadows
-- Call-to-action buttons with hover effects throughout
-
-Include this analytics tracking code before the closing </body> tag on EVERY page:
-${analyticsScript}
-
-Output Format Example:
-=== home.html ===
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${businessInfo.businessName} - Home</title>
-    <style>
-        /* Reset and Base Styles */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; line-height: 1.6; color: #333; }
-        
-        /* Add comprehensive CSS here for all page elements */
-        /* Include header, nav, hero, sections, buttons, footer, responsive styles */
-    </style>
-</head>
-<body>
-    <!-- Complete page structure here -->
-</body>
-</html>
-
-Generate ONLY the HTML files with complete inline CSS, nothing else. No explanations outside the code.`;
-
-      const response = await base44.integrations.Core.InvokeLLM({
-        prompt: prompt,
-        add_context_from_internet: false
-      });
+      const response = genResult.data?.html;
 
       setGeneratedWebsite(response);
       setPreviewMode(true);

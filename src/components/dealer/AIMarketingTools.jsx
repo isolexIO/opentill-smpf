@@ -65,29 +65,14 @@ export default function AIMarketingTools({ dealerId }) {
     setQuickLoading(true);
     setQuickResult('');
     try {
-      const platformLabels = {
-        email: 'email campaign',
-        instagram: 'Instagram caption',
-        twitter: 'Twitter/X post',
-        sms: 'SMS message',
-        google: 'Google Business post'
-      };
-      const prompt = `Write a ${platformLabels[quickTool]} that SELLS the openTILL SMPF point-of-sale platform to a ${quickForm.merchantType} business owner (a prospective merchant).
-Tone: ${quickForm.tone}.
-Sales angle / focus: ${quickForm.topic}.
-
-About openTILL SMPF: a modern, blockchain-integrated POS that accepts cash, card, crypto (Solana / USDC), and EBT/SNAP, with dual-pricing (cash vs. card) compliance, online ordering, delivery, invoices, inventory, staff management, and $DUC loyalty rewards. Merchants can start with a free trial.
-
-IMPORTANT — REFERRAL LINK: You MUST always include this ambassador referral link in the call-to-action so the prospect signs up through the ambassador and the ambassador gets credit. Use this exact link: ${referralLink}
-${quickTool === 'email' ? 'Include a subject line, greeting, body (2-3 paragraphs), and a clear CTA to book a demo or start a free trial. Keep it under 200 words.' : ''}
-${quickTool === 'instagram' ? 'Include an engaging caption with emojis and 5-7 relevant hashtags. Max 150 words.' : ''}
-${quickTool === 'twitter' ? 'Keep it under 280 characters, punchy and engaging with 1-2 hashtags.' : ''}
-${quickTool === 'sms' ? 'Keep it under 160 characters, include a clear offer and CTA.' : ''}
-${quickTool === 'google' ? 'Write a Google Business post, 100-150 words, highlighting value and including a CTA.' : ''}
-Address the merchant directly and persuasively as a sales prospect. Make it authentic and ready to send.`;
-
-      const result = await base44.integrations.Core.InvokeLLM({ prompt });
-      setQuickResult(result);
+      const result = await base44.functions.invoke('generateMarketingCopy', {
+        platform: quickTool,
+        merchantType: quickForm.merchantType,
+        tone: quickForm.tone,
+        topic: quickForm.topic,
+        referralLink
+      });
+      setQuickResult(result.data?.content || '');
     } catch (err) {
       setQuickResult('Error generating content. Please try again.');
     } finally { setQuickLoading(false); }

@@ -59,52 +59,9 @@ export default function PerformanceAnalytics({ dealerId, campaigns }) {
   const generateOptimizationRecommendations = async () => {
     setGeneratingRecommendations(true);
     try {
-      const campaignData = campaigns.map(c => ({
-        name: c.campaign_name,
-        type: c.campaign_type,
-        segment: c.target_segment,
-        status: c.status,
-        budget: c.budget,
-        spent: c.actual_spend,
-        metrics: c.performance_metrics
-      }));
+      const response = await base44.functions.invoke('generatePerformanceRecommendations', { dealerId });
 
-      const prompt = `Analyze these marketing campaign performances and provide 5 specific optimization recommendations:
-
-Campaign Data: ${JSON.stringify(campaignData, null, 2)}
-
-For each recommendation provide:
-1. Title (brief recommendation)
-2. Description (detailed explanation)
-3. Priority (high, medium, low)
-4. Expected impact (percentage improvement estimate)
-5. Implementation steps (array of actions)
-
-Return as JSON array.`;
-
-      const response = await base44.integrations.Core.InvokeLLM({
-        prompt,
-        response_json_schema: {
-          type: 'object',
-          properties: {
-            recommendations: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  title: { type: 'string' },
-                  description: { type: 'string' },
-                  priority: { type: 'string' },
-                  expected_impact: { type: 'string' },
-                  implementation_steps: { type: 'array', items: { type: 'string' } }
-                }
-              }
-            }
-          }
-        }
-      });
-
-      setRecommendations(response.recommendations || []);
+      setRecommendations(response.data?.recommendations || []);
     } catch (error) {
       console.error('Error generating recommendations:', error);
       alert('Failed to generate recommendations');

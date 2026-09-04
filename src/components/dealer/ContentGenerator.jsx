@@ -30,44 +30,16 @@ export default function ContentGenerator({ dealerId, merchants, onContentGenerat
     try {
       const merchant = merchants.find(m => m.id === selectedMerchant);
       
-      // Build AI prompt: sell openTILL SMPF to this merchant (B2B prospect)
-      const prompt = `Generate ${contentType} content that SELLS the openTILL SMPF point-of-sale platform to "${merchant.business_name}" (a prospective merchant).
-
-About openTILL SMPF: a modern, blockchain-integrated POS that accepts cash, card, crypto (Solana / USDC), and EBT/SNAP, with dual-pricing (cash vs. card) compliance, online ordering, delivery, invoices, inventory, staff management, and $DUC loyalty rewards. Merchants can start with a free trial.
-
-Context:
-- Prospect: ${merchant.business_name}
-- Sales angle / focus: ${topic}
-- Tone: ${tone}
-- Platform: ${platform}
-
-Requirements:
-- Address the merchant directly and persuasively as a sales prospect.
-- IMPORTANT: Always include this ambassador referral link in the call-to-action so the prospect signs up through the ambassador: ${referralLink || `(use /MerchantOnboarding?dealer_id=${dealerId})`}
-- ${contentType === 'social_post' ? 'Keep it under 280 characters, engaging and shareable' : ''}
-- ${contentType === 'email_newsletter' ? 'Create a compelling subject line and well-structured email body with sections' : ''}
-- Include relevant hashtags if appropriate
-- Add a clear call-to-action (book a demo or start a free trial)
-- Make it ${tone} in tone
-
-Generate the content in JSON format with these fields:
-- title (subject line or headline)
-- body (main content)
-- hashtags (array of relevant hashtags)
-- call_to_action (clear CTA)`;
-
-      const response = await base44.integrations.Core.InvokeLLM({
-        prompt,
-        response_json_schema: {
-          type: 'object',
-          properties: {
-            title: { type: 'string' },
-            body: { type: 'string' },
-            hashtags: { type: 'array', items: { type: 'string' } },
-            call_to_action: { type: 'string' }
-          }
-        }
+      const result = await base44.functions.invoke('generateMarketingContent', {
+        merchantName: merchant.business_name,
+        contentType,
+        platform,
+        tone,
+        topic,
+        referralLink,
+        dealerId
       });
+      const response = result.data?.content || {};
 
       setGeneratedContent({
         ...response,

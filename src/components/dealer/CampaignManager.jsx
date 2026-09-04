@@ -24,51 +24,9 @@ export default function CampaignManager({ dealerId, merchants, campaigns, onUpda
   const handleGenerateSuggestions = async () => {
     setGeneratingSuggestions(true);
     try {
-      // Analyze merchant data to generate campaign suggestions
-      const merchantStats = merchants.map(m => ({
-        name: m.business_name,
-        revenue: m.total_revenue || 0,
-        status: m.status
-      }));
+      const response = await base44.functions.invoke('generateCampaignSuggestions', { dealerId });
 
-      const prompt = `Analyze these merchant statistics and suggest 3 targeted marketing campaigns:
-
-Merchants: ${JSON.stringify(merchantStats, null, 2)}
-
-For each campaign suggestion, provide:
-1. Campaign name
-2. Target segment (high_performers, new_merchants, struggling, or all)
-3. Campaign type (social_media, email, multi_channel)
-4. Description of the strategy
-5. Expected impact
-6. Recommended budget
-
-Return as JSON array.`;
-
-      const response = await base44.integrations.Core.InvokeLLM({
-        prompt,
-        response_json_schema: {
-          type: 'object',
-          properties: {
-            campaigns: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  campaign_name: { type: 'string' },
-                  target_segment: { type: 'string' },
-                  campaign_type: { type: 'string' },
-                  description: { type: 'string' },
-                  expected_impact: { type: 'string' },
-                  recommended_budget: { type: 'number' }
-                }
-              }
-            }
-          }
-        }
-      });
-
-      setSuggestions(response.campaigns || []);
+      setSuggestions(response.data?.campaigns || []);
     } catch (error) {
       console.error('Error generating suggestions:', error);
       alert('Failed to generate suggestions');

@@ -102,7 +102,7 @@ Please provide:
 
 Format the response as a JSON object with keys: salesInsights, inventoryRecommendations, customerInsights, actionItems`;
 
-    const response = await base44.integrations.Core.InvokeLLM({
+    const response = await base44.asServiceRole.integrations.Core.InvokeLLM({
       prompt,
       response_json_schema: {
         type: 'object',
