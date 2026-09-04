@@ -366,7 +366,7 @@ export default function UserGuide() {
               <ul className="list-disc pl-5 space-y-2">
                 <li><strong>Support Tickets:</strong> Go to <strong>System Menu → Support → New Ticket</strong></li>
                 <li><strong>Phone/Text:</strong> 419-729-3889 (Mon–Fri, 9am–5pm EST)</li>
-                <li><strong>Email:</strong> support@isolex.io (24–48 hour response)</li>
+                <li><strong>Email:</strong> support@openTILL.io (24–48 hour response)</li>
               </ul>
 
               <h3 className="text-lg font-semibold mt-6">Frequently Asked Questions</h3>

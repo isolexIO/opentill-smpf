@@ -1383,7 +1383,7 @@ All new feature revenue is included in your monthly commission calculations. Tra
       },
       {
         title: 'Getting Help',
-        content: 'Support channels:\n\n1. Support Tickets:\n   • Navigate to Support page\n   • Click "Submit Ticket"\n   • Describe issue in detail\n   • Attach screenshots\n   • Response within 24 hours\n\n2. Phone/Text:\n   • Call or text: 419-729-3889\n   • Business hours: Mon-Fri 9am-5pm EST\n   • Leave voicemail after hours\n\n3. Email:\n   • support@isolex.io\n   • Include:\n     - Merchant name\n     - Issue description\n     - Steps to reproduce\n     - Screenshots/videos\n   - Response within 24 hours\n\n4. User Manual:\n   • This guide\n   • Search for topics\n   • Step-by-step tutorials\n\n5. Video Tutorials:\n   • Coming soon\n   • YouTube channel\n\n6. Community Forum:\n   • Future feature\n   • Connect with other merchants'
+        content: 'Support channels:\n\n1. Support Tickets:\n   • Navigate to Support page\n   • Click "Submit Ticket"\n   • Describe issue in detail\n   • Attach screenshots\n   • Response within 24 hours\n\n2. Phone/Text:\n   • Call or text: 419-729-3889\n   • Business hours: Mon-Fri 9am-5pm EST\n   • Leave voicemail after hours\n\n3. Email:\n   • support@openTILL.io\n   • Include:\n     - Merchant name\n     - Issue description\n     - Steps to reproduce\n     - Screenshots/videos\n   - Response within 24 hours\n\n4. User Manual:\n   • This guide\n   • Search for topics\n   • Step-by-step tutorials\n\n5. Video Tutorials:\n   • Coming soon\n   • YouTube channel\n\n6. Community Forum:\n   • Future feature\n   • Connect with other merchants'
       }
     ]
   },

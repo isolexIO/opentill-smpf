@@ -372,7 +372,7 @@ export default function TermsOfServicePage() {
             
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 mt-6">Informal Resolution</h3>
             <p className="text-gray-700 leading-relaxed dark:text-gray-300">
-              Before filing a legal claim, you agree to first contact us at <a href="mailto:legal@isolex.io" className="text-purple-600 hover:underline">legal@isolex.io</a> to attempt 
+              Before filing a legal claim, you agree to first contact us at <a href="mailto:legal@openTILL.io" className="text-purple-600 hover:underline">legal@openTILL.io</a> to attempt 
               informal resolution. We commit to working in good faith to resolve disputes.
             </p>
 
@@ -431,8 +431,8 @@ export default function TermsOfServicePage() {
             </p>
             <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 dark:bg-gray-700 dark:border-gray-600">
               <p className="font-semibold text-gray-900 dark:text-white mb-2">openTILL Corporation</p>
-              <p className="text-gray-700 dark:text-gray-300">Email: <a href="mailto:legal@isolex.io" className="text-purple-600 hover:underline">legal@isolex.io</a></p>
-              <p className="text-gray-700 dark:text-gray-300">Support: <a href="mailto:support@isolex.io" className="text-purple-600 hover:underline">support@isolex.io</a></p>
+              <p className="text-gray-700 dark:text-gray-300">Email: <a href="mailto:legal@openTILL.io" className="text-purple-600 hover:underline">legal@openTILL.io</a></p>
+              <p className="text-gray-700 dark:text-gray-300">Support: <a href="mailto:support@openTILL.io" className="text-purple-600 hover:underline">support@openTILL.io</a></p>
               <p className="text-gray-700 dark:text-gray-300">Report Issues: <a href={createPageUrl('Support')} className="text-purple-600 hover:underline">Support / Ticket Portal</a></p>
               <p className="text-gray-700 mt-2 dark:text-gray-300">Address: Toledo, OH 43606</p>
             </div>

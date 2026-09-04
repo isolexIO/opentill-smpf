@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
 
     // Derive the app base URL from the request origin so the login link in the
     // email always points back to the correct deployment.
-    const origin = req.headers.get('origin') || req.headers.get('referer') || 'https://opentill.isolex.io';
+    const origin = req.headers.get('origin') || req.headers.get('referer') || 'https://opentill.openTILL.io';
     const appUrl = origin.replace(/\/$/, '');
 
     const now = new Date().toISOString();

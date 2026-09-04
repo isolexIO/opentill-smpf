@@ -205,7 +205,7 @@ export default function PrivacyPolicyPage() {
                 <li><strong>Restriction:</strong> Limit how we process your data</li>
               </ul>
               <p className="text-gray-700 leading-relaxed mt-4">
-                To exercise these rights, contact us at <strong>privacy@isolex.io</strong>
+                To exercise these rights, contact us at <strong>privacy@openTILL.io</strong>
               </p>
             </section>
 
@@ -263,8 +263,8 @@ export default function PrivacyPolicyPage() {
               </p>
               <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
                 <p className="font-semibold text-gray-900 mb-2">openTILL Corporation</p>
-                <p className="text-gray-700">Email: <a href="mailto:privacy@isolex.io" className="text-purple-600 hover:underline">privacy@isolex.io</a></p>
-                <p className="text-gray-700">Support: <a href="mailto:support@isolex.io" className="text-purple-600 hover:underline">support@isolex.io</a></p>
+                <p className="text-gray-700">Email: <a href="mailto:privacy@openTILL.io" className="text-purple-600 hover:underline">privacy@openTILL.io</a></p>
+                <p className="text-gray-700">Support: <a href="mailto:support@openTILL.io" className="text-purple-600 hover:underline">support@openTILL.io</a></p>
                 <p className="text-gray-700">Report Issues: <a href={createPageUrl('Support')} className="text-purple-600 hover:underline">Support / Ticket Portal</a></p>
                 <p className="text-gray-700 mt-2">Address: Toledo, OH 43606</p>
               </div>

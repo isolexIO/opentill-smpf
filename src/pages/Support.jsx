@@ -304,8 +304,8 @@ export default function SupportPage() {
                   <Mail className="w-5 h-5 text-blue-600 mt-1 flex-shrink-0" />
                   <div>
                     <p className="font-medium text-sm sm:text-base">Email Support</p>
-                    <a href="mailto:support@isolex.io" className="text-sm text-blue-600 hover:underline dark:text-blue-400 break-all">
-                      support@isolex.io
+                    <a href="mailto:support@openTILL.io" className="text-sm text-blue-600 hover:underline dark:text-blue-400 break-all">
+                      support@openTILL.io
                     </a>
                     <p className="text-xs text-gray-500">24-48 hour response</p>
                   </div>

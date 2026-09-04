@@ -117,7 +117,7 @@ export default function UserManual() {
               </p>
               <div className="flex flex-wrap gap-2">
                 <Badge variant="outline">📞 419-729-3889</Badge>
-                <Badge variant="outline">✉️ support@isolex.io</Badge>
+                <Badge variant="outline">✉️ support@openTILL.io</Badge>
               </div>
             </div>
           </div>

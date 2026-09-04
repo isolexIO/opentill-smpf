@@ -122,12 +122,12 @@ export default function AboutPage() {
             <div className="grid md:grid-cols-2 gap-6">
               <div>
                 <p className="font-semibold mb-3">General Inquiries</p>
-                <p className="text-gray-200">Email: <a href="mailto:info@isolex.io" className="text-purple-400 hover:underline">info@isolex.io</a></p>
+                <p className="text-gray-200">Email: <a href="mailto:info@openTILL.io" className="text-purple-400 hover:underline">info@openTILL.io</a></p>
                 <p className="text-gray-200">Phone: +1 (419) 729-3889</p>
               </div>
               <div>
                 <p className="font-semibold mb-3">Sales & Partnerships</p>
-                <p className="text-gray-200">Email: <a href="mailto:sales@isolex.io" className="text-purple-400 hover:underline">sales@isolex.io</a></p>
+                <p className="text-gray-200">Email: <a href="mailto:sales@openTILL.io" className="text-purple-400 hover:underline">sales@openTILL.io</a></p>
                 <p className="text-gray-200">Phone: +1 (419) 729-3889</p>
               </div>
             </div>

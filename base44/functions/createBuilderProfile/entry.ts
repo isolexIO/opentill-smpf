@@ -132,7 +132,7 @@ Deno.serve(async (req) => {
     }
 
     // Derive app URL from request origin
-    const origin = req.headers.get('origin') || req.headers.get('referer') || 'https://opentill.isolex.io';
+    const origin = req.headers.get('origin') || req.headers.get('referer') || 'https://opentill.openTILL.io';
     const appUrl = origin.replace(/\/$/, '');
 
     // Send confirmation email with openTILL credentials
