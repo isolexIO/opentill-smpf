@@ -165,7 +165,7 @@ export default function DealerDashboardPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       {/* Top Bar */}
       <div className="sticky top-0 z-40 border-b border-white/10 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {dealer.logo_url ? (
               <img src={dealer.logo_url} alt={dealer.name} className="h-9 object-contain" />
@@ -173,7 +173,7 @@ export default function DealerDashboardPage() {
               <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6970e2871534100b4ebb8d45/8e45f76fe_DUC3.png" alt="openTILL" className="w-9 h-9" />
             )}
             <div>
-              <div className="font-bold text-gray-900 dark:text-white text-sm leading-none">{dealer.name}</div>
+              <div className="font-bold text-gray-900 dark:text-white text-sm leading-none truncate max-w-[110px] sm:max-w-xs">{dealer.name}</div>
               <div className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
                 Ambassador Dashboard
                 {['root_admin', 'admin'].includes(currentUser?.role) && (
@@ -191,19 +191,19 @@ export default function DealerDashboardPage() {
               </a>
             )}
             <Button variant="ghost" size="sm" onClick={() => window.location.href = createPageUrl('SMPFWallet')} className="text-gray-500 dark:text-gray-400">
-              <Wallet className="w-4 h-4 mr-1" /> Wallet
+              <Wallet className="w-4 h-4 sm:mr-1" /> <span className="hidden sm:inline">Wallet</span>
             </Button>
             <Button variant="ghost" size="icon" className="text-gray-500 dark:text-gray-400">
               <Bell className="w-4 h-4" />
             </Button>
             <Button variant="ghost" size="sm" onClick={handleLogout} className="text-gray-500 dark:text-gray-400">
-              <LogOut className="w-4 h-4 mr-1" /> Logout
+              <LogOut className="w-4 h-4 sm:mr-1" /> <span className="hidden sm:inline">Logout</span>
             </Button>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         {/* Welcome */}
         <div className="mb-8">
           <h1 className="text-2xl font-black text-gray-900 dark:text-white">
@@ -215,7 +215,7 @@ export default function DealerDashboardPage() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
           {[
             { label: 'Total Merchants', value: stats.totalMerchants, sub: `${stats.activeMerchants} active`, icon: Store, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
             { label: 'Network Revenue', value: `$${stats.monthlyRevenue.toLocaleString()}`, sub: 'All merchants', icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
@@ -223,14 +223,14 @@ export default function DealerDashboardPage() {
             { label: 'Commission Rate', value: `${dealer.commission_percent || 0}%`, sub: 'On merchant fees', icon: CreditCard, color: 'text-orange-600', bg: 'bg-orange-50 dark:bg-orange-900/20' },
           ].map((s, i) => (
             <Card key={i} className="dark:bg-gray-900 dark:border-gray-800">
-              <CardContent className="p-5">
+              <CardContent className="p-3 sm:p-5">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">{s.label}</span>
                   <div className={`w-8 h-8 rounded-lg ${s.bg} flex items-center justify-center`}>
                     <s.icon className={`w-4 h-4 ${s.color}`} />
                   </div>
                 </div>
-                <div className="text-2xl font-black text-gray-900 dark:text-white">{s.value}</div>
+                <div className="text-lg sm:text-2xl font-black text-gray-900 dark:text-white break-words">{s.value}</div>
                 <p className="text-xs text-gray-400 mt-1">{s.sub}</p>
               </CardContent>
             </Card>
@@ -280,7 +280,7 @@ export default function DealerDashboardPage() {
           </TabsContent>
           <TabsContent value="settings">
             <Tabs defaultValue="branding" className="space-y-4">
-              <TabsList>
+              <TabsList className="flex-wrap h-auto gap-1">
                 <TabsTrigger value="branding">Branding</TabsTrigger>
                 <TabsTrigger value="payments">Payments</TabsTrigger>
                 <TabsTrigger value="domains">SNS Subdomain</TabsTrigger>
