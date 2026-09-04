@@ -145,17 +145,17 @@ openTILL POS Team`
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center gap-4">
-        <div className="flex-1 max-w-md relative">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+        <div className="flex-1 max-w-md relative w-full sm:w-auto">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
           <Input
             placeholder="Search merchants..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="pl-10 w-full"
           />
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
             <DialogTrigger asChild>
               <Button variant="outline" className="gap-2"><Mail className="w-4 h-4" />Send Invite</Button>
