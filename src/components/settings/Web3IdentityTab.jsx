@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Globe, CheckCircle, Copy, ExternalLink } from 'lucide-react';
+import { Globe, CheckCircle, Copy, ExternalLink, RefreshCw, Loader2 } from 'lucide-react';
 import SNSSubdomainRegistration from '@/components/dealer/SNSSubdomainRegistration';
 
 const PARENT_DOMAIN = 'openTILL.io';
@@ -12,6 +12,7 @@ export default function Web3IdentityTab({ merchant }) {
   const [sub, setSub] = useState(merchant?.opentill_subdomain || null);
   const [status, setStatus] = useState(merchant?.subdomain_status || 'none');
   const [copied, setCopied] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
 
   useEffect(() => {
     setSub(merchant?.opentill_subdomain || null);
@@ -30,6 +31,26 @@ export default function Web3IdentityTab({ merchant }) {
       }
     } catch {
       /* ignore */
+    }
+  };
+
+  const handleRegenerate = async () => {
+    setRegenerating(true);
+    try {
+      const { data } = await base44.functions.invoke('assignEntitySubdomain', {
+        entity_type: 'merchant',
+        entity_id: merchant.id,
+        force: true,
+      });
+      if (data?.success) {
+        await refresh();
+      } else {
+        alert(data?.error || 'Failed to regenerate subdomain');
+      }
+    } catch (e) {
+      alert('Failed: ' + e.message);
+    } finally {
+      setRegenerating(false);
     }
   };
 
@@ -53,8 +74,8 @@ export default function Web3IdentityTab({ merchant }) {
             <>
               <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                 <div>
-                  <p className="font-semibold text-lg break-all">{full}</p>
-                  <p className="text-sm text-gray-500">DNS Subdomain</p>
+                  <p className="font-semibold text-lg break-all text-gray-900">{full}</p>
+                  <p className="text-sm text-gray-700">DNS Subdomain</p>
                 </div>
                 <Badge className={status === 'active' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}>
                   {status}
@@ -70,12 +91,20 @@ export default function Web3IdentityTab({ merchant }) {
                     <ExternalLink className="w-4 h-4 mr-1" /> Visit
                   </Button>
                 </a>
+                <Button variant="outline" size="sm" onClick={handleRegenerate} disabled={regenerating}>
+                  {regenerating ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-1" />}
+                  Regenerate
+                </Button>
               </div>
             </>
           ) : (
-            <p className="text-gray-500 text-sm">
-              Your subdomain will be assigned automatically when your account is activated.
-            </p>
+            <div className="space-y-3">
+              <p className="text-gray-700 text-sm">No DNS subdomain assigned yet.</p>
+              <Button onClick={handleRegenerate} disabled={regenerating}>
+                {regenerating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Globe className="w-4 h-4 mr-2" />}
+                Assign subdomain
+              </Button>
+            </div>
           )}
         </CardContent>
       </Card>

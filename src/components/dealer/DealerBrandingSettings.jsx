@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Check, Copy } from 'lucide-react';
 import { updateAmbassadorProfile } from '@/lib/dealerProfile';
-import SNSSubdomainRegistration from '@/components/dealer/SNSSubdomainRegistration';
 
 export default function DealerBrandingSettings({ dealer, onUpdate }) {
   const [saving, setSaving] = useState(false);
@@ -43,9 +42,6 @@ export default function DealerBrandingSettings({ dealer, onUpdate }) {
 
   return (
     <div className="space-y-6">
-      {/* On-chain SNS subdomain (optional purchase) */}
-      <SNSSubdomainRegistration ownerType="ambassador" ownerId={dealer.id} onUpdate={onUpdate} />
-
       {/* Logo & Favicon */}
       <Card>
         <CardHeader>

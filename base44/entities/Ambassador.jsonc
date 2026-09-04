@@ -38,7 +38,7 @@
     },
     "opentill_subdomain": {
       "type": "string",
-      "description": "Unique .opentill-pos.sol subdomain"
+      "description": "Auto-assigned DNS subdomain label (mybrand.openTILL.io)"
     },
     "subdomain_status": {
       "type": "string",
@@ -48,7 +48,7 @@
         "disabled"
       ],
       "default": "pending",
-      "description": "Subdomain activation status"
+      "description": "DNS subdomain activation status"
     },
     "subdomain_requested_at": {
       "type": "string",
@@ -60,6 +60,24 @@
     },
     "subdomain_wallet": {
       "type": "string"
+    },
+    "sns_subdomain": {
+      "type": "string",
+      "description": "Optional on-chain SNS subdomain label (mybrand.opentill.sol). Separate from the auto DNS opentill_subdomain."
+    },
+    "sns_subdomain_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "active",
+        "disabled"
+      ],
+      "default": "pending",
+      "description": "On-chain SNS subdomain mint status"
+    },
+    "sns_subdomain_wallet": {
+      "type": "string",
+      "description": "Wallet that owns the minted SNS subdomain"
     },
     "contact_email": {
       "type": "string",

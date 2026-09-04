@@ -69,8 +69,8 @@ function SNSMintPanel({ ownerType, ownerId, owner, loadOwner, onUpdate }) {
   const [error, setError] = useState(null);
   const [copied, setCopied] = useState(false);
 
-  const current = owner?.opentill_subdomain;
-  const isActive = owner?.subdomain_status === 'active';
+  const current = owner?.sns_subdomain;
+  const isActive = owner?.sns_subdomain_status === 'active';
   const fullDomain = current ? `${current}.${PARENT_DOMAIN}` : null;
 
   const cleanLabel = (val) =>
@@ -167,14 +167,14 @@ function SNSMintPanel({ ownerType, ownerId, owner, loadOwner, onUpdate }) {
       <>
         <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
           <div>
-            <p className="font-semibold text-lg break-all">{fullDomain}</p>
-            <p className="text-sm text-gray-500">SNS Subdomain</p>
+            <p className="font-semibold text-lg break-all text-gray-900">{fullDomain}</p>
+            <p className="text-sm text-gray-700">SNS Subdomain</p>
           </div>
           <Badge className="bg-green-100 text-green-800">Active</Badge>
         </div>
-        {owner?.subdomain_wallet && (
-          <p className="text-xs text-gray-500 break-all font-mono">
-            Owner wallet: {owner.subdomain_wallet}
+        {owner?.sns_subdomain_wallet && (
+          <p className="text-xs text-gray-700 break-all font-mono">
+            Owner wallet: {owner.sns_subdomain_wallet}
           </p>
         )}
         {result?.tx_signature && (

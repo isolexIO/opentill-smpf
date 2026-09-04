@@ -151,7 +151,7 @@ function isOwnerOf(ownerType, owner, user) {
 async function isSubdomainTaken(base44, subdomain, excludeOwnerId) {
   for (const entity of Object.values(ENTITY_BY_TYPE)) {
     const matches = await base44.asServiceRole.entities[entity].filter({
-      opentill_subdomain: subdomain,
+      sns_subdomain: subdomain,
     });
     if (matches && matches.some((m) => m.id !== excludeOwnerId)) return true;
   }

@@ -169,12 +169,10 @@ Deno.serve(async (req) => {
     }
 
     await base44.asServiceRole.entities[entity].update(ownerId, {
-      opentill_subdomain: subdomain,
-      subdomain_status: 'active',
-      subdomain_approved_at: new Date().toISOString(),
-      subdomain_requested_at:
-        owner.subdomain_requested_at || new Date().toISOString(),
-      subdomain_wallet: walletAddress,
+      sns_subdomain: subdomain,
+      sns_subdomain_status: 'active',
+      sns_subdomain_wallet: walletAddress,
+      sns_subdomain_at: new Date().toISOString(),
     });
 
     return Response.json({
