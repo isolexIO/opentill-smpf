@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import WelcomeScreen from '../components/customer-display/WelcomeScreen';
 import TipScreen from '../components/customer-display/TipScreen';
@@ -18,6 +18,15 @@ export default function CustomerDisplayPage() {
   const [stationId, setStationId] = useState(null); // Added stationId state
   const [stationInfo, setStationInfo] = useState(null);
 
+  // Refs mirror state so the steady polling interval can read the latest
+  // values without tearing down/restarting on every change. This keeps a
+  // consistent ~700ms cadence so POS updates appear on screen quickly.
+  const currentOrderRef = useRef(null);
+  const currentScreenRef = useRef('welcome');
+
+  useEffect(() => { currentOrderRef.current = currentOrder; }, [currentOrder]);
+  useEffect(() => { currentScreenRef.current = currentScreen; }, [currentScreen]);
+
   useEffect(() => {
     initializeDisplay();
     return () => {
@@ -31,18 +40,16 @@ export default function CustomerDisplayPage() {
   useEffect(() => {
     if (merchant) {
       console.log('CustomerDisplay: Starting polling with merchant:', merchant.business_name);
-      // Start polling for orders
+      // Steady 700ms cadence. The interval is NOT reset on state changes;
+      // pollForOrder reads the latest state from refs, so POS updates reach
+      // the display within ~700ms instead of waiting up to 1.5s + jitter.
       const interval = setInterval(() => {
         pollForOrder();
-      }, 1500); // Poll every 1.5 seconds for better responsiveness
+      }, 700);
 
-      // The currentOrder as a dependency here will make sure that
-      // when currentOrder state changes, the polling interval effectively
-      // "restarts" (clears old, sets new) which is useful if the polling
-      // logic needs to react immediately to currentOrder state changes.
       return () => clearInterval(interval);
     }
-  }, [merchant, currentScreen, currentOrder, stationId, sessionId]); // Removed lastCheckedOrderId, added currentOrder and stationId
+  }, [merchant, stationId, sessionId]);
 
   const initializeDisplay = async () => {
     try {
@@ -187,16 +194,20 @@ export default function CustomerDisplayPage() {
 
       // Use the stationId state for filtering
       const targetStationId = stationId;
+      // Read latest state from refs so this closure (captured once by the
+      // steady interval) always sees current values without restarting.
+      const activeOrder = currentOrderRef.current;
+      const activeScreen = currentScreenRef.current;
 
       console.log('CustomerDisplay: Polling for orders...', {
         merchantId: merchant.id,
         stationId: targetStationId,
-        currentScreen,
-        hasCurrentOrder: !!currentOrder
+        currentScreen: activeScreen,
+        hasCurrentOrder: !!activeOrder
       });
 
       // --- Part 1: Find new orders that need to be displayed (if no order is currently active) ---
-      if (!currentOrder) {
+      if (!activeOrder) {
         const pendingResp = await base44.functions.invoke('getDisplayOrders', {
           merchant_id: merchant.id,
           session_id: sessionId,
@@ -235,13 +246,13 @@ export default function CustomerDisplayPage() {
       }
 
       // --- Part 2: If we have a current order, check for status updates ---
-      if (currentOrder?.id) {
+      if (activeOrder?.id) {
         try {
           const statusResp = await base44.functions.invoke('getDisplayOrders', {
             merchant_id: merchant.id,
             session_id: sessionId,
             mode: 'customer',
-            current_order_id: currentOrder.id
+            current_order_id: activeOrder.id
           });
           if (!statusResp.data?.success || !statusResp.data.currentOrder) {
             console.log('CustomerDisplay: Current order not found, returning to welcome.');
@@ -252,22 +263,22 @@ export default function CustomerDisplayPage() {
           
           console.log('CustomerDisplay: Status check:', {
             orderNumber: updatedOrder.order_number,
-            oldStatus: currentOrder.status,
+            oldStatus: activeOrder.status,
             newStatus: updatedOrder.status,
-            oldTip: currentOrder.tip_amount,
+            oldTip: activeOrder.tip_amount,
             newTip: updatedOrder.tip_amount,
-            currentScreen
+            currentScreen: activeScreen
           });
 
           // Check if order has been updated — refresh on ANY meaningful change so
           // the display always reflects the cart the cashier is ringing up (items
           // and total), not just status/tip/payment transitions. This keeps the
           // pushed ticket in sync instead of freezing on the first preview snapshot.
-          const statusChanged = updatedOrder.status !== currentOrder.status;
-          const tipChanged = updatedOrder.tip_amount !== currentOrder.tip_amount;
-          const paymentMethodChanged = updatedOrder.payment_method !== currentOrder.payment_method;
-          const totalChanged = updatedOrder.total !== currentOrder.total;
-          const itemsChanged = JSON.stringify(updatedOrder.items || []) !== JSON.stringify(currentOrder.items || []);
+          const statusChanged = updatedOrder.status !== activeOrder.status;
+          const tipChanged = updatedOrder.tip_amount !== activeOrder.tip_amount;
+          const paymentMethodChanged = updatedOrder.payment_method !== activeOrder.payment_method;
+          const totalChanged = updatedOrder.total !== activeOrder.total;
+          const itemsChanged = JSON.stringify(updatedOrder.items || []) !== JSON.stringify(activeOrder.items || []);
 
           if (statusChanged || tipChanged || paymentMethodChanged || totalChanged || itemsChanged) {
             console.log('CustomerDisplay: Order updated, refreshing');
@@ -308,11 +319,11 @@ export default function CustomerDisplayPage() {
         } catch (orderError) {
           console.error('CustomerDisplay: Error fetching current order:', orderError);
         }
-      } else if (!currentOrder && currentScreen !== 'welcome') {
+      } else if (!activeOrder && activeScreen !== 'welcome') {
         // If no current order is active and we're not on the welcome screen,
         // it means the previous order was completed/cancelled and we need to reset.
         // Special case: don't interrupt SolanaPayScreen if it's processing
-        if (currentScreen !== 'solana_pay') {
+        if (activeScreen !== 'solana_pay') {
              console.log('CustomerDisplay: No active order, returning to welcome from non-solana screen.');
              returnToWelcome();
         }
