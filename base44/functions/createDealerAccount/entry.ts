@@ -222,14 +222,15 @@ Deno.serve(async (req) => {
                 });
 
                 const loginEmail = owner_email.toLowerCase().trim();
-                const portalUrl = `https://${slug}.opentillpos.isolex.io`;
+                const origin = (req.headers.get('origin') || req.headers.get('referer') || 'https://opentill.base44.app').replace(/\/$/, '');
+                const portalUrl = `${origin}/DealerDashboard`;
                 const html = `
                     <h2>Welcome to openTILL, ${owner_name}!</h2>
                     <p>Your ambassador account for <strong>${dealer_name}</strong> has been created successfully.</p>
 
                     <h3>How to Log In</h3>
                     <p>Use <strong>Google Sign-In</strong> with ${loginEmail} (recommended), or the magic-link invitation email from openTILL to set your password.</p>
-                    <p>Login URL: <a href="https://opentillpos.isolex.io/EmailLogin">opentillpos.isolex.io/EmailLogin</a></p>
+                    <p>Login URL: <a href="${origin}/EmailLogin">${origin}/EmailLogin</a></p>
 
                     <h3>Your POS Quick-Login PIN</h3>
                     <p style="font-size:28px; font-weight:bold; letter-spacing:6px; background:#f3f4f6; padding:12px 20px; border-radius:8px; display:inline-block;">${pin}</p>

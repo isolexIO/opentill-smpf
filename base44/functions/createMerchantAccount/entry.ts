@@ -50,6 +50,10 @@ Deno.serve(async (req) => {
 
         const base44 = createClientFromRequest(req);
 
+        // Derive the app base URL from the request origin so links in the
+        // welcome email always point back to the correct deployment.
+        const appUrl = (req.headers.get('origin') || req.headers.get('referer') || 'https://opentill.base44.app').replace(/\/$/, '');
+
         // Resolve the caller once. The public self-registration path is
         // unauthenticated; admin-only actions (activation, email dispatch)
         // require an authenticated administrator below.
@@ -267,7 +271,7 @@ Deno.serve(async (req) => {
                             Once activated, you'll receive a follow-up email with your login credentials and can sign in at:
                         </p>
                         <div style="text-align:center;margin:32px 0;">
-                            <a href="https://chainlinkpos.isolex.io/EmailLogin" style="display:inline-block;padding:14px 40px;background:linear-gradient(90deg,#7B2FD6 0%,#0FD17A 100%);color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;border-radius:10px;box-shadow:0 4px 16px rgba(123,47,214,0.35);">Go to Login &rarr;</a>
+                            <a href="${appUrl}/EmailLogin" style="display:inline-block;padding:14px 40px;background:linear-gradient(90deg,#7B2FD6 0%,#0FD17A 100%);color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;border-radius:10px;box-shadow:0 4px 16px rgba(123,47,214,0.35);">Go to Login &rarr;</a>
                         </div>
                         <p style="margin:24px 0 0 0;font-size:14px;color:#52525b;line-height:1.7;">
                             Thank you for choosing openTILL!<br>
