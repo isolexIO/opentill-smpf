@@ -1,6 +1,35 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 // activateMerchant — handles merchant activation/rejection with branded HTML emails
+
+const slugifyName = (name) =>
+  (name || '').toLowerCase().trim().replace(/&/g, 'and').replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').substring(0, 32) || 'site';
+
+async function assignMerchantSubdomain(base44, merchantId, businessName) {
+  const base = slugifyName(businessName);
+  let slug = base;
+  let counter = 1;
+  for (;;) {
+    let taken = false;
+    for (const e of ['Merchant', 'Ambassador', 'Builder']) {
+      const matches = await base44.asServiceRole.entities[e].filter({ opentill_subdomain: slug });
+      if (matches && matches.some((m) => m.id !== merchantId)) { taken = true; break; }
+    }
+    if (!taken) break;
+    slug = `${base}-${counter}`.substring(0, 32);
+    counter++;
+    if (counter > 50) break;
+  }
+  const now = new Date().toISOString();
+  await base44.asServiceRole.entities.Merchant.update(merchantId, {
+    opentill_subdomain: slug,
+    subdomain_status: 'active',
+    subdomain_requested_at: now,
+    subdomain_approved_at: now,
+  });
+  return `${slug}.openTILL.io`;
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -177,6 +206,16 @@ Deno.serve(async (req) => {
         if (isUnique) updateData.referral_code = referralCode;
       }
       const updated = await base44.asServiceRole.entities.Merchant.update(merchant_id, updateData);
+
+      // Auto-assign a <businessName>.openTILL.io DNS subdomain at activation so
+      // every merchant gets one automatically (no on-chain mint required).
+      if (!merchantData.opentill_subdomain) {
+        try {
+          await assignMerchantSubdomain(base44, merchant_id, merchantData.business_name);
+        } catch (subErr) {
+          console.error('Failed to auto-assign merchant subdomain:', subErr);
+        }
+      }
 
       const bizName = sanitizeForEmail(merchantData.business_name);
       const ownerName = sanitizeForEmail(merchantData.owner_name) || 'Merchant';

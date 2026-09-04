@@ -11,6 +11,34 @@ function escapeHtml(value: string): string {
     .replace(/'/g, '&#39;');
 }
 
+const slugifyName = (name) =>
+  (name || '').toLowerCase().trim().replace(/&/g, 'and').replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').substring(0, 32) || 'site';
+
+async function assignBuilderSubdomain(base44, builderId, name) {
+  const base = slugifyName(name);
+  let slug = base;
+  let counter = 1;
+  for (;;) {
+    let taken = false;
+    for (const e of ['Merchant', 'Ambassador', 'Builder']) {
+      const matches = await base44.asServiceRole.entities[e].filter({ opentill_subdomain: slug });
+      if (matches && matches.some((m) => m.id !== builderId)) { taken = true; break; }
+    }
+    if (!taken) break;
+    slug = `${base}-${counter}`.substring(0, 32);
+    counter++;
+    if (counter > 50) break;
+  }
+  const now = new Date().toISOString();
+  await base44.asServiceRole.entities.Builder.update(builderId, {
+    opentill_subdomain: slug,
+    subdomain_status: 'active',
+    subdomain_requested_at: now,
+    subdomain_approved_at: now,
+  });
+  return `${slug}.openTILL.io`;
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -72,6 +100,13 @@ Deno.serve(async (req) => {
       support_email: support_email || user_email,
       status: 'pending',
     });
+
+    // Auto-assign a <companyName>.openTILL.io DNS subdomain.
+    try {
+      await assignBuilderSubdomain(base44, builder.id, company_name || full_name);
+    } catch (subErr) {
+      console.error('Failed to auto-assign builder subdomain:', subErr);
+    }
 
     // Generate a unique 6-digit PIN for quick login
     let builderPin = null;

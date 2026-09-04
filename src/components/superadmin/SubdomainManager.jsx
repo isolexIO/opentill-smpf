@@ -2,11 +2,10 @@ import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Globe, CheckCircle, Clock, XCircle, 
-  RefreshCw, Edit, Ban 
+import {
+  Globe, CheckCircle, Clock, XCircle,
+  RefreshCw, Ban, ExternalLink, Copy
 } from 'lucide-react';
 import {
   Dialog,
@@ -17,14 +16,19 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 
+const PARENT_DOMAIN = 'openTILL.io';
+
 export default function SubdomainManager({ merchant, onUpdate }) {
   const [loading, setLoading] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
-  const [action, setAction] = useState('');
-  const [newSubdomain, setNewSubdomain] = useState('');
+  const [copied, setCopied] = useState(false);
 
-  const getStatusBadge = (status) => {
-    switch (status) {
+  const subdomain = merchant?.opentill_subdomain;
+  const status = merchant?.subdomain_status || (subdomain ? 'pending' : 'none');
+  const fullDomain = subdomain ? `${subdomain}.${PARENT_DOMAIN}` : null;
+
+  const getStatusBadge = (s) => {
+    switch (s) {
       case 'active':
         return <Badge className="bg-green-100 text-green-800"><CheckCircle className="w-3 h-3 mr-1" />Active</Badge>;
       case 'pending':
@@ -36,158 +40,131 @@ export default function SubdomainManager({ merchant, onUpdate }) {
     }
   };
 
-  const handleAction = async (actionType) => {
-    setAction(actionType);
-    if (actionType === 'regenerate') {
-      setShowDialog(true);
-    } else {
-      executeAction(actionType);
+  const run = async (payload) => {
+    setLoading(true);
+    try {
+      const { data } = await base44.functions.invoke('assignEntitySubdomain', payload);
+      if (data.success) {
+        if (onUpdate) onUpdate();
+      } else {
+        alert(data.error || 'Failed');
+      }
+    } catch (e) {
+      alert('Failed: ' + e.message);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const executeAction = async (actionType, customName = null) => {
-    setLoading(true);
+  const handleRegenerate = async () => {
     setShowDialog(false);
-    try {
-      const { data } = await base44.functions.invoke('generateMerchantSubdomain', {
-        merchant_id: merchant.id,
-        action: actionType,
-        new_subdomain: customName
-      });
+    await run({ entity_type: 'merchant', entity_id: merchant.id, force: true });
+  };
 
-      if (data.success) {
-        alert(`Subdomain ${actionType}d successfully!`);
-        if (onUpdate) onUpdate();
-      } else {
-        alert(data.error || `Failed to ${actionType} subdomain`);
-      }
-    } catch (error) {
-      console.error('Action error:', error);
-      alert(`Failed to ${actionType} subdomain: ` + error.message);
-    } finally {
-      setLoading(false);
-      setNewSubdomain('');
-    }
+  const handleDisable = async () => {
+    if (!confirm('Disable this subdomain? It will stop resolving until re-enabled.')) return;
+    await run({ entity_type: 'merchant', entity_id: merchant.id, disable: true });
+  };
+
+  const handleEnable = async () => {
+    await run({ entity_type: 'merchant', entity_id: merchant.id });
+  };
+
+  const copy = (text) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
-    <>
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Globe className="w-5 h-5" />
-                Merchant Subdomain
-              </CardTitle>
-              <CardDescription>
-                Manage .chainlink-pos.sol subdomain identity
-              </CardDescription>
-            </div>
-            {getStatusBadge(merchant.subdomain_status || 'none')}
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Globe className="w-5 h-5" />
+              openTILL Identity
+            </CardTitle>
+            <CardDescription>Auto-assigned *.{PARENT_DOMAIN} DNS subdomain</CardDescription>
           </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {merchant.chainlink_subdomain ? (
-            <>
-              <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-4 rounded-lg border border-purple-200">
-                <div className="text-sm text-gray-600 mb-1">Current Subdomain</div>
-                <div className="text-xl font-bold text-purple-900 break-all">
-                  {merchant.chainlink_subdomain}.chainlink-pos.sol
-                </div>
-              </div>
-
-              <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Status</span>
-                  <span className="font-medium">{merchant.subdomain_status || 'pending'}</span>
-                </div>
-                {merchant.subdomain_wallet && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Linked Wallet</span>
-                    <span className="font-mono text-xs">{merchant.subdomain_wallet.slice(0, 6)}...{merchant.subdomain_wallet.slice(-4)}</span>
-                  </div>
-                )}
-                {merchant.subdomain_requested_at && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Requested</span>
-                    <span>{new Date(merchant.subdomain_requested_at).toLocaleDateString()}</span>
-                  </div>
-                )}
-                {merchant.subdomain_approved_at && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Approved</span>
-                    <span>{new Date(merchant.subdomain_approved_at).toLocaleDateString()}</span>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex gap-2">
-                {merchant.subdomain_status === 'pending' && (
-                  <Button
-                    onClick={() => handleAction('approve')}
-                    disabled={loading}
-                    className="flex-1"
-                  >
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    Approve
-                  </Button>
-                )}
-                
-                <Button
-                  onClick={() => handleAction('regenerate')}
-                  disabled={loading}
-                  variant="outline"
-                  className="flex-1"
-                >
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Regenerate
-                </Button>
-
-                {merchant.subdomain_status !== 'disabled' && (
-                  <Button
-                    onClick={() => handleAction('disable')}
-                    disabled={loading}
-                    variant="destructive"
-                    className="flex-1"
-                  >
-                    <Ban className="w-4 h-4 mr-2" />
-                    Disable
-                  </Button>
-                )}
-              </div>
-            </>
-          ) : (
-            <div className="text-center py-8 text-gray-500">
-              No subdomain requested yet
+          {getStatusBadge(status)}
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {fullDomain ? (
+          <>
+            <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-4 rounded-lg border border-purple-200">
+              <div className="text-sm text-gray-600 mb-1">Current Subdomain</div>
+              <div className="text-xl font-bold text-purple-900 break-all">{fullDomain}</div>
             </div>
-          )}
-        </CardContent>
-      </Card>
+
+            <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Status</span>
+                <span className="font-medium">{status}</span>
+              </div>
+              {merchant.subdomain_wallet && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Linked Wallet</span>
+                  <span className="font-mono text-xs">{merchant.subdomain_wallet.slice(0, 6)}...{merchant.subdomain_wallet.slice(-4)}</span>
+                </div>
+              )}
+              {merchant.subdomain_approved_at && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Assigned</span>
+                  <span>{new Date(merchant.subdomain_approved_at).toLocaleDateString()}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-2 flex-wrap">
+              <Button variant="outline" size="sm" onClick={() => copy(fullDomain)}>
+                {copied ? <CheckCircle className="w-4 h-4 mr-1 text-green-600" /> : <Copy className="w-4 h-4 mr-1" />}
+                {copied ? 'Copied' : 'Copy'}
+              </Button>
+              <a href={`https://${fullDomain}`} target="_blank" rel="noopener noreferrer">
+                <Button variant="outline" size="sm">
+                  <ExternalLink className="w-4 h-4 mr-1" /> Visit
+                </Button>
+              </a>
+              <Button variant="outline" size="sm" onClick={() => setShowDialog(true)} disabled={loading}>
+                <RefreshCw className="w-4 h-4 mr-1" /> Regenerate
+              </Button>
+              {status !== 'disabled' ? (
+                <Button variant="destructive" size="sm" onClick={handleDisable} disabled={loading}>
+                  <Ban className="w-4 h-4 mr-1" /> Disable
+                </Button>
+              ) : (
+                <Button size="sm" onClick={handleEnable} disabled={loading}>
+                  <CheckCircle className="w-4 h-4 mr-1" /> Re-enable
+                </Button>
+              )}
+            </div>
+          </>
+        ) : (
+          <div className="text-center py-6 space-y-3">
+            <p className="text-gray-500">No subdomain assigned yet.</p>
+            <Button onClick={() => run({ entity_type: 'merchant', entity_id: merchant.id })} disabled={loading}>
+              <Globe className="w-4 h-4 mr-2" /> Assign subdomain
+            </Button>
+          </div>
+        )}
+      </CardContent>
 
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Regenerate Subdomain</DialogTitle>
+            <DialogTitle>Regenerate subdomain?</DialogTitle>
             <DialogDescription>
-              Enter a new subdomain name or leave empty to auto-generate
+              A new unique subdomain will be generated from the business name. The old one will be replaced.
             </DialogDescription>
           </DialogHeader>
-          <Input
-            placeholder="new-subdomain-name"
-            value={newSubdomain}
-            onChange={(e) => setNewSubdomain(e.target.value.toLowerCase())}
-          />
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDialog(false)}>
-              Cancel
-            </Button>
-            <Button onClick={() => executeAction('regenerate', newSubdomain)}>
-              Regenerate
-            </Button>
+            <Button variant="outline" onClick={() => setShowDialog(false)}>Cancel</Button>
+            <Button onClick={handleRegenerate}>Regenerate</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
+    </Card>
   );
 }

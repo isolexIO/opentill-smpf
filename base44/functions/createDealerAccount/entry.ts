@@ -1,5 +1,33 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+const slugifyName = (name) =>
+  (name || '').toLowerCase().trim().replace(/&/g, 'and').replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').substring(0, 32) || 'site';
+
+async function assignAmbassadorSubdomain(base44, ambassadorId, name) {
+  const base = slugifyName(name);
+  let slug = base;
+  let counter = 1;
+  for (;;) {
+    let taken = false;
+    for (const e of ['Merchant', 'Ambassador', 'Builder']) {
+      const matches = await base44.asServiceRole.entities[e].filter({ opentill_subdomain: slug });
+      if (matches && matches.some((m) => m.id !== ambassadorId)) { taken = true; break; }
+    }
+    if (!taken) break;
+    slug = `${base}-${counter}`.substring(0, 32);
+    counter++;
+    if (counter > 50) break;
+  }
+  const now = new Date().toISOString();
+  await base44.asServiceRole.entities.Ambassador.update(ambassadorId, {
+    opentill_subdomain: slug,
+    subdomain_status: 'active',
+    subdomain_requested_at: now,
+    subdomain_approved_at: now,
+  });
+  return `${slug}.openTILL.io`;
+}
+
 Deno.serve(async (req) => {
     try {
         console.log('createDealerAccount: Starting dealer registration...');
@@ -122,6 +150,13 @@ Deno.serve(async (req) => {
         // Bridge legacy dealer_id foreign keys to this ambassador.
         await base44.asServiceRole.entities.Ambassador.update(dealer.id, { legacy_dealer_id: dealer.id });
         console.log('Ambassador created with ID:', dealer.id);
+
+        // Auto-assign a <dealerName>.openTILL.io DNS subdomain.
+        try {
+          await assignAmbassadorSubdomain(base44, dealer.id, dealer_name);
+        } catch (subErr) {
+          console.error('Failed to auto-assign ambassador subdomain:', subErr);
+        }
 
         // Create dealer admin user
         const userData = {
