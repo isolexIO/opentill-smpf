@@ -156,17 +156,17 @@ export default function DriverDashboard() {
             <Bike className="w-6 h-6 text-blue-600" />
             <div>
               <div className="font-bold text-lg leading-none">openTILL Driver</div>
-              <div className="text-xs text-gray-500">{pinUser?.full_name} · {pinUser?.role}</div>
+              <div className="text-xs text-gray-500 truncate max-w-[120px]">{pinUser?.full_name} · {pinUser?.role}</div>
             </div>
           </div>
           <div className="flex items-center gap-2">
             {isAdmin && (
               <>
                 <Button size="sm" variant="outline" onClick={() => setShowCreate(true)}>
-                  <Plus className="w-4 h-4 mr-1" /> New
+                  <Plus className="w-4 h-4 sm:mr-1" /> <span className="hidden sm:inline">New</span>
                 </Button>
                 <Button size="sm" variant="outline" onClick={importReady} disabled={busy}>
-                  <Download className="w-4 h-4 mr-1" /> Import
+                  <Download className="w-4 h-4 sm:mr-1" /> <span className="hidden sm:inline">Import</span>
                 </Button>
               </>
             )}
@@ -200,9 +200,9 @@ export default function DriverDashboard() {
 
         <Tabs value={tab} onValueChange={setTab}>
           <TabsList className="grid grid-cols-3 w-full">
-            <TabsTrigger value="available">Available ({available.length})</TabsTrigger>
-            <TabsTrigger value="active">My Active ({mine.length})</TabsTrigger>
-            <TabsTrigger value="history">History ({history.length})</TabsTrigger>
+            <TabsTrigger value="available" className="text-xs sm:text-sm whitespace-normal">Available ({available.length})</TabsTrigger>
+            <TabsTrigger value="active" className="text-xs sm:text-sm whitespace-normal">My Active ({mine.length})</TabsTrigger>
+            <TabsTrigger value="history" className="text-xs sm:text-sm whitespace-normal">History ({history.length})</TabsTrigger>
           </TabsList>
 
           <TabsContent value="available" className="mt-3 space-y-3">

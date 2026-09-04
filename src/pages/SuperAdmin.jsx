@@ -410,7 +410,7 @@ export default function SuperAdminPage() {
               <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Revenue (Active Subs)</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-gray-900 dark:text-white">${stats.totalRevenue.toFixed(2)}</div>
+              <div className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white break-words">${stats.totalRevenue.toFixed(2)}</div>
               <p className="text-xs text-gray-500 dark:text-gray-400">From active subscriptions</p>
             </CardContent>
           </Card>

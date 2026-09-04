@@ -117,25 +117,25 @@ export default function BuilderDashboardPage() {
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="flex justify-between items-start mb-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-start mb-8">
           <div>
-            <h1 className="text-4xl font-black text-gray-900">Builder Dashboard</h1>
+            <h1 className="text-2xl sm:text-4xl font-black text-gray-900">Builder Dashboard</h1>
             <p className="text-gray-600 mt-2">
               Welcome back, <span className="font-bold">{builder.company_name}</span>
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap gap-3">
             <Button
               onClick={() => (window.location.href = createPageUrl('SMPFWallet'))}
               variant="outline"
-              className="px-6 h-12 font-bold"
+              className="px-4 sm:px-6 h-10 sm:h-12 font-bold"
             >
               <Wallet className="w-4 h-4 mr-2" />
               SMPF Wallet
             </Button>
             <Button
               onClick={() => (window.location.href = createPageUrl('SubmitChip'))}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 h-12 font-bold"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-6 h-10 sm:h-12 font-bold"
             >
               <Plus className="w-4 h-4 mr-2" />
               Submit New Chip
@@ -151,17 +151,17 @@ export default function BuilderDashboardPage() {
         )}
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {stats.map((stat, idx) => {
             const Icon = stat.icon;
             return (
               <Card key={idx}>
-                <CardContent className="p-6">
-                  <div className={`w-12 h-12 rounded-lg ${stat.color} flex items-center justify-center mb-4`}>
-                    <Icon className="w-6 h-6" />
+                <CardContent className="p-4 sm:p-6">
+                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg ${stat.color} flex items-center justify-center mb-4`}>
+                    <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
                   </div>
                   <p className="text-sm font-medium text-gray-600">{stat.label}</p>
-                  <p className="text-2xl font-black text-gray-900 mt-1">{stat.value}</p>
+                  <p className="text-xl sm:text-2xl font-black text-gray-900 mt-1 break-words">{stat.value}</p>
                 </CardContent>
               </Card>
             );
@@ -173,7 +173,7 @@ export default function BuilderDashboardPage() {
         {/* Stripe Connection Status */}
         {!builder.stripe_connected && (
           <Card className="mb-8 border-orange-200 bg-orange-50">
-            <CardContent className="p-6 flex justify-between items-center">
+            <CardContent className="p-4 sm:p-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
               <div>
                 <h3 className="font-bold text-gray-900">Payment Setup Incomplete</h3>
                 <p className="text-sm text-gray-600 mt-1">
@@ -183,7 +183,7 @@ export default function BuilderDashboardPage() {
               <Button
                 onClick={() => setActiveTab('settings')}
                 variant="outline"
-                className="ml-4 shrink-0"
+                className="shrink-0 w-full sm:w-auto sm:ml-4"
               >
                 Complete Setup
               </Button>
@@ -194,7 +194,7 @@ export default function BuilderDashboardPage() {
         {/* Tabs */}
         <Card>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="w-full justify-start border-b bg-transparent rounded-none px-6 pt-6 pb-0">
+            <TabsList className="w-full flex-wrap h-auto justify-start gap-1 border-b bg-transparent rounded-none px-4 sm:px-6 pt-4 sm:pt-6 pb-0">
               <TabsTrigger value="submissions" className="rounded-t-lg">
                 My Chips ({submissions.length})
               </TabsTrigger>
@@ -225,7 +225,7 @@ export default function BuilderDashboardPage() {
             </TabsContent>
 
             <TabsContent value="domain">
-              <div className="p-6">
+              <div className="p-4 sm:p-6">
                 <SNSSubdomainRegistration ownerType="builder" ownerId={builder.id} onUpdate={loadData} />
               </div>
             </TabsContent>
