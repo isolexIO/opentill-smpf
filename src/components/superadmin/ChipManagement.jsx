@@ -108,9 +108,9 @@ export default function ChipManagement() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold">Chip Management</h2>
+          <h2 className="text-xl sm:text-2xl font-bold">Chip Management</h2>
           <p className="text-gray-500">Manage chips and review builder submissions</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -144,14 +144,14 @@ export default function ChipManagement() {
       </div>
 
       <Tabs defaultValue="submissions">
-        <TabsList>
-          <TabsTrigger value="submissions" className="relative">
+        <TabsList className="flex-wrap h-auto">
+          <TabsTrigger value="submissions" className="relative whitespace-normal">
             Builder Submissions
             {pendingCount > 0 && (
               <span className="ml-2 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5">{pendingCount}</span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="chips">Platform Chips</TabsTrigger>
+          <TabsTrigger value="chips" className="whitespace-normal">Platform Chips</TabsTrigger>
         </TabsList>
 
         {/* Builder Submissions Tab */}
@@ -217,15 +217,15 @@ export default function ChipManagement() {
           {chips.map(chip => (
             <Card key={chip.id}>
               <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-4">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
                     {chip.image_url && (
-                      <img src={chip.image_url} alt={chip.name} className="w-16 h-16 rounded-lg" />
+                      <img src={chip.image_url} alt={chip.name} className="w-14 h-14 sm:w-16 sm:h-16 rounded-lg shrink-0" />
                     )}
-                    <div>
-                      <CardTitle>{chip.name}</CardTitle>
-                      <CardDescription>{chip.short_description}</CardDescription>
-                      <div className="flex gap-2 mt-2">
+                    <div className="min-w-0">
+                      <CardTitle className="truncate">{chip.name}</CardTitle>
+                      <CardDescription className="truncate">{chip.short_description}</CardDescription>
+                      <div className="flex flex-wrap gap-2 mt-2">
                         <Badge>{chip.billing_type}</Badge>
                         <Badge variant="outline">{chip.category}</Badge>
                         <Badge className={chip.status === 'PUBLISHED' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
@@ -235,7 +235,7 @@ export default function ChipManagement() {
                       </div>
                     </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 shrink-0">
                     <Button variant="outline" size="sm" onClick={() => { setEditingChip(chip); setDialogOpen(true); }}>
                       <Edit className="w-4 h-4" />
                     </Button>
@@ -246,7 +246,7 @@ export default function ChipManagement() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-3 gap-4 text-sm">
+                <div className="grid grid-cols-3 gap-2 sm:gap-4 text-xs sm:text-sm">
                   <div>
                     <span className="text-gray-500">Price:</span>
                     <div className="font-medium">
