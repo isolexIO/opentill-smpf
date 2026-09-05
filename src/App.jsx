@@ -26,6 +26,7 @@ import SMPFWallet from './pages/SMPFWallet';
 import SMPFWalletAdmin from './pages/SMPFWalletAdmin';
 import Brochure from './pages/Brochure';
 import BrochureFeature from './pages/BrochureFeature';
+import Community from './pages/Community';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -124,6 +125,11 @@ const AuthenticatedApp = () => {
       <Route path="/SMPFWalletAdmin" element={<SMPFWalletAdmin />} />
       <Route path="/Brochure" element={<Brochure />} />
       <Route path="/Brochure/feature/:id" element={<BrochureFeature />} />
+      <Route path="/Community" element={
+        <LayoutWrapper currentPageName="Community">
+          <Community />
+        </LayoutWrapper>
+      } />
       <Route path="/mobile/station/:token" element={
         <LayoutWrapper currentPageName="MobileStationDisplay">
           <MobileStationDisplay />

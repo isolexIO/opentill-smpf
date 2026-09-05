@@ -28,9 +28,10 @@ import NotificationBanner from '@/components/notifications/NotificationBanner';
 import MobileBottomNav from '@/components/mobile/MobileBottomNav';
 import PublicNavbar from '@/components/layout/PublicNavbar';
 import PublicFooter from '@/components/layout/PublicFooter';
+import CherryChatWidget from '@/components/cherry/CherryChatWidget';
 import { useNavigate } from 'react-router-dom';
 
-const PUBLIC_PAGES = ['Home', 'Login', 'PinLogin', 'EmailLogin', 'WalletLoginPage', 'OnlineMenu', 'CustomerDisplay', 'KitchenDisplay', 'MerchantOnboarding', 'POS', 'PrivacyPolicy', 'TermsOfService', 'License', 'Copyright', 'About', 'Contact', 'DeviceShop', 'DealerLanding', 'DealerDashboard', 'DealerHome', 'SuperAdmin', 'Marketplace', 'ChipDetail', 'Builders', 'BuilderOnboarding', 'DriverDashboard', 'PayInvoice', 'OpenTILLPayments', 'MobileStationDisplay', 'CustomerPortal'];
+const PUBLIC_PAGES = ['Home', 'Login', 'PinLogin', 'EmailLogin', 'WalletLoginPage', 'OnlineMenu', 'CustomerDisplay', 'KitchenDisplay', 'MerchantOnboarding', 'POS', 'PrivacyPolicy', 'TermsOfService', 'License', 'Copyright', 'About', 'Contact', 'DeviceShop', 'DealerLanding', 'DealerDashboard', 'DealerHome', 'SuperAdmin', 'Marketplace', 'ChipDetail', 'Builders', 'BuilderOnboarding', 'DriverDashboard', 'PayInvoice', 'OpenTILLPayments', 'MobileStationDisplay', 'CustomerPortal', 'Community'];
 
 function PublicLayout({ children }) {
   return (
@@ -38,6 +39,7 @@ function PublicLayout({ children }) {
       <PublicNavbar />
       {children}
       <PublicFooter />
+      <CherryChatWidget />
     </div>
   );
 }
@@ -468,6 +470,7 @@ export default function Layout({ children, currentPageName }) {
           )}
         </div>
       </div>
+      <CherryChatWidget />
     </div>
     
   );
