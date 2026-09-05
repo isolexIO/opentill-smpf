@@ -15,6 +15,10 @@
       "type": "string",
       "description": "Merchant ID for data isolation - REQUIRED"
     },
+    "location_id": {
+      "type": "string",
+      "description": "Location ID this order was placed at (null = shared/default location)"
+    },
     "order_number": {
       "type": "string"
     },

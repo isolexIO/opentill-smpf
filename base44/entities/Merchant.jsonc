@@ -182,6 +182,26 @@
           "type": "boolean",
           "default": false
         },
+        "multi_location": {
+          "type": "object",
+          "description": "Multi-location configuration for this merchant",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false,
+              "description": "Whether multi-location support is turned on for this merchant"
+            },
+            "default_catalog_mode": {
+              "type": "string",
+              "enum": [
+                "shared",
+                "standalone"
+              ],
+              "default": "shared",
+              "description": "Default catalog mode for new locations"
+            }
+          }
+        },
         "pricing_and_surcharge": {
           "type": "object",
           "properties": {

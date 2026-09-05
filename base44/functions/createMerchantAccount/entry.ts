@@ -45,7 +45,8 @@ Deno.serve(async (req) => {
             temp_password,
             activate,
             referral_code,
-            wallet_address
+            wallet_address,
+            payment_prefs
         } = body;
 
         const base44 = createClientFromRequest(req);
@@ -212,7 +213,18 @@ Deno.serve(async (req) => {
                 timezone: 'America/New_York',
                 currency: 'USD',
                 tax_rate: 0.08,
-                demo_data_requested: setup_demo_data || false
+                demo_data_requested: setup_demo_data || false,
+                // Persist onboarding payment preferences so selections (cash,
+                // card, EBT, crypto, dual-pricing mode) take effect on the
+                // merchant record instead of being silently dropped.
+                payment_preferences: payment_prefs || null,
+                payment_gateways: (payment_prefs && payment_prefs.accept_ebt)
+                    ? { ebt: { enabled: true, provider: 'manual', test_mode: true, require_pin: true, manual_entry_mode: true } }
+                    : {},
+                pricing_and_surcharge: payment_prefs && payment_prefs.pricing_mode
+                    ? { pricing_mode: payment_prefs.pricing_mode, enable_dual_pricing: !!payment_prefs.accept_card, show_dual_prices: !!payment_prefs.accept_card }
+                    : {},
+                multi_location: { enabled: false, default_catalog_mode: 'shared' }
             }
         });
 

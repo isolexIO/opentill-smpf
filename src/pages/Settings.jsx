@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { AlertCircle, Loader2, ArrowLeft, Settings as SettingsIcon, CreditCard, DollarSign, Monitor, Layers, ShoppingBag, Globe, Wallet, Shield, Printer, Trash2, Users } from 'lucide-react';
+import { AlertCircle, Loader2, ArrowLeft, Settings as SettingsIcon, CreditCard, DollarSign, Monitor, Layers, ShoppingBag, Globe, Wallet, Shield, Printer, Trash2, Users, Store } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { useNavigate } from 'react-router-dom';
 import PermissionGate from '@/components/PermissionGate';
@@ -21,6 +21,7 @@ import Web3IdentityTab from '../components/settings/Web3IdentityTab';
 import StaffManagementTab from '../components/settings/StaffManagementTab';
 import SecurityTab from '../components/settings/SecurityTab';
 import TwoFactorTab from '../components/settings/TwoFactorTab';
+import LocationsManager from '../components/locations/LocationsManager';
 
 export default function SettingsPage() {
   const navigate = useNavigate();
@@ -382,6 +383,7 @@ export default function SettingsPage() {
     { id: 'payments', label: 'Payment Gateways', icon: CreditCard },
     { id: 'pricing', label: 'Pricing & Surcharge', icon: DollarSign },
     { id: 'devices', label: 'Hardware Devices', icon: Printer },
+    { id: 'locations', label: 'Locations', icon: Store },
     { id: 'departments', label: 'Departments', icon: Layers },
     { id: 'display', label: 'Customer Display', icon: Monitor },
     { id: 'web3identity', label: 'openTILL Identity', icon: Globe },
@@ -476,6 +478,9 @@ export default function SettingsPage() {
                     hardware={merchant.settings?.hardware || {}} 
                     onUpdateHardware={(hardware) => handleSave({ settings: { hardware } })}
                   />
+                )}
+                {activeTab === 'locations' && (
+                  <LocationsManager merchant={merchant} />
                 )}
                 {activeTab === 'departments' && (
                   <DepartmentsTab merchant={merchant} />

@@ -11,6 +11,10 @@
       "type": "string",
       "description": "Merchant ID - REQUIRED"
     },
+    "location_id": {
+      "type": "string",
+      "description": "Location ID this station belongs to (null = shared/default location)"
+    },
     "station_id": {
       "type": "string",
       "description": "URL-safe station slug used in display links (e.g. counter-1, bar, server-3)"

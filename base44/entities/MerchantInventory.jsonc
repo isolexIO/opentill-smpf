@@ -10,6 +10,10 @@
       "type": "string",
       "description": "Owning merchant"
     },
+    "location_id": {
+      "type": "string",
+      "description": "Location ID this inventory item belongs to (null = shared/default location stock)"
+    },
     "name": {
       "type": "string",
       "description": "Item name"

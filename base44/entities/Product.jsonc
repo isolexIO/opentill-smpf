@@ -10,6 +10,10 @@
       "type": "string",
       "description": "Merchant ID for data isolation - REQUIRED"
     },
+    "location_id": {
+      "type": "string",
+      "description": "Location ID this product belongs to. Null = shared merchant catalog (available at all shared-catalog locations). Set = standalone-catalog product only available at that location."
+    },
     "name": {
       "type": "string",
       "description": "Product name"
