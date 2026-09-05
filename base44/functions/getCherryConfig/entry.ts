@@ -1,7 +1,9 @@
 Deno.serve(async (req) => {
   try {
     const appId = Deno.env.get("CHERRY_APP_ID") || "";
-    const roomId = "openTILL Support";
+    // roomId left empty so the Cherry embed loads the app's default room.
+    // Set a valid Cherry room slug here (e.g. "@opentill") once a dedicated room is created.
+    const roomId = "";
     return Response.json({
       appId,
       roomId,
