@@ -26,6 +26,8 @@ import { createPageUrl } from "@/utils";
 import { initPOSSession } from "@/lib/posInit";
 
 import { useActiveStaff } from "@/hooks/useActiveStaff";
+import { useActiveLocation } from "@/hooks/useActiveLocation";
+import LocationSwitcher from "@/components/locations/LocationSwitcher";
 import StaffLockScreen from "../components/pos/StaffLockScreen";
 import { OnlineOrdersView, OpenTicketsView } from "../components/pos/POSOrderViews";
 import { logStaffAction } from "@/lib/posAudit";
@@ -113,6 +115,7 @@ export default function POSPage() {
   // shows the PIN lock screen for a fast staff switch — no full logout.
   const isDemo = settings?.merchant_id === 'demo';
   const { activeStaff, isLocked, lock, setStaff } = useActiveStaff(stationId, settings?.merchant_id);
+  const { locations, activeLocationId, activeLocation, switchLocation, isMultiLocation } = useActiveLocation(settings?.merchant_id);
 
   // Guards sensitive POS actions behind an active cashier. When the terminal
   // is locked, switches back to the POS view so the lock screen is visible.
@@ -536,6 +539,7 @@ export default function POSPage() {
       const totals = calculateTotals();
       const orderData = {
         merchant_id: settings.merchant_id,
+        location_id: activeLocationId || null,
         order_number: `PREVIEW-${stationId}`,
         station_id: stationId,
         station_name: stationName,
@@ -1267,6 +1271,7 @@ export default function POSPage() {
 
       const orderData = {
         merchant_id: merchantId,
+        location_id: activeLocationId || null,
         order_number: orderNumber,
         station_id: stationId,
         station_name: stationName,
@@ -1346,6 +1351,26 @@ export default function POSPage() {
       // If the original order was from an open ticket, we mark it as completed
       if (order?.source === 'open_ticket' && order?.id) {
         await base44.entities.Order.update(order.id, { status: 'completed' });
+      }
+
+      // Connect EBT checkout to the processor (records manual transactions,
+      // authorizes integrated ones). Non-fatal: the order is already saved.
+      if (paymentData?.method === 'ebt' || (paymentData?.method === 'split' && (paymentData?.ebtAmount || 0) > 0)) {
+        try {
+          const { data: ebtResult } = await base44.functions.invoke('processEBTPayment', {
+            merchantId: merchantId,
+            orderId: finalOrder?.id || currentOrderId || order?.id,
+            action: 'purchase',
+            amount: paymentData.ebtAmount || 0,
+            approvalCode: paymentData?.details?.ebt_approval_code || '',
+            ebtCardNumber: paymentData?.details?.ebt_card_last_4 || '',
+          });
+          if (!ebtResult?.success) {
+            console.warn('EBT processor returned non-success:', ebtResult);
+          }
+        } catch (ebtErr) {
+          console.error('processEBTPayment failed:', ebtErr);
+        }
       }
 
       if (selectedCustomer) {
@@ -1458,6 +1483,7 @@ export default function POSPage() {
 
       const orderData = {
         merchant_id: merchantId,
+        location_id: activeLocationId || null,
         order_number: orderNumber,
         station_id: stationId,
         station_name: stationName,
@@ -1708,9 +1734,16 @@ export default function POSPage() {
       const matchesSearch = (product.name || '').toLowerCase().includes((searchTerm || '').toLowerCase());
       const matchesDepartment = selectedDepartment === "all" || product.department === selectedDepartment;
       const matchesPosMode = !product.pos_mode || product.pos_mode.includes(posMode);
-      return matchesSearch && matchesDepartment && matchesPosMode;
+      // Multi-location: standalone locations show only their own catalog;
+      // shared locations show the merchant catalog (null location_id) plus their own.
+      const matchesLocation = !isMultiLocation || !activeLocation
+        ? true
+        : activeLocation.catalog_mode === 'standalone'
+          ? product.location_id === activeLocationId
+          : !product.location_id || product.location_id === activeLocationId;
+      return matchesSearch && matchesDepartment && matchesPosMode && matchesLocation;
     });
-  }, [products, selectedDepartment, searchTerm, posMode]);
+  }, [products, selectedDepartment, searchTerm, posMode, isMultiLocation, activeLocation, activeLocationId]);
 
   // categories useMemo removed as we are now using departments
   const isCameraScannerEnabled = settings?.hardware?.barcodeScanner?.enabled && settings.hardware.barcodeScanner.type === 'camera';
@@ -1864,6 +1897,13 @@ export default function POSPage() {
             <Badge variant="outline" className="text-xs">
               {stationName}
             </Badge>
+            {isMultiLocation && (
+              <LocationSwitcher
+                locations={locations}
+                activeLocationId={activeLocationId}
+                onSwitch={switchLocation}
+              />
+            )}
             <Badge variant="outline" className="px-2 py-1 text-sm">
               {cart.length}
             </Badge>

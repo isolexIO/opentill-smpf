@@ -35,6 +35,8 @@ import {
   Calendar
 } from "lucide-react";
 import MobileOrderCard from '@/components/mobile/MobileOrderCard';
+import { useActiveLocation } from "@/hooks/useActiveLocation";
+import LocationSwitcher from "@/components/locations/LocationSwitcher";
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 
 const ORDER_STATUS_CONFIG = {
@@ -58,6 +60,8 @@ export default function OrdersPage() {
   const [dateRange, setDateRange] = useState({ from: undefined, to: undefined }); // New state for date range
   const [dateRangePreset, setDateRangePreset] = useState("all"); // To control the date range select value
   const [loading, setLoading] = useState(true);
+  const _merchantId = (() => { try { return JSON.parse(localStorage.getItem('pinLoggedInUser') || 'null')?.merchant_id; } catch (_) { return null; } })();
+  const { locations, activeLocationId, activeLocation, switchLocation, isMultiLocation } = useActiveLocation(_merchantId);
 
   const loadOrders = useCallback(async () => {
     try {
@@ -125,6 +129,15 @@ export default function OrdersPage() {
   const filterOrders = useCallback(() => {
     let filtered = orders || []; // Ensure orders is an array
 
+    // Multi-location filter: when a location is selected, show only that
+    // location's orders (plus orders with no location_id for shared mode).
+    if (isMultiLocation && activeLocationId) {
+      filtered = filtered.filter(order =>
+        order.location_id === activeLocationId ||
+        (!order.location_id && activeLocation?.catalog_mode === 'shared')
+      );
+    }
+
     // Search filter
     if (searchTerm) {
       filtered = filtered.filter(order =>
@@ -160,7 +173,7 @@ export default function OrdersPage() {
     }
 
     return filtered;
-  }, [orders, searchTerm, statusFilter, paymentFilter, dateRange]); // Added new filter states to dependencies
+  }, [orders, searchTerm, statusFilter, paymentFilter, dateRange, isMultiLocation, activeLocationId, activeLocation]); // Added new filter states to dependencies
 
   const getOrderStats = () => {
     const currentFilteredOrders = filterOrders(); // Use the updated filterOrders
@@ -219,10 +232,19 @@ export default function OrdersPage() {
               <p className="text-sm text-gray-500 dark:text-gray-400">Manage and track all orders</p>
             </div>
           </div>
-          <Button onClick={loadOrders} variant="outline" size="sm">
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Refresh
-          </Button>
+          <div className="flex items-center gap-2">
+            {isMultiLocation && (
+              <LocationSwitcher
+                locations={locations}
+                activeLocationId={activeLocationId}
+                onSwitch={switchLocation}
+              />
+            )}
+            <Button onClick={loadOrders} variant="outline" size="sm">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Refresh
+            </Button>
+          </div>
         </div>
 
         {/* Stats */}

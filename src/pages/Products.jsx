@@ -32,6 +32,8 @@ import ProductForm from "../components/products/ProductForm";
 import ProductGrid from "../components/products/ProductGrid";
 import InventoryManager from "../components/products/InventoryManager";
 import PermissionGate from '../components/PermissionGate';
+import { useActiveLocation } from "@/hooks/useActiveLocation";
+import LocationSwitcher from "@/components/locations/LocationSwitcher";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState([]);
@@ -43,6 +45,7 @@ export default function ProductsPage() {
   const [activeTab, setActiveTab] = useState("grid");
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
+  const { locations, activeLocationId, activeLocation, switchLocation, isMultiLocation } = useActiveLocation(currentUser?.merchant_id);
 
   const loadProducts = useCallback(async () => {
     try {
@@ -87,7 +90,10 @@ export default function ProductsPage() {
 
       const dataToSave = {
         ...productData,
-        merchant_id: currentUser.merchant_id
+        merchant_id: currentUser.merchant_id,
+        location_id: isMultiLocation && activeLocation?.catalog_mode === 'standalone'
+          ? activeLocationId
+          : (productData.location_id || null)
       };
 
       if (selectedProduct) {
@@ -173,7 +179,12 @@ export default function ProductsPage() {
                            (product?.sku || '').toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = selectedCategory === 'all' || product?.category === selectedCategory;
       const matchesDepartment = selectedDepartment === 'all' || product?.department === selectedDepartment;
-      return matchesSearch && matchesCategory && matchesDepartment;
+      const matchesLocation = !isMultiLocation || !activeLocation
+        ? true
+        : activeLocation.catalog_mode === 'standalone'
+          ? product?.location_id === activeLocationId
+          : !product?.location_id || product?.location_id === activeLocationId;
+      return matchesSearch && matchesCategory && matchesDepartment && matchesLocation;
     });
   };
 
@@ -212,10 +223,19 @@ export default function ProductsPage() {
             </p>
           </div>
           
-          <Button onClick={handleAddNew} className="flex items-center gap-2">
-            <Plus className="w-4 h-4" />
-            Add Product
-          </Button>
+          <div className="flex items-center gap-3">
+            {isMultiLocation && (
+              <LocationSwitcher
+                locations={locations}
+                activeLocationId={activeLocationId}
+                onSwitch={switchLocation}
+              />
+            )}
+            <Button onClick={handleAddNew} className="flex items-center gap-2">
+              <Plus className="w-4 h-4" />
+              Add Product
+            </Button>
+          </div>
         </div>
 
         {/* Stats Cards */}
