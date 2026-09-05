@@ -1,15 +1,25 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { MessageCircle, X } from 'lucide-react';
 import CherryEmbed from '@/components/cherry/CherryEmbed';
-import { CHERRY_ENABLED } from '@/lib/cherryConfig';
+import { base44 } from '@/api/base44Client';
 
 export default function CherryChatWidget() {
   const [open, setOpen] = useState(false);
+  const [enabled, setEnabled] = useState(null); // null = unknown, bool = configured state
   const location = useLocation();
 
+  useEffect(() => {
+    let cancelled = false;
+    base44.functions.invoke('getCherryConfig')
+      .then((res) => { if (!cancelled) setEnabled(Boolean(res.data?.enabled)); })
+      .catch(() => { if (!cancelled) setEnabled(false); });
+    return () => { cancelled = true; };
+  }, []);
+
   // Hide on the dedicated Community page (it has its own embed) and when unconfigured
-  if (!CHERRY_ENABLED || location.pathname === '/Community') return null;
+  if (enabled === false || location.pathname === '/Community') return null;
+  if (enabled === null) return null; // still loading config
 
   return (
     <>

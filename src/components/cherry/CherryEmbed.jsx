@@ -1,24 +1,41 @@
 import { useEffect, useRef, useState } from 'react';
-import { CHERRY_APP_ID, CHERRY_ROOM_ID, CHERRY_ENABLED } from '@/lib/cherryConfig';
+import { base44 } from '@/api/base44Client';
 
 const SCRIPT_SRC = 'https://cdn.cherry.fun/embed/v1/cherry-embed.min.js';
 
 export default function CherryEmbed({ roomId, className, style }) {
   const containerRef = useRef(null);
   const chatRef = useRef(null);
-  const [status, setStatus] = useState(CHERRY_ENABLED ? 'loading' : 'unconfigured');
+  const [config, setConfig] = useState(null); // { appId, roomId, enabled }
+  const [status, setStatus] = useState('loading'); // loading | ready | error | unconfigured
 
   useEffect(() => {
-    if (!CHERRY_ENABLED) return;
+    let cancelled = false;
+    base44.functions.invoke('getCherryConfig')
+      .then((res) => {
+        if (cancelled) return;
+        const cfg = res.data || {};
+        setConfig(cfg);
+        if (!cfg.enabled) setStatus('unconfigured');
+      })
+      .catch((e) => {
+        console.error('Cherry config fetch failed:', e);
+        if (!cancelled) setStatus('unconfigured');
+      });
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    if (!config || !config.enabled) return;
     let cancelled = false;
 
     const init = () => {
       if (cancelled || !containerRef.current || !window.CherryEmbedSDK) return;
       try {
         chatRef.current = new window.CherryEmbedSDK.CherryEmbed({
-          appId: CHERRY_APP_ID,
+          appId: config.appId,
           container: containerRef.current,
-          roomId: roomId || CHERRY_ROOM_ID || undefined,
+          roomId: roomId || config.roomId || undefined,
         });
         chatRef.current.mount();
         if (!cancelled) setStatus('ready');
@@ -52,7 +69,7 @@ export default function CherryEmbed({ roomId, className, style }) {
       }
       chatRef.current = null;
     };
-  }, [roomId]);
+  }, [config, roomId]);
 
   if (status === 'unconfigured') {
     return (
@@ -60,7 +77,7 @@ export default function CherryEmbed({ roomId, className, style }) {
         <div className="max-w-sm">
           <p className="text-sm text-gray-200 font-medium">Cherry chat is not configured yet.</p>
           <p className="text-xs text-gray-400 mt-2">
-            Add a Cherry appId in <code className="text-purple-300">src/lib/cherryConfig.js</code> to enable wallet-to-wallet community, support, and collab.
+            Paste your Cherry appId into the <code className="text-purple-300">CHERRY_APP_ID</code> secret in your app's Secrets settings to enable wallet-to-wallet community, support, and collab.
           </p>
         </div>
       </div>
