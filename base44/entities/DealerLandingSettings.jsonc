@@ -16,11 +16,11 @@
         },
         "subheadline": {
           "type": "string",
-          "default": "Manage your white-label network, merchants, and commissions from one powerful dashboard."
+          "default": "Manage your merchant network, commissions, and branding from one powerful dashboard."
         },
         "badge_text": {
           "type": "string",
-          "default": "White-Label POS Platform"
+          "default": "Ambassador POS Platform"
         }
       }
     },
@@ -62,7 +62,7 @@
         {
           "icon": "CheckCircle",
           "icon_color": "#10b981",
-          "title": "Full White Label",
+          "title": "Full Custom Branding",
           "description": "Custom branding, domain, and logo"
         },
         {

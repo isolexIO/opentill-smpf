@@ -1263,7 +1263,7 @@ Note: Disconnecting a session immediately logs the device out. The device can re
     content: [
       {
         title: 'What is an Ambassador?',
-        content: 'Ambassador = openTILL\'s reseller/white-label partner program:\n• Ambassadors resell openTILL to merchants under their own brand\n• Earn commissions on merchant revenue\n• Custom branding (logo, colors, domain)\n• Manage your own merchant base\n• Dedicated Ambassador Dashboard\n• Stripe Connect payouts\n• Stripe Identity verification required for payouts\n\nIdeal for:\n• Payment processors\n• POS resellers\n• Business consultants\n• Technology partners\n• Marketing agencies\n\nAccess: Register at the Ambassador Portal on the homepage. Invite-only after approval.'
+        content: 'Ambassador = openTILL\'s reseller partner program:\n• Ambassadors resell openTILL to merchants under their own brand\n• Earn commissions on merchant revenue\n• Custom branding (logo, colors, domain)\n• Manage your own merchant base\n• Dedicated Ambassador Dashboard\n• Stripe Connect payouts\n• Stripe Identity verification required for payouts\n\nIdeal for:\n• Payment processors\n• POS resellers\n• Business consultants\n• Technology partners\n• Marketing agencies\n\nAccess: Register at the Ambassador Portal on the homepage. Invite-only after approval.'
       },
       {
         title: 'Dealer Registration',
@@ -1342,7 +1342,7 @@ All new feature revenue is included in your monthly commission calculations. Tra
         content: 'Add merchants to your portfolio:\n\n1. Share your Ambassador Hub:\n   • yourdomain.opentill-pos.com\n   • Branded registration form\n   • Or share your referral link/code\n\n2. Merchant registers:\n   • Fills onboarding form\n   • Automatically assigned to you\n   • No manual assignment needed\n\n3. Super Admin approves:\n   • Account activated\n   • Trial period starts\n\n4. Provide Support:\n   • Help merchant with setup\n   • Configure settings\n   • Train on features\n   • Ongoing support\n\n5. Earn Commissions:\n   • Automatic from day one\n   • Track in dealer dashboard'
       },
       {
-        title: 'White Label Branding',
+        title: 'Custom Branding',
         content: 'Custom branding:\n\n1. Upload Your Logo:\n   • Dealer Dashboard → Branding\n   • Upload logo (PNG, SVG)\n   • Shows throughout merchant experience\n\n2. Set Brand Colors:\n   • Primary color\n   • Secondary color\n   • Applied to all UI elements\n\n3. Custom Domain:\n   • Use your own domain\n   • Example: pos.yourcompany.com\n   • Full SSL support\n\n4. Hide openTILL Branding:\n   • Toggle in dealer settings\n   • Removes "Powered by openTILL"\n   • Your brand only\n\n5. Custom Email Templates:\n   • Merchant welcome emails\n   • Receipt templates\n   • Notification emails\n   • All from your brand\n\nMerchants see your brand, not openTILL.'
       },
       {
@@ -1458,7 +1458,7 @@ All new feature revenue is included in your monthly commission calculations. Tra
         content: 'Request during merchant onboarding or later in Settings → General. Choose your preferred name (letters, numbers, hyphens). Submit request. Super Admin approves and generates subdomain. Use for branding, online menu, and Web3 identity. Link to Solana wallet for crypto payments. No renewal fees.'
       },
       {
-        title: 'Can I white label openTILL?',
+        title: 'Can I customize openTILL with my brand?',
         content: 'Ambassadors can fully customize branding: Upload logo, set brand colors, use custom domain, optionally hide openTILL branding. Requires an approved Ambassador account. Merchants see your brand throughout the platform. Custom email templates available. Contact Super Admin or register at the Ambassador Portal on the homepage.'
       },
       {

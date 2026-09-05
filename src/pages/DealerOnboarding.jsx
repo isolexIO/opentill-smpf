@@ -113,7 +113,7 @@ export default function DealerOnboarding() {
         <div className="text-center">
           <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6970e2871534100b4ebb8d45/8e45f76fe_DUC3.png" alt="openTILL" className="w-14 h-14 mx-auto mb-3" />
           <h1 className="text-2xl font-black text-white">Become an openTILL Ambassador</h1>
-          <p className="text-white/50 text-sm mt-1">White-label POS · Recurring commissions · 30-day free trial</p>
+          <p className="text-white/50 text-sm mt-1">Branded POS · Recurring commissions · 30-day free trial</p>
         </div>
 
         {/* Step indicator */}

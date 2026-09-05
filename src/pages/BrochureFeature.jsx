@@ -34,7 +34,7 @@ const SECTION_IMAGES = {
   sec_marketplaces_int: 'ade757151_generated_image.png',
   sec_security: '31ef18b6b_generated_image.png',
   sec_ico: '8914e7a6f_generated_image.png',
-  sec_whitelabel: '5c7ddfad7_generated_image.png',
+  sec_branding: '5c7ddfad7_generated_image.png',
 };
 
 // In-depth sales pitch for each feature.
@@ -119,7 +119,7 @@ const PITCH = {
   },
   sec_ambassador: {
     lead:
-      "openTILL SMPF isn't just a product — it's a platform for partners. The Ambassador Network lets resellers run a white-label POS business with branded subdomains, custom logos, and their own merchant portals.",
+      "openTILL SMPF isn't just a product — it's a platform for partners. The Ambassador Network lets resellers run their own branded POS business with custom subdomains, logos, and their own merchant portals.",
     body:
       "Ambassadors get custom branding, a custom .opentill-pos.sol subdomain, commission and payout tracking via Stripe or $DUC, and merchant self-signup portals complete with lead management and appointment scheduling. It's a turnkey reseller business on day one.",
   },
@@ -183,7 +183,7 @@ const PITCH = {
     body:
       "Earn $DUC through merchant rewards, grow it through vault staking yield, and spend it across the openTILL ecosystem. As a Solana-based utility token, $DUC settles fast and costs fractions of a cent to move. The economy works because you're part of it.",
   },
-  sec_whitelabel: {
+  sec_branding: {
     lead:
       "openTILL SMPF is built to disappear into your brand. Deploy the entire platform under your own logo, colors, and domain — and your customers never need to know we're here.",
     body:

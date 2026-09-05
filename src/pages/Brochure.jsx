@@ -115,7 +115,7 @@ export const DEFAULT_SECTIONS = [
   {
     icon: 'Building2',
     title: 'Ambassador Network',
-    description: 'White-label reseller platform with branded subdomains.',
+    description: 'Branded reseller platform with custom subdomains.',
     bullets: ['Custom branding and domain', 'Commission and payout tracking', 'Merchant self-signup portals'],
   },
   {
@@ -338,7 +338,7 @@ export default function Brochure() {
               { v: '20+', l: 'Platform modules' },
               { v: 'Cash · Card · Crypto · EBT', l: 'Payment methods' },
               { v: 'Solana', l: 'Blockchain rail' },
-              { v: 'White-label', l: 'Ambassador ready' },
+              { v: 'Ambassador', l: 'Reseller ready' },
             ].map((s) => (
               <div key={s.l} className="glass-card rounded-2xl p-5 text-center">
                 <div className="text-base sm:text-lg font-bold tracking-tight" style={{ color: 'white' }}>{s.v}</div>

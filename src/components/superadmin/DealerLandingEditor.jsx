@@ -51,14 +51,14 @@ export default function DealerLandingEditor() {
         const defaultSettings = {
           hero: {
             headline: "Welcome to the openTILL Ambassador Hub",
-            subheadline: "Manage your white-label network, merchants, and commissions from one powerful dashboard.",
-            badge_text: "White-Label POS Platform"
+            subheadline: "Manage your merchant network, commissions, and branding from one powerful dashboard.",
+            badge_text: "Ambassador POS Platform"
           },
           feature_boxes: [
             {
               icon: "CheckCircle",
               icon_color: "#10b981",
-              title: "Full White Label",
+              title: "Full Custom Branding",
               description: "Custom branding, domain, and logo"
             },
             {
@@ -300,7 +300,7 @@ export default function DealerLandingEditor() {
                 <Input
                   value={settings.hero.badge_text}
                   onChange={(e) => updateHero('badge_text', e.target.value)}
-                  placeholder="White-Label POS Platform"
+                  placeholder="Ambassador POS Platform"
                 />
               </div>
 
@@ -320,7 +320,7 @@ export default function DealerLandingEditor() {
                   value={settings.hero.subheadline}
                   onChange={(e) => updateHero('subheadline', e.target.value)}
                   rows={3}
-                  placeholder="Manage your white-label network..."
+                  placeholder="Manage your merchant network..."
                 />
               </div>
             </CardContent>
@@ -413,7 +413,7 @@ export default function DealerLandingEditor() {
                     <Input
                       value={box.title}
                       onChange={(e) => updateFeatureBox(index, 'title', e.target.value)}
-                      placeholder="Full White Label"
+                      placeholder="Full Custom Branding"
                     />
                   </div>
 

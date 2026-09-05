@@ -282,7 +282,7 @@ export default function CustomDomainTab() {
           <CardContent className="py-12 text-center">
             <Globe className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <p className="text-gray-500 mb-2">No custom domains configured</p>
-            <p className="text-sm text-gray-400">Add a custom domain to white-label your POS and online ordering system</p>
+            <p className="text-sm text-gray-400">Add a custom domain to brand your POS and online ordering system</p>
           </CardContent>
         </Card>
       ) : (
@@ -461,7 +461,7 @@ export default function CustomDomainTab() {
           <DialogHeader>
             <DialogTitle>Add Custom Domain</DialogTitle>
             <DialogDescription>
-              Connect your own domain name for white-labeled POS and online ordering access.
+              Connect your own domain name for branded POS and online ordering access.
             </DialogDescription>
           </DialogHeader>
 

@@ -489,7 +489,7 @@ export default function DealerManagement() {
               {editDialog.ambassador?.id ? 'Edit Ambassador' : 'Create New Ambassador'}
             </DialogTitle>
             <DialogDescription>
-              Configure white-label settings, branding, and billing for this ambassador
+              Configure branding, settings, and billing for this ambassador
             </DialogDescription>
           </DialogHeader>
 

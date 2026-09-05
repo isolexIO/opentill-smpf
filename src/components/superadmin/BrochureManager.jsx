@@ -16,7 +16,7 @@ const DEFAULTS = {
   title: 'openTILL SMPF',
   tagline: 'The blockchain-integrated Point of Sale for modern commerce.',
   description:
-    'One platform for checkout, payments, crypto, loyalty, and white-label networks — built for restaurants, retail, and modern merchants.',
+    'One platform for checkout, payments, crypto, loyalty, and partner networks — built for restaurants, retail, and modern merchants.',
   hero_image_url: '',
   accent_color: '#7B2FD6',
   secondary_color: '#0FD17A',

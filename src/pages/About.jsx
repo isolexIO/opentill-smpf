@@ -100,8 +100,8 @@ export default function AboutPage() {
                 <div>
                   <h3 className="text-xl font-semibold mb-2">Ambassador Program</h3>
                   <p className="text-gray-200">
-                    Anyone can become a reseller and build their own merchant network under their own brand. 
-                    White-label ready.
+                    Anyone can become a reseller and build their own merchant network under their own brand.
+                    Fully brandable.
                   </p>
                 </div>
               </div>
