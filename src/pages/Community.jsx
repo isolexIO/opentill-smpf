@@ -1,7 +1,8 @@
 import CherryEmbed from '@/components/cherry/CherryEmbed';
 import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
-import { MessageCircle, Users, LifeBuoy, Sparkles } from 'lucide-react';
+import { Users, LifeBuoy, Sparkles } from 'lucide-react';
+import CherryLogo from '@/components/cherry/CherryLogo';
 
 export default function Community() {
   return (
@@ -9,7 +10,7 @@ export default function Community() {
       <div className="container mx-auto max-w-5xl px-6 py-12">
         <div className="text-center mb-10">
           <h1 className="text-4xl sm:text-5xl font-bold text-white mb-3 flex items-center justify-center gap-3">
-            <MessageCircle className="w-9 h-9 text-pink-400" />
+            <CherryLogo className="w-9 h-9" />
             openTILL Community
           </h1>
           <p className="text-lg text-gray-300 max-w-2xl mx-auto">
