@@ -1,13 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 
-const SCRIPT_SRC = 'https://cdn.cherry.fun/embed/v1/cherry-embed.min.js';
-
 export default function CherryEmbed({ roomId, className, style }) {
-  const containerRef = useRef(null);
-  const chatRef = useRef(null);
   const [config, setConfig] = useState(null); // { appId, roomId, enabled }
-  const [status, setStatus] = useState('loading'); // loading | ready | error | unconfigured
+  const [status, setStatus] = useState('loading'); // loading | ready | unconfigured
 
   useEffect(() => {
     let cancelled = false;
@@ -16,62 +12,23 @@ export default function CherryEmbed({ roomId, className, style }) {
         if (cancelled) return;
         const cfg = res.data || {};
         setConfig(cfg);
-        if (!cfg.enabled) setStatus('unconfigured');
+        setStatus(cfg.enabled ? 'ready' : 'unconfigured');
       })
-      .catch((e) => {
-        console.error('Cherry config fetch failed:', e);
+      .catch(() => {
         if (!cancelled) setStatus('unconfigured');
       });
     return () => { cancelled = true; };
   }, []);
 
-  useEffect(() => {
-    if (!config || !config.enabled) return;
-    let cancelled = false;
+  if (status === 'loading') {
+    return (
+      <div className={`flex items-center justify-center h-full text-gray-300 text-sm ${className || ''}`} style={style}>
+        Loading Cherry chat…
+      </div>
+    );
+  }
 
-    const init = () => {
-      if (cancelled || !containerRef.current || !window.CherryEmbedSDK) return;
-      try {
-        chatRef.current = new window.CherryEmbedSDK.CherryEmbed({
-          appId: config.appId,
-          container: containerRef.current,
-          roomId: roomId || config.roomId || undefined,
-        });
-        chatRef.current.mount();
-        if (!cancelled) setStatus('ready');
-      } catch (e) {
-        console.error('Cherry embed failed:', e);
-        if (!cancelled) setStatus('error');
-      }
-    };
-
-    if (window.CherryEmbedSDK) {
-      init();
-    } else {
-      const existing = document.querySelector(`script[src="${SCRIPT_SRC}"]`);
-      if (existing) {
-        if (window.CherryEmbedSDK) init();
-        else existing.addEventListener('load', init);
-      } else {
-        const s = document.createElement('script');
-        s.src = SCRIPT_SRC;
-        s.async = true;
-        s.onload = init;
-        s.onerror = () => { if (!cancelled) setStatus('error'); };
-        document.head.appendChild(s);
-      }
-    }
-
-    return () => {
-      cancelled = true;
-      if (chatRef.current && typeof chatRef.current.unmount === 'function') {
-        try { chatRef.current.unmount(); } catch (e) { /* noop */ }
-      }
-      chatRef.current = null;
-    };
-  }, [config, roomId]);
-
-  if (status === 'unconfigured') {
+  if (status === 'unconfigured' || !config?.enabled) {
     return (
       <div className={`flex items-center justify-center text-center p-8 rounded-xl bg-white/5 border border-white/10 ${className || ''}`} style={style}>
         <div className="max-w-sm">
@@ -84,18 +41,19 @@ export default function CherryEmbed({ roomId, className, style }) {
     );
   }
 
+  const params = new URLSearchParams({ appId: config.appId });
+  const room = roomId || config.roomId;
+  if (room) params.set('roomId', room);
+  const src = `https://embed.cherry.fun/?${params.toString()}`;
+
   return (
-    <div ref={containerRef} className={className} style={style}>
-      {status === 'loading' && (
-        <div className="flex items-center justify-center h-full text-gray-300 text-sm">
-          Loading Cherry chat…
-        </div>
-      )}
-      {status === 'error' && (
-        <div className="flex items-center justify-center h-full text-gray-300 text-sm text-center px-6">
-          Couldn't load Cherry chat. Check your connection and try again.
-        </div>
-      )}
-    </div>
+    <iframe
+      src={src}
+      title="openTILL Community Chat"
+      className={className}
+      style={{ border: 0, width: '100%', height: '100%', ...style }}
+      allow="clipboard-read; clipboard-write; publickey-credentials-get *"
+      sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"
+    />
   );
 }
