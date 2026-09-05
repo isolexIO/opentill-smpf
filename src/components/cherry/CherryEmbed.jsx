@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { CherryEmbed as CherryEmbedSDK } from '@cherrydotfun/chat-embed-sdk';
+import { base44 } from '@/api/base44Client';
 
-// Wallet-only Cherry chat embed. No backend, no token, no app secret — the
-// iframe runs its own connect & sign flow. Config values are fixed by the
-// embed owner in the Cherry portal (allowed origins: node1.opentill.io,
-// opentill.io), so the chat only loads on those origins.
-const CHERRY_CONFIG = {
-  appId: '217de9df-d93f-4cdf-a990-3aae120518ab',
+// Wallet-only Cherry chat embed. No backend token or app secret is exposed
+// client-side — the appId is served from the `getCherryConfig` backend function,
+// which reads the CHERRY_APP_ID secret. The iframe runs its own connect & sign
+// flow and only loads on origins registered in the Cherry portal.
+const EMBED_CONFIG = {
   embedUrl: 'https://embed.cherry.fun',
   roomId: 'b90a9a91-a9ff-47ec-80bf-44365b0d8b49',
   mode: 'single',
@@ -18,14 +18,37 @@ export default function CherryEmbed({ className, style }) {
   const containerRef = useRef(null);
   const instanceRef = useRef(null);
   const [ready, setReady] = useState(false);
+  const [config, setConfig] = useState(null);
 
+  // Fetch the appId (secret-served) from the backend.
   useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await base44.functions.invoke('getCherryConfig', {});
+        if (!cancelled && res?.appId) {
+          setConfig({
+            ...EMBED_CONFIG,
+            appId: res.appId,
+            roomId: res.roomId || EMBED_CONFIG.roomId,
+          });
+        }
+      } catch (err) {
+        console.error('Cherry config fetch failed:', err);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Mount the embed once we have the appId.
+  useEffect(() => {
+    if (!config || !containerRef.current) return;
     let cancelled = false;
 
     (async () => {
       try {
         const chat = new CherryEmbedSDK({
-          ...CHERRY_CONFIG,
+          ...config,
           container: containerRef.current,
         });
         instanceRef.current = chat;
@@ -42,7 +65,7 @@ export default function CherryEmbed({ className, style }) {
       instanceRef.current = null;
       if (containerRef.current) containerRef.current.innerHTML = '';
     };
-  }, []);
+  }, [config]);
 
   return (
     <div className={`relative ${className || ''}`} style={style}>
