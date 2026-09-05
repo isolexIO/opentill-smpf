@@ -3,6 +3,7 @@ import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { Users, LifeBuoy, Sparkles } from 'lucide-react';
 import CherryLogo from '@/components/cherry/CherryLogo';
+import CommunityLinks from '@/components/shared/CommunityLinks';
 
 export default function Community() {
   return (
@@ -16,6 +17,7 @@ export default function Community() {
           <p className="text-lg text-gray-300 max-w-2xl mx-auto">
             Connect wallet-to-wallet with the openTILL community on Cherry. Get support, share feedback, and collaborate — no phone numbers or emails required.
           </p>
+          <CommunityLinks className="mt-6" />
         </div>
 
         <div className="grid sm:grid-cols-3 gap-4 mb-8">
