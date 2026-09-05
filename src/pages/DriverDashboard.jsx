@@ -8,6 +8,7 @@ import { Loader2, Plus, Download, LogOut, Bike, MapPin, PackageCheck, Clock } fr
 import JobCard from '@/components/drivers/JobCard';
 import RouteMap from '@/components/drivers/RouteMap';
 import CreateDeliveryDialog from '@/components/drivers/CreateDeliveryDialog';
+import DriverMobileQR from '@/components/drivers/DriverMobileQR';
 
 export default function DriverDashboard() {
   const [pinUser] = useState(() => {
@@ -170,6 +171,7 @@ export default function DriverDashboard() {
                 </Button>
               </>
             )}
+            <DriverMobileQR />
             <Button size="sm" variant="ghost" onClick={logout}>
               <LogOut className="w-4 h-4" />
             </Button>
