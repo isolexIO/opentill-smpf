@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 
 // Official Cherry Chat Embed SDK (browser global build via jsDelivr).
 const SDK_URL = 'https://cdn.jsdelivr.net/npm/@cherrydotfun/chat-embed-sdk@0.1.7/dist/index.global.js';
+const MOUNT_TIMEOUT_MS = 12000;
 
 function loadCherrySDK() {
   if (window.CherryEmbedSDK) return Promise.resolve();
@@ -34,6 +35,7 @@ export default function CherryEmbed({ roomId, className, style }) {
   useEffect(() => {
     let cancelled = false;
     let config = null;
+    let timeoutId = null;
 
     (async () => {
       try {
@@ -53,8 +55,17 @@ export default function CherryEmbed({ roomId, className, style }) {
           roomId: roomId || config.roomId || '',
         });
         instanceRef.current = inst;
+
+        // If mount() never resolves (e.g. Cherry blocks the origin), surface a helpful error.
+        timeoutId = setTimeout(() => {
+          if (!cancelled) setStatus('error');
+        }, MOUNT_TIMEOUT_MS);
+
         await inst.mount();
-        if (!cancelled) setStatus('ready');
+        if (cancelled) return;
+        clearTimeout(timeoutId);
+        timeoutId = null;
+        setStatus('ready');
       } catch (err) {
         console.error('Cherry embed error', err);
         if (!cancelled) setStatus('error');
@@ -63,36 +74,50 @@ export default function CherryEmbed({ roomId, className, style }) {
 
     return () => {
       cancelled = true;
+      if (timeoutId) clearTimeout(timeoutId);
       try { instanceRef.current?.unmount?.(); } catch (e) { /* noop */ }
       instanceRef.current = null;
       if (containerRef.current) containerRef.current.innerHTML = '';
     };
   }, [roomId]);
 
-  if (status === 'loading') {
-    return (
-      <div ref={containerRef} className={`flex items-center justify-center h-full text-gray-300 text-sm ${className || ''}`} style={style}>
-        Loading Cherry chat…
-      </div>
-    );
-  }
+  return (
+    <div className={`relative ${className || ''}`} style={style}>
+      {/* Persistent mount target — never swapped, so the SDK's iframe survives */}
+      <div ref={containerRef} className="w-full h-full" />
 
-  if (status === 'unconfigured' || status === 'error') {
-    return (
-      <div className={`flex items-center justify-center text-center p-8 rounded-xl bg-white/5 border border-white/10 ${className || ''}`} style={style}>
-        <div className="max-w-sm">
-          <p className="text-sm text-gray-200 font-medium">
-            {status === 'error' ? 'Cherry chat could not be loaded.' : 'Cherry chat is not configured yet.'}
-          </p>
-          <p className="text-xs text-gray-400 mt-2">
-            {status === 'error'
-              ? 'Make sure your site origin is added to this Cherry embed\u2019s Allowed origins at portal.cherry.fun, then refresh.'
-              : 'Paste your Cherry appId into the CHERRY_APP_ID secret in your app\u2019s Secrets settings to enable chat.'}
-          </p>
+      {status !== 'ready' && (
+        <div className="absolute inset-0 flex items-center justify-center text-center p-6 rounded-xl bg-white/5 border border-white/10">
+          <div className="max-w-sm">
+            {status === 'loading' && (
+              <>
+                <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-3" />
+                <p className="text-sm text-gray-200 font-medium">Loading Cherry chat…</p>
+              </>
+            )}
+            {status === 'unconfigured' && (
+              <>
+                <p className="text-sm text-gray-200 font-medium">Cherry chat is not configured yet.</p>
+                <p className="text-xs text-gray-400 mt-2">
+                  Create a Chat embed at portal.cherry.fun, add your site origin to its Allowed origins,
+                  then set its appId as the <code className="text-purple-300">CHERRY_APP_ID</code> secret.
+                </p>
+              </>
+            )}
+            {status === 'error' && (
+              <>
+                <p className="text-sm text-gray-200 font-medium">Cherry chat could not be loaded.</p>
+                <p className="text-xs text-gray-400 mt-2">
+                  At portal.cherry.fun → Project → Chat embeds, open your embed and make sure your site
+                  origin (<code className="text-purple-300">{typeof window !== 'undefined' ? window.location.origin : ''}</code>)
+                  is in its <b>Allowed origins</b>, and that <code className="text-purple-300">CHERRY_APP_ID</code> is
+                  set to your own embed&apos;s appId — not the example one.
+                </p>
+              </>
+            )}
+          </div>
         </div>
-      </div>
-    );
-  }
-
-  return <div ref={containerRef} className={className} style={style} />;
+      )}
+    </div>
+  );
 }
