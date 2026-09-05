@@ -195,11 +195,29 @@ export default function Layout({ children, currentPageName }) {
     }
   };
 
-  const handleExitImpersonation = () => {
-    localStorage.removeItem('pinLoggedInUser');
-    localStorage.removeItem('pinSessionToken');
+  const handleExitImpersonation = async () => {
+    // Restore the original ambassador/admin session that was saved when
+    // impersonation started, instead of wiping it (which logged the ambassador
+    // out entirely).
+    let originalUser = null;
+    try {
+      const data = localStorage.getItem('impersonationData');
+      if (data) originalUser = JSON.parse(data)?.originalUser || null;
+    } catch { /* ignore */ }
+
+    if (originalUser) {
+      localStorage.setItem('pinLoggedInUser', JSON.stringify(originalUser));
+    }
     localStorage.removeItem('impersonationData');
-    navigate(createPageUrl('SuperAdmin'));
+
+    // Unscope the platform User so the ambassador's own session no longer
+    // resolves to the impersonated merchant.
+    try { await base44.auth.updateMe({ merchant_id: null }); } catch { /* no platform session */ }
+
+    const target = originalUser && ['ambassador', 'dealer_admin'].includes(originalUser.role)
+      ? 'DealerDashboard'
+      : 'SuperAdmin';
+    navigate(createPageUrl(target));
   };
 
   // If user is not authenticated (via base44.auth.me) and is trying to access a non-authentication

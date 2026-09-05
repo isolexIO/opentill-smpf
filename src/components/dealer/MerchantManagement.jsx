@@ -38,14 +38,36 @@ export default function MerchantManagement({ dealerId, initialMerchants }) {
   const loadMerchants = async () => {
     try {
       setLoading(true);
+      // Ambassador Hub sessions (email / Google / wallet) authenticate via a
+      // dealerToken and have no dealer_id on their platform User, so a
+      // client-side Merchant.filter is RLS-scoped to nothing. Reload through
+      // the service-role dealerAuth verify so every merchant (including the
+      // auto-provisioned demo store) is returned.
+      const token = localStorage.getItem('dealerToken');
+      if (token) {
+        try {
+          const { data } = await base44.functions.invoke('dealerAuth', { action: 'verify', token });
+          if (data?.success && Array.isArray(data.merchants)) {
+            setMerchants(data.merchants);
+            return;
+          }
+        } catch (e) {
+          console.error('dealerAuth verify failed, falling back to client filter:', e);
+        }
+      }
       const data = await base44.entities.Merchant.filter({ dealer_id: dealerId });
-      setMerchants(data || []);
+      if (data && data.length > 0) {
+        setMerchants(data);
+      } else if (initialMerchants && initialMerchants.length > 0) {
+        // Client filter returned empty (RLS scoped the ambassador out) — keep
+        // the merchants the parent already loaded via the service role.
+        setMerchants(initialMerchants);
+      } else {
+        setMerchants(data || []);
+      }
     } catch (error) {
       console.error('Error loading merchants:', error);
-      // Fall back to initialMerchants if the client-side filter fails (RLS)
-      if (initialMerchants) {
-        setMerchants(initialMerchants);
-      }
+      if (initialMerchants) setMerchants(initialMerchants);
     } finally {
       setLoading(false);
     }
@@ -90,6 +112,17 @@ export default function MerchantManagement({ dealerId, initialMerchants }) {
         is_impersonating: true
       };
       localStorage.setItem('pinLoggedInUser', JSON.stringify(impersonationUser));
+
+      // Bridge the merchant onto the platform User so the impersonated session
+      // can read/write this merchant's data through RLS
+      // (data.merchant_id == user.merchant_id / data.dealer_id == user.dealer_id).
+      // Best-effort: email/wallet ambassadors have no platform session and skip.
+      try {
+        await base44.auth.updateMe({ dealer_id: dealerId, merchant_id: merchant.id });
+      } catch (e) {
+        console.warn('Could not bridge platform user for impersonation:', e);
+      }
+
       window.location.href = createPageUrl('SystemMenu');
     } catch (error) {
       alert('Error impersonating merchant: ' + error.message);
