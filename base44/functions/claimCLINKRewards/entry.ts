@@ -68,20 +68,47 @@ Deno.serve(async (req) => {
     // Do NOT use in production without proper on-chain token transfer.
     const mockSignature = `claim_mock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    // Update rewards to claimed
+    // Claim rewards, carrying leftover forward on partial claims.
     let remaining = claimAmount;
     for (const reward of rewards) {
       if (remaining <= 0) break;
-      
+
       const toUpdate = Math.min(reward.amount, remaining);
-      await base44.asServiceRole.entities.cLINKReward.update(reward.id, {
-        status: 'claimed',
-        claimed_at: new Date().toISOString(),
-        claimed_by: user.id,
-        transaction_signature: mockSignature,
-        wallet_address: user.wallet_address
-      });
-      
+
+      if (toUpdate >= reward.amount) {
+        // Fully consumed — mark this reward claimed.
+        await base44.asServiceRole.entities.cLINKReward.update(reward.id, {
+          status: 'claimed',
+          claimed_at: new Date().toISOString(),
+          claimed_by: user.id,
+          transaction_signature: mockSignature,
+          wallet_address: user.wallet_address
+        });
+      } else {
+        // Partially consumed — keep the leftover available and record the
+        // claimed portion as a separate claimed reward for the audit trail.
+        await base44.asServiceRole.entities.cLINKReward.update(reward.id, {
+          amount: reward.amount - toUpdate
+        });
+        await base44.asServiceRole.entities.cLINKReward.create({
+          merchant_id: reward.merchant_id,
+          reward_type: reward.reward_type,
+          amount: toUpdate,
+          processing_volume: reward.processing_volume,
+          reward_percentage: reward.reward_percentage,
+          period_start: reward.period_start,
+          period_end: reward.period_end,
+          source_reference: reward.source_reference,
+          description: reward.description,
+          metadata: { ...(reward.metadata || {}), claimed_from: reward.id, partial_claim: true },
+          status: 'claimed',
+          claimed_at: new Date().toISOString(),
+          claimed_by: user.id,
+          transaction_signature: mockSignature,
+          wallet_address: user.wallet_address
+        });
+      }
+
       remaining -= toUpdate;
     }
 
