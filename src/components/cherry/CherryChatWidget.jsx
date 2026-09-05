@@ -2,8 +2,13 @@ import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { X } from 'lucide-react';
 import CherryEmbed from '@/components/cherry/CherryEmbed';
-import CherryLogo from '@/components/cherry/CherryLogo';
 import { base44 } from '@/api/base44Client';
+
+// Official Cherry Messenger icon (served from cherry.fun)
+const CHERRY_ICON_URL = 'https://cherry.fun/favicon.svg';
+const CherryIcon = ({ className = '' }) => (
+  <img src={CHERRY_ICON_URL} alt="Cherry" className={className} draggable={false} />
+);
 
 export default function CherryChatWidget() {
   const [open, setOpen] = useState(false);
@@ -25,10 +30,10 @@ export default function CherryChatWidget() {
   return (
     <>
       {open && (
-        <div className="fixed bottom-24 left-4 z-[60] w-[min(92vw,380px)] h-[70vh] max-h-[560px] rounded-2xl overflow-hidden shadow-2xl border border-white/20 bg-slate-900 flex flex-col">
+        <div className="fixed bottom-40 left-6 z-[60] w-[min(92vw,380px)] h-[70vh] max-h-[560px] rounded-2xl overflow-hidden shadow-2xl border border-white/20 bg-slate-900 flex flex-col">
           <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-purple-700 to-pink-600 text-white">
             <div className="flex items-center gap-2">
-              <CherryLogo className="w-4 h-4" />
+              <CherryIcon className="w-4 h-4" />
               <span className="font-semibold text-sm">openTILL Community</span>
             </div>
             <button onClick={() => setOpen(false)} aria-label="Close chat" className="p-1 rounded hover:bg-white/20 transition-colors">
@@ -43,10 +48,10 @@ export default function CherryChatWidget() {
 
       <button
         onClick={() => setOpen(o => !o)}
-        className="fixed bottom-20 left-4 z-[60] flex items-center gap-2 rounded-full bg-gradient-to-r from-purple-600 to-pink-500 text-white px-4 py-3 shadow-lg hover:scale-105 transition-transform md:bottom-6"
+        className="fixed bottom-24 left-6 z-[60] flex items-center gap-2 rounded-full bg-gradient-to-r from-purple-600 to-pink-500 text-white px-4 py-3 shadow-lg hover:scale-105 transition-transform"
         aria-label="Open community chat"
       >
-        <CherryLogo className="w-5 h-5" />
+        <CherryIcon className="w-5 h-5" />
         <span className="text-sm font-medium hidden sm:inline">Community</span>
       </button>
     </>
