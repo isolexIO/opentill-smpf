@@ -1,57 +1,16 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { posBase44 as base44 } from "@/lib/posClient";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
-
-
-import {
-  CreditCard,
-  Search,
-  Camera,
-  Monitor,
-  Globe,
-  AlertCircle,
-  Package,
-  MonitorPlay, // New import for Customer Display icon
-  Settings, // New import for Settings icon
-  LogOut,   // New import for LogOut icon
-  Menu,      // New import for Menu icon
-  MoreVertical, // New import for MoreVertical icon
-  Lock,
-  User
-} from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { initPOSSession } from "@/lib/posInit";
-
 import { useActiveStaff } from "@/hooks/useActiveStaff";
 import { useActiveLocation } from "@/hooks/useActiveLocation";
-import LocationSwitcher from "@/components/locations/LocationSwitcher";
-import StaffLockScreen from "../components/pos/StaffLockScreen";
 import { OnlineOrdersView, OpenTicketsView } from "../components/pos/POSOrderViews";
 import { logStaffAction } from "@/lib/posAudit";
-
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-
-import ProductGrid from "../components/pos/ProductGrid";
-import Cart from "../components/pos/Cart";
-import CustomerSelector from "../components/pos/CustomerSelector";
-import CameraScanner from "../components/pos/CameraScanner";
-// This will be replaced in JSX but keeping for now if it's referenced elsewhere
-import PaymentModal from "../components/pos/PaymentModal";
-import DepartmentGrid from "../components/pos/DepartmentGrid";
-import OpenItemDialog from "../components/pos/OpenItemDialog";
-import AgeVerificationDialog from "../components/pos/AgeVerificationDialog";
-import PaymentChoiceDialog from "../components/pos/PaymentChoiceDialog";
-import QuickCreateModal from "../components/pos/QuickCreateModal";
+import POSToolbar from "../components/pos/POSToolbar";
+import POSMainLayout from "../components/pos/POSMainLayout";
+import POSDialogs from "../components/pos/POSDialogs";
 
 // POS_MODES are defined but the UI selector for them is removed based on the outline.
 // The default posMode is 'restaurant' and will be used throughout the application.
@@ -1889,401 +1848,103 @@ export default function POSPage() {
 
   return (
     <div className="bg-gray-50 dark:bg-gray-900 min-h-screen">
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-3 md:p-4 sticky top-0 z-10">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-4">
-          <div className="flex items-center gap-2 md:gap-4">
-            <CreditCard className="w-5 h-5 md:w-6 md:h-6 text-blue-600" />
-            <h1 className="text-lg md:text-2xl font-bold text-gray-900 dark:text-white">POS</h1>
-            <Badge variant="outline" className="text-xs">
-              {stationName}
-            </Badge>
-            {isMultiLocation && (
-              <LocationSwitcher
-                locations={locations}
-                activeLocationId={activeLocationId}
-                onSwitch={switchLocation}
-              />
-            )}
-            <Badge variant="outline" className="px-2 py-1 text-sm">
-              {cart.length}
-            </Badge>
-            {!isDemo && activeStaff && (
-              <Badge variant="outline" className="text-xs flex items-center gap-1">
-                <User className="w-3 h-3" /> {activeStaff.full_name}
-              </Badge>
-            )}
-          </div>
+      <POSToolbar
+        stationName={stationName}
+        cartCount={cart.length}
+        isDemo={isDemo}
+        activeStaff={activeStaff}
+        isMultiLocation={isMultiLocation}
+        locations={locations}
+        activeLocationId={activeLocationId}
+        onSwitchLocation={switchLocation}
+        viewMode={viewMode}
+        setViewMode={setViewMode}
+        isKitchenDisplayEnabled={isKitchenDisplayEnabled}
+        openTicketsCount={openTickets.length}
+        onLoadOpenTickets={loadOpenTickets}
+        pendingOnlineOrdersCount={pendingOnlineOrders.length}
+        onLoadPendingOnlineOrders={loadPendingOnlineOrders}
+        onOpenCustomerDisplay={openCustomerDisplay}
+        onOpenKitchenDisplay={openKitchenDisplay}
+        posProductView={posProductView}
+        onBackToDepartments={handleBackToDepartments}
+        customers={customers}
+        selectedCustomer={selectedCustomer}
+        onSelectCustomer={setSelectedCustomer}
+        posMode={posMode}
+        tableNumber={tableNumber}
+        onTableNumberChange={setTableNumber}
+        onOpenItemDialog={() => setIsOpenItemDialogOpen(true)}
+        isCameraScannerEnabled={isCameraScannerEnabled}
+        onOpenCameraScanner={() => setIsCameraScannerOpen(true)}
+        onSendToKitchen={sendToKitchen}
+        onLock={() => { lock(); setViewMode('pos'); }}
+        onClockOut={handleClockOut}
+      />
 
-          <div className="flex flex-wrap items-center gap-2">
-            {/* View Mode Buttons */}
-            <Button
-              variant={viewMode === 'pos' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setViewMode('pos')}
-              className="flex-1 sm:flex-none"
-            >
-              <CreditCard className="w-4 h-4 mr-2" />
-              POS
-            </Button>
+      <POSMainLayout
+        isMobile={isMobile}
+        cart={cart}
+        onUpdateQuantity={updateCartQuantity}
+        onRemoveItem={removeFromCart}
+        discountPercent={discountPercent}
+        onDiscountChange={handleDiscountChange}
+        totals={calculateTotals()}
+        onCheckout={handleCheckout}
+        onSendToKitchen={posMode === "restaurant" && isKitchenDisplayEnabled ? sendToKitchen : null}
+        selectedCustomer={selectedCustomer}
+        settings={settings}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        posProductView={posProductView}
+        departments={departments}
+        onSelectDepartment={(dept) => { setSelectedDepartment(dept); setPosProductView('products'); }}
+        filteredProducts={filteredProducts}
+        onAddToCart={addToCart}
+        posMode={posMode}
+      />
 
-            {/* Only show open tickets button if kitchen display is enabled */}
-            {isKitchenDisplayEnabled && (
-              <Button
-                variant={viewMode === 'open_tickets' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => {
-                  setViewMode('open_tickets');
-                  loadOpenTickets();
-                }}
-                className="flex-1 sm:flex-none relative"
-              >
-                <Monitor className="w-4 h-4 mr-2" />
-                Tickets
-                {openTickets.length > 0 && (
-                  <Badge className="ml-2 bg-red-500">{openTickets.length}</Badge>
-                )}
-              </Button>
-            )}
-
-            <Button
-              variant={viewMode === 'online_orders' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => {
-                setViewMode('online_orders');
-                loadPendingOnlineOrders();
-              }}
-              className="flex-1 sm:flex-none relative"
-            >
-              <Globe className="w-4 h-4 mr-2" />
-              Online
-              {pendingOnlineOrders.length > 0 && (
-                <Badge className="ml-2 bg-orange-500">{pendingOnlineOrders.length}</Badge>
-              )}
-            </Button>
-
-            {/* Customer Display and Kitchen Display Links */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={openCustomerDisplay}
-              title="Customer Display"
-              className="flex-1 sm:flex-none"
-            >
-              <MonitorPlay className="w-4 h-4 mr-2" />
-              CD
-            </Button>
-
-            {/* Only show Kitchen Display link if enabled */}
-            {isKitchenDisplayEnabled && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={openKitchenDisplay}
-                title="Kitchen Display"
-                className="flex-1 sm:flex-none"
-              >
-                <Monitor className="w-4 h-4 mr-2" />
-                KD
-              </Button>
-            )}
-
-            {/* Additional POS Features */}
-            {viewMode === 'pos' && (
-              <>
-                {/* Department/Products View Toggle */}
-                {posProductView === 'products' && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleBackToDepartments}
-                  >
-                    ← Departments
-                  </Button>
-                )}
-
-                {/* Customer Selector */}
-                <CustomerSelector
-                  customers={customers}
-                  selectedCustomer={selectedCustomer}
-                  onSelectCustomer={setSelectedCustomer}
-                />
-
-                {/* Table Number (for restaurant mode) */}
-                {posMode === "restaurant" && (
-                  <Input
-                    placeholder="Table #"
-                    value={tableNumber}
-                    onChange={(e) => setTableNumber(e.target.value)}
-                    className="w-24"
-                  />
-                )}
-
-                {/* Open Item Button */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsOpenItemDialogOpen(true)}
-                  title="Add Open Item"
-                >
-                  <Package className="w-4 h-4 mr-2" />
-                  Open Item
-                </Button>
-
-                {/* Camera Scanner Button */}
-                {isCameraScannerEnabled && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsCameraScannerOpen(true)}
-                    title="Scan Barcode"
-                  >
-                    <Camera className="w-4 h-4 mr-2" />
-                    Scan
-                  </Button>
-                )}
-
-                {/* Send to Kitchen Button (restaurant mode) - Only show if kitchen display is enabled */}
-                {posMode === "restaurant" && cart.length > 0 && isKitchenDisplayEnabled && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={sendToKitchen}
-                    className="bg-orange-500 text-white hover:bg-orange-600"
-                  >
-                    <Monitor className="w-4 h-4 mr-2" />
-                    Send to Kitchen
-                  </Button>
-                )}
-              </>
-            )}
-
-            {!isDemo && activeStaff && (
-              <Button variant="outline" size="sm" onClick={() => { lock(); setViewMode('pos'); }}>
-                <Lock className="w-4 h-4 mr-2" />
-                Lock
-              </Button>
-            )}
-
-            {/* System Menu Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <MoreVertical className="w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuLabel>System</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => window.location.href = createPageUrl('SystemMenu')}>
-                  <Menu className="w-4 h-4 mr-2" />
-                  System Menu
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => window.location.href = createPageUrl('Settings')}>
-                  <Settings className="w-4 h-4 mr-2" />
-                  Settings
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleClockOut}>
-                  <Lock className="w-4 h-4 mr-2" />
-                  Lock Terminal
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-      </div>
-
-      {isMobile ? (
-        <div className="flex flex-col h-[calc(100vh-64px)]">
-          <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 max-h-[50vh] overflow-auto">
-            <Cart
-              cart={cart}
-              onUpdateQuantity={updateCartQuantity}
-              onRemoveItem={removeFromCart}
-              discountPercent={discountPercent}
-              onDiscountChange={handleDiscountChange}
-              totals={calculateTotals()}
-              onCheckout={handleCheckout}
-              onSendToKitchen={posMode === "restaurant" && isKitchenDisplayEnabled ? sendToKitchen : null}
-              selectedCustomer={selectedCustomer}
-              isMobile={isMobile}
-              settings={settings}
-            />
-          </div>
-
-          <div className="flex-1 overflow-y-auto p-3">
-            <div className="relative mb-3">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <Input
-                placeholder="Search products..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-
-            {posProductView === 'departments' ? (
-              <DepartmentGrid
-                departments={departments}
-                onSelectDepartment={(dept) => {
-                  setSelectedDepartment(dept);
-                  setPosProductView('products');
-                }}
-              />
-            ) : (
-              <ProductGrid
-                products={filteredProducts}
-                onAddToCart={addToCart}
-                onProductClick={addToCart} // Assuming a click adds to cart
-                posMode={posMode}
-                isMobile={isMobile}
-                showImages={false}
-              />
-            )}
-          </div>
-        </div>
-      ) : (
-        <div className="flex h-[calc(100vh-64px)]">
-          <div className="w-96 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
-            <Cart
-              cart={cart}
-              onUpdateQuantity={updateCartQuantity}
-              onRemoveItem={removeFromCart}
-              discountPercent={discountPercent}
-              onDiscountChange={handleDiscountChange}
-              totals={calculateTotals()}
-              onCheckout={handleCheckout}
-              onSendToKitchen={posMode === "restaurant" && isKitchenDisplayEnabled ? sendToKitchen : null}
-              selectedCustomer={selectedCustomer}
-              isMobile={isMobile}
-              settings={settings}
-            />
-          </div>
-
-          <div className="flex-1 flex flex-col overflow-hidden">
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  placeholder="Search products..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-
-            <div className="flex-1 flex flex-col overflow-y-auto p-4"> {/* Added flex-col here to make DepartmentGrid and ProductGrid stack vertically if needed, and overflow-y-auto for the content */}
-              {posProductView === 'departments' ? (
-                <DepartmentGrid
-                  departments={departments}
-                  onSelectDepartment={(dept) => {
-                    setSelectedDepartment(dept);
-                    setPosProductView('products');
-                  }}
-                />
-              ) : (
-                <ProductGrid
-                  products={filteredProducts}
-                  onAddToCart={addToCart}
-                  onProductClick={addToCart} // Assuming a click adds to cart
-                  posMode={posMode}
-                  isMobile={isMobile}
-                  showImages={false}
-                />
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Dialogs - make sure these are at the end */}
-      {isCameraScannerEnabled && (
-        <CameraScanner
-          isOpen={isCameraScannerOpen}
-          onClose={() => setIsCameraScannerOpen(false)}
-          onScan={handleBarcodeScanned}
-        />
-      )}
-
-      {/* Quick Create Modal for barcode scanning */}
-      <QuickCreateModal
-        isOpen={productNotFoundDialog.isOpen}
-        onClose={() => {
-          console.log('POS: Closing QuickCreateModal');
-          setProductNotFoundDialog({ isOpen: false, barcode: '' });
-        }}
-        barcode={productNotFoundDialog.barcode}
+      <POSDialogs
+        isCameraScannerEnabled={isCameraScannerEnabled}
+        isCameraScannerOpen={isCameraScannerOpen}
+        onCloseCameraScanner={() => setIsCameraScannerOpen(false)}
+        onScan={handleBarcodeScanned}
+        productNotFoundDialog={productNotFoundDialog}
+        setProductNotFoundDialog={setProductNotFoundDialog}
         onCreateProduct={handleCreateProduct}
         merchantId={settings?.merchant_id}
         departments={departments}
+        showPaymentChoice={showPaymentChoice}
+        onClosePaymentChoice={() => { setShowPaymentChoice(false); setWaitingForCustomer(false); setCustomerSelectedMethod(null); }}
+        onCashSelected={handleCashPayment}
+        onEbtSelected={handleEbtPayment}
+        onCustomerTerminalSelected={handleCustomerTerminal}
+        order={order}
+        waitingForCustomer={waitingForCustomer}
+        customerSelectedMethod={customerSelectedMethod}
+        showPayment={showPayment}
+        onClosePayment={() => setShowPayment(false)}
+        totals={calculateTotals()}
+        onProcessPayment={processOrder}
+        onStartInteractivePayment={settings?.merchant_id !== 'demo' ? startInteractivePaymentFlow : null}
+        customer={selectedCustomer}
+        settings={settings}
+        cart={cart}
+        posMode={posMode}
+        tableNumber={tableNumber}
+        stationId={stationId}
+        stationName={stationName}
+        isAgeVerificationOpen={isAgeVerificationOpen}
+        onCloseAgeVerification={() => { setIsAgeVerificationOpen(false); setAgeVerificationData(null); }}
+        onAgeVerified={handleAgeVerified}
+        restrictedItems={checkAgeRestrictedItems()}
+        isOpenItemDialogOpen={isOpenItemDialogOpen}
+        onCloseOpenItemDialog={() => setIsOpenItemDialogOpen(false)}
+        onAddItem={addToCart}
+        isDemo={isDemo}
+        isLocked={isLocked}
+        onUnlockStaff={setStaff}
       />
-
-      {showPaymentChoice && (
-        <PaymentChoiceDialog
-          isOpen={showPaymentChoice}
-          onClose={() => {
-            setShowPaymentChoice(false);
-            setWaitingForCustomer(false);
-            setCustomerSelectedMethod(null);
-          }}
-          onCashSelected={handleCashPayment}
-          onEbtSelected={handleEbtPayment} // Pass the new EBT handler
-          onCustomerTerminalSelected={handleCustomerTerminal}
-          order={order}
-          waitingForCustomer={waitingForCustomer}
-          customerSelectedMethod={customerSelectedMethod}
-        />
-      )}
-
-      {showPayment && (
-        <PaymentModal
-          isOpen={showPayment}
-          onClose={() => setShowPayment(false)}
-          totals={calculateTotals()}
-          onProcessPayment={processOrder}
-          onStartInteractivePayment={settings?.merchant_id !== 'demo' ? startInteractivePaymentFlow : null}
-          customer={selectedCustomer}
-          settings={settings}
-          cart={cart}
-          posMode={posMode}
-          tableNumber={tableNumber}
-          merchantId={settings?.merchant_id}
-          stationId={stationId}
-          stationName={stationName}
-          order={order}
-        />
-      )}
-
-      {isAgeVerificationOpen && (
-        <AgeVerificationDialog
-          isOpen={isAgeVerificationOpen}
-          onClose={() => {
-            setIsAgeVerificationOpen(false);
-            setAgeVerificationData(null);
-          }}
-          onVerify={handleAgeVerified}
-          requiredAge={Math.max(...checkAgeRestrictedItems().map(item => item.minimum_age || 21))}
-          restrictedItems={checkAgeRestrictedItems()}
-          settings={settings}
-        />
-      )}
-
-      {isOpenItemDialogOpen && (
-        <OpenItemDialog
-          isOpen={isOpenItemDialogOpen}
-          onClose={() => setIsOpenItemDialogOpen(false)}
-          onAddItem={addToCart}
-        />
-      )}
-
-      {!isDemo && isLocked && settings?.merchant_id && (
-        <StaffLockScreen
-          merchantId={settings.merchant_id}
-          stationName={stationName}
-          onUnlock={(staff) => setStaff(staff)}
-        />
-      )}
     </div>
   );
 }
