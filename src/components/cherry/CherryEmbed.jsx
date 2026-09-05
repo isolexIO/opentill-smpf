@@ -1,16 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 
-const SDK_URL = 'https://cdn.cherry.fun/embed/v1/cherry-embed.min.js';
+// Official Cherry Chat Embed SDK (browser global build via jsDelivr).
+const SDK_URL = 'https://cdn.jsdelivr.net/npm/@cherrydotfun/chat-embed-sdk@0.1.7/dist/index.global.js';
 
-// Load the Cherry embed SDK script once for the whole app.
 function loadCherrySDK() {
   if (window.CherryEmbedSDK) return Promise.resolve();
-  if (document.getElementById('cherry-embed-sdk')) {
-    return new Promise((resolve) => {
+  const existing = document.getElementById('cherry-embed-sdk');
+  if (existing) {
+    return new Promise((resolve, reject) => {
       const check = setInterval(() => {
         if (window.CherryEmbedSDK) { clearInterval(check); resolve(); }
       }, 100);
+      existing.addEventListener('error', () => { clearInterval(check); reject(new Error('Cherry SDK failed')); });
     });
   }
   return new Promise((resolve, reject) => {
@@ -19,7 +21,7 @@ function loadCherrySDK() {
     s.src = SDK_URL;
     s.async = true;
     s.onload = () => resolve();
-    s.onerror = () => reject(new Error('Failed to load Cherry SDK'));
+    s.onerror = () => reject(new Error('Cherry SDK failed to load'));
     document.head.appendChild(s);
   });
 }
@@ -33,30 +35,31 @@ export default function CherryEmbed({ roomId, className, style }) {
     let cancelled = false;
     let config = null;
 
-    base44.functions.invoke('getCherryConfig')
-      .then((res) => {
+    (async () => {
+      try {
+        const res = await base44.functions.invoke('getCherryConfig');
         if (cancelled) return;
         config = res.data || {};
         if (!config.enabled) { setStatus('unconfigured'); return; }
-        return loadCherrySDK();
-      })
-      .then(() => {
-        if (cancelled || !config || !config.enabled) return;
-        if (!window.CherryEmbedSDK?.CherryEmbed) { setStatus('error'); return; }
-        // Mount into the container
-        const inst = new window.CherryEmbedSDK.CherryEmbed({
+
+        await loadCherrySDK();
+        if (cancelled) return;
+        const Ctor = window.CherryEmbedSDK?.CherryEmbed;
+        if (!Ctor) { setStatus('error'); return; }
+
+        const inst = new Ctor({
           appId: config.appId,
           container: containerRef.current,
           roomId: roomId || config.roomId || '',
         });
         instanceRef.current = inst;
-        try { inst.mount(); } catch (e) { console.error('Cherry mount error', e); }
-        setStatus('ready');
-      })
-      .catch((err) => {
+        await inst.mount();
+        if (!cancelled) setStatus('ready');
+      } catch (err) {
         console.error('Cherry embed error', err);
         if (!cancelled) setStatus('error');
-      });
+      }
+    })();
 
     return () => {
       cancelled = true;
@@ -83,8 +86,8 @@ export default function CherryEmbed({ roomId, className, style }) {
           </p>
           <p className="text-xs text-gray-400 mt-2">
             {status === 'error'
-              ? 'Please refresh the page or try again later.'
-              : 'Paste your Cherry appId into the CHERRY_APP_ID secret in your app\u2019s Secrets settings to enable wallet-to-wallet community, support, and collab.'}
+              ? 'Make sure your site origin is added to this Cherry embed\u2019s Allowed origins at portal.cherry.fun, then refresh.'
+              : 'Paste your Cherry appId into the CHERRY_APP_ID secret in your app\u2019s Secrets settings to enable chat.'}
           </p>
         </div>
       </div>
