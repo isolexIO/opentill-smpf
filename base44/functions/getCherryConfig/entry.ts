@@ -1,7 +1,7 @@
 Deno.serve(async (req) => {
   try {
     const appId = Deno.env.get("CHERRY_APP_ID") || "";
-    const roomId = Deno.env.get("CHERRY_ROOM_ID") || "openTILL Support";
+    const roomId = "openTILL Support";
     return Response.json({
       appId,
       roomId,
