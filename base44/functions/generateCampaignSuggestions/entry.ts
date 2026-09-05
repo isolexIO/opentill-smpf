@@ -22,7 +22,18 @@ Deno.serve(async (req) => {
       status: m.status
     }));
 
-    const prompt = `Analyze these merchant statistics and suggest 3 targeted marketing campaigns:
+    const OPENTILL_KNOWLEDGE = `You are an expert on the openTILL SMPF point-of-sale platform. Use ONLY the facts below when describing campaigns. Never invent or assume capabilities, and never promise a feature a prospect does not automatically get.
+
+WHAT openTILL SMPF IS: a modern, cloud-based POS for businesses of all sizes. Core payments that work for every merchant out of the box: cash and card (card via openTILL Payments, powered by Stripe).
+OPTIONAL PAYMENTS (opt-in, not default, not available to everyone): crypto via Solana Pay (USDC/custom SPL tokens); EBT/SNAP is NOT a standard feature and is region-limited — campaigns must NEVER promise EBT acceptance or imply it is included. Only reference EBT if a campaign explicitly targets grocery/convenience merchants who ask about it, and frame it as "ask the openTILL team."
+DUAL PRICING: a surcharge/cash-discount fee-recovery compliance tool — describe as "recover card-processing fees," never as a discount.
+INCLUDED FEATURES: online ordering, pickup/delivery, invoices, inventory, staff management, stations, kitchen/customer display, modifiers, reports, $DUC loyalty rewards on card volume, openTILL Chips marketplace.
+PRICING: no subscription fees, no long-term contracts, no trial period (do NOT mention a free trial), 0% platform fees to the merchant on the base platform.
+ACCURACY: do not present opt-in features or third-party marketplace integrations (DoorDash, Uber Eats, etc.) as guaranteed; say "designed for compliance" at most, never "fully compliant in all states."`;
+
+    const prompt = `Analyze these merchant statistics and suggest 3 targeted marketing campaigns to help an openTILL ambassador recruit and retain merchants.
+
+${OPENTILL_KNOWLEDGE}
 
 Merchants: ${JSON.stringify(merchantStats, null, 2)}
 
@@ -30,7 +41,7 @@ For each campaign suggestion, provide:
 1. Campaign name
 2. Target segment (high_performers, new_merchants, struggling, or all)
 3. Campaign type (social_media, email, multi_channel)
-4. Description of the strategy
+4. Description of the strategy (must be accurate to openTILL capabilities — no EBT promises, no "free trial" claims)
 5. Expected impact
 6. Recommended budget
 

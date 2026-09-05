@@ -227,7 +227,7 @@ export default function AIMarketingTools({ dealerId }) {
               <div className="space-y-1">
                 <Label className="text-sm">Sales Angle / Focus *</Label>
                 <Textarea
-                  placeholder="e.g. 'Save 3.5% on every card sale with dual pricing', 'Accept crypto + EBT in one POS', or 'Free trial — no commitment'"
+                  placeholder="e.g. 'Recover card-processing fees with dual pricing', 'Accept crypto alongside card payments', or 'No subscription fees, no contracts'"
                   value={quickForm.topic}
                   onChange={e => setQuickForm({ ...quickForm, topic: e.target.value })}
                   className="h-20 resize-none"

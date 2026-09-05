@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { DollarSign, Package, Plus, TrendingUp, Users, AlertCircle, Loader2, BookOpen, Globe, Wallet } from 'lucide-react';
+import { DollarSign, Package, Plus, TrendingUp, Users, AlertCircle, Loader2, BookOpen, Globe, Wallet, Megaphone } from 'lucide-react';
 import SubmissionManager from '@/components/builders/SubmissionManager.jsx';
 import AnalyticsDashboard from '@/components/builders/AnalyticsDashboard.jsx';
 import ProfileSettings from '@/components/builders/ProfileSettings.jsx';
 import ChipSubmissionDocs from '@/components/builders/ChipSubmissionDocs.jsx';
+import BuilderMarketingTools from '@/components/builders/BuilderMarketingTools.jsx';
 import SNSSubdomainRegistration from '@/components/dealer/SNSSubdomainRegistration.jsx';
 import ICOLink from '@/components/vault/ICOLink';
 
@@ -201,6 +203,9 @@ export default function BuilderDashboardPage() {
               <TabsTrigger value="analytics" className="rounded-t-lg">
                 Analytics
               </TabsTrigger>
+              <TabsTrigger value="marketing" className="rounded-t-lg">
+                <Megaphone className="w-4 h-4 mr-1" /> Marketing
+              </TabsTrigger>
               <TabsTrigger value="settings" className="rounded-t-lg">
                 Settings
               </TabsTrigger>
@@ -218,6 +223,20 @@ export default function BuilderDashboardPage() {
 
             <TabsContent value="analytics">
               <AnalyticsDashboard submissions={submissions} builder={builder} />
+            </TabsContent>
+
+            <TabsContent value="marketing">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Megaphone className="w-5 h-5 text-blue-600" />
+                    Chip Marketing Tools
+                    <Badge className="bg-purple-100 text-purple-800">AI-Powered</Badge>
+                  </CardTitle>
+                  <p className="text-sm text-gray-500">Generate accurate, ready-to-post promotional copy for your Chips across email, social, SMS, and marketplace listings.</p>
+                </CardHeader>
+                <BuilderMarketingTools submissions={submissions} builder={builder} />
+              </Card>
             </TabsContent>
 
             <TabsContent value="settings">
