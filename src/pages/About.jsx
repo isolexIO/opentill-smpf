@@ -10,7 +10,7 @@ export default function AboutPage() {
         {/* Title */}
         <div className="text-center mb-16">
           <h1 className="text-5xl font-bold text-white mb-4">About openTILL</h1>
-          <p className="text-xl text-gray-300">Real software, built by a real person, for real merchants.</p>
+          <p className="text-xl text-gray-300">Real software, built by a real team, for real merchants.</p>
         </div>
 
         {/* Origin Story */}
@@ -21,11 +21,11 @@ export default function AboutPage() {
               <div>
                 <h2 className="text-2xl font-bold mb-4">How It Started</h2>
                 <p className="leading-relaxed text-lg text-gray-200">
-                  openTILL was conceived by <strong className="text-white">Jason Zachrich</strong> of <strong className="text-white">openTILL Corporation</strong> — a one-person operation based out of Toledo, Ohio. 
-                  After spending years in the payment processing industry and watching merchants get nickel-and-dimed by legacy POS systems, Jason decided to just build something better.
+                  openTILL was conceived by <strong className="text-white">openTILL Corporation</strong> — an independent operation based out of Toledo, Ohio. 
+                  After years in the payment processing industry watching merchants get nickel-and-dimed by legacy POS systems, the team decided to just build something better.
                 </p>
                 <p className="leading-relaxed text-lg text-gray-200 mt-4">
-                  No boardroom. No VC funding. No team of 50 engineers. Just a guy with 15+ years of payment industry experience, a vision, and <a href="https://base44.com" target="_blank" rel="noreferrer" className="text-purple-300 hover:underline">Base44</a> as the development platform to bring it to life fast.
+                  No boardroom. No VC funding. No bloated engineering org. Just real payment industry experience, a vision, and <a href="https://base44.com" target="_blank" rel="noreferrer" className="text-purple-300 hover:underline">Base44</a> as the development platform to bring it to life fast.
                 </p>
               </div>
             </div>
@@ -116,7 +116,7 @@ export default function AboutPage() {
             Get in Touch
           </h2>
           <p className="text-gray-200 leading-relaxed mb-4">
-            Questions, partnership ideas, or just want to chat about payments? Jason's happy to talk.
+            Questions, partnership ideas, or just want to chat about payments? We're happy to talk.
           </p>
           <div className="bg-white/10 p-6 rounded-lg border border-white/20 text-white">
             <div className="grid md:grid-cols-2 gap-6">
