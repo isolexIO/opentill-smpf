@@ -87,9 +87,21 @@ export default function StepStripeIdentity({ formData, onChange, onNext, onBack 
         </div>
         <h2 className="text-2xl font-black text-slate-900">Identity Verification</h2>
         <p className="text-slate-500 text-sm">
-          Verify your identity with Stripe's secure verification. You'll need a government-issued ID and a selfie.
+          {formData.accept_card
+            ? "Since you're accepting card payments through openTILL Payments, identity verification is required. You'll need a government-issued ID and a selfie."
+            : "Identity verification is only required if you accept card payments through openTILL Payments. You can skip this step and verify later."}
         </p>
       </div>
+
+      {!formData.accept_card && !alreadyVerified && (
+        <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+          <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-semibold text-amber-800">Verification not required</p>
+            <p className="text-xs text-amber-700">You can skip this step and submit your application. You'll be asked to verify your identity later if you add card payments.</p>
+          </div>
+        </div>
+      )}
 
       {alreadyVerified ? (
         <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-xl px-4 py-4">
@@ -148,10 +160,10 @@ export default function StepStripeIdentity({ formData, onChange, onNext, onBack 
         <Button
           type="button"
           onClick={onNext}
-          disabled={!alreadyVerified || loading}
+          disabled={(formData.accept_card && !alreadyVerified) || loading}
           className="flex-[2] bg-cyan-600 hover:bg-cyan-700 text-white h-12 font-bold rounded-xl"
         >
-          Continue
+          {formData.accept_card ? 'Continue' : 'Skip & Continue'}
         </Button>
       </div>
     </div>

@@ -75,7 +75,7 @@ export default function MerchantOnboarding() {
         stripe_identity_verified: true,
         stripe_verification_session_id: returningSessionId,
       }));
-      setStep(4);
+      setStep(5);
       try { localStorage.removeItem('opentill_stripe_identity_session'); } catch (_) {}
       const url = new URL(window.location.href);
       url.searchParams.delete('verification_session_id');
@@ -229,7 +229,7 @@ export default function MerchantOnboarding() {
               />
             )}
             {step === 3 && (
-              <StepStripeIdentity
+              <StepPaymentPrefs
                 formData={formData}
                 onChange={onChange}
                 onNext={() => setStep(4)}
@@ -237,7 +237,7 @@ export default function MerchantOnboarding() {
               />
             )}
             {step === 4 && (
-              <StepPaymentPrefs
+              <StepStripeIdentity
                 formData={formData}
                 onChange={onChange}
                 onNext={() => setStep(5)}
