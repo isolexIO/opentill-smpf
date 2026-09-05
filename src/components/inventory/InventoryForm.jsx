@@ -16,9 +16,10 @@ import {
 const CATEGORIES = ['food', 'beverage', 'supplies', 'packaging', 'cleaning', 'other'];
 const UNITS = ['unit', 'box', 'case', 'lb', 'kg', 'oz', 'liter', 'gallon'];
 
-export default function InventoryForm({ item, merchantId, onClose, onSave }) {
+export default function InventoryForm({ item, merchantId, locationId, onClose, onSave }) {
   const [formData, setFormData] = useState({
     merchant_id: merchantId,
+    location_id: locationId || null,
     name: '',
     sku: '',
     barcode: '',

@@ -34,6 +34,8 @@ import MobileInventoryCard from '@/components/mobile/MobileInventoryCard';
 import RestockDialog from '../components/inventory/RestockDialog';
 import PermissionGate from '../components/PermissionGate'; // Added PermissionGate component
 import ReorderSuggestions from '../components/inventory/ReorderSuggestions'; // Added ReorderSuggestions component
+import { useActiveLocation } from "@/hooks/useActiveLocation";
+import LocationSwitcher from "@/components/locations/LocationSwitcher";
 
 export default function InventoryPage() {
   const [inventory, setInventory] = useState([]);
@@ -46,6 +48,8 @@ export default function InventoryPage() {
   const [merchant, setMerchant] = useState(null);
   const [lowStockItems, setLowStockItems] = useState([]);
   const [activeTab, setActiveTab] = useState('inventory'); // New state for active tab
+  const _merchantId = (() => { try { return JSON.parse(localStorage.getItem('pinLoggedInUser') || 'null')?.merchant_id; } catch (_) { return null; } })();
+  const { locations, activeLocationId, activeLocation, switchLocation, isMultiLocation } = useActiveLocation(_merchantId);
 
   // `loadData` is now wrapped in useCallback and incorporates role-based inventory fetching,
   // while also preserving the loading of alerts and merchant data.
@@ -152,10 +156,16 @@ export default function InventoryPage() {
     }
   };
 
-  const filteredInventory = inventory.filter(item =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.sku?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredInventory = inventory.filter(item => {
+    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.sku?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesLocation = !isMultiLocation || !activeLocation
+      ? true
+      : activeLocation.catalog_mode === 'standalone'
+        ? item.location_id === activeLocationId
+        : !item.location_id || item.location_id === activeLocationId;
+    return matchesSearch && matchesLocation;
+  });
 
   const totalValue = inventory.reduce((sum, item) => sum + (item.quantity * item.cost_per_unit), 0);
   // Use the new lowStockItems state for the count
@@ -175,10 +185,19 @@ export default function InventoryPage() {
               </h1>
               <p className="text-gray-500 mt-1">Track stock levels and manage reorders</p>
             </div>
-            <Button onClick={() => setShowForm(true)}>
-              <Plus className="w-5 h-5 mr-2" />
-              Add Item
-            </Button>
+            <div className="flex items-center gap-3">
+              {isMultiLocation && (
+                <LocationSwitcher
+                  locations={locations}
+                  activeLocationId={activeLocationId}
+                  onSwitch={switchLocation}
+                />
+              )}
+              <Button onClick={() => setShowForm(true)}>
+                <Plus className="w-5 h-5 mr-2" />
+                Add Item
+              </Button>
+            </div>
           </div>
 
           {/* Stats */}
@@ -437,6 +456,7 @@ export default function InventoryPage() {
           <InventoryForm
             item={selectedItem}
             merchantId={merchant?.id}
+            locationId={isMultiLocation && activeLocation?.catalog_mode === 'standalone' ? activeLocationId : (selectedItem?.location_id || null)}
             onClose={() => {
               setShowForm(false);
               setSelectedItem(null);

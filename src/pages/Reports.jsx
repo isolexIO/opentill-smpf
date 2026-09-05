@@ -14,6 +14,8 @@ import PresetReports from "../components/reports/PresetReports";
 import PermissionGate from '../components/PermissionGate';
 import FeatureGate from '../components/motherboard/FeatureGate.jsx';
 import PremiumAnalytics from '../components/reports/PremiumAnalytics.jsx';
+import { useActiveLocation } from "@/hooks/useActiveLocation";
+import LocationSwitcher from "@/components/locations/LocationSwitcher";
 
 export default function ReportsPage() {
   const [orders, setOrders] = useState([]);
@@ -30,6 +32,8 @@ export default function ReportsPage() {
   });
   const [selectedEmployee, setSelectedEmployee] = useState("all");
   const [selectedDepartment, setSelectedDepartment] = useState("all");
+  const _merchantId = (() => { try { return JSON.parse(localStorage.getItem('pinLoggedInUser') || 'null')?.merchant_id; } catch (_) { return null; } })();
+  const { locations, activeLocationId, activeLocation, switchLocation, isMultiLocation } = useActiveLocation(_merchantId);
 
   useEffect(() => {
     loadUser();
@@ -91,7 +95,12 @@ export default function ReportsPage() {
         });
       }
 
-      return dateMatch && employeeMatch && departmentMatch;
+      const locationMatch = !isMultiLocation || !activeLocation
+        ? true
+        : activeLocation.catalog_mode === 'standalone'
+          ? order.location_id === activeLocationId
+          : !order.location_id || order.location_id === activeLocationId;
+      return dateMatch && employeeMatch && departmentMatch && locationMatch;
     });
   };
 
@@ -122,10 +131,19 @@ export default function ReportsPage() {
               </h1>
               <p className="text-gray-500 dark:text-gray-400 mt-1">Comprehensive business intelligence and insights</p>
             </div>
-            <Button onClick={loadData} disabled={loading}>
-              <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-              Refresh
-            </Button>
+            <div className="flex items-center gap-3">
+              {isMultiLocation && (
+                <LocationSwitcher
+                  locations={locations}
+                  activeLocationId={activeLocationId}
+                  onSwitch={switchLocation}
+                />
+              )}
+              <Button onClick={loadData} disabled={loading}>
+                <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+            </div>
           </div>
 
           {/* Filters */}
