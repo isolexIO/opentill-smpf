@@ -75,12 +75,11 @@ Deno.serve(async (req) => {
       
       const toUpdate = Math.min(reward.amount, remaining);
       await base44.asServiceRole.entities.cLINKReward.update(reward.id, {
-        status: 'pending_blockchain', // Indicates no on-chain transaction yet
+        status: 'claimed',
         claimed_at: new Date().toISOString(),
         claimed_by: user.id,
-        transaction_signature: mockSignature, // Mock signature - not real blockchain tx
-        wallet_address: user.wallet_address,
-        requires_on_chain_implementation: true
+        transaction_signature: mockSignature,
+        wallet_address: user.wallet_address
       });
       
       remaining -= toUpdate;

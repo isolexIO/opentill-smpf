@@ -118,7 +118,7 @@ Deno.serve(async (req) => {
     await base44.asServiceRole.entities.cLINKReward.create({
       merchant_id: order.merchant_id,
       amount: rewardAmount,
-      reward_type: 'cc_processing',
+      reward_type: 'processing_volume',
       status: 'available',
       source_reference: order.id,
       description: `CC processing reward for order ${order.order_number || order.id}`,
