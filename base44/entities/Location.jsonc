@@ -30,7 +30,15 @@
     },
     "address": {
       "type": "string",
-      "description": "Physical address of this location"
+      "description": "Full street address of this location, used for GPS auto-selection via geocoding"
+    },
+    "latitude": {
+      "type": "number",
+      "description": "Geocoded latitude of the street address. Used by the POS to auto-select the nearest location based on the device's GPS position."
+    },
+    "longitude": {
+      "type": "number",
+      "description": "Geocoded longitude of the street address. Used by the POS to auto-select the nearest location based on the device's GPS position."
     },
     "phone": {
       "type": "string"

@@ -48,6 +48,22 @@ export default function LocationsManager({ merchant }) {
   const openNew = () => { setEditing({ ...EMPTY }); setShowDialog(true); };
   const openEdit = (loc) => { setEditing({ ...loc }); setShowDialog(true); };
 
+  const geocodeAddress = async (address) => {
+    if (!address?.trim()) return null;
+    try {
+      const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(address)}`;
+      const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+      if (!res.ok) return null;
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0 && data[0].lat && data[0].lon) {
+        return { latitude: parseFloat(data[0].lat), longitude: parseFloat(data[0].lon) };
+      }
+    } catch (e) {
+      console.warn('Geocode failed', e);
+    }
+    return null;
+  };
+
   const handleSave = async () => {
     if (!editing.name?.trim()) {
       toast({ title: 'Name required', description: 'Please enter a location name.', variant: 'destructive' });
@@ -55,6 +71,8 @@ export default function LocationsManager({ merchant }) {
     }
     setSaving(true);
     try {
+      // Geocode the full street address to lat/lng for GPS-based auto-selection
+      const coords = await geocodeAddress(editing.address);
       const payload = {
         merchant_id: merchant.id,
         dealer_id: merchant.dealer_id || null,
@@ -62,6 +80,8 @@ export default function LocationsManager({ merchant }) {
         catalog_mode: editing.catalog_mode || 'shared',
         address: editing.address || '',
         phone: editing.phone || '',
+        latitude: coords?.latitude ?? null,
+        longitude: coords?.longitude ?? null,
         is_active: editing.is_active !== false,
         is_default: !!editing.is_default,
         sort_order: Number(editing.sort_order) || 0,
@@ -200,6 +220,9 @@ export default function LocationsManager({ merchant }) {
                   onChange={(e) => setEditing({ ...editing, address: e.target.value })}
                   placeholder="123 Main St, Toledo, OH"
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Enter the full street address — it's geocoded to GPS coordinates so the POS can auto-select this location when you're on-site.
+                </p>
               </div>
               <div>
                 <Label>Phone</Label>

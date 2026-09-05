@@ -62,6 +62,42 @@ export function useActiveLocation(merchantId) {
 
   const activeLocation = locations.find((l) => l.id === activeLocationId) || null;
 
+  // Auto-select the nearest location based on the device's GPS position.
+  // Uses each location's geocoded lat/lng (derived from the full street address).
+  const autoSelectByGeolocation = useCallback(() => {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) return;
+    const geoLocs = locations.filter((l) => l.latitude != null && l.longitude != null);
+    if (geoLocs.length === 0) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        const toRad = (d) => (d * Math.PI) / 180;
+        let nearest = null;
+        let nearestDist = Infinity;
+        for (const l of geoLocs) {
+          const dLat = toRad(l.latitude - latitude);
+          const dLon = toRad(l.longitude - longitude);
+          const a =
+            Math.sin(dLat / 2) ** 2 +
+            Math.cos(toRad(latitude)) * Math.cos(toRad(l.latitude)) * Math.sin(dLon / 2) ** 2;
+          const d = 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+          if (d < nearestDist) { nearestDist = d; nearest = l; }
+        }
+        if (nearest) switchLocation(nearest.id);
+      },
+      () => { /* denied or unavailable — keep current selection */ },
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+    );
+  }, [locations, switchLocation]);
+
+  // Run once after locations first load (and again whenever they reload)
+  useEffect(() => {
+    if (!loading && locations.length > 0) {
+      autoSelectByGeolocation();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading]);
+
   // When there are no Location records, the merchant operates in "shared"
   // single-location mode — expose that as a synthetic location so downstream
   // code can branch on catalog_mode uniformly.
@@ -74,6 +110,7 @@ export function useActiveLocation(merchantId) {
     activeLocation: effectiveLocation,
     activeLocationId: effectiveLocation?.id || null,
     switchLocation,
+    autoSelectByGeolocation,
     reloadLocations: loadLocations,
     loading,
     isMultiLocation: locations.length > 0,
