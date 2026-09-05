@@ -136,7 +136,15 @@ export default function MerchantOnboarding() {
       }
       setSuccess(true);
     } catch (err) {
-      setError(err.message || 'Registration failed. Please try again.');
+      // Surface the specific backend error (e.g. duplicate email) instead of
+      // a generic "Request failed with status code 400" so the user knows what
+      // to fix.
+      const backendError =
+        err?.data?.error ||
+        err?.response?.data?.error ||
+        err?.message ||
+        'Registration failed. Please try again.';
+      setError(backendError);
     } finally {
       setLoading(false);
     }
