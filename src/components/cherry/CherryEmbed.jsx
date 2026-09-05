@@ -26,11 +26,12 @@ export default function CherryEmbed({ className, style }) {
     (async () => {
       try {
         const res = await base44.functions.invoke('getCherryConfig', {});
-        if (!cancelled && res?.appId) {
+        const cfg = res?.data ?? res;
+        if (!cancelled && cfg?.appId) {
           setConfig({
             ...EMBED_CONFIG,
-            appId: res.appId,
-            roomId: res.roomId || EMBED_CONFIG.roomId,
+            appId: cfg.appId,
+            roomId: cfg.roomId || EMBED_CONFIG.roomId,
           });
         }
       } catch (err) {
