@@ -18,7 +18,7 @@ export default function PricingTab({ settings, onSave }) {
     show_dual_prices: settings?.pricing_and_surcharge?.show_dual_prices || true,
     region: settings?.pricing_and_surcharge?.region || 'US',
     pricing_mode: settings?.pricing_and_surcharge?.pricing_mode || 'surcharge',
-    sync_with_payments: true,
+    sync_with_payments: settings?.pricing_and_surcharge?.sync_with_payments ?? true,
   });
 
   const [isSaving, setIsSaving] = useState(false);
@@ -42,7 +42,7 @@ export default function PricingTab({ settings, onSave }) {
         ...settings,
         pricing_and_surcharge: {
           ...pricingSettings,
-          sync_with_payments: true,
+          sync_with_payments: pricingSettings.sync_with_payments,
           cc_surcharge_percent: finalPercent
         }
       };
@@ -212,44 +212,91 @@ export default function PricingTab({ settings, onSave }) {
             </CardContent>
           </Card>
 
-          {/* Synced Surcharge — locked to openTILL Payments costs */}
+          {/* Surcharge Rate — auto-sync or custom */}
           <Card className="border-2 border-blue-300 bg-blue-50/50">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Zap className="w-5 h-5 text-blue-600" />
-                Surcharge Rate (Auto-Synced)
+                Surcharge Rate
               </CardTitle>
               <CardDescription>
-                The surcharge is automatically synced to your openTILL Payments (Stripe) processing costs. This is not adjustable.
+                Choose whether the card surcharge matches your exact processing costs or uses a custom rate you control.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border">
-                  <p className="text-xs text-gray-500 mb-1">Processing Rate</p>
-                  <p className="text-2xl font-bold text-blue-600">
-                    {(settings?.payment_gateways?.stripe?.processing_rate_percent ?? 2.9).toFixed(2)}%
+              <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border">
+                <div>
+                  <Label className="font-medium">Auto-sync to processing costs</Label>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Surcharge automatically matches your openTILL Payments rate + platform fee + flat fee (exact fee recovery).
                   </p>
                 </div>
-                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border">
-                  <p className="text-xs text-gray-500 mb-1">Platform Fee</p>
-                  <p className="text-2xl font-bold text-blue-600">
-                    {(settings?.payment_gateways?.stripe?.platform_fee_percent ?? 0.5).toFixed(2)}%
-                  </p>
-                </div>
-                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border">
-                  <p className="text-xs text-gray-500 mb-1">Flat Fee / Transaction</p>
-                  <p className="text-2xl font-bold text-blue-600">
-                    ${(settings?.payment_gateways?.stripe?.processing_flat_fee ?? 0.3).toFixed(2)}
-                  </p>
-                </div>
+                <Switch
+                  checked={pricingSettings.sync_with_payments}
+                  onCheckedChange={(checked) => setPricingSettings({ ...pricingSettings, sync_with_payments: checked })}
+                />
               </div>
+
+              {pricingSettings.sync_with_payments ? (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border">
+                    <p className="text-xs text-gray-500 mb-1">Processing Rate</p>
+                    <p className="text-2xl font-bold text-blue-600">
+                      {(settings?.payment_gateways?.stripe?.processing_rate_percent ?? 2.9).toFixed(2)}%
+                    </p>
+                  </div>
+                  <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border">
+                    <p className="text-xs text-gray-500 mb-1">Platform Fee</p>
+                    <p className="text-2xl font-bold text-blue-600">
+                      {(settings?.payment_gateways?.stripe?.platform_fee_percent ?? 0.5).toFixed(2)}%
+                    </p>
+                  </div>
+                  <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border">
+                    <p className="text-xs text-gray-500 mb-1">Flat Fee / Transaction</p>
+                    <p className="text-2xl font-bold text-blue-600">
+                      ${(settings?.payment_gateways?.stripe?.processing_flat_fee ?? 0.3).toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Label>Custom Surcharge Rate (%)</Label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max={getMaxPercent()}
+                      value={pricingSettings.cc_surcharge_percent}
+                      onChange={(e) => setPricingSettings({ ...pricingSettings, cc_surcharge_percent: parseFloat(e.target.value) || 0 })}
+                      className="flex h-10 w-28 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
+                    />
+                    <span className="text-sm text-gray-500">
+                      Max {getMaxPercent().toFixed(1)}% ({pricingSettings.region === 'US' ? 'U.S.' : pricingSettings.region === 'CA' ? 'Canada' : 'regional'} cap)
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    This is the percentage added to card transactions. If it's above your actual processing cost you keep the difference; if below, you absorb the remainder. The regional cap is still enforced.
+                  </p>
+                </div>
+              )}
+
               <Alert>
                 <Info className="w-4 h-4" />
                 <AlertDescription>
-                  The surcharge on each card transaction automatically matches the combined openTILL Payments processing rate, flat fee, and platform fee. This ensures you never absorb processing fees and stays fully compliant with dual-pricing regulations.
+                  {pricingSettings.sync_with_payments
+                    ? 'The surcharge on each card transaction automatically matches the combined openTILL Payments processing rate, flat fee, and platform fee. This ensures you never absorb processing fees.'
+                    : 'A custom rate gives you flexibility, but if you set it below your actual processing cost you will absorb the difference on each card transaction.'}
                 </AlertDescription>
               </Alert>
+
+              <Alert variant="warning">
+                <AlertCircle className="w-4 h-4" />
+                <AlertDescription>
+                  <strong>Debit & prepaid cards are never surcharged.</strong> Under Visa and Mastercard U.S. rules, surcharges apply only to <strong>credit</strong> cards — debit cards (even when run as "credit") and prepaid cards cannot be surcharged. openTILL automatically detects the card type and waives the surcharge for debit/prepaid, so those transactions process at the cash price.
+                </AlertDescription>
+              </Alert>
+
               <div className="flex items-center gap-3">
                 <Switch
                   checked={pricingSettings.show_dual_prices}

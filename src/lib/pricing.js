@@ -33,6 +33,19 @@ export function processorConfig(settings) {
   };
 }
 
+// The rate actually applied to the customer as the card-price adjustment.
+// When sync_with_payments is true this equals the real processing rate (exact
+// fee recovery). When false, the merchant's configured cc_surcharge_percent is
+// used, so they can charge more or less than their actual processing cost.
+export function surchargeRateDecimal(settings) {
+  const ps = settings?.pricing_and_surcharge || {};
+  if (ps.sync_with_payments === false) {
+    const custom = parseFloat(ps.cc_surcharge_percent);
+    if (!isNaN(custom) && custom >= 0) return custom / 100;
+  }
+  return processorConfig(settings).rateDecimal;
+}
+
 // Build the cap set (in cents) for a given base amount from the compliance rule
 // plus any merchant-configured lower cap. Each cap is the max adjustment allowed
 // by that authority for this transaction; the engine applies the minimum.
@@ -91,6 +104,7 @@ export function buildPricing({
 }) {
   const program = resolveProgram(settings);
   const { rateDecimal, flatCents } = processorConfig(settings);
+  const adjRateDecimal = surchargeRateDecimal(settings);
   const subtotalCents = toCents(subtotalDollars);
   const taxCents = toCents(taxDollars);
   const tipCents = toCents(tipDollars);
@@ -98,10 +112,10 @@ export function buildPricing({
   const caps = buildCaps(rule, baseCents, settings);
 
   if (program === PROGRAM.DUAL_PRICING) {
-    return toUI(computeDualPricing({ subtotalCents, taxCents, tipCents, rateDecimal, flatCents, rule, caps }));
+    return toUI(computeDualPricing({ subtotalCents, taxCents, tipCents, rateDecimal, flatCents, rule, caps, surchargeRateDecimal: adjRateDecimal }));
   }
   if (program === PROGRAM.SURCHARGE) {
-    return toUI(computeCreditSurcharge({ subtotalCents, taxCents, tipCents, rateDecimal, flatCents, rule, caps, cardFundingType }));
+    return toUI(computeCreditSurcharge({ subtotalCents, taxCents, tipCents, rateDecimal, flatCents, rule, caps, cardFundingType, surchargeRateDecimal: adjRateDecimal }));
   }
   // Standard pricing — same price for every payment method.
   return toUI({

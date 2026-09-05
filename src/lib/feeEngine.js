@@ -163,7 +163,11 @@ function standardResult({ subtotalCents, taxCents, tipCents, program, reason, pe
 // merchant nets the cash price after processing. Applies to ALL cards (it is a
 // disclosed price, not a per-card surcharge). The differential is capped by the
 // jurisdiction rule where applicable.
-export function computeDualPricing({ subtotalCents, taxCents = 0, tipCents = 0, rateDecimal, flatCents, rule, caps }) {
+export function computeDualPricing({ subtotalCents, taxCents = 0, tipCents = 0, rateDecimal, flatCents, rule, caps, surchargeRateDecimal }) {
+  // The rate used to gross up the card price (what the customer pays). Defaults
+  // to the real processing rate (exact fee recovery). Merchants may set a custom
+  // surcharge rate that differs from their actual processing cost.
+  const adjRate = (typeof surchargeRateDecimal === 'number' && surchargeRateDecimal >= 0) ? surchargeRateDecimal : rateDecimal;
   const ev = evaluateRule(rule);
   if (!ev.allowed) {
     return standardResult({ subtotalCents, taxCents, tipCents, program: PROGRAM.DUAL_PRICING, reason: ev.reason });
@@ -171,11 +175,11 @@ export function computeDualPricing({ subtotalCents, taxCents = 0, tipCents = 0, 
   if (!rule.dual_pricing_status || rule.dual_pricing_status === 'prohibited') {
     return standardResult({ subtotalCents, taxCents, tipCents, program: PROGRAM.DUAL_PRICING, reason: 'dual_pricing_prohibited' });
   }
-  if (!(rateDecimal < 1)) {
+  if (!(adjRate < 1) || !(rateDecimal < 1)) {
     return standardResult({ subtotalCents, taxCents, tipCents, program: PROGRAM.DUAL_PRICING, reason: 'invalid_processor_rate' });
   }
   const base = subtotalCents + taxCents; // merchant target net (cash price, ex tip)
-  const grossed = grossUpExact(base, rateDecimal, flatCents);
+  const grossed = grossUpExact(base, adjRate, flatCents);
   if (!grossed) {
     return standardResult({ subtotalCents, taxCents, tipCents, program: PROGRAM.DUAL_PRICING, reason: 'invalid_processor_rate' });
   }
@@ -212,7 +216,10 @@ export function computeDualPricing({ subtotalCents, taxCents = 0, tipCents = 0, 
 // of the merchant target net, then capped to the minimum of network / state /
 // acquirer / processor / merchant caps. The merchant absorbs any non-recoverable
 // difference; the customer charge is never increased beyond the cap.
-export function computeCreditSurcharge({ subtotalCents, taxCents = 0, tipCents = 0, rateDecimal, flatCents, rule, caps, cardFundingType }) {
+export function computeCreditSurcharge({ subtotalCents, taxCents = 0, tipCents = 0, rateDecimal, flatCents, rule, caps, cardFundingType, surchargeRateDecimal }) {
+  // The rate used to compute the surcharge the customer pays. Defaults to the
+  // real processing rate (exact fee recovery). Merchants may set a custom rate.
+  const adjRate = (typeof surchargeRateDecimal === 'number' && surchargeRateDecimal >= 0) ? surchargeRateDecimal : rateDecimal;
   const ev = evaluateRule(rule);
   if (!ev.allowed) {
     return standardResult({ subtotalCents, taxCents, tipCents, program: PROGRAM.SURCHARGE, reason: ev.reason });
@@ -220,14 +227,14 @@ export function computeCreditSurcharge({ subtotalCents, taxCents = 0, tipCents =
   if (!rule.surcharge_status || rule.surcharge_status === 'prohibited') {
     return standardResult({ subtotalCents, taxCents, tipCents, program: PROGRAM.SURCHARGE, reason: 'surcharge_prohibited' });
   }
-  if (!(rateDecimal < 1)) {
+  if (!(adjRate < 1) || !(rateDecimal < 1)) {
     return standardResult({ subtotalCents, taxCents, tipCents, program: PROGRAM.SURCHARGE, reason: 'invalid_processor_rate' });
   }
   const base = subtotalCents + taxCents; // surcharge base (pre-tax subtotal + tax); voluntary tip excluded by default
 
   // Compute the would-be adjustment for disclosure ("up to $X may apply"), used
   // when the funding type is not yet confirmed.
-  const grossed = grossUpExact(base, rateDecimal, flatCents);
+  const grossed = grossUpExact(base, adjRate, flatCents);
   const wouldBeAdjustment = grossed ? grossed.cardAmount - base : 0;
 
   // Funding-type gate: only confirmed credit may be surcharged.
