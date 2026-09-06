@@ -613,7 +613,106 @@ export default function LeadManagement({ dealerId }) {
           <DialogTrigger asChild>
             <Button className="gap-2"><Plus className="w-4 h-4" /> Add Lead</Button>
           </DialogTrigger>
-...
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>{editingLead ? 'Edit Lead' : 'Add New Lead'}</DialogTitle>
+              <DialogDescription>
+                {editingLead ? 'Update the lead details below.' : 'Add a new prospect to your sales pipeline.'}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="business_name">Business Name *</Label>
+                  <Input id="business_name" value={formData.business_name} onChange={(e) => setFormData({ ...formData, business_name: e.target.value })} placeholder="Acme Restaurant" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="contact_name">Contact Name</Label>
+                  <Input id="contact_name" value={formData.contact_name} onChange={(e) => setFormData({ ...formData, contact_name: e.target.value })} placeholder="Jane Doe" />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="email">Email</Label>
+                  <Input id="email" type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="jane@acme.com" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="phone">Phone</Label>
+                  <Input id="phone" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="(555) 123-4567" />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="space-y-1.5">
+                  <Label>Status</Label>
+                  <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
+                        <SelectItem key={key} value={key}>{cfg.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Source</Label>
+                  <Select value={formData.source} onValueChange={(v) => setFormData({ ...formData, source: v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(SOURCE_LABELS).map(([key, label]) => (
+                        <SelectItem key={key} value={key}>{label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Business Type</Label>
+                  <Select value={formData.business_type} onValueChange={(v) => setFormData({ ...formData, business_type: v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(BUSINESS_LABELS).map(([key, label]) => (
+                        <SelectItem key={key} value={key}>{label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="estimated_value">Estimated Value ($/mo)</Label>
+                  <Input id="estimated_value" type="number" min="0" value={formData.estimated_value} onChange={(e) => setFormData({ ...formData, estimated_value: e.target.value })} placeholder="0" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="next_follow_up">Next Follow-up</Label>
+                  <Input id="next_follow_up" type="date" value={formData.next_follow_up} onChange={(e) => setFormData({ ...formData, next_follow_up: e.target.value })} />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="tag_input">Tags</Label>
+                <div className="flex gap-2">
+                  <Input id="tag_input" value={tagInput} onChange={(e) => setTagInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddTag(); } }} placeholder="Add a tag and press Enter" />
+                  <Button type="button" variant="outline" onClick={handleAddTag}>Add</Button>
+                </div>
+                {formData.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {formData.tags.map(tag => (
+                      <Badge key={tag} variant="outline" className="gap-1">
+                        <Tag className="w-2.5 h-2.5" />{tag}
+                        <button onClick={() => handleRemoveTag(tag)} className="ml-1 text-gray-400 hover:text-red-600">×</button>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="notes">Notes</Label>
+                <Textarea id="notes" value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="Add any notes about this lead..." rows={3} />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="outline" onClick={() => { setShowForm(false); setEditingLead(null); setFormData(EMPTY_LEAD); }}>Cancel</Button>
+              <Button onClick={handleSave}>{editingLead ? 'Save Changes' : 'Add Lead'}</Button>
+            </div>
+          </DialogContent>
         </Dialog>
         </div>
       </div>
