@@ -1,0 +1,46 @@
+{
+  "name": "Daily Payout Scheduling",
+  "description": "Daily job that schedules due DealerPayouts (hold period elapsed) and triggers their processing via processDealerPayout.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 5 * * *",
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "daily_payout_scheduling",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "schedulePayouts",
+            "args": {
+              "_internal_secret": "ot_aut_3f7a9c2e1b8d4f6a5c0e7b2d9f1a4c8e"
+            }
+          },
+          "then": "end"
+        }
+      }
+    ]
+  },
+  "x-base44-migrated-from-automation": {
+    "legacy_payload_function": "schedulePayouts"
+  }
+}

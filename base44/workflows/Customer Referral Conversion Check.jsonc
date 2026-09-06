@@ -1,0 +1,38 @@
+{
+  "name": "Customer Referral Conversion Check",
+  "description": "When an order is created or updated, checks whether the merchant was referred by a customer and has processed $100 via openTILL Payments \u2014 if so, credits the customer $DUC.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "create",
+        "update"
+      ],
+      "entity_name": "Order"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "customer_referral_conversion_check",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "processCustomerReferralConversion",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  },
+  "x-base44-migrated-from-automation": {
+    "legacy_payload_function": "processCustomerReferralConversion"
+  }
+}
