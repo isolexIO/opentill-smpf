@@ -12,7 +12,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@base44/sdk": "^0.8.46",
+    "@base44/sdk": "^0.8.48",
     "@base44/vite-plugin": "^1.0.35",
     "@cherrydotfun/chat-embed-sdk": "^0.1.7",
     "@hello-pangea/dnd": "^17.0.0",
