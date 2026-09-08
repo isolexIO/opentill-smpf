@@ -287,7 +287,7 @@ Deno.serve(async (req) => {
         'Join Our Network - openTILL POS',
         `
           <p style="margin:0 0 8px 0;font-size:14px;color:#71717a;">You're invited to join our network,</p>
-          <h2 style="margin:0 0 20px 0;font-size:22px;font-weight:700;color:#18181b;">${escapeHtml(lead.contact_name || 'there')}!</h2>
+          <h2 style="margin:0 0 20px 0;font-size:22px;font-weight:700;color:#18181b;">${escapeHtml(lead.contact_name || lead.business_name || 'there')}!</h2>
           <p style="margin:0 0 16px 0;font-size:16px;color:#3f3f46;line-height:1.7;">
             You've been invited to sign up for <strong style="color:#7B2FD6;">openTILL POS</strong> and join our merchant network.
           </p>
@@ -494,7 +494,7 @@ Deno.serve(async (req) => {
             'Join Our Network - openTILL POS',
             `
               <p style="margin:0 0 8px 0;font-size:14px;color:#71717a;">You're invited to join our network,</p>
-              <h2 style="margin:0 0 20px 0;font-size:22px;font-weight:700;color:#18181b;">${escapeHtml(lead.contact_name || 'there')}!</h2>
+              <h2 style="margin:0 0 20px 0;font-size:22px;font-weight:700;color:#18181b;">${escapeHtml(lead.contact_name || lead.business_name || 'there')}!</h2>
               <p style="margin:0 0 16px 0;font-size:16px;color:#3f3f46;line-height:1.7;">
                 You've been invited to sign up for <strong style="color:#7B2FD6;">openTILL POS</strong> and join our merchant network.
               </p>
