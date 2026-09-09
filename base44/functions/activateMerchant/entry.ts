@@ -178,14 +178,18 @@ Deno.serve(async (req) => {
       if (pin) {
         updateData.admin_pin = String(pin);
       }
-      // Store the temp password as a bcrypt hash on the Merchant record so
-      // emailPasswordLogin can verify it before the owner has a User record
-      // (the platform blocks User.create, so the Merchant entity is the only
-      // place to store credentials until the invite is accepted).
-      if (temp_password) {
-        const bcrypt = await import('npm:bcryptjs@2.4.3');
-        updateData.temp_password = bcrypt.default.hashSync(String(temp_password), 10);
-      }
+      // Generate a one-time magic login link token (same scheme as
+      // resetUserPassword). Its bcrypt hash is stored as temp_password so
+      // emailPasswordLogin can verify it when the owner opens the MagicLogin
+      // link from their welcome email. The admin-supplied temp_password is no
+      // longer used — merchants log in via the magic link, not a password.
+      const tokenBytes = crypto.getRandomValues(new Uint8Array(32));
+      const magicToken = btoa(String.fromCharCode(...tokenBytes))
+        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      const magicExp = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
+      const magicValue = `${magicToken}.${magicExp}`;
+      const bcrypt = await import('npm:bcryptjs@2.4.3');
+      updateData.temp_password = bcrypt.default.hashSync(magicValue, 10);
       // Ensure the merchant has a unique referral code at activation so they
       // can share their brochure link immediately.
       if (!merchantData.referral_code) {
@@ -220,31 +224,24 @@ Deno.serve(async (req) => {
       const bizName = sanitizeForEmail(merchantData.business_name);
       const ownerName = sanitizeForEmail(merchantData.owner_name) || 'Merchant';
       const ownerEmail = sanitizeForEmail(merchantData.owner_email, 120);
-      const hasCredentials = !!(pin || temp_password);
+      const magicLink = `${appUrl}/MagicLogin?email=${encodeURIComponent(merchantData.owner_email)}&token=${encodeURIComponent(magicToken)}&exp=${magicExp}`;
 
-      // Build the credentials card HTML only when credentials were supplied.
-      const credentialsHtml = hasCredentials ? `
-        <div style="margin:28px 0;background:#f4f4f5;border:1px solid #e4e4e7;border-radius:12px;padding:24px;">
-          <p style="margin:0 0 16px 0;font-size:13px;font-weight:700;color:#3f3f46;text-transform:uppercase;letter-spacing:0.5px;">Your Login Credentials</p>
-          <table width="100%" cellpadding="0" cellspacing="0" border="0">
-            <tr>
-              <td style="padding:8px 0;font-size:14px;color:#71717a;font-weight:500;width:140px;">Login Email</td>
-              <td style="padding:8px 0;font-size:14px;color:#18181b;font-weight:600;font-family:monospace;">${escapeHtml(ownerEmail)}</td>
-            </tr>
-            ${pin ? `<tr>
-              <td style="padding:8px 0;font-size:14px;color:#71717a;font-weight:500;">PIN (quick login)</td>
-              <td style="padding:8px 0;font-size:18px;color:#7B2FD6;font-weight:800;font-family:monospace;letter-spacing:4px;">${escapeHtml(String(pin))}</td>
-            </tr>` : ''}
-            ${temp_password ? `<tr>
-              <td style="padding:8px 0;font-size:14px;color:#71717a;font-weight:500;">Temporary Password</td>
-              <td style="padding:8px 0;font-size:14px;color:#18181b;font-weight:700;font-family:monospace;word-break:break-all;">${escapeHtml(String(temp_password))}</td>
-            </tr>` : ''}
-          </table>
-        </div>
+      // PIN card — only shown when an admin set a POS quick-login PIN. This is
+      // for fast terminal login, separate from the email magic link.
+      const pinHtml = pin ? `
+        <div style="margin:20px 0;background:#f4f4f5;border:1px solid #e4e4e7;border-radius:12px;padding:20px 24px;">
+          <p style="margin:0 0 8px 0;font-size:13px;font-weight:700;color:#3f3f46;text-transform:uppercase;letter-spacing:0.5px;">POS Quick-Login PIN</p>
+          <p style="margin:0;font-size:13px;color:#71717a;line-height:1.6;">Use this PIN at your POS terminal for fast staff login:</p>
+          <p style="margin:8px 0 0 0;font-size:22px;color:#7B2FD6;font-weight:800;font-family:monospace;letter-spacing:4px;">${escapeHtml(String(pin))}</p>
+        </div>` : '';
+
+      // Primary CTA is the one-time magic login link — no password needed.
+      const credentialsHtml = `
         <div style="text-align:center;margin:32px 0;">
-          <a href="${appUrl}/EmailLogin" style="display:inline-block;padding:14px 40px;background:linear-gradient(90deg,#7B2FD6 0%,#0FD17A 100%);color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;border-radius:10px;box-shadow:0 2px 8px rgba(123,47,214,0.3);">Log In to Your POS &rarr;</a>
+          <a href="${magicLink}" style="display:inline-block;padding:16px 48px;background:linear-gradient(90deg,#7B2FD6 0%,#0FD17A 100%);color:#ffffff;font-size:17px;font-weight:700;text-decoration:none;border-radius:10px;box-shadow:0 4px 16px rgba(123,47,214,0.35);">Log In to Your POS &rarr;</a>
         </div>
-        <p style="margin:16px 0 0 0;font-size:13px;color:#a1a1aa;text-align:center;">Or visit <span style="color:#7B2FD6;font-weight:600;">${appUrl}/EmailLogin</span> to sign in with your email and password.</p>` : '';
+        <p style="margin:12px 0 0 0;font-size:13px;color:#a1a1aa;text-align:center;">This secure login link expires in 24 hours and works only once.</p>
+        ${pinHtml}`;
 
       // 1. Merchant activation confirmation — branded HTML with credentials
       await sendEmail(
@@ -266,7 +263,7 @@ Deno.serve(async (req) => {
         ${credentialsHtml}
         <p style="margin:28px 0 12px 0;font-size:15px;color:#3f3f46;font-weight:600;">What's next?</p>
         <ul style="margin:0 0 24px 0;padding-left:20px;font-size:14px;color:#52525b;line-height:1.9;">
-          <li>Log in using the credentials above</li>
+          <li>Click the login link above to access your POS</li>
           <li>Complete your business profile and onboarding</li>
           <li>Set up your menu, products, and payment methods</li>
           <li>Connect your hardware and start selling</li>
