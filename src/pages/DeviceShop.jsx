@@ -18,8 +18,10 @@ import {
 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { Link } from 'react-router-dom';
+import { useLanguage } from '@/lib/i18n/useLanguage';
 
 export default function DeviceShopPage() {
+  const { t } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [user, setUser] = useState(null);
@@ -50,13 +52,13 @@ export default function DeviceShopPage() {
   });
 
   const categories = [
-    { id: 'all', name: 'All Products', icon: Package },
-    { id: 'terminals', name: 'POS Terminals', icon: CreditCard },
-    { id: 'card_readers', name: 'Card Readers', icon: CreditCard },
-    { id: 'printers', name: 'Printers', icon: Package },
-    { id: 'scanners', name: 'Scanners', icon: Search },
-    { id: 'displays', name: 'Displays', icon: Package },
-    { id: 'accessories', name: 'Accessories', icon: Package },
+    { id: 'all', name: t('deviceShop.catAll'), icon: Package },
+    { id: 'terminals', name: t('deviceShop.catTerminals'), icon: CreditCard },
+    { id: 'card_readers', name: t('deviceShop.catReaders'), icon: CreditCard },
+    { id: 'printers', name: t('deviceShop.catPrinters'), icon: Package },
+    { id: 'scanners', name: t('deviceShop.catScanners'), icon: Search },
+    { id: 'displays', name: t('deviceShop.catDisplays'), icon: Package },
+    { id: 'accessories', name: t('deviceShop.catAccessories'), icon: Package },
   ];
 
   const filteredProducts = products.filter(product => {
@@ -75,7 +77,7 @@ export default function DeviceShopPage() {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Loading device shop...</p>
+          <p className="text-gray-600 dark:text-gray-400">{t('deviceShop.loading')}</p>
         </div>
       </div>
     );
@@ -90,12 +92,12 @@ export default function DeviceShopPage() {
             <div className="flex items-center gap-4">
               <Package className="w-12 h-12" />
               <div>
-                <h1 className="text-3xl font-bold">Device Shop</h1>
-                <p className="text-blue-100">Professional POS Hardware & Equipment</p>
+                <h1 className="text-3xl font-bold">{t('deviceShop.title')}</h1>
+                <p className="text-blue-100">{t('deviceShop.subtitle')}</p>
               </div>
             </div>
             <Badge className="bg-orange-500 text-white text-sm px-3 py-1">
-              Affiliate Store
+              {t('deviceShop.affiliate')}
             </Badge>
           </div>
         </div>
@@ -108,7 +110,7 @@ export default function DeviceShopPage() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <Input
-              placeholder="Search products..."
+              placeholder={t('deviceShop.searchPh')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -144,7 +146,7 @@ export default function DeviceShopPage() {
                   {product.is_featured && (
                     <Badge className="absolute top-2 right-2 bg-yellow-500">
                       <Star className="w-3 h-3 mr-1" />
-                      Featured
+                      {t('deviceShop.featured')}
                     </Badge>
                   )}
                 </div>
@@ -160,7 +162,7 @@ export default function DeviceShopPage() {
                       ${product.price.toFixed(2)}
                     </span>
                     <Badge variant="outline" className="text-blue-600">
-                      Affiliate
+                      {t('deviceShop.affiliateBadge')}
                     </Badge>
                   </div>
 
@@ -169,7 +171,7 @@ export default function DeviceShopPage() {
                     onClick={() => handleBuyNow(product)}
                   >
                     <ShoppingCart className="w-4 h-4 mr-2" />
-                    Shop
+                    {t('deviceShop.shop')}
                   </Button>
                 </div>
               </CardContent>
@@ -180,7 +182,7 @@ export default function DeviceShopPage() {
         {filteredProducts.length === 0 && (
           <div className="text-center py-12">
             <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <p className="text-xl text-gray-500">No products found</p>
+            <p className="text-xl text-gray-500">{t('deviceShop.noProducts')}</p>
           </div>
         )}
 

@@ -13,8 +13,10 @@ import {
 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import AmbassadorWalletLogin from '@/components/auth/AmbassadorWalletLogin';
+import { useLanguage } from '@/lib/i18n/useLanguage';
 
 export default function DealerLanding() {
+  const { t } = useLanguage();
   const [isChecking, setIsChecking] = useState(true);
   const [mode, setMode] = useState('login');
   const [loading, setLoading] = useState(false);
@@ -93,19 +95,19 @@ export default function DealerLanding() {
       // Redirect to platform Google OAuth, returning here to finish ambassador sign-in/up.
       await base44.auth.redirectToLogin(createPageUrl('DealerLanding'));
     } catch {
-      setError('Failed to start Google sign-in');
+      setError(t('dealerLanding.googleFailed'));
       setLoading(false);
     }
   };
 
   const handleWalletDone = (data) => {
-    setSuccess('Account ready! Redirecting to your dashboard...');
+    setSuccess(t('dealerLanding.accountReady'));
     setTimeout(() => { window.location.href = createPageUrl('DealerDashboard'); }, 800);
   };
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    if (!loginForm.email || !loginForm.password) { setError('Please fill in all fields'); return; }
+    if (!loginForm.email || !loginForm.password) { setError(t('dealerLanding.fillAllFields')); return; }
     setLoading(true); setError(null);
     try {
       const { data } = await base44.functions.invoke('dealerAuth', {
@@ -125,10 +127,10 @@ export default function DealerLanding() {
   const handleRegister = async (e) => {
     e.preventDefault();
     if (!registerForm.name || !registerForm.company || !registerForm.email || !registerForm.password) {
-      setError('Please fill in all required fields'); return;
+      setError(t('dealerLanding.fillRequired')); return;
     }
-    if (registerForm.password.length < 8) { setError('Password must be at least 8 characters'); return; }
-    if (registerForm.password !== registerForm.confirmPassword) { setError('Passwords do not match'); return; }
+    if (registerForm.password.length < 8) { setError(t('dealerLanding.passwordMin')); return; }
+    if (registerForm.password !== registerForm.confirmPassword) { setError(t('dealerLanding.passwordMismatch')); return; }
     setLoading(true); setError(null);
     try {
       const { data } = await base44.functions.invoke('dealerAuth', {
@@ -140,7 +142,7 @@ export default function DealerLanding() {
       localStorage.setItem('dealerToken', data.token);
       localStorage.setItem('dealerData', JSON.stringify(data.dealer));
       if (data.user) localStorage.setItem('pinLoggedInUser', JSON.stringify(data.user));
-      setSuccess('Account created! Redirecting to your dashboard...');
+      setSuccess(t('dealerLanding.accountCreated'));
       setTimeout(() => { window.location.href = createPageUrl('DealerDashboard'); }, 1200);
     } catch (err) {
       setError(err.message || 'Registration failed');
@@ -157,12 +159,12 @@ export default function DealerLanding() {
   );
 
   const benefits = [
-    { icon: Palette, title: 'Your Branding', desc: 'Your brand, your domain, your colors' },
-    { icon: DollarSign, title: 'Earn 10–30%', desc: 'Recurring commissions monthly' },
-    { icon: Users, title: 'Merchant Portal', desc: 'Manage all your merchants in one place' },
-    { icon: Globe, title: 'Custom Domain', desc: 'yourcompany.com with SSL included' },
-    { icon: BarChart3, title: 'Analytics', desc: 'Revenue, engagement & growth insights' },
-    { icon: Shield, title: 'PCI Compliant', desc: 'SOC 2 Type II, EBT/SNAP ready' },
+    { icon: Palette, title: t('dealerLanding.benefitBranding'), desc: t('dealerLanding.benefitBrandingDesc') },
+    { icon: DollarSign, title: t('dealerLanding.benefitEarn'), desc: t('dealerLanding.benefitEarnDesc') },
+    { icon: Users, title: t('dealerLanding.benefitPortal'), desc: t('dealerLanding.benefitPortalDesc') },
+    { icon: Globe, title: t('dealerLanding.benefitDomain'), desc: t('dealerLanding.benefitDomainDesc') },
+    { icon: BarChart3, title: t('dealerLanding.benefitAnalytics'), desc: t('dealerLanding.benefitAnalyticsDesc') },
+    { icon: Shield, title: t('dealerLanding.benefitPci'), desc: t('dealerLanding.benefitPciDesc') },
   ];
 
   const adminStories = Array.isArray(landingSettings?.success_stories) ? landingSettings.success_stories : [];
@@ -179,27 +181,27 @@ export default function DealerLanding() {
             <div className="space-y-5">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/15 border border-emerald-500/30 rounded-full">
                 <Rocket className="w-4 h-4 text-emerald-400" />
-                <span className="text-emerald-300 text-sm font-semibold">openTILL Ambassador Program</span>
+                <span className="text-emerald-300 text-sm font-semibold">{t('dealerLanding.badge')}</span>
               </div>
 
               <h1 className="text-5xl lg:text-6xl font-black leading-tight">
-                Build Your Own<br />
+                {t('dealerLanding.heroTitle1')}<br />
                 <span className="bg-gradient-to-r from-emerald-400 to-purple-400 bg-clip-text text-transparent">
-                  POS Empire
+                  {t('dealerLanding.heroTitle2')}
                 </span>
               </h1>
 
               <p className="text-lg text-white/70 leading-relaxed max-w-lg">
-                Resell openTILL under your own brand. Earn 10–30% recurring commissions. Launch in under an hour with AI marketing tools and Solana-native payments.
+                {t('dealerLanding.heroDesc')}
               </p>
             </div>
 
             {/* Stats */}
             <div className="grid grid-cols-3 gap-4">
               {[
-                { label: 'Active Ambassadors', value: stats.loading ? '–' : `${fmt(stats.activeDealers)}+` },
-                { label: 'Merchants Onboarded', value: stats.loading ? '–' : `${fmt(stats.totalMerchants)}+` },
-                { label: 'Volume Processed', value: stats.loading ? '–' : `${fmtMoney(stats.totalProcessed)}+` },
+                { label: t('dealerLanding.statAmbassadors'), value: stats.loading ? '–' : `${fmt(stats.activeDealers)}+` },
+                { label: t('dealerLanding.statMerchants'), value: stats.loading ? '–' : `${fmt(stats.totalMerchants)}+` },
+                { label: t('dealerLanding.statVolume'), value: stats.loading ? '–' : `${fmtMoney(stats.totalProcessed)}+` },
               ].map((s, i) => (
                 <div key={i} className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
                   <div className="text-2xl font-black text-emerald-400">{s.value}</div>
@@ -231,10 +233,10 @@ export default function DealerLanding() {
                 <Tabs value={mode} onValueChange={setMode}>
                   <TabsList className="grid grid-cols-2 w-full bg-white/5 rounded-t-xl rounded-b-none border-b border-white/10 h-14">
                     <TabsTrigger value="login" className="text-white/60 data-[state=active]:bg-white/10 data-[state=active]:text-white text-sm font-semibold rounded-none rounded-tl-xl">
-                      Sign In
+                      {t('dealerLanding.tabSignIn')}
                     </TabsTrigger>
                     <TabsTrigger value="register" className="text-white/60 data-[state=active]:bg-white/10 data-[state=active]:text-white text-sm font-semibold rounded-none rounded-tr-xl">
-                      Apply Now
+                      {t('dealerLanding.tabApply')}
                     </TabsTrigger>
                   </TabsList>
 
@@ -263,19 +265,19 @@ export default function DealerLanding() {
                         {loading
                           ? <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                           : <Chrome className="w-4 h-4 mr-2" />}
-                        {loading ? 'Redirecting...' : 'Continue with Google'}
+                        {loading ? t('dealerLanding.redirecting') : t('dealerLanding.continueGoogle')}
                       </Button>
                       <div className="relative flex items-center gap-2">
                         <div className="flex-1 border-t border-white/10" />
                         <span className="text-white/30 text-xs whitespace-nowrap flex items-center gap-1">
-                          <Wallet className="w-3 h-3" /> or Solana wallet
+                          <Wallet className="w-3 h-3" /> {t('dealerLanding.orWallet')}
                         </span>
                         <div className="flex-1 border-t border-white/10" />
                       </div>
                       <AmbassadorWalletLogin onDone={handleWalletDone} />
                       <div className="relative flex items-center gap-2 pt-1">
                         <div className="flex-1 border-t border-white/10" />
-                        <span className="text-white/30 text-xs whitespace-nowrap">or email</span>
+                        <span className="text-white/30 text-xs whitespace-nowrap">{t('dealerLanding.orEmail')}</span>
                         <div className="flex-1 border-t border-white/10" />
                       </div>
                     </div>
@@ -283,12 +285,12 @@ export default function DealerLanding() {
                     {/* LOGIN */}
                     <TabsContent value="login" className="mt-0">
                       <div className="mb-5">
-                        <h2 className="text-xl font-bold text-white">Welcome back</h2>
-                        <p className="text-white/50 text-sm">Sign in to your ambassador dashboard</p>
+                        <h2 className="text-xl font-bold text-white">{t('dealerLanding.welcomeBack')}</h2>
+                        <p className="text-white/50 text-sm">{t('dealerLanding.welcomeBackSub')}</p>
                       </div>
                       <form onSubmit={handleLogin} className="space-y-4">
                         <div className="space-y-1">
-                          <Label className="text-white/70 text-xs uppercase tracking-wide">Email</Label>
+                          <Label className="text-white/70 text-xs uppercase tracking-wide">{t('dealerLanding.email')}</Label>
                           <div className="relative">
                             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
                             <Input
@@ -300,7 +302,7 @@ export default function DealerLanding() {
                           </div>
                         </div>
                         <div className="space-y-1">
-                          <Label className="text-white/70 text-xs uppercase tracking-wide">Password</Label>
+                          <Label className="text-white/70 text-xs uppercase tracking-wide">{t('dealerLanding.password')}</Label>
                           <div className="relative">
                             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
                             <Input
@@ -314,25 +316,25 @@ export default function DealerLanding() {
                         <Button type="submit" disabled={loading}
                           className="w-full h-11 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-semibold">
                           {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <ArrowRight className="w-4 h-4 mr-2" />}
-                          {loading ? 'Signing in...' : 'Sign In to Dashboard'}
+                          {loading ? t('dealerLanding.signingIn') : t('dealerLanding.signInBtn')}
                         </Button>
                       </form>
                       <p className="text-center text-white/40 text-xs mt-4">
-                        New ambassador?{' '}
-                        <button onClick={() => setMode('register')} className="text-emerald-400 hover:underline">Apply now →</button>
+                        {t('dealerLanding.newAmbassador')}{' '}
+                        <button onClick={() => setMode('register')} className="text-emerald-400 hover:underline">{t('dealerLanding.applyNow')}</button>
                       </p>
                     </TabsContent>
 
                     {/* REGISTER */}
                     <TabsContent value="register" className="mt-0">
                       <div className="mb-5">
-                        <h2 className="text-xl font-bold text-white">Start your 30-day trial</h2>
-                        <p className="text-white/50 text-sm">No credit card required. Launch in minutes.</p>
+                        <h2 className="text-xl font-bold text-white">{t('dealerLanding.trialTitle')}</h2>
+                        <p className="text-white/50 text-sm">{t('dealerLanding.trialSub')}</p>
                       </div>
                       <form onSubmit={handleRegister} className="space-y-3">
                         <div className="grid grid-cols-2 gap-3">
                           <div className="space-y-1">
-                            <Label className="text-white/70 text-xs">Full Name *</Label>
+                            <Label className="text-white/70 text-xs">{t('dealerLanding.fullName')}</Label>
                             <Input placeholder="Jane Smith"
                               value={registerForm.name}
                               onChange={e => setRegisterForm({ ...registerForm, name: e.target.value })}
@@ -340,7 +342,7 @@ export default function DealerLanding() {
                             />
                           </div>
                           <div className="space-y-1">
-                            <Label className="text-white/70 text-xs">Company *</Label>
+                            <Label className="text-white/70 text-xs">{t('dealerLanding.company')}</Label>
                             <Input placeholder="Acme POS Co."
                               value={registerForm.company}
                               onChange={e => setRegisterForm({ ...registerForm, company: e.target.value })}
@@ -349,7 +351,7 @@ export default function DealerLanding() {
                           </div>
                         </div>
                         <div className="space-y-1">
-                          <Label className="text-white/70 text-xs">Email *</Label>
+                          <Label className="text-white/70 text-xs">{t('dealerLanding.email')}</Label>
                           <Input type="email" placeholder="jane@acmepos.com"
                             value={registerForm.email}
                             onChange={e => setRegisterForm({ ...registerForm, email: e.target.value })}
@@ -357,7 +359,7 @@ export default function DealerLanding() {
                           />
                         </div>
                         <div className="space-y-1">
-                          <Label className="text-white/70 text-xs">Phone</Label>
+                          <Label className="text-white/70 text-xs">{t('dealerLanding.phone')}</Label>
                           <Input type="tel" placeholder="(555) 123-4567"
                             value={registerForm.phone}
                             onChange={e => setRegisterForm({ ...registerForm, phone: e.target.value })}
@@ -366,7 +368,7 @@ export default function DealerLanding() {
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                           <div className="space-y-1">
-                            <Label className="text-white/70 text-xs">Password *</Label>
+                            <Label className="text-white/70 text-xs">{t('dealerLanding.password')}</Label>
                             <Input type="password" placeholder="Min. 8 chars"
                               value={registerForm.password}
                               onChange={e => setRegisterForm({ ...registerForm, password: e.target.value })}
@@ -374,7 +376,7 @@ export default function DealerLanding() {
                             />
                           </div>
                           <div className="space-y-1">
-                            <Label className="text-white/70 text-xs">Confirm *</Label>
+                            <Label className="text-white/70 text-xs">{t('dealerLanding.confirm')}</Label>
                             <Input type="password" placeholder="Repeat"
                               value={registerForm.confirmPassword}
                               onChange={e => setRegisterForm({ ...registerForm, confirmPassword: e.target.value })}
@@ -383,7 +385,7 @@ export default function DealerLanding() {
                           </div>
                         </div>
                         <div className="space-y-1">
-                          <Label className="text-white/70 text-xs">Referral Code (optional)</Label>
+                          <Label className="text-white/70 text-xs">{t('dealerLanding.referralOptional')}</Label>
                           <Input placeholder="e.g. AMB2025"
                             value={registerForm.referralCode}
                             onChange={e => setRegisterForm({ ...registerForm, referralCode: e.target.value })}
@@ -393,12 +395,12 @@ export default function DealerLanding() {
                         <Button type="submit" disabled={loading}
                           className="w-full h-11 bg-gradient-to-r from-emerald-500 to-purple-600 hover:from-emerald-400 hover:to-purple-500 text-white font-semibold">
                           {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Rocket className="w-4 h-4 mr-2" />}
-                          {loading ? 'Creating Account...' : 'Start Free 30-Day Trial'}
+                          {loading ? t('dealerLanding.creatingAccount') : t('dealerLanding.startTrial')}
                         </Button>
                         <p className="text-center text-white/30 text-xs">
-                          By applying you agree to our{' '}
-                          <a href={createPageUrl('TermsOfService')} className="text-emerald-400 hover:underline">Terms</a> &{' '}
-                          <a href={createPageUrl('PrivacyPolicy')} className="text-emerald-400 hover:underline">Privacy Policy</a>
+                          {t('dealerLanding.agreeTerms')}{' '}
+                          <a href={createPageUrl('TermsOfService')} className="text-emerald-400 hover:underline">{t('dealerLanding.terms')}</a> &{' '}
+                          <a href={createPageUrl('PrivacyPolicy')} className="text-emerald-400 hover:underline">{t('dealerLanding.privacyPolicy')}</a>
                         </p>
                       </form>
                     </TabsContent>
@@ -420,14 +422,14 @@ export default function DealerLanding() {
         {/* How It Works */}
         <div id="how-it-works" className="mt-28 text-center space-y-12">
           <div>
-            <h2 className="text-4xl font-black text-white mb-3">How It Works</h2>
-            <p className="text-white/50 text-lg max-w-2xl mx-auto">Launch your branded POS business in three simple steps</p>
+            <h2 className="text-4xl font-black text-white mb-3">{t('dealerLanding.howItWorks')}</h2>
+            <p className="text-white/50 text-lg max-w-2xl mx-auto">{t('dealerLanding.howItWorksSub')}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
-              { step: '01', icon: Building2, title: 'Apply & Get Approved', desc: 'Fill out the form above. Most applications are reviewed within 24 hours. You\'ll get a welcome email with your dashboard credentials.' },
-              { step: '02', icon: Palette, title: 'Brand Your Platform', desc: 'Upload your logo, set your brand colors, configure your domain, and customize your merchant-facing pages.' },
-              { step: '03', icon: DollarSign, title: 'Earn Recurring Revenue', desc: 'Onboard merchants and earn 10–30% of every subscription, every month. Track everything in your analytics dashboard.' },
+              { step: '01', icon: Building2, title: t('dealerLanding.step1Title'), desc: t('dealerLanding.step1Desc') },
+              { step: '02', icon: Palette, title: t('dealerLanding.step2Title'), desc: t('dealerLanding.step2Desc') },
+              { step: '03', icon: DollarSign, title: t('dealerLanding.step3Title'), desc: t('dealerLanding.step3Desc') },
             ].map((item, i) => (
               <div key={i} className="relative bg-white/5 border border-white/10 rounded-2xl p-8 hover:border-emerald-500/40 transition-all group">
                 <div className="text-6xl font-black text-white/5 absolute top-4 right-6 group-hover:text-emerald-500/10 transition-colors">{item.step}</div>
@@ -445,7 +447,7 @@ export default function DealerLanding() {
         {/* Testimonials */}
         {testimonials.length > 0 && (
         <div id="testimonials" className="mt-24 space-y-10">
-          <h2 className="text-4xl font-black text-white text-center">Ambassador Success Stories</h2>
+          <h2 className="text-4xl font-black text-white text-center">{t('dealerLanding.stories')}</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {testimonials.map((t, i) => (
               <div key={i} className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:border-emerald-500/30 transition-all">
@@ -468,15 +470,15 @@ export default function DealerLanding() {
 
         {/* CTA */}
         <div className="mt-24 text-center bg-gradient-to-r from-emerald-900/40 to-purple-900/40 border border-white/10 rounded-3xl p-12">
-          <h2 className="text-4xl font-black text-white mb-4">Ready to Build Your POS Business?</h2>
-          <p className="text-white/60 text-lg mb-8 max-w-xl mx-auto">Join our ambassador network. No setup fees, no coding required. Start earning in days.</p>
+          <h2 className="text-4xl font-black text-white mb-4">{t('dealerLanding.ctaTitle')}</h2>
+          <p className="text-white/60 text-lg mb-8 max-w-xl mx-auto">{t('dealerLanding.ctaSub')}</p>
           <Button
             size="lg"
             className="bg-gradient-to-r from-emerald-500 to-purple-600 hover:from-emerald-400 hover:to-purple-500 text-white font-bold px-10 h-13 text-lg"
             onClick={() => { setMode('register'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
           >
             <Rocket className="w-5 h-5 mr-2" />
-            Apply for Free Trial
+            {t('dealerLanding.applyFree')}
           </Button>
         </div>
       </div>

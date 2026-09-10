@@ -6,8 +6,50 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Mail, Phone, Send, MapPin, Link2 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
+import { useLanguage } from '@/lib/i18n/useLanguage';
 
 export default function ContactPage() {
+  const { t } = useLanguage();
+
+  const industryOptions = [
+    { value: 'Convienance Store', label: t('contact.indConvenience') },
+    { value: 'Restaurant', label: t('contact.indRestaurant') },
+    { value: 'Automotive', label: t('contact.indAutomotive') },
+    { value: 'Bar', label: t('contact.indBar') },
+    { value: 'Apparel', label: t('contact.indApparel') },
+    { value: 'Banking', label: t('contact.indBanking') },
+    { value: 'Biotechnology', label: t('contact.indBiotechnology') },
+    { value: 'Chemicals', label: t('contact.indChemicals') },
+    { value: 'Communications', label: t('contact.indCommunications') },
+    { value: 'Construction', label: t('contact.indConstruction') },
+    { value: 'Consulting', label: t('contact.indConsulting') },
+    { value: 'Education', label: t('contact.indEducation') },
+    { value: 'Electronics', label: t('contact.indElectronics') },
+    { value: 'Energy', label: t('contact.indEnergy') },
+    { value: 'Engineering', label: t('contact.indEngineering') },
+    { value: 'Entertainment', label: t('contact.indEntertainment') },
+    { value: 'Environmental', label: t('contact.indEnvironmental') },
+    { value: 'Finance', label: t('contact.indFinance') },
+    { value: 'Food & Beverage', label: t('contact.indFoodBeverage') },
+    { value: 'Government', label: t('contact.indGovernment') },
+    { value: 'Healthcare', label: t('contact.indHealthcare') },
+    { value: 'Hospitality', label: t('contact.indHospitality') },
+    { value: 'Insurance', label: t('contact.indInsurance') },
+    { value: 'Machinery', label: t('contact.indMachinery') },
+    { value: 'Manufacturing', label: t('contact.indManufacturing') },
+    { value: 'Media', label: t('contact.indMedia') },
+    { value: 'Not For Profit', label: t('contact.indNotForProfit') },
+    { value: 'Recreation', label: t('contact.indRecreation') },
+    { value: 'Retail', label: t('contact.indRetail') },
+    { value: 'Shipping', label: t('contact.indShipping') },
+    { value: 'Technology', label: t('contact.indTechnology') },
+    { value: 'Telecommunications', label: t('contact.indTelecommunications') },
+    { value: 'Transportation', label: t('contact.indTransportation') },
+    { value: 'Utilities', label: t('contact.indUtilities') },
+    { value: 'Petro', label: t('contact.indPetro') },
+    { value: 'Other', label: t('contact.indOther') },
+  ];
+
   const handleFormSubmit = (e) => {
     const form = e.target;
     const inputs = form.elements;
@@ -26,7 +68,7 @@ export default function ContactPage() {
 
     if (required.length > 0) {
       e.preventDefault();
-      alert("The following fields are required: " + required.join(", "));
+      alert(t('contact.requiredFields') + required.join(", "));
       return false;
     }
 
@@ -38,10 +80,10 @@ export default function ContactPage() {
       <div className="max-w-7xl mx-auto px-6 py-20">
         <div className="text-center mb-16">
           <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
-            Get in Touch
+            {t('contact.title')}
           </h1>
           <p className="text-xl text-white/90 max-w-2xl mx-auto">
-            Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
+            {t('contact.subtitle')}
           </p>
         </div>
 
@@ -49,7 +91,7 @@ export default function ContactPage() {
           {/* Contact Form */}
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
             <h2 className="text-3xl font-bold text-white mb-6">
-              Send us a Message
+              {t('contact.sendMsg')}
             </h2>
             <form 
               id="__vtigerWebForm" 
@@ -67,41 +109,41 @@ export default function ContactPage() {
               <input type="hidden" name="name" value="openTILL" />
               
               <div>
-                <Label htmlFor="company" className="text-white">Company *</Label>
+                <Label htmlFor="company" className="text-white">{t('contact.company')}</Label>
                 <Input
                   type="text"
                   name="company"
                   id="company"
                   required
-                  label="Company"
-                  placeholder="Your Company"
+                  label={t('contact.company').replace(' *', '')}
+                  placeholder={t('contact.companyPh')}
                   className="bg-white/10 text-white border-white/20 placeholder:text-white/50"
                 />
               </div>
 
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="firstname" className="text-white">First Name *</Label>
+                  <Label htmlFor="firstname" className="text-white">{t('contact.firstName')}</Label>
                   <Input
                     type="text"
                     name="firstname"
                     id="firstname"
                     required
-                    label="First Name"
-                    placeholder="John"
+                    label={t('contact.firstName').replace(' *', '')}
+                    placeholder={t('contact.firstNamePh')}
                     className="bg-white/10 text-white border-white/20 placeholder:text-white/50"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="lastname" className="text-white">Last Name *</Label>
+                  <Label htmlFor="lastname" className="text-white">{t('contact.lastName')}</Label>
                   <Input
                     type="text"
                     name="lastname"
                     id="lastname"
                     required
-                    label="Last Name"
-                    placeholder="Doe"
+                    label={t('contact.lastName').replace(' *', '')}
+                    placeholder={t('contact.lastNamePh')}
                     className="bg-white/10 text-white border-white/20 placeholder:text-white/50"
                   />
                 </div>
@@ -109,25 +151,25 @@ export default function ContactPage() {
 
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="phone" className="text-white">Primary Phone *</Label>
+                  <Label htmlFor="phone" className="text-white">{t('contact.primaryPhone')}</Label>
                   <Input
                     type="text"
                     name="phone"
                     id="phone"
                     required
-                    label="Primary Phone"
+                    label={t('contact.primaryPhone').replace(' *', '')}
                     placeholder="+1 (555) 123-4567"
                     className="bg-white/10 text-white border-white/20 placeholder:text-white/50"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="mobile" className="text-white">Mobile Phone</Label>
+                  <Label htmlFor="mobile" className="text-white">{t('contact.mobilePhone')}</Label>
                   <Input
                     type="text"
                     name="mobile"
                     id="mobile"
-                    label="Mobile Phone"
+                    label={t('contact.mobilePhone')}
                     placeholder="+1 (555) 987-6543"
                     className="bg-white/10 text-white border-white/20 placeholder:text-white/50"
                   />
@@ -135,73 +177,40 @@ export default function ContactPage() {
               </div>
 
               <div>
-                <Label htmlFor="industry" className="text-white">Industry *</Label>
+                <Label htmlFor="industry" className="text-white">{t('contact.industry')}</Label>
                 <select 
                   name="industry" 
                   id="industry"
                   required
-                  label="industry"
+                  label={t('contact.industry').replace(' *', '')}
                   className="flex h-10 w-full rounded-md border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/20"
                 >
-                  <option value="" className="text-gray-900">Select Industry</option>
-                  <option value="Convienance Store" className="text-gray-900">Convenience Store</option>
-                  <option value="Restaurant" className="text-gray-900">Restaurant</option>
-                  <option value="Automotive" className="text-gray-900">Automotive</option>
-                  <option value="Bar" className="text-gray-900">Bar</option>
-                  <option value="Apparel" className="text-gray-900">Apparel</option>
-                  <option value="Banking" className="text-gray-900">Banking</option>
-                  <option value="Biotechnology" className="text-gray-900">Biotechnology</option>
-                  <option value="Chemicals" className="text-gray-900">Chemicals</option>
-                  <option value="Communications" className="text-gray-900">Communications</option>
-                  <option value="Construction" className="text-gray-900">Construction</option>
-                  <option value="Consulting" className="text-gray-900">Consulting</option>
-                  <option value="Education" className="text-gray-900">Education</option>
-                  <option value="Electronics" className="text-gray-900">Electronics</option>
-                  <option value="Energy" className="text-gray-900">Energy</option>
-                  <option value="Engineering" className="text-gray-900">Engineering</option>
-                  <option value="Entertainment" className="text-gray-900">Entertainment</option>
-                  <option value="Environmental" className="text-gray-900">Environmental</option>
-                  <option value="Finance" className="text-gray-900">Finance</option>
-                  <option value="Food & Beverage" className="text-gray-900">Food & Beverage</option>
-                  <option value="Government" className="text-gray-900">Government</option>
-                  <option value="Healthcare" className="text-gray-900">Healthcare</option>
-                  <option value="Hospitality" className="text-gray-900">Hospitality</option>
-                  <option value="Insurance" className="text-gray-900">Insurance</option>
-                  <option value="Machinery" className="text-gray-900">Machinery</option>
-                  <option value="Manufacturing" className="text-gray-900">Manufacturing</option>
-                  <option value="Media" className="text-gray-900">Media</option>
-                  <option value="Not For Profit" className="text-gray-900">Not For Profit</option>
-                  <option value="Recreation" className="text-gray-900">Recreation</option>
-                  <option value="Retail" className="text-gray-900">Retail</option>
-                  <option value="Shipping" className="text-gray-900">Shipping</option>
-                  <option value="Technology" className="text-gray-900">Technology</option>
-                  <option value="Telecommunications" className="text-gray-900">Telecommunications</option>
-                  <option value="Transportation" className="text-gray-900">Transportation</option>
-                  <option value="Utilities" className="text-gray-900">Utilities</option>
-                  <option value="Petro" className="text-gray-900">Petro</option>
-                  <option value="Other" className="text-gray-900">Other</option>
+                  <option value="" className="text-gray-900">{t('contact.selectIndustry')}</option>
+                  {industryOptions.map((opt) => (
+                    <option key={opt.value} value={opt.value} className="text-gray-900">{opt.label}</option>
+                  ))}
                 </select>
               </div>
 
               <div>
-                <Label htmlFor="code" className="text-white">Postal Code *</Label>
+                <Label htmlFor="code" className="text-white">{t('contact.postalCode')}</Label>
                 <Input
                   type="text"
                   name="code"
                   id="code"
                   required
-                  label="Postal Code"
+                  label={t('contact.postalCode').replace(' *', '')}
                   placeholder="12345"
                   className="bg-white/10 text-white border-white/20 placeholder:text-white/50"
                 />
               </div>
 
               <div>
-                <Label htmlFor="description" className="text-white">Description</Label>
+                <Label htmlFor="description" className="text-white">{t('contact.description')}</Label>
                 <Textarea
                   name="description"
                   id="description"
-                  placeholder="Tell us more about your inquiry..."
+                  placeholder={t('contact.descPh')}
                   rows={6}
                   className="bg-white/10 text-white border-white/20 placeholder:text-white/50"
                 />
@@ -220,7 +229,7 @@ export default function ContactPage() {
                 size="lg" 
                 className="w-full bg-gradient-to-r from-purple-600 to-green-500 hover:from-purple-700 hover:to-green-600 text-white"
               >
-                Send Message
+                {t('contact.send')}
                 <Send className="w-4 h-4 ml-2" />
               </Button>
             </form>
@@ -229,14 +238,14 @@ export default function ContactPage() {
           {/* Contact Information */}
           <div className="space-y-8">
             <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-              <h2 className="text-2xl font-bold text-white mb-6">Contact Information</h2>
+              <h2 className="text-2xl font-bold text-white mb-6">{t('contact.info')}</h2>
               <div className="space-y-6">
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center flex-shrink-0">
                     <Mail className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-white font-semibold mb-1">Email</h3>
+                    <h3 className="text-white font-semibold mb-1">{t('contact.email')}</h3>
                     <p className="text-white/80">SMPF@openTILL.io.io</p>
                     <p className="text-white/80">support@openTILL.io</p>
                   </div>
@@ -247,9 +256,9 @@ export default function ContactPage() {
                     <Phone className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-white font-semibold mb-1">Phone</h3>
+                    <h3 className="text-white font-semibold mb-1">{t('contact.phone')}</h3>
                     <p className="text-white/80">+1 (419) 729-3889</p>
-                    <p className="text-white/60 text-sm">Monday - Friday, 9am - 6pm EST</p>
+                    <p className="text-white/60 text-sm">{t('contact.phoneHours')}</p>
                   </div>
                 </div>
 
@@ -258,7 +267,7 @@ export default function ContactPage() {
                     <MapPin className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-white font-semibold mb-1">Address</h3>
+                    <h3 className="text-white font-semibold mb-1">{t('contact.address')}</h3>
                     <p className="text-white/80">openTILL Corporation</p>
                     <p className="text-white/80">Toledo, OH</p>
                     <p className="text-white/80">United States</p>

@@ -6,6 +6,7 @@ import { Loader2, ArrowRight, Check, QrCode as QrIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import QRCode from 'qrcode';
 import { resolveReferral, buildRefParam, appendRefParam, brochureUrlFor } from '@/lib/referralLink';
+import { useLanguage } from '@/lib/i18n/useLanguage';
 import {
   ShoppingCart,
   DollarSign,
@@ -181,6 +182,7 @@ export const ICONS = {
 };
 
 export default function Brochure() {
+  const { t } = useLanguage();
   const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
   const [notEnabled, setNotEnabled] = useState(false);
@@ -259,7 +261,7 @@ export default function Brochure() {
           <img src={DUC_LOGO} alt="openTILL" className="w-16 h-16 rounded-full mx-auto mb-5 animate-pulse" />
           <h1 className="text-4xl font-black text-white tracking-tight">openTILL SMPF</h1>
           <p className="text-white/50 mt-3 max-w-md mx-auto">
-            Our interactive brochure is being prepared. Please check back soon.
+            {t('brochure.preparing')}
           </p>
         </div>
       </div>
@@ -321,11 +323,11 @@ export default function Brochure() {
             <div className="flex flex-wrap items-center justify-center gap-4 mt-10">
               <Button asChild className="rounded-full px-7 py-6 text-base font-bold text-white border-0" style={{ background: `linear-gradient(135deg, ${accent}, ${secondary})`, boxShadow: `0 10px 40px -10px ${accent}aa` }}>
                 <a href={appendRefParam(settings?.cta_url || '/', refParam)}>
-                  {settings?.cta_text || 'Get Started'} <ArrowRight className="w-4 h-4 ml-1" />
+                  {settings?.cta_text || t('brochure.getStarted')} <ArrowRight className="w-4 h-4 ml-1" />
                 </a>
               </Button>
               <Button variant="outline" className="rounded-full px-7 py-6 text-base border-white/20 bg-white/5 backdrop-blur text-white hover:bg-white/10 hover:border-white/40">
-                <a href="#explore">Explore the platform</a>
+                <a href="#explore">{t('brochure.explore')}</a>
               </Button>
             </div>
           </div>
@@ -335,10 +337,10 @@ export default function Brochure() {
         <section className="max-w-5xl mx-auto px-6 -mt-16 relative z-20">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
-              { v: '20+', l: 'Platform modules' },
-              { v: 'Cash · Card · Crypto · EBT', l: 'Payment methods' },
-              { v: 'Solana', l: 'Blockchain rail' },
-              { v: 'Ambassador', l: 'Reseller ready' },
+              { v: '20+', l: t('brochure.statModules') },
+              { v: 'Cash · Card · Crypto · EBT', l: t('brochure.statPayments') },
+              { v: 'Solana', l: t('brochure.statBlockchain') },
+              { v: 'Ambassador', l: t('brochure.statReseller') },
             ].map((s) => (
               <div key={s.l} className="glass-card rounded-2xl p-5 text-center">
                 <div className="text-base sm:text-lg font-bold tracking-tight" style={{ color: 'white' }}>{s.v}</div>
@@ -352,8 +354,8 @@ export default function Brochure() {
         <section id="explore" className="max-w-6xl mx-auto px-6 py-20">
           <div className="text-center mb-14">
             <div className="inline-block h-1 w-12 rounded-full mb-5" style={{ background: `linear-gradient(90deg, ${accent}, ${secondary})` }} />
-            <h2 className="text-3xl sm:text-4xl font-black tracking-tight">Everything openTILL SMPF does</h2>
-            <p className="text-white/50 mt-3 tracking-wide">One platform — from the register to the blockchain.</p>
+            <h2 className="text-3xl sm:text-4xl font-black tracking-tight">{t('brochure.everythingTitle')}</h2>
+            <p className="text-white/50 mt-3 tracking-wide">{t('brochure.everythingSub')}</p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {sections.map((sec, i) => {
@@ -395,22 +397,22 @@ export default function Brochure() {
             <div className="absolute -top-20 -left-20 w-72 h-72 rounded-full blur-[100px] opacity-30" style={{ background: accent }} />
             <div className="absolute -bottom-20 -right-20 w-72 h-72 rounded-full blur-[100px] opacity-30" style={{ background: secondary }} />
             <div className="relative">
-              <h2 className="text-2xl sm:text-4xl font-black tracking-tight">Take openTILL SMPF with you</h2>
+              <h2 className="text-2xl sm:text-4xl font-black tracking-tight">{t('brochure.takeWithYou')}</h2>
               <p className="text-white/60 mt-3 max-w-xl mx-auto">
-                Scan the code or open the link on any device to revisit the full platform overview.
+                {t('brochure.takeSub')}
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-8 mt-10">
                 {qrUrl && (
                   <div className="bg-white p-3 rounded-2xl shadow-2xl">
                     <img src={qrUrl} alt="openTILL SMPF brochure QR" className="w-40 h-40" />
                     <p className="text-[10px] text-slate-500 mt-1 flex items-center justify-center gap-1">
-                      <QrIcon className="w-3 h-3" /> Scan to open
+                      <QrIcon className="w-3 h-3" /> {t('brochure.scanToOpen')}
                     </p>
                   </div>
                 )}
                 <div className="space-y-3 text-left">
                   <Button asChild className="rounded-full px-7 py-5 text-base font-bold text-white border-0" style={{ background: `linear-gradient(135deg, ${accent}, ${secondary})`, boxShadow: `0 10px 40px -10px ${secondary}aa` }}>
-                    <a href={appendRefParam(settings?.cta_url || '/', refParam)}>{settings?.cta_text || 'Get Started'}</a>
+                    <a href={appendRefParam(settings?.cta_url || '/', refParam)}>{settings?.cta_text || t('brochure.getStarted')}</a>
                   </Button>
                   {(settings?.website || settings?.contact_email) && (
                     <div className="text-sm text-white/60">
@@ -435,7 +437,7 @@ export default function Brochure() {
             </div>
           </div>
           <p className="text-center text-xs text-white/30 mt-10 tracking-widest uppercase">
-            © {new Date().getFullYear()} openTILL Corporation · openTILL SMPF · Powered by Solana
+            {t('brochure.copyright')}
           </p>
         </section>
       </div>
