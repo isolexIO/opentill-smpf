@@ -62,7 +62,7 @@ const FEATURE_REQUIREMENTS = {
 };
 
 // Items that are always visible (no chip needed)
-const ALWAYS_ENABLED = new Set(['pos', 'products', 'orders', 'settings', 'departments', 'users', 'marketplace', 'motherboard', 'duc_vault', 'smpf_wallet', 'referral_program', 'super_admin', 'dealer_dashboard', 'opentill_payments', 'modifiers']);
+const ALWAYS_ENABLED = new Set(['pos', 'products', 'orders', 'settings', 'departments', 'users', 'marketplace', 'motherboard', 'duc_vault', 'smpf_wallet', 'referral_program', 'super_admin', 'dealer_dashboard', 'opentill_payments', 'modifiers', 'website_hosting']);
 
 // Logical groupings shown as section headers on the System Menu
 const CATEGORIES = [
@@ -501,6 +501,16 @@ export default function SystemMenu() {
       color: 'from-gray-500 to-gray-600',
       permission: 'admin_settings'
     },
+    {
+      id: 'website_hosting',
+      category: 'platform',
+      icon: <Globe className="w-6 h-6" />,
+      title: 'Website Hosting & Domains',
+      description: 'Hosting, domains & web services',
+      external_url: 'https://ww3.opentill.io/',
+      color: 'from-sky-500 to-blue-600',
+      permission: null
+    },
   ];
 
   const menuItems = [
@@ -533,7 +543,7 @@ export default function SystemMenu() {
       <Card
         key={item.id}
         className={`group hover:shadow-xl hover:scale-105 transition-all cursor-pointer dark:bg-gray-800 bg-white overflow-hidden`}
-        onClick={() => handleNavigate(item.path)}
+        onClick={() => item.external_url ? window.open(item.external_url, '_blank', 'noopener,noreferrer') : handleNavigate(item.path)}
       >
         <CardHeader className={item.id === 'opentill_payments' ? 'p-3 sm:p-6 pb-[5px]' : 'p-3 sm:p-6'}>
           {item.id === 'opentill_payments' ? (
