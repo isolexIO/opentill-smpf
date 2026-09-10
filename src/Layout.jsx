@@ -28,7 +28,7 @@ import NotificationBanner from '@/components/notifications/NotificationBanner';
 import MobileBottomNav from '@/components/mobile/MobileBottomNav';
 import PublicNavbar from '@/components/layout/PublicNavbar';
 import PublicFooter from '@/components/layout/PublicFooter';
-import CherryChatWidget from '@/components/cherry/CherryChatWidget';
+
 import LanguageSelector from '@/components/i18n/LanguageSelector';
 import { useLanguage } from '@/lib/i18n/useLanguage';
 import { useNavigate } from 'react-router-dom';
@@ -41,7 +41,6 @@ function PublicLayout({ children }) {
       <PublicNavbar />
       {children}
       <PublicFooter />
-      <CherryChatWidget />
     </div>
   );
 }
@@ -492,8 +491,6 @@ export default function Layout({ children, currentPageName }) {
           )}
         </div>
       </div>
-      <CherryChatWidget />
     </div>
-    
   );
 }
