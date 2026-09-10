@@ -1,7 +1,33 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+// In-memory per-IP rate limiting. Public merchant page lookup; rate-limiting
+// prevents anonymous enumeration/abuse of the service-role read.
+const ipHits = new Map<string, number[]>();
+const IP_WINDOW_MS = 60_000;
+const IP_MAX = 30;
+
+function getClientIp(req: Request): string {
+  const fwd = req.headers.get('x-forwarded-for');
+  if (fwd) return fwd.split(',')[0].trim();
+  return req.headers.get('x-real-ip') || 'unknown';
+}
+
 Deno.serve(async (req) => {
   try {
+    // Rate-limit anonymous callers to protect this public endpoint.
+    const now = Date.now();
+    const clientIp = getClientIp(req);
+    const hits = (ipHits.get(clientIp) || []).filter(t => now - t < IP_WINDOW_MS);
+    if (hits.length >= IP_MAX) {
+      return Response.json({
+        success: false,
+        error: 'Too many requests. Please try again later.'
+      }, { status: 429 });
+    }
+    hits.push(now);
+    ipHits.set(clientIp, hits);
+    if (ipHits.size > 5000) ipHits.clear();
+
     let body = {};
     try { body = await req.json(); } catch {}
     const merchant_id = body.merchant_id || new URL(req.url).searchParams.get('merchant_id');
