@@ -8,6 +8,7 @@ import ApprovalScreen from '../components/customer-display/ApprovalScreen';
 import CardPaymentStatusScreen from '../components/customer-display/CardPaymentStatusScreen';
 import PaymentMethodSelectionScreen from '../components/customer-display/PaymentMethodSelectionScreen';
 import EBTPaymentScreen from '../components/customer-display/EBTPaymentScreen';
+import ReceiptScreen from '../components/customer-display/ReceiptScreen';
 
 export default function CustomerDisplayPage() {
   const [currentOrder, setCurrentOrder] = useState(null);
@@ -308,7 +309,7 @@ export default function CustomerDisplayPage() {
               else if (updatedOrder.status === 'completed' || (updatedOrder.status === 'pending' && updatedOrder.payment_method && updatedOrder.payment_method !== 'pending')) {
                 console.log('CustomerDisplay: → Success screen');
                 setCurrentScreen('success');
-                setTimeout(() => returnToWelcome(), 5000);
+                setTimeout(() => setCurrentScreen('receipt'), 5000);
               }
               else if (updatedOrder.status === 'cancelled') {
                 console.log('CustomerDisplay: Order cancelled');
@@ -395,14 +396,14 @@ export default function CustomerDisplayPage() {
           // Even if update fails, try to show success and return to welcome as a fallback
           setCurrentScreen('success');
           setTimeout(() => {
-            returnToWelcome();
+            setCurrentScreen('receipt');
           }, 5000);
         }
       } else {
         // If no current order, still show success for a bit then reset
         setCurrentScreen('success');
         setTimeout(() => {
-          returnToWelcome();
+          setCurrentScreen('receipt');
         }, 5000);
       }
     } else {
@@ -542,6 +543,14 @@ export default function CustomerDisplayPage() {
           success={true}
           order={currentOrder}
           settings={merchant.settings}
+        />
+      )}
+
+      {currentScreen === 'receipt' && currentOrder && (
+        <ReceiptScreen
+          order={currentOrder}
+          merchant={merchant}
+          onReturnToIdle={returnToWelcome}
         />
       )}
 

@@ -27,6 +27,7 @@ import SMPFWalletAdmin from './pages/SMPFWalletAdmin';
 import Brochure from './pages/Brochure';
 import BrochureFeature from './pages/BrochureFeature';
 import Community from './pages/Community';
+import Receipt from './pages/Receipt';
 import { LanguageProvider } from '@/lib/i18n/useLanguage';
 
 const { Pages, Layout, mainPage } = pagesConfig;
@@ -126,6 +127,7 @@ const AuthenticatedApp = () => {
       <Route path="/SMPFWalletAdmin" element={<SMPFWalletAdmin />} />
       <Route path="/Brochure" element={<Brochure />} />
       <Route path="/Brochure/feature/:id" element={<BrochureFeature />} />
+      <Route path="/receipt/:orderId" element={<Receipt />} />
       <Route path="/Community" element={
         <LayoutWrapper currentPageName="Community">
           <Community />
