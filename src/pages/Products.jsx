@@ -34,8 +34,10 @@ import InventoryManager from "../components/products/InventoryManager";
 import PermissionGate from '../components/PermissionGate';
 import { useActiveLocation } from "@/hooks/useActiveLocation";
 import LocationSwitcher from "@/components/locations/LocationSwitcher";
+import { useLanguage } from "@/lib/i18n/useLanguage";
 
 export default function ProductsPage() {
+  const { t } = useLanguage();
   const [products, setProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [showForm, setShowForm] = useState(false);
@@ -216,10 +218,10 @@ export default function ProductsPage() {
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
               <Package className="w-8 h-8 text-purple-600" />
-              Product Management
+              {t('products.title')}
             </h1>
             <p className="text-gray-500 dark:text-gray-400 mt-1">
-              Manage your inventory and product catalog
+              {t('products.subtitle')}
             </p>
           </div>
           
@@ -233,7 +235,7 @@ export default function ProductsPage() {
             )}
             <Button onClick={handleAddNew} className="flex items-center gap-2">
               <Plus className="w-4 h-4" />
-              Add Product
+              {t('products.addProduct')}
             </Button>
           </div>
         </div>
@@ -244,7 +246,7 @@ export default function ProductsPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Active Products</p>
+                  <p className="text-sm font-medium text-gray-500">{t('products.activeProducts')}</p>
                   <p className="text-2xl font-bold">{stats.activeProducts}</p>
                 </div>
                 <Package className="w-8 h-8 text-blue-500" />
@@ -255,7 +257,7 @@ export default function ProductsPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Low Stock</p>
+                  <p className="text-sm font-medium text-gray-500">{t('products.lowStock')}</p>
                   <p className="text-2xl font-bold">{stats.lowStockCount}</p>
                 </div>
                 <AlertTriangle className="w-8 h-8 text-red-500" />
@@ -266,7 +268,7 @@ export default function ProductsPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Archived</p>
+                  <p className="text-sm font-medium text-gray-500">{t('products.archived')}</p>
                   <p className="text-2xl font-bold">{stats.totalProducts - stats.activeProducts}</p>
                 </div>
                 <Archive className="w-8 h-8 text-gray-500" />
@@ -277,7 +279,7 @@ export default function ProductsPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Inventory Value</p>
+                  <p className="text-sm font-medium text-gray-500">{t('products.inventoryValue')}</p>
                   <p className="text-2xl font-bold">${stats.totalInventoryValue}</p>
                 </div>
                 <DollarSign className="w-8 h-8 text-green-500" />
@@ -294,7 +296,7 @@ export default function ProductsPage() {
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <Input
-                    placeholder="Search products by name or SKU..."
+                    placeholder={t('products.searchPlaceholder')}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10"
@@ -309,7 +311,7 @@ export default function ProductsPage() {
                   <SelectContent>
                     {categories.map((cat) => (
                       <SelectItem key={cat} value={cat}>
-                        {cat === "all" ? "All Categories" : cat.charAt(0).toUpperCase() + cat.slice(1)}
+                        {cat === "all" ? t('products.allCategories') : cat.charAt(0).toUpperCase() + cat.slice(1)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -323,7 +325,7 @@ export default function ProductsPage() {
                   <SelectContent>
                     {departments.map((dept) => (
                       <SelectItem key={dept} value={dept}>
-                        {dept === "all" ? "All Departments" : dept.charAt(0).toUpperCase() + dept.slice(1)}
+                        {dept === "all" ? t('products.allDepartments') : dept.charAt(0).toUpperCase() + dept.slice(1)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -331,8 +333,8 @@ export default function ProductsPage() {
               </div>
               
               <TabsList>
-                <TabsTrigger value="grid"><LayoutGrid className="w-4 h-4 mr-2" />Grid View</TabsTrigger>
-                <TabsTrigger value="inventory"><List className="w-4 h-4 mr-2" />Inventory</TabsTrigger>
+                <TabsTrigger value="grid"><LayoutGrid className="w-4 h-4 mr-2" />{t('products.gridView')}</TabsTrigger>
+                <TabsTrigger value="inventory"><List className="w-4 h-4 mr-2" />{t('menu.inventoryTitle')}</TabsTrigger>
               </TabsList>
             </CardContent>
           </Card>
@@ -351,7 +353,7 @@ export default function ProductsPage() {
           <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
-                {selectedProduct ? "Edit Product" : "Add New Product"}
+                {selectedProduct ? t('products.editProduct') : t('products.addNewProduct')}
               </DialogTitle>
             </DialogHeader>
             <ProductForm

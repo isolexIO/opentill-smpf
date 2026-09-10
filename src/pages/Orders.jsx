@@ -38,6 +38,7 @@ import MobileOrderCard from '@/components/mobile/MobileOrderCard';
 import { useActiveLocation } from "@/hooks/useActiveLocation";
 import LocationSwitcher from "@/components/locations/LocationSwitcher";
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
+import { useLanguage } from "@/lib/i18n/useLanguage";
 
 const ORDER_STATUS_CONFIG = {
   preview: { label: "Preview", color: "bg-gray-100 text-gray-800", icon: Clock },
@@ -51,6 +52,7 @@ const ORDER_STATUS_CONFIG = {
 };
 
 export default function OrdersPage() {
+  const { t } = useLanguage();
   const [orders, setOrders] = useState([]);
   const [customers, setCustomers] = useState([]); 
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -228,8 +230,8 @@ export default function OrdersPage() {
           <div className="flex items-center gap-3">
             <ShoppingCart className="w-8 h-8 text-blue-600" />
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Orders</h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Manage and track all orders</p>
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">{t('orders.title')}</h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('orders.subtitle')}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -242,7 +244,7 @@ export default function OrdersPage() {
             )}
             <Button onClick={loadOrders} variant="outline" size="sm">
               <RefreshCw className="w-4 h-4 mr-2" />
-              Refresh
+              {t('orders.refresh')}
             </Button>
           </div>
         </div>
@@ -253,7 +255,7 @@ export default function OrdersPage() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-500">Total Orders</p>
+                  <p className="text-sm text-gray-500">{t('orders.totalOrders')}</p>
                   <p className="text-2xl font-bold">{stats.totalOrders}</p>
                 </div>
                 <ShoppingCart className="w-8 h-8 text-blue-500 opacity-50" />
@@ -264,7 +266,7 @@ export default function OrdersPage() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-500">Total Revenue</p>
+                  <p className="text-sm text-gray-500">{t('orders.totalRevenue')}</p>
                   <p className="text-2xl font-bold">${stats.totalRevenue}</p>
                 </div>
                 <TrendingUp className="w-8 h-8 text-green-500 opacity-50" />
@@ -275,7 +277,7 @@ export default function OrdersPage() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-500">Average Order</p>
+                  <p className="text-sm text-gray-500">{t('orders.averageOrder')}</p>
                   <p className="text-2xl font-bold">${stats.averageOrder}</p>
                 </div>
                 <Receipt className="w-8 h-8 text-purple-500 opacity-50" />
@@ -286,7 +288,7 @@ export default function OrdersPage() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-500">Completed</p>
+                  <p className="text-sm text-gray-500">{t('orders.completed')}</p>
                   <p className="text-2xl font-bold">{stats.completedOrders}</p>
                 </div>
                 <CheckCircle className="w-8 h-8 text-green-500 opacity-50" />
@@ -302,7 +304,7 @@ export default function OrdersPage() {
           {loading ? (
             <div className="flex justify-center py-12"><RefreshCw className="w-6 h-6 animate-spin text-blue-500" /></div>
           ) : filteredOrders.length === 0 ? (
-            <p className="text-center text-gray-500 py-12">No orders found</p>
+            <p className="text-center text-gray-500 py-12">{t('orders.noOrders')}</p>
           ) : (
             filteredOrders.map(order => (
               <MobileOrderCard
@@ -323,11 +325,11 @@ export default function OrdersPage() {
           {selectedOrder ? (
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Order Details</h2>
-                <Button variant="ghost" size="sm" onClick={() => setSelectedOrder(null)}>
-                  <Eye className="w-4 h-4 mr-2" />
-                  Close
-                </Button>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t('orders.orderDetails')}</h2>
+                                 <Button variant="ghost" size="sm" onClick={() => setSelectedOrder(null)}>
+                                   <Eye className="w-4 h-4 mr-2" />
+                                   {t('common.close')}
+                                 </Button>
               </div>
 
               <div className="space-y-6">
@@ -336,11 +338,11 @@ export default function OrdersPage() {
                   <CardContent className="p-4">
                     <div className="space-y-3">
                       <div>
-                        <p className="text-sm text-gray-500">Order Number</p>
+                        <p className="text-sm text-gray-500">{t('orders.orderNumber')}</p>
                         <p className="text-lg font-mono font-bold">{selectedOrder.order_number}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500">Status</p>
+                        <p className="text-sm text-gray-500">{t('common.status')}</p>
                         <Badge className={`${getStatusConfig(selectedOrder.status).color} mt-1`}>
                           {(() => {
                             const StatusIcon = getStatusConfig(selectedOrder.status).icon;
@@ -350,7 +352,7 @@ export default function OrdersPage() {
                         </Badge>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500">Date & Time</p>
+                        <p className="text-sm text-gray-500">{t('orders.dateTime')}</p>
                         <p className="font-medium">
                           {selectedOrder.created_date ? format(new Date(selectedOrder.created_date), "MMM d, yyyy 'at' HH:mm") : 'N/A'}
                         </p>
@@ -362,22 +364,22 @@ export default function OrdersPage() {
                 {/* Customer Info */}
                 <Card>
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-base">Customer Information</CardTitle>
+                    <CardTitle className="text-base">{t('orders.customerInfo')}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-2">
                     <div>
-                      <p className="text-sm text-gray-500">Name</p>
-                      <p className="font-medium">{selectedOrder.customer_name || "Walk-in Customer"}</p>
+                      <p className="text-sm text-gray-500">{t('common.name')}</p>
+                      <p className="font-medium">{selectedOrder.customer_name || t('orders.walkIn')}</p>
                     </div>
                     {selectedOrder.table_number && (
                       <div>
-                        <p className="text-sm text-gray-500">Table Number</p>
+                        <p className="text-sm text-gray-500">{t('orders.tableNumber')}</p>
                         <Badge variant="outline">Table {selectedOrder.table_number}</Badge>
                       </div>
                     )}
                     {selectedOrder.station_name && (
                       <div>
-                        <p className="text-sm text-gray-500">Station</p>
+                        <p className="text-sm text-gray-500">{t('orders.station')}</p>
                         <p className="font-medium">{selectedOrder.station_name}</p>
                       </div>
                     )}
@@ -387,7 +389,7 @@ export default function OrdersPage() {
                 {/* Order Items */}
                 <Card>
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-base">Order Items</CardTitle>
+                    <CardTitle className="text-base">{t('orders.orderItems')}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
@@ -395,7 +397,7 @@ export default function OrdersPage() {
                         <div key={index} className="flex justify-between items-start pb-3 border-b last:border-0 last:pb-0">
                           <div className="flex-1">
                             <div className="font-medium">{item.product_name}</div>
-                            <div className="text-sm text-gray-500">Qty: {item.quantity}</div>
+                            <div className="text-sm text-gray-500">{t('orders.qty')} {item.quantity}</div>
                             {item.modifiers && item.modifiers.length > 0 && (
                               <div className="mt-1 space-y-0.5">
                                 {item.modifiers.map((mod, modIndex) => (
@@ -417,39 +419,39 @@ export default function OrdersPage() {
                 {/* Payment Summary */}
                 <Card>
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-base">Payment Summary</CardTitle>
+                    <CardTitle className="text-base">{t('orders.paymentSummary')}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
-                        <span>Subtotal:</span>
+                        <span>{t('orders.subtotal')}</span>
                         <span>${(selectedOrder.subtotal || 0).toFixed(2)}</span>
                       </div>
                       {(selectedOrder.discount_amount || 0) > 0 && (
                         <div className="flex justify-between text-sm text-red-600">
-                          <span>Discount:</span>
+                          <span>{t('orders.discount')}</span>
                           <span>-${(selectedOrder.discount_amount || 0).toFixed(2)}</span>
                         </div>
                       )}
                       <div className="flex justify-between text-sm">
-                        <span>Tax:</span>
+                        <span>{t('orders.tax')}</span>
                         <span>${(selectedOrder.tax_amount || 0).toFixed(2)}</span>
                       </div>
                       {(selectedOrder.tip_amount || 0) > 0 && (
                         <div className="flex justify-between text-sm text-green-600">
-                          <span>Tip:</span>
+                          <span>{t('orders.tip')}</span>
                           <span>${(selectedOrder.tip_amount || 0).toFixed(2)}</span>
                         </div>
                       )}
                       <div className="border-t pt-2">
                         <div className="flex justify-between font-bold text-lg">
-                          <span>Total:</span>
+                          <span>{t('orders.totalLabel')}</span>
                           <span>${(selectedOrder.total || 0).toFixed(2)}</span>
                         </div>
                       </div>
                       <div className="mt-3 pt-3 border-t">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-500">Payment Method:</span>
+                          <span className="text-sm text-gray-500">{t('orders.paymentMethod')}</span>
                           <Badge variant="outline" className="capitalize">
                             {(selectedOrder.payment_method || 'pending').replace('_', ' ')}
                           </Badge>
@@ -458,7 +460,7 @@ export default function OrdersPage() {
                       {selectedOrder.payment_details?.change_due > 0 && (
                         <div className="mt-2 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
                           <div className="flex justify-between items-center">
-                            <span className="text-sm font-medium">Change Due:</span>
+                            <span className="text-sm font-medium">{t('orders.changeDue')}</span>
                             <span className="text-lg font-bold">${selectedOrder.payment_details.change_due.toFixed(2)}</span>
                           </div>
                         </div>
@@ -473,7 +475,7 @@ export default function OrdersPage() {
                     <CardContent className="p-4">
                       <div className="flex items-center gap-2 text-green-800 dark:text-green-200">
                         <CheckCircle className="w-5 h-5" />
-                        <span className="font-medium">Sent to Kitchen</span>
+                        <span className="font-medium">{t('orders.sentToKitchen')}</span>
                       </div>
                     </CardContent>
                   </Card>
@@ -484,7 +486,7 @@ export default function OrdersPage() {
             <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400 p-8 text-center">
               <div>
                 <Eye className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p className="text-sm">Select an order from the list to view its details here.</p>
+                <p className="text-sm">{t('orders.selectOrderPrompt')}</p>
               </div>
             </div>
           )}
@@ -498,7 +500,7 @@ export default function OrdersPage() {
                 <div className="flex-1 relative w-full">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <Input
-                    placeholder="Search by order number or customer..."
+                    placeholder={t('orders.searchOrders')}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10"
@@ -510,7 +512,7 @@ export default function OrdersPage() {
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="all">{t('common.allStatus')}</SelectItem>
                     {/* Dynamically list all statuses from config */}
                     {Object.keys(ORDER_STATUS_CONFIG).map((statusKey) => (
                       <SelectItem key={statusKey} value={statusKey}>
@@ -527,7 +529,7 @@ export default function OrdersPage() {
                     <SelectValue placeholder="Payment" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Payments</SelectItem>
+                    <SelectItem value="all">{t('orders.allPayments')}</SelectItem>
                     <SelectItem value="cash">Cash</SelectItem>
                     <SelectItem value="credit_card">Credit Card</SelectItem>
                     <SelectItem value="debit_card">Debit Card</SelectItem>
@@ -543,10 +545,10 @@ export default function OrdersPage() {
                     <SelectValue placeholder="Date" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="today">Today</SelectItem>
-                    <SelectItem value="week">This Week</SelectItem>
-                    <SelectItem value="month">This Month</SelectItem>
-                    <SelectItem value="all">All Time</SelectItem>
+                    <SelectItem value="today">{t('orders.today')}</SelectItem>
+                    <SelectItem value="week">{t('orders.thisWeek')}</SelectItem>
+                    <SelectItem value="month">{t('orders.thisMonth')}</SelectItem>
+                    <SelectItem value="all">{t('orders.allTime')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -556,13 +558,13 @@ export default function OrdersPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Order #</TableHead>
-                      <TableHead>Customer</TableHead>
-                      <TableHead>Items</TableHead>
-                      <TableHead>Total</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead>{t('orders.orderNo')}</TableHead>
+                      <TableHead>{t('common.customer')}</TableHead>
+                      <TableHead>{t('common.items')}</TableHead>
+                      <TableHead>{t('common.total')}</TableHead>
+                      <TableHead>{t('common.status')}</TableHead>
                       <TableHead>Payment</TableHead>
-                      <TableHead>Date</TableHead>
+                      <TableHead>{t('common.date')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -571,15 +573,15 @@ export default function OrdersPage() {
                         <TableCell colSpan={7} className="text-center py-8">
                           <div className="flex items-center justify-center">
                             <RefreshCw className="w-6 h-6 animate-spin mr-2" />
-                            Loading orders...
+                            {t('orders.loadingOrders')}
                           </div>
                         </TableCell>
                       </TableRow>
                     ) : filteredOrders.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={7} className="text-center py-8 text-gray-500">
-                          No orders found
-                        </TableCell>
+                           {t('orders.noOrders')}
+                         </TableCell>
                       </TableRow>
                     ) : (
                       filteredOrders.map((order) => {
@@ -600,7 +602,7 @@ export default function OrdersPage() {
                             </TableCell>
                             <TableCell>
                               <div>
-                                <div className="font-medium">{order.customer_name || "Walk-in Customer"}</div>
+                                <div className="font-medium">{order.customer_name || t('orders.walkIn')}</div>
                                 {order.table_number && (
                                   <div className="text-sm text-gray-500">Table {order.table_number}</div>
                                 )}
@@ -608,7 +610,7 @@ export default function OrdersPage() {
                             </TableCell>
                             <TableCell>
                               <Badge variant="secondary">
-                                {order.items?.length || 0} items
+                                {order.items?.length || 0} {t('orders.itemsCount')}
                               </Badge>
                             </TableCell>
                             <TableCell className="font-medium">

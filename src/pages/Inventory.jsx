@@ -36,8 +36,10 @@ import PermissionGate from '../components/PermissionGate'; // Added PermissionGa
 import ReorderSuggestions from '../components/inventory/ReorderSuggestions'; // Added ReorderSuggestions component
 import { useActiveLocation } from "@/hooks/useActiveLocation";
 import LocationSwitcher from "@/components/locations/LocationSwitcher";
+import { useLanguage } from "@/lib/i18n/useLanguage";
 
 export default function InventoryPage() {
+  const { t } = useLanguage();
   const [inventory, setInventory] = useState([]);
   const [alerts, setAlerts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -181,9 +183,9 @@ export default function InventoryPage() {
             <div>
               <h1 className="text-3xl font-bold flex items-center gap-2">
                 <Package className="w-8 h-8 text-blue-600" />
-                Inventory Management
+                {t('inventory.title')}
               </h1>
-              <p className="text-gray-500 mt-1">Track stock levels and manage reorders</p>
+              <p className="text-gray-500 mt-1">{t('inventory.subtitle')}</p>
             </div>
             <div className="flex items-center gap-3">
               {isMultiLocation && (
@@ -195,7 +197,7 @@ export default function InventoryPage() {
               )}
               <Button onClick={() => setShowForm(true)}>
                 <Plus className="w-5 h-5 mr-2" />
-                Add Item
+                {t('inventory.addItem')}
               </Button>
             </div>
           </div>
@@ -206,7 +208,7 @@ export default function InventoryPage() {
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-500">Total Items</p>
+                    <p className="text-sm text-gray-500">{t('inventory.totalItems')}</p>
                     <p className="text-3xl font-bold">{inventory.length}</p>
                   </div>
                   <Package className="w-12 h-12 text-blue-500" />
@@ -218,7 +220,7 @@ export default function InventoryPage() {
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-500">Inventory Value</p>
+                    <p className="text-sm text-gray-500">{t('products.inventoryValue')}</p>
                     <p className="text-3xl font-bold">${totalValue.toFixed(0)}</p>
                   </div>
                   <DollarSign className="w-12 h-12 text-green-500" />
@@ -230,7 +232,7 @@ export default function InventoryPage() {
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-500">Low Stock Alerts</p>
+                    <p className="text-sm text-gray-500">{t('inventory.lowStockAlerts')}</p>
                     <p className="text-3xl font-bold text-red-500">{lowStockCount}</p> {/* Using the new lowStockCount */}
                   </div>
                   <AlertCircle className="w-12 h-12 text-red-500" />
@@ -243,15 +245,15 @@ export default function InventoryPage() {
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="inventory">
                 <Package className="w-4 h-4 mr-2" />
-                Inventory
+                {t('menu.inventoryTitle')}
               </TabsTrigger>
               <TabsTrigger value="reorder">
                 <TrendingUp className="w-4 h-4 mr-2" />
-                Reorder
+                {t('inventory.reorder')}
               </TabsTrigger>
               <TabsTrigger value="alerts">
                 <AlertTriangle className="w-4 h-4 mr-2" />
-                Alerts
+                {t('inventory.alerts')}
               </TabsTrigger>
             </TabsList>
 
@@ -264,8 +266,8 @@ export default function InventoryPage() {
                    ) : filteredInventory.length === 0 ? (
                      <div className="text-center py-12">
                        <Package className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-                       <p className="text-gray-500">No inventory items found</p>
-                       <Button onClick={() => setShowForm(true)} className="mt-4"><Plus className="w-4 h-4 mr-2" />Add Item</Button>
+                       <p className="text-gray-500">{t('inventory.noItems')}</p>
+                       <Button onClick={() => setShowForm(true)} className="mt-4"><Plus className="w-4 h-4 mr-2" />{t('inventory.addItem')}</Button>
                      </div>
                    ) : (
                      filteredInventory.map(item => (
@@ -285,12 +287,12 @@ export default function InventoryPage() {
               <Card className="hidden md:block">
                 <CardHeader>
                   <div className="flex items-center justify-between">
-                    <CardTitle>Inventory Items</CardTitle>
+                    <CardTitle>{t('inventory.inventoryItems')}</CardTitle>
                     <div className="flex gap-2">
                       <div className="relative w-64">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                         <Input
-                          placeholder="Search inventory..."
+                          placeholder={t('inventory.searchInv')}
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
                           className="pl-10"
@@ -306,30 +308,30 @@ export default function InventoryPage() {
                   {loading ? (
                     <div className="text-center py-12">
                       <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-gray-400" />
-                      <p className="text-gray-500">Loading inventory...</p>
+                      <p className="text-gray-500">{t('inventory.loadingInv')}</p>
                     </div>
                   ) : filteredInventory.length === 0 ? (
                     <div className="text-center py-12">
                       <Package className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-                      <p className="text-gray-500">No inventory items found</p>
+                      <p className="text-gray-500">{t('inventory.noItems')}</p>
                       <Button onClick={() => setShowForm(true)} className="mt-4">
                         <Plus className="w-4 h-4 mr-2" />
-                        Add Your First Item
+                        {t('inventory.addFirstItem')}
                       </Button>
                     </div>
                   ) : (
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Item</TableHead>
-                          <TableHead>SKU</TableHead>
-                          <TableHead>Category</TableHead>
-                          <TableHead>Quantity</TableHead>
-                          <TableHead>Unit</TableHead>
-                          <TableHead>Cost</TableHead>
-                          <TableHead>Value</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Actions</TableHead>
+                          <TableHead>{t('inventory.item')}</TableHead>
+                          <TableHead>{t('inventory.sku')}</TableHead>
+                          <TableHead>{t('inventory.category')}</TableHead>
+                          <TableHead>{t('inventory.quantity')}</TableHead>
+                          <TableHead>{t('inventory.unit')}</TableHead>
+                          <TableHead>{t('inventory.cost')}</TableHead>
+                          <TableHead>{t('inventory.value')}</TableHead>
+                          <TableHead>{t('common.status')}</TableHead>
+                          <TableHead>{t('common.actions')}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -342,7 +344,7 @@ export default function InventoryPage() {
                               <div className="flex items-center gap-2">
                                 <span>{item.quantity}</span>
                                 {item.quantity <= item.reorder_threshold && (
-                                  <Badge variant="destructive" className="text-xs">Low</Badge>
+                                  <Badge variant="destructive" className="text-xs">{t('inventory.low')}</Badge>
                                 )}
                               </div>
                             </TableCell>
@@ -412,7 +414,7 @@ export default function InventoryPage() {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-red-600">
                       <AlertCircle className="w-5 h-5" />
-                      Low Stock Alerts ({alerts.length})
+                      {t('inventory.lowStockAlerts')} ({alerts.length})
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -432,8 +434,8 @@ export default function InventoryPage() {
                               if (item) handleRestock(item);
                             }}
                           >
-                            Restock
-                          </Button>
+                            {t('inventory.restock')}
+                            </Button>
                         </div>
                       ))}
                     </div>
@@ -443,7 +445,7 @@ export default function InventoryPage() {
                 <Card>
                   <CardContent className="py-12 text-center text-gray-500">
                     <AlertCircle className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                    <p>No active low stock alerts.</p>
+                    <p>{t('inventory.noAlerts')}</p>
                   </CardContent>
                 </Card>
               )}
