@@ -38,7 +38,8 @@ import {
   Vault,
   Wallet,
   Lightbulb,
-  Truck
+  Truck,
+  Network
 } from 'lucide-react';
 import AdvertisingTile from '../components/system-menu/AdvertisingTile';
 import CommunityLinks from '../components/shared/CommunityLinks';
@@ -511,6 +512,16 @@ export default function SystemMenu() {
       description: t('menu.websiteHostingDesc'),
       external_url: 'https://ww3.opentill.io/',
       color: 'from-sky-500 to-blue-600',
+      permission: null
+    },
+    {
+      id: 'opentill_networking',
+      category: 'platform',
+      icon: <Network className="w-6 h-6" />,
+      title: t('menu.nocTitle'),
+      description: t('menu.nocDesc'),
+      external_url: 'https://noc.openTILL.io',
+      color: 'from-indigo-500 to-violet-600',
       permission: null
     },
   ];
