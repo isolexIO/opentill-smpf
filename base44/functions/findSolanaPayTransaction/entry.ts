@@ -2,6 +2,12 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
 import { Connection, PublicKey } from 'npm:@solana/web3.js@1.87.6';
 import { findReference, FindReferenceError } from 'npm:@solana/pay@0.2.5';
 
+// In-memory negative-result cache. Repeated polls for the same reference
+// (legitimate customer polling or abusive probing) collapse into at most
+// one RPC lookup per TTL window, protecting the platform's RPC rate limits.
+const notFoundCache = new Map<string, number>();
+const NOT_FOUND_TTL_MS = 10_000;
+
 Deno.serve(async (req) => {
   try {
     const { reference, network, rpc_url } = await req.json();
@@ -46,6 +52,19 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
+    // Serve a cached "not found" if we recently checked this reference, so
+    // repeated polling doesn't re-issue RPC lookups every call.
+    const cacheKey = `${network || 'mainnet'}:${reference}`;
+    const cachedExpiry = notFoundCache.get(cacheKey);
+    if (cachedExpiry != null && Date.now() < cachedExpiry) {
+      console.log('findSolanaPayTransaction: Returning cached not-found');
+      return Response.json({
+        success: true,
+        found: false,
+        error: 'Transaction not found yet'
+      });
+    }
+
     try {
       console.log('findSolanaPayTransaction: Searching for transaction...');
       
@@ -57,6 +76,7 @@ Deno.serve(async (req) => {
       console.log('findSolanaPayTransaction: Transaction found!');
       console.log('findSolanaPayTransaction: Signature:', signatureInfo.signature);
 
+      notFoundCache.delete(cacheKey);
       return Response.json({
         success: true,
         found: true,
@@ -78,6 +98,12 @@ Deno.serve(async (req) => {
       // FindReferenceError means transaction not found yet (expected while waiting)
       if (error instanceof FindReferenceError) {
         console.log('findSolanaPayTransaction: Transaction not found yet (expected)');
+        // Bounded cache: prune expired entries if the map grows large.
+        if (notFoundCache.size > 5000) {
+          const now = Date.now();
+          for (const [k, exp] of notFoundCache) if (exp <= now) notFoundCache.delete(k);
+        }
+        notFoundCache.set(cacheKey, Date.now() + NOT_FOUND_TTL_MS);
         return Response.json({
           success: true,
           found: false,
