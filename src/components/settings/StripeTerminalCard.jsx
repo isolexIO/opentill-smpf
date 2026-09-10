@@ -196,6 +196,7 @@ export default function StripeTerminalCard() {
                   <SelectTrigger id="r-type"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="verifone_p400">Verifone P400</SelectItem>
+                    <SelectItem value="stripe_m2">Stripe Reader M2</SelectItem>
                     <SelectItem value="bbpos_wisepad3s">WisePad 3 (LAN)</SelectItem>
                     <SelectItem value="mobile">Mobile Reader</SelectItem>
                   </SelectContent>
