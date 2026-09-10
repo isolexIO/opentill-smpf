@@ -62,11 +62,39 @@ export const userManualSections = [
       },
       {
         title: 'Customer Display Integration',
-        content: 'Show order to customers in real-time:\n1. Open customer display URL on secondary screen/tablet\n2. Display shows:\n   • Items added to cart\n   • Prices and totals\n   • Dual pricing if enabled\n   • Payment method selection\n   • Tip screen\n   • Transaction status\n3. Updates automatically as cashier works\n4. Branded with your logo and colors\n\nGet URL from Settings → Customer Display or use Station-based mobile display.'
+        content: 'Show order to customers in real-time:\n1. Open customer display URL on secondary screen/tablet\n2. Display shows:\n   • Items added to cart\n   • Prices and totals\n   • Dual pricing if enabled\n   • Payment method selection\n   • Tip screen\n   • Transaction status\n   • Digital receipt options after payment (QR / SMS / No Receipt)\n3. Updates automatically as cashier works\n4. Branded with your logo and colors\n\nGet URL from Settings → Customer Display or use Station-based mobile display.\n\nAfter payment completes, the display transitions to a digital receipt screen where the customer can scan a QR code, receive an SMS link, or skip — see "Digital Receipts" section for details.'
       },
       {
         title: 'Kitchen Display System',
         content: 'Send orders to kitchen:\n1. Open kitchen display URL on kitchen screen\n2. Click "Send to Kitchen" button on POS\n3. Order appears on kitchen display with:\n   • Order number and time\n   • Items and quantities\n   • Modifiers and special instructions\n   • Color-coded by status\n4. Kitchen staff clicks items to mark as prepared\n5. Auto-advances to next order when complete\n\nConfigure in Settings → Kitchen Display'
+      },
+      {
+        title: 'Digital Receipts (QR Code / SMS)',
+        content: `Offer paperless receipts after every transaction:
+
+After a successful payment, the customer display shows a receipt screen with three options:
+• QR Code — Displays a scannable QR code linking to a digital receipt webpage. The customer scans it with their phone camera to view, screenshot, or print the receipt. The QR code displays for 20 seconds before automatically returning to the idle/welcome screen.
+• SMS Text — Sends a text message with a link to the digital receipt. The customer enters their 10-digit phone number and selects their carrier (AT&T, Verizon, T-Mobile, Sprint, Boost, Cricket, US Cellular, Google Fi, Metro PCS). The receipt link is delivered via the carrier's email-to-SMS gateway.
+• No Receipt — Skips the receipt and returns to the idle screen immediately.
+
+How it works:
+1. Payment completes → Success screen shows briefly
+2. Receipt options screen appears on the customer display
+3. Customer (or cashier) selects QR Code, SMS, or No Receipt
+4. For QR: code displays for 20 seconds, then returns to idle
+5. For SMS: customer enters phone + carrier, link is texted, confirmation shows, then returns to idle
+6. For No Receipt: returns to idle immediately
+
+The digital receipt page (at /receipt/<order-id>) shows:
+• Business name, address, and phone
+• Order number, date, and station
+• Line items with quantities and modifiers
+• Subtotal, tax, tips, surcharges, and total
+• Payment method and card last 4 (if applicable)
+• Age verification info (if applicable)
+• Print button for physical copy
+
+No login required — the receipt link is publicly accessible. The endpoint is rate-limited to prevent abuse.`
       }
     ]
   },
@@ -186,7 +214,7 @@ Merchants manage customer portal access:
       },
       {
         title: 'Customer Display',
-        content: 'Customer-facing screen:\n• Set up secondary display (tablet, monitor)\n• Open customer display URL\n• Shows real-time:\n  - Welcome screen with logo\n  - Items being added to cart\n  - Prices and totals\n  - Payment method selection\n  - Tip screen (if enabled)\n  - Transaction status\n  - Thank you message\n• Fully branded with your colors\n• Touch-enabled for customer input\n• Get URL from Settings → Customer Display\n• Or use Station-based Mobile Display (see Mobile Station Display section)'
+        content: 'Customer-facing screen:\n• Set up secondary display (tablet, monitor)\n• Open customer display URL\n• Shows real-time:\n  - Welcome screen with logo\n  - Items being added to cart\n  - Prices and totals\n  - Payment method selection\n  - Tip screen (if enabled)\n  - Transaction status\n  - Digital receipt options (QR Code / SMS / No Receipt)\n  - Thank you message\n• Fully branded with your colors\n• Touch-enabled for customer input\n• Get URL from Settings → Customer Display\n• Or use Station-based Mobile Display (see Mobile Station Display section)\n\nAfter payment, the display automatically shows a digital receipt screen offering QR Code (20-second display), SMS text, or No Receipt options.'
       }
     ]
   },
@@ -272,6 +300,7 @@ Check connection status and refresh onboarding from the same settings page or th
 Supported readers:
 • Stripe Reader (BBPOS WisePad)
 • Stripe Terminal (BBPOS WisePOS E)
+• Stripe Reader M2 (contactless + chip)
 • Verifone P400
 
 Note: Tap to Pay on iPhone/Android is not available in the web-based POS. Use a physical Stripe Terminal reader for contactless payments.`
@@ -467,6 +496,81 @@ Security:
 • Optional PIN for cashier controls on mobile
 • Max connection limit prevents abuse
 • Token expiration can be configured`
+      },
+      {
+        title: 'Multi-Language Support (i18n)',
+        content: `openTILL supports 7 languages with automatic RTL (right-to-left) layout for Arabic:
+
+Supported Languages:
+• English (default)
+• Spanish
+• French
+• German
+• Portuguese
+• Chinese
+• Arabic (with RTL layout)
+
+How to use:
+• Click the language selector in the top navigation bar
+• Choose your preferred language
+• The entire interface translates instantly
+• Arabic automatically switches to right-to-left layout
+• Your language preference is saved for future sessions
+
+What's translated:
+• Navigation menus and buttons
+• System Menu labels and descriptions
+• POS interface (departments, cart, checkout)
+• Customer display screens
+• Settings and configuration pages
+• Email templates and notifications
+• Error messages and alerts
+
+The language selector is available on both the public-facing pages and the authenticated dashboard. Merchants and customers can each choose their own preferred language independently.`
+      },
+      {
+        title: 'openTILL Networking (NOC)',
+        content: `Network Operations Center for system status and monitoring:
+
+Access: System Menu → openTILL Networking (or the NOC tile in the System Menu)
+
+Features:
+• Real-time system status dashboard
+• Uptime monitoring across all platform services
+• Service health indicators (POS, payments, blockchain, API)
+• Incident history and maintenance schedule
+• Network performance metrics
+• Regional status breakdown
+
+Use the NOC to:
+• Check if an issue is platform-wide before contacting support
+• Monitor scheduled maintenance windows
+• View historical uptime and performance data
+• Stay informed about service disruptions
+
+The NOC is accessible to all authenticated users and provides transparency into platform health.`
+      },
+      {
+        title: 'Brochure & Community',
+        content: `Marketing and community resources:
+
+Brochure:
+• Access from System Menu → Brochure
+• Interactive feature brochure showcasing openTILL capabilities
+• Shareable with potential customers and partners
+• Marketing materials for ambassadors and resellers
+• Feature highlights and pricing information
+• Modern design aesthetic with deep-space gradients and glassmorphism
+
+Community:
+• Access from System Menu → Community
+• Connect with other openTILL merchants
+• Share best practices and tips
+• Feature requests and feedback
+• Platform announcements and updates
+• Merchant-to-merchant support
+
+Both features are available to all authenticated users and provide resources for growing your business and connecting with the openTILL ecosystem.`
       }
     ]
   },
@@ -1488,6 +1592,26 @@ All new feature revenue is included in your monthly commission calculations. Tra
       {
         title: 'Can I generate a website for my business?',
         content: 'Yes! Navigate to System Menu → AI Website Generator. AI generates a professional website based on your business info, products, and branding. Review, customize, and publish. View analytics, update content, and use a custom domain. May require a Website Generator chip unlock via the Motherboard/Marketplace.'
+      },
+      {
+        title: 'How do digital receipts work?',
+        content: 'After every successful payment, the customer display shows a receipt options screen with three choices: QR Code (displays a scannable code linking to a digital receipt webpage for 20 seconds), SMS Text (sends a text message with the receipt link to the customer\'s phone — select carrier from AT&T, Verizon, T-Mobile, Sprint, Boost, Cricket, US Cellular, Google Fi, or Metro PCS), or No Receipt (skips and returns to idle). The digital receipt page shows full transaction details and includes a print button. No login is required to view the receipt — the link is publicly accessible.'
+      },
+      {
+        title: 'Does openTILL support multiple languages?',
+        content: 'Yes! openTILL supports 7 languages: English, Spanish, French, German, Portuguese, Chinese, and Arabic (with automatic right-to-left layout). Click the language selector in the top navigation bar to switch languages. Your preference is saved for future sessions. The entire interface — including POS, customer display, settings, and email templates — translates instantly.'
+      },
+      {
+        title: 'What is the openTILL Networking NOC?',
+        content: 'The Network Operations Center (NOC) is a real-time status dashboard accessible from System Menu → openTILL Networking. It shows platform uptime, service health indicators (POS, payments, blockchain, API), incident history, and scheduled maintenance. Use it to check if an issue is platform-wide before contacting support.'
+      },
+      {
+        title: 'Which Stripe Terminal readers are supported?',
+        content: 'openTILL Payments (Stripe Terminal) supports: Stripe Reader (BBPOS WisePad), Stripe Terminal (BBPOS WisePOS E), Stripe Reader M2 (contactless + chip), and Verifone P400. Register and pair your reader from System Menu → openTILL Payments → Terminal tab. Tap to Pay on iPhone/Android is not available in the web-based POS — use a physical reader for contactless payments.'
+      },
+      {
+        title: 'What are the Brochure and Community pages?',
+        content: 'The Brochure (System Menu → Brochure) is an interactive feature showcase you can share with potential customers and partners — ideal for ambassadors and resellers. The Community page (System Menu → Community) lets you connect with other openTILL merchants, share best practices, submit feature requests, and stay up to date on platform announcements. Both are available to all authenticated users.'
       }
     ]
   }

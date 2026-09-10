@@ -105,6 +105,15 @@ export default function UserGuide() {
                 <li><strong>Food Truck:</strong> Mobile simplified menu</li>
               </ul>
               <p>Switch modes in <strong>Settings → General</strong>.</p>
+
+              <h3 className="text-lg font-semibold mt-6">Multi-Language Support</h3>
+              <p>openTILL supports <strong>7 languages</strong> with automatic right-to-left (RTL) layout for Arabic. Click the language selector in the top navigation bar to switch between English, Spanish, French, German, Portuguese, Chinese, and Arabic. Your preference is saved for future sessions, and the entire interface — including the POS, customer display, and settings — translates instantly.</p>
+
+              <h3 className="text-lg font-semibold mt-6">openTILL Networking (NOC)</h3>
+              <p>Check real-time platform status, uptime, and service health from <strong>System Menu → openTILL Networking</strong>. Use the Network Operations Center to verify whether an issue is platform-wide before contacting support, and to stay informed about scheduled maintenance.</p>
+
+              <h3 className="text-lg font-semibold mt-6">Brochure & Community</h3>
+              <p>Access the interactive <strong>Brochure</strong> from the System Menu to explore and share openTILL's feature highlights. Visit the <strong>Community</strong> page to connect with other merchants, share best practices, and stay up to date on platform announcements.</p>
             </CardContent>
           </Card>
         </TabsContent>
@@ -148,6 +157,15 @@ export default function UserGuide() {
 
               <h3 className="text-lg font-semibold mt-6">Customer Display</h3>
               <p>Open the customer display URL (from <strong>Settings → Customer Display</strong>) on a tablet or secondary screen facing the customer. It auto-updates in real time as items are added, and allows customers to select tips or confirm payment.</p>
+
+              <h3 className="text-lg font-semibold mt-6">Digital Receipts (QR / SMS)</h3>
+              <p>After every successful payment, the customer display shows a <strong>receipt options screen</strong> with three choices:</p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li><strong>QR Code</strong> — Displays a scannable QR code linking to a digital receipt. The customer scans it with their phone to view, save, or print the receipt. The QR shows for 20 seconds before returning to the idle screen.</li>
+                <li><strong>SMS Text</strong> — Sends a text message with the receipt link. The customer enters their phone number and selects their carrier (AT&T, Verizon, T-Mobile, and more).</li>
+                <li><strong>No Receipt</strong> — Skips the receipt and returns to idle immediately.</li>
+              </ul>
+              <p>The digital receipt page shows the full transaction details (items, totals, payment method) and includes a print button — no login required.</p>
 
               <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
                 <strong>⚠️ Always verify the order total with the customer before completing payment!</strong>
