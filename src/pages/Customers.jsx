@@ -28,6 +28,7 @@ import {
   ShoppingCart,
   DollarSign
 } from "lucide-react";
+import { useLanguage } from "@/lib/i18n/useLanguage";
 
 const getTier = (points) => {
   if (points >= 1000) return { name: "Platinum", color: "bg-gray-700 text-white", icon: <Star className="w-3 h-3 text-cyan-300" /> };
@@ -37,6 +38,7 @@ const getTier = (points) => {
 };
 
 export default function CustomersPage() {
+  const { t } = useLanguage();
   const [customers, setCustomers] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [showForm, setShowForm] = useState(false);
@@ -133,11 +135,11 @@ export default function CustomersPage() {
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold flex items-center gap-2">
-            <Users className="w-8 h-8 text-orange-500" /> Customer Management
-          </h1>
-          <Button onClick={handleAddNew}>
-            <Plus className="w-4 h-4 mr-2" /> Add Customer
-          </Button>
+            <Users className="w-8 h-8 text-orange-500" /> {t('customers.title')}
+            </h1>
+            <Button onClick={handleAddNew}>
+             <Plus className="w-4 h-4 mr-2" /> {t('customers.add')}
+            </Button>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -145,7 +147,7 @@ export default function CustomersPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Total Customers</p>
+                  <p className="text-sm font-medium text-gray-500">{t('customers.totalCustomers')}</p>
                   <p className="text-2xl font-bold">{stats.totalCustomers}</p>
                 </div>
                 <Users className="w-8 h-8 text-blue-500"/>
@@ -156,7 +158,7 @@ export default function CustomersPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Total Spent</p>
+                  <p className="text-sm font-medium text-gray-500">{t('customers.totalSpent')}</p>
                   <p className="text-2xl font-bold">${stats.totalSpent}</p>
                 </div>
                 <DollarSign className="w-8 h-8 text-green-500"/>
@@ -167,7 +169,7 @@ export default function CustomersPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Average Spend</p>
+                  <p className="text-sm font-medium text-gray-500">{t('customers.avgSpend')}</p>
                   <p className="text-2xl font-bold">${stats.avgSpent}</p>
                 </div>
                 <TrendingUp className="w-8 h-8 text-purple-500"/>
@@ -178,7 +180,7 @@ export default function CustomersPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Total Visits</p>
+                  <p className="text-sm font-medium text-gray-500">{t('customers.totalVisits')}</p>
                   <p className="text-2xl font-bold">{stats.totalVisits}</p>
                 </div>
                 <ShoppingCart className="w-8 h-8 text-orange-500"/>
@@ -190,10 +192,10 @@ export default function CustomersPage() {
         <Card>
           <CardHeader>
             <div className="flex justify-between items-center">
-              <CardTitle>All Customers ({filteredCustomers.length})</CardTitle>
+              <CardTitle>{t('customers.allCustomers')} ({filteredCustomers.length})</CardTitle>
               <div className="relative w-64">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input placeholder="Search customers..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
+                <Input placeholder={t('customers.searchPlaceholder')} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
               </div>
             </div>
           </CardHeader>
@@ -201,22 +203,22 @@ export default function CustomersPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Loyalty</TableHead>
-                  <TableHead className="text-right">Total Spent</TableHead>
-                  <TableHead className="text-right">Visits</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead>{t('common.name')}</TableHead>
+                  <TableHead>{t('customers.contact')}</TableHead>
+                  <TableHead>{t('customers.loyalty')}</TableHead>
+                  <TableHead className="text-right">{t('customers.totalSpent')}</TableHead>
+                  <TableHead className="text-right">{t('customers.visits')}</TableHead>
+                  <TableHead>{t('common.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8">Loading customers...</TableCell>
+                    <TableCell colSpan={6} className="text-center py-8">{t('customers.loading')}</TableCell>
                   </TableRow>
                 ) : filteredCustomers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8">No customers found.</TableCell>
+                    <TableCell colSpan={6} className="text-center py-8">{t('customers.noCustomers')}</TableCell>
                   </TableRow>
                 ) : (
                   filteredCustomers.map(customer => {
@@ -230,7 +232,7 @@ export default function CustomersPage() {
                         </TableCell>
                         <TableCell>
                           <Badge className={`${tier.color} flex items-center gap-1 w-fit`}>
-                            {tier.icon}{tier.name} - {customer.loyalty_points} pts
+                            {tier.icon}{tier.name} - {customer.loyalty_points} {t('customers.pts')}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right">${(customer.total_spent || 0).toFixed(2)}</TableCell>
@@ -252,7 +254,7 @@ export default function CustomersPage() {
         <Dialog open={showForm} onOpenChange={setShowForm}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>{selectedCustomer ? "Edit Customer" : "Add New Customer"}</DialogTitle>
+              <DialogTitle>{selectedCustomer ? t('customers.editCustomer') : t('customers.addNewCustomer')}</DialogTitle>
             </DialogHeader>
             <CustomerForm customer={selectedCustomer} onSave={handleSaveCustomer} onCancel={() => setShowForm(false)} />
           </DialogContent>
@@ -263,6 +265,7 @@ export default function CustomersPage() {
 }
 
 function CustomerForm({ customer, onSave, onCancel }) {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState(customer || { name: "", email: "", phone: "", notes: "" });
 
   useEffect(() => {
@@ -281,24 +284,24 @@ function CustomerForm({ customer, onSave, onCancel }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4 pt-4">
       <div>
-        <label className="block text-sm font-medium mb-1">Name*</label>
+        <label className="block text-sm font-medium mb-1">{t('customers.nameLabel')}</label>
         <Input value={formData.name} onChange={e => handleChange("name", e.target.value)} required />
       </div>
       <div>
-        <label className="block text-sm font-medium mb-1">Email</label>
+        <label className="block text-sm font-medium mb-1">{t('customers.emailLabel')}</label>
         <Input type="email" value={formData.email} onChange={e => handleChange("email", e.target.value)} />
       </div>
       <div>
-        <label className="block text-sm font-medium mb-1">Phone</label>
+        <label className="block text-sm font-medium mb-1">{t('customers.phoneLabel')}</label>
         <Input value={formData.phone} onChange={e => handleChange("phone", e.target.value)} />
       </div>
       <div>
-        <label className="block text-sm font-medium mb-1">Notes</label>
+        <label className="block text-sm font-medium mb-1">{t('customers.notesLabel')}</label>
         <Input value={formData.notes} onChange={e => handleChange("notes", e.target.value)} />
       </div>
       <div className="flex justify-end gap-3 pt-4">
-        <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
-        <Button type="submit">Save</Button>
+        <Button type="button" variant="outline" onClick={onCancel}>{t('customers.cancel')}</Button>
+        <Button type="submit">{t('customers.save')}</Button>
       </div>
     </form>
   );

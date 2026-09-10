@@ -20,8 +20,10 @@ import StaffManagement from '../components/dealer/StaffManagement.jsx';
 import MerchantAnalytics from '../components/dealer/MerchantAnalytics.jsx';
 import DealerBrandingSettings from '../components/dealer/DealerBrandingSettings.jsx';
 import ICOLink from '../components/vault/ICOLink';
+import { useLanguage } from '@/lib/i18n/useLanguage';
 
 export default function DealerDashboardPage() {
+  const { t } = useLanguage();
   const [dealer, setDealer] = useState(null);
   const [merchants, setMerchants] = useState([]);
   const [stats, setStats] = useState({ totalMerchants: 0, activeMerchants: 0, monthlyRevenue: 0, pendingCommission: 0 });
@@ -139,7 +141,7 @@ export default function DealerDashboardPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900 flex items-center justify-center">
       <div className="text-center">
         <div className="w-12 h-12 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-        <p className="text-white/50 text-sm">Loading your dashboard...</p>
+        <p className="text-white/50 text-sm">{t('dealer.loading')}</p>
       </div>
     </div>
   );
@@ -147,11 +149,11 @@ export default function DealerDashboardPage() {
   if (!dealer) return (
     <div className="min-h-screen flex items-center justify-center bg-slate-900">
       <Card className="max-w-md bg-white/5 border-white/10">
-        <CardHeader><CardTitle className="text-white">No Ambassador Account Found</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-white">{t('dealer.noAccount')}</CardTitle></CardHeader>
         <CardContent>
-          <p className="text-white/50 mb-4">Unable to load ambassador information.</p>
+          <p className="text-white/50 mb-4">{t('dealer.unableLoad')}</p>
           <Button onClick={() => window.location.href = createPageUrl('DealerLanding')} className="w-full">
-            Go to Landing Page
+            {t('dealer.goLanding')}
           </Button>
         </CardContent>
       </Card>
@@ -175,9 +177,9 @@ export default function DealerDashboardPage() {
             <div>
               <div className="font-bold text-gray-900 dark:text-white text-sm leading-none truncate max-w-[110px] sm:max-w-xs">{dealer.name}</div>
               <div className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
-                Ambassador Dashboard
+                {t('dealer.ambassadorDashboard')}
                 {['root_admin', 'admin'].includes(currentUser?.role) && (
-                  <Badge variant="destructive" className="text-xs py-0 px-1.5 h-4">Admin View</Badge>
+                  <Badge variant="destructive" className="text-xs py-0 px-1.5 h-4">{t('dealer.adminView')}</Badge>
                 )}
               </div>
             </div>
@@ -191,13 +193,13 @@ export default function DealerDashboardPage() {
               </a>
             )}
             <Button variant="ghost" size="sm" onClick={() => window.location.href = createPageUrl('SMPFWallet')} className="text-gray-500 dark:text-gray-400">
-              <Wallet className="w-4 h-4 sm:mr-1" /> <span className="hidden sm:inline">Wallet</span>
+              <Wallet className="w-4 h-4 sm:mr-1" /> <span className="hidden sm:inline">{t('dealer.wallet')}</span>
             </Button>
             <Button variant="ghost" size="icon" className="text-gray-500 dark:text-gray-400">
               <Bell className="w-4 h-4" />
             </Button>
             <Button variant="ghost" size="sm" onClick={handleLogout} className="text-gray-500 dark:text-gray-400">
-              <LogOut className="w-4 h-4 sm:mr-1" /> <span className="hidden sm:inline">Logout</span>
+              <LogOut className="w-4 h-4 sm:mr-1" /> <span className="hidden sm:inline">{t('dealer.logout')}</span>
             </Button>
           </div>
         </div>
@@ -207,20 +209,20 @@ export default function DealerDashboardPage() {
         {/* Welcome */}
         <div className="mb-8">
           <h1 className="text-2xl font-black text-gray-900 dark:text-white">
-            Welcome back{currentUser?.full_name ? `, ${currentUser.full_name.split(' ')[0]}` : ''}! 👋
+            {t('dealer.welcomeBack')}{currentUser?.full_name ? `, ${currentUser.full_name.split(' ')[0]}` : ''}! 👋
           </h1>
           <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
-            Here's what's happening with your ambassador network today.
+            {t('dealer.welcomeSub')}
           </p>
         </div>
 
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
           {[
-            { label: 'Total Merchants', value: stats.totalMerchants, sub: `${stats.activeMerchants} active`, icon: Store, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
-            { label: 'Network Revenue', value: `$${stats.monthlyRevenue.toLocaleString()}`, sub: 'All merchants', icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
-            { label: 'Pending Commission', value: `$${stats.pendingCommission.toFixed(2)}`, sub: 'Awaiting payout', icon: DollarSign, color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-900/20' },
-            { label: 'Commission Rate', value: `${dealer.commission_percent || 0}%`, sub: 'On merchant fees', icon: CreditCard, color: 'text-orange-600', bg: 'bg-orange-50 dark:bg-orange-900/20' },
+            { label: t('dealer.totalMerchants'), value: stats.totalMerchants, sub: `${stats.activeMerchants} ${t('dealer.active')}`, icon: Store, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
+            { label: t('dealer.networkRevenue'), value: `$${stats.monthlyRevenue.toLocaleString()}`, sub: t('dealer.allMerchants'), icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
+            { label: t('dealer.pendingCommission'), value: `$${stats.pendingCommission.toFixed(2)}`, sub: t('dealer.awaitingPayout'), icon: DollarSign, color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-900/20' },
+            { label: t('dealer.commissionRate'), value: `${dealer.commission_percent || 0}%`, sub: t('dealer.onMerchantFees'), icon: CreditCard, color: 'text-orange-600', bg: 'bg-orange-50 dark:bg-orange-900/20' },
           ].map((s, i) => (
             <Card key={i} className="dark:bg-gray-900 dark:border-gray-800">
               <CardContent className="p-3 sm:p-5">
@@ -243,13 +245,13 @@ export default function DealerDashboardPage() {
         <Tabs defaultValue="merchants" className="space-y-6">
           <TabsList className="bg-gray-100 dark:bg-gray-800/50 p-1 flex-wrap h-auto gap-1">
             {[
-              { value: 'merchants', icon: Store, label: 'Merchants' },
-              { value: 'leads', icon: Target, label: 'Leads' },
-              { value: 'analytics', icon: BarChart3, label: 'Analytics' },
-              { value: 'marketing', icon: Sparkles, label: 'AI Marketing' },
-              { value: 'payouts', icon: Wallet, label: 'Payouts' },
-              { value: 'staff', icon: Users, label: 'Staff' },
-              { value: 'settings', icon: Settings, label: 'Settings' },
+              { value: 'merchants', icon: Store, label: t('dealer.merchants') },
+              { value: 'leads', icon: Target, label: t('dealer.leads') },
+              { value: 'analytics', icon: BarChart3, label: t('dealer.analytics') },
+              { value: 'marketing', icon: Sparkles, label: t('dealer.aiMarketing') },
+              { value: 'payouts', icon: Wallet, label: t('dealer.payouts') },
+              { value: 'staff', icon: Users, label: t('dealer.staff') },
+              { value: 'settings', icon: Settings, label: t('dealer.settings') },
             ].map(t => (
               <TabsTrigger key={t.value} value={t.value}
                 className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 text-sm">
@@ -281,9 +283,9 @@ export default function DealerDashboardPage() {
           <TabsContent value="settings">
             <Tabs defaultValue="branding" className="space-y-4">
               <TabsList className="flex-wrap h-auto gap-1">
-                <TabsTrigger value="branding">Branding</TabsTrigger>
-                <TabsTrigger value="payments">Payments</TabsTrigger>
-                <TabsTrigger value="domains">SNS Subdomain</TabsTrigger>
+                <TabsTrigger value="branding">{t('dealer.branding')}</TabsTrigger>
+                <TabsTrigger value="payments">{t('dealer.payments')}</TabsTrigger>
+                <TabsTrigger value="domains">{t('dealer.snsSubdomain')}</TabsTrigger>
               </TabsList>
               <TabsContent value="branding"><DealerBrandingSettings dealer={dealer} onUpdate={loadDealerData} /></TabsContent>
               <TabsContent value="payments"><StripeConnectSetup dealer={dealer} onUpdate={loadDealerData} /></TabsContent>

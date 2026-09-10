@@ -29,6 +29,7 @@ import {
   MessageSquare
 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
+import { useLanguage } from '@/lib/i18n/useLanguage';
 
 import MerchantManagement from '../components/superadmin/MerchantManagement';
 import ChipManagement from '../components/superadmin/ChipManagement';
@@ -59,6 +60,7 @@ import ComplianceRuleManager from '../components/superadmin/ComplianceRuleManage
 import CustomerReferralSettings from '../components/superadmin/CustomerReferralSettings';
 
 export default function SuperAdminPage() {
+  const { t } = useLanguage();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('pending');
@@ -219,7 +221,7 @@ export default function SuperAdminPage() {
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-500">Loading...</p>
+          <p className="text-gray-500">{t('superAdmin.loading')}</p>
         </div>
       </div>
     );
@@ -227,64 +229,64 @@ export default function SuperAdminPage() {
 
   const navCategories = [
     {
-      label: 'Accounts',
+      label: t('superAdmin.accounts'),
       items: [
-        { key: 'pending', icon: UserPlus, label: 'Pending' },
-        { key: 'merchants', icon: Users, label: 'Merchants' },
-        { key: 'dealers', icon: Building2, label: 'Ambassadors' },
-        { key: 'builders', icon: Users, label: 'Builders' },
-        { key: 'users', icon: Users, label: 'Users' },
+        { key: 'pending', icon: UserPlus, label: t('superAdmin.pending') },
+        { key: 'merchants', icon: Users, label: t('superAdmin.merchants') },
+        { key: 'dealers', icon: Building2, label: t('superAdmin.ambassadors') },
+        { key: 'builders', icon: Users, label: t('superAdmin.builders') },
+        { key: 'users', icon: Users, label: t('superAdmin.users') },
       ],
     },
     {
-      label: 'Billing',
+      label: t('superAdmin.billing'),
       items: [
-        { key: 'subscriptions', icon: CreditCard, label: 'Subscriptions' },
-        { key: 'payouts', icon: Wallet, label: 'Payouts' },
-        { key: 'vault', icon: Vault, label: 'Vault' },
+        { key: 'subscriptions', icon: CreditCard, label: t('superAdmin.subscriptions') },
+        { key: 'payouts', icon: Wallet, label: t('superAdmin.payoutsNav') },
+        { key: 'vault', icon: Vault, label: t('superAdmin.vault') },
       ],
     },
     {
-      label: 'Marketplace',
+      label: t('superAdmin.marketplace'),
       items: [
-        { key: 'chips', icon: Cpu, label: 'Chips' },
-        { key: 'devices', icon: Package, label: 'Device Shop' },
-        { key: 'amazon', icon: Package, label: 'Affiliate Links' },
+        { key: 'chips', icon: Cpu, label: t('superAdmin.chips') },
+        { key: 'devices', icon: Package, label: t('superAdmin.deviceShop') },
+        { key: 'amazon', icon: Package, label: t('superAdmin.affiliateLinks') },
       ],
     },
     {
-      label: 'Insights',
+      label: t('superAdmin.insights'),
       items: [
-        { key: 'logs', icon: FileText, label: 'Logs' },
-        { key: 'reports', icon: TrendingUp, label: 'Reports' },
+        { key: 'logs', icon: FileText, label: t('superAdmin.logs') },
+        { key: 'reports', icon: TrendingUp, label: t('superAdmin.reports') },
       ],
     },
     {
-      label: 'Engagement',
+      label: t('superAdmin.engagement'),
       items: [
-        { key: 'ads', icon: Building2, label: 'Ads' },
-        { key: 'notifications', icon: AlertCircle, label: 'Notifications' },
-        { key: 'feedback', icon: MessageSquare, label: 'Feedback' },
-        { key: 'brochure', icon: FileText, label: 'Brochure' },
+        { key: 'ads', icon: Building2, label: t('superAdmin.ads') },
+        { key: 'notifications', icon: AlertCircle, label: t('superAdmin.notifications') },
+        { key: 'feedback', icon: MessageSquare, label: t('superAdmin.feedback') },
+        { key: 'brochure', icon: FileText, label: t('superAdmin.brochure') },
       ],
     },
     {
-      label: 'System',
+      label: t('superAdmin.system'),
       items: [
-        { key: 'settings', icon: Settings, label: 'Settings' },
-        { key: 'compliance', icon: ShieldAlert, label: 'Compliance Rules' },
-        { key: 'support', icon: LifeBuoy, label: 'Support' },
+        { key: 'settings', icon: Settings, label: t('superAdmin.tabSettings') },
+        { key: 'compliance', icon: ShieldAlert, label: t('superAdmin.compliance') },
+        { key: 'support', icon: LifeBuoy, label: t('superAdmin.support') },
       ],
     },
   ];
 
   const tabLabels = {
-    pending: 'Pending Merchants', merchants: 'Merchant Management', dealers: 'Ambassador Management',
-    subscriptions: 'Subscription Management', devices: 'Device Shop', amazon: 'Affiliate Links',
-    payouts: 'Payout Management', vault: '$DUC Vault', chips: 'Chip Manager', builders: 'Builder Management', users: 'User Management', logs: 'System Logs',
-    reports: 'Global Reports', ads: 'Advertising', notifications: 'Notifications', settings: 'Settings',
-    support: 'Support Tickets', feedback: 'User Feedback', brochure: 'Interactive Brochure',
-    compliance: 'Compliance Rules',
+    pending: t('superAdmin.tabPending'), merchants: t('superAdmin.tabMerchants'), dealers: t('superAdmin.tabDealers'),
+    subscriptions: t('superAdmin.tabSubscriptions'), devices: t('superAdmin.tabDevices'), amazon: t('superAdmin.tabAmazon'),
+    payouts: t('superAdmin.tabPayouts'), vault: t('superAdmin.tabVault'), chips: t('superAdmin.tabChips'), builders: t('superAdmin.tabBuilders'), users: t('superAdmin.tabUsers'), logs: t('superAdmin.tabLogs'),
+    reports: t('superAdmin.tabReports'), ads: t('superAdmin.tabAds'), notifications: t('superAdmin.tabNotifications'), settings: t('superAdmin.tabSettings'),
+    support: t('superAdmin.tabSupport'), feedback: t('superAdmin.tabFeedback'), brochure: t('superAdmin.tabBrochure'),
+    compliance: t('superAdmin.tabCompliance'),
   };
 
   return (
@@ -309,7 +311,7 @@ export default function SuperAdminPage() {
             <div className="flex items-center gap-3">
               <Shield className="w-8 h-8 text-red-600" />
               <div>
-                <h1 className="text-lg font-bold text-gray-900 dark:text-white">Super Admin</h1>
+                <h1 className="text-lg font-bold text-gray-900 dark:text-white">{t('superAdmin.title')}</h1>
                 {user && <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>}
               </div>
             </div>
@@ -348,21 +350,21 @@ export default function SuperAdminPage() {
               className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
             >
               <Home className="w-4 h-4" />
-              <span className="text-sm font-medium">Home</span>
+              <span className="text-sm font-medium">{t('superAdmin.home')}</span>
             </button>
             <button
               onClick={() => window.location.href = createPageUrl('SMPFWallet')}
               className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left mb-1 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
             >
               <Wallet className="w-4 h-4" />
-              <span className="text-sm font-medium">SMPF Wallet</span>
+              <span className="text-sm font-medium">{t('superAdmin.smpfWallet')}</span>
             </button>
             <button
               onClick={handleLogout}
               className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
             >
               <LogOut className="w-4 h-4" />
-              <span className="text-sm font-medium">Logout</span>
+              <span className="text-sm font-medium">{t('superAdmin.logout')}</span>
             </button>
           </div>
         </nav>
@@ -387,41 +389,41 @@ export default function SuperAdminPage() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 mb-6 md:mb-8">
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Merchants</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('superAdmin.totalMerchants')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-gray-900 dark:text-white">{stats.totalMerchants}</div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">{stats.activeMerchants} active</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{stats.activeMerchants} {t('superAdmin.activeCount')}</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Active Subscriptions</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('superAdmin.activeSubs')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-green-600 dark:text-green-500">{stats.activeSubscriptions}</div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Currently active</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{t('superAdmin.currentlyActive')}</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Revenue (Active Subs)</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('superAdmin.totalRevenueSubs')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white break-words">${stats.totalRevenue.toFixed(2)}</div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">From active subscriptions</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{t('superAdmin.fromActiveSubs')}</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">System Status</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('superAdmin.systemStatus')}</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-green-600 dark:text-green-500">Online</div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">All services operational</p>
+              <div className="text-3xl font-bold text-green-600 dark:text-green-500">{t('superAdmin.online')}</div>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{t('superAdmin.allOperational')}</p>
             </CardContent>
           </Card>
         </div>
@@ -510,10 +512,10 @@ export default function SuperAdminPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Key className="w-5 h-5" />
-                  PIN Reset Tool
+                  {t('superAdmin.pinResetTool')}
                 </CardTitle>
                 <CardDescription>
-                  Reset PIN for any user account (including admin accounts)
+                  {t('superAdmin.pinResetDesc')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -532,7 +534,7 @@ export default function SuperAdminPage() {
                 )}
 
                 <div className="space-y-2">
-                  <Label htmlFor="reset-email">User Email</Label>
+                  <Label htmlFor="reset-email">{t('superAdmin.userEmail')}</Label>
                   <Input
                     id="reset-email"
                     type="email"
@@ -544,7 +546,7 @@ export default function SuperAdminPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="reset-pin">New PIN (optional - leave empty for random)</Label>
+                  <Label htmlFor="reset-pin">{t('superAdmin.newPinOptional')}</Label>
                   <Input
                     id="reset-pin"
                     type="text"
@@ -554,7 +556,7 @@ export default function SuperAdminPage() {
                     onChange={(e) => setResetPin(e.target.value.replace(/\D/g, ''))}
                     disabled={resetLoading}
                   />
-                  <p className="text-sm text-gray-500">Leave empty to generate a random 4-digit PIN</p>
+                  <p className="text-sm text-gray-500">{t('superAdmin.leaveEmpty')}</p>
                 </div>
 
                 <Button
@@ -562,7 +564,7 @@ export default function SuperAdminPage() {
                   disabled={resetLoading || !resetEmail}
                   className="w-full"
                 >
-                  {resetLoading ? 'Resetting PIN...' : 'Reset PIN'}
+                  {resetLoading ? t('superAdmin.resettingPin') : t('superAdmin.resetPin')}
                 </Button>
               </CardContent>
             </Card>
@@ -572,10 +574,10 @@ export default function SuperAdminPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Key className="w-5 h-5" />
-                  Password Reset Tool
+                  {t('superAdmin.passwordResetTool')}
                 </CardTitle>
                 <CardDescription>
-                  Reset password for any user account (for email/password login)
+                  {t('superAdmin.passwordResetDesc')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -594,7 +596,7 @@ export default function SuperAdminPage() {
                 )}
 
                 <div className="space-y-2">
-                  <Label htmlFor="password-reset-email">User Email</Label>
+                  <Label htmlFor="password-reset-email">{t('superAdmin.userEmail')}</Label>
                   <Input
                     id="password-reset-email"
                     type="email"
@@ -606,17 +608,17 @@ export default function SuperAdminPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="new-password">New Password</Label>
+                  <Label htmlFor="new-password">{t('superAdmin.newPassword')}</Label>
                   <Input
                     id="new-password"
                     type="password"
-                    placeholder="Enter new password (min 6 characters)"
+                    placeholder={t('superAdmin.newPasswordPh')}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     disabled={passwordResetLoading}
                     minLength={6}
                   />
-                  <p className="text-sm text-gray-500">Password must be at least 6 characters</p>
+                  <p className="text-sm text-gray-500">{t('superAdmin.passwordMin')}</p>
                 </div>
 
                 <Button
@@ -624,7 +626,7 @@ export default function SuperAdminPage() {
                   disabled={passwordResetLoading || !passwordResetEmail || !newPassword}
                   className="w-full"
                 >
-                  {passwordResetLoading ? 'Resetting Password...' : 'Reset Password'}
+                  {passwordResetLoading ? t('superAdmin.resettingPassword') : t('superAdmin.resetPassword')}
                 </Button>
               </CardContent>
             </Card>

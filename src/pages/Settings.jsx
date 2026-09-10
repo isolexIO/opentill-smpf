@@ -22,9 +22,11 @@ import StaffManagementTab from '../components/settings/StaffManagementTab';
 import SecurityTab from '../components/settings/SecurityTab';
 import TwoFactorTab from '../components/settings/TwoFactorTab';
 import LocationsManager from '../components/locations/LocationsManager';
+import { useLanguage } from '@/lib/i18n/useLanguage';
 
 export default function SettingsPage() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [user, setUser] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
@@ -294,7 +296,7 @@ export default function SettingsPage() {
       <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
           <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-blue-600" />
-          <p className="text-gray-600 dark:text-gray-400">Loading settings...</p>
+          <p className="text-gray-600 dark:text-gray-400">{t('settings.loading')}</p>
         </div>
       </div>
     );
@@ -307,7 +309,7 @@ export default function SettingsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-red-600">
               <AlertCircle className="w-6 h-6" />
-              Error Loading Settings
+              {t('settings.errorLoading')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -332,13 +334,13 @@ export default function SettingsPage() {
                 onClick={() => window.location.href = createPageUrl('SystemMenu')}
                 className="flex-1"
               >
-                Back to Menu
+                {t('settings.backToMenu')}
               </Button>
               <Button
                 onClick={loadData}
                 className="flex-1"
               >
-                Retry
+                {t('settings.retry')}
               </Button>
             </div>
           </CardContent>
@@ -354,19 +356,19 @@ export default function SettingsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-orange-600">
               <AlertCircle className="w-6 h-6" />
-              No Merchant Found
+              {t('settings.noMerchant')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-gray-600 dark:text-gray-400">
-              Your account is not associated with a merchant. Please contact support.
+              {t('settings.noMerchantDesc')}
             </p>
             
             <Button
               onClick={() => window.location.href = createPageUrl('SystemMenu')}
               className="w-full"
             >
-              Back to Menu
+              {t('settings.backToMenu')}
             </Button>
           </CardContent>
         </Card>
@@ -375,19 +377,19 @@ export default function SettingsPage() {
   }
 
   const tabs = [
-    { id: 'general', label: 'General', icon: SettingsIcon },
-    { id: 'wallet-payments', label: 'Wallet & Payments', icon: Wallet },
-    { id: 'staff', label: 'Staff Management', icon: Users },
-    { id: 'account', label: 'Account', icon: Trash2 },
-    { id: '2fa', label: 'Two-Factor Auth', icon: Shield },
-    { id: 'payments', label: 'Payment Gateways', icon: CreditCard },
-    { id: 'pricing', label: 'Pricing & Surcharge', icon: DollarSign },
-    { id: 'devices', label: 'Hardware Devices', icon: Printer },
-    { id: 'locations', label: 'Locations', icon: Store },
-    { id: 'departments', label: 'Departments', icon: Layers },
-    { id: 'display', label: 'Customer Display', icon: Monitor },
-    { id: 'web3identity', label: 'openTILL Identity', icon: Globe },
-    { id: 'security', label: 'Security', icon: Shield }
+    { id: 'general', label: t('settings.tabGeneral'), icon: SettingsIcon },
+    { id: 'wallet-payments', label: t('settings.tabWalletPayments'), icon: Wallet },
+    { id: 'staff', label: t('settings.tabStaff'), icon: Users },
+    { id: 'account', label: t('settings.tabAccount'), icon: Trash2 },
+    { id: '2fa', label: t('settings.tab2fa'), icon: Shield },
+    { id: 'payments', label: t('settings.tabPayments'), icon: CreditCard },
+    { id: 'pricing', label: t('settings.tabPricing'), icon: DollarSign },
+    { id: 'devices', label: t('settings.tabDevices'), icon: Printer },
+    { id: 'locations', label: t('settings.tabLocations'), icon: Store },
+    { id: 'departments', label: t('settings.tabDepartments'), icon: Layers },
+    { id: 'display', label: t('settings.tabDisplay'), icon: Monitor },
+    { id: 'web3identity', label: t('settings.tabWeb3'), icon: Globe },
+    { id: 'security', label: t('settings.tabSecurity'), icon: Shield }
   ];
 
   return (
@@ -405,13 +407,13 @@ export default function SettingsPage() {
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Settings</h1>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('settings.title')}</h1>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                   {merchant.business_name || merchant.display_name}
                 </p>
                 {user?.is_impersonating && (
                   <Badge className="mt-2 bg-orange-500">
-                    Impersonating Merchant
+                    {t('settings.impersonating')}
                   </Badge>
                 )}
               </div>
@@ -503,19 +505,18 @@ export default function SettingsPage() {
                 {activeTab === 'account' && (
                   <div className="space-y-6">
                     <div>
-                      <h2 className="text-xl font-bold text-gray-900 dark:text-white">Account</h2>
-                      <p className="text-sm text-gray-500 mt-1">Manage your merchant account</p>
+                      <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t('settings.account')}</h2>
+                      <p className="text-sm text-gray-500 mt-1">{t('settings.accountSub')}</p>
                     </div>
 
                     {/* Delete Merchant Account */}
                     <div className="border border-red-200 dark:border-red-800 rounded-lg p-6 bg-red-50 dark:bg-red-900/10 space-y-4">
                       <div className="flex items-center gap-2 text-red-700 dark:text-red-400">
                         <Trash2 className="w-5 h-5" />
-                        <h3 className="font-semibold text-lg">Delete Merchant Account</h3>
+                        <h3 className="font-semibold text-lg">{t('settings.deleteAccount')}</h3>
                       </div>
                       <p className="text-sm text-red-700 dark:text-red-400">
-                        This will permanently mark your merchant account as cancelled. This action cannot be undone.
-                        All your data will be retained for legal/audit purposes.
+                        {t('settings.deleteWarning')}
                       </p>
                       {!showDeleteConfirm ? (
                         <Button
@@ -524,17 +525,17 @@ export default function SettingsPage() {
                           className="min-h-[44px]"
                         >
                           <Trash2 className="w-4 h-4 mr-2" />
-                          Delete My Account
+                          {t('settings.deleteMyAccount')}
                         </Button>
                       ) : (
                         <div className="space-y-3">
                           <p className="text-sm font-medium text-red-800 dark:text-red-300">
-                            Type <strong>DELETE</strong> to confirm account deletion:
+                            {t('settings.typeDelete')}
                           </p>
                           <Input
                             value={deleteConfirmText}
                             onChange={(e) => setDeleteConfirmText(e.target.value)}
-                            placeholder="Type DELETE here"
+                            placeholder={t('settings.typeDeletePh')}
                             className="border-red-300 focus:border-red-500"
                           />
                           <div className="flex gap-2">
@@ -544,14 +545,14 @@ export default function SettingsPage() {
                               disabled={deleteConfirmText !== 'DELETE'}
                               className="min-h-[44px]"
                             >
-                              Confirm Delete
+                              {t('settings.confirmDelete')}
                             </Button>
                             <Button
                               variant="outline"
                               onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(''); }}
                               className="min-h-[44px]"
                             >
-                              Cancel
+                              {t('settings.cancel')}
                             </Button>
                           </div>
                         </div>

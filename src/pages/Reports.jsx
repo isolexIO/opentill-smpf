@@ -16,8 +16,10 @@ import FeatureGate from '../components/motherboard/FeatureGate.jsx';
 import PremiumAnalytics from '../components/reports/PremiumAnalytics.jsx';
 import { useActiveLocation } from "@/hooks/useActiveLocation";
 import LocationSwitcher from "@/components/locations/LocationSwitcher";
+import { useLanguage } from "@/lib/i18n/useLanguage";
 
 export default function ReportsPage() {
+  const { t } = useLanguage();
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
   const [customers, setCustomers] = useState([]);
@@ -127,9 +129,9 @@ export default function ReportsPage() {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <div>
               <h1 className="text-3xl font-bold flex items-center gap-2 dark:text-white">
-                <BarChart3 className="w-8 h-8 text-blue-500" /> Reports & Analytics
+                <BarChart3 className="w-8 h-8 text-blue-500" /> {t('reports.title')}
               </h1>
-              <p className="text-gray-500 dark:text-gray-400 mt-1">Comprehensive business intelligence and insights</p>
+              <p className="text-gray-500 dark:text-gray-400 mt-1">{t('reports.subtitle')}</p>
             </div>
             <div className="flex items-center gap-3">
               {isMultiLocation && (
@@ -141,7 +143,7 @@ export default function ReportsPage() {
               )}
               <Button onClick={loadData} disabled={loading}>
                 <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                Refresh
+                {t('reports.refresh')}
               </Button>
             </div>
           </div>
@@ -149,22 +151,22 @@ export default function ReportsPage() {
           {/* Filters */}
           <Card className="mb-6 dark:bg-gray-800 dark:border-gray-700">
             <CardHeader>
-              <CardTitle className="text-lg dark:text-white">Report Filters</CardTitle>
+              <CardTitle className="text-lg dark:text-white">{t('reports.filters')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
-                  <label className="text-sm font-medium mb-2 block dark:text-gray-200">Date Range</label>
+                  <label className="text-sm font-medium mb-2 block dark:text-gray-200">{t('reports.dateRange')}</label>
                   <DateRangePicker range={dateRange} onRangeChange={setDateRange} />
                 </div>
                 <div>
-                  <label className="text-sm font-medium mb-2 block dark:text-gray-200">Employee</label>
+                  <label className="text-sm font-medium mb-2 block dark:text-gray-200">{t('reports.employee')}</label>
                   <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
                     <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                      <SelectValue placeholder="All Employees" />
+                      <SelectValue placeholder={t('reports.allEmployees')} />
                     </SelectTrigger>
                     <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
-                      <SelectItem value="all" className="dark:text-white">All Employees</SelectItem>
+                      <SelectItem value="all" className="dark:text-white">{t('reports.allEmployees')}</SelectItem>
                       {employees.map(emp => (
                         <SelectItem key={emp.id} value={emp.id} className="dark:text-white">
                           {emp.full_name}
@@ -174,13 +176,13 @@ export default function ReportsPage() {
                   </Select>
                 </div>
                 <div>
-                  <label className="text-sm font-medium mb-2 block dark:text-gray-200">Department</label>
+                  <label className="text-sm font-medium mb-2 block dark:text-gray-200">{t('reports.department')}</label>
                   <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
                     <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                      <SelectValue placeholder="All Departments" />
+                      <SelectValue placeholder={t('reports.allDepartments')} />
                     </SelectTrigger>
                     <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
-                      <SelectItem value="all" className="dark:text-white">All Departments</SelectItem>
+                      <SelectItem value="all" className="dark:text-white">{t('reports.allDepartments')}</SelectItem>
                       {departments.map(dept => (
                         <SelectItem key={dept.id} value={dept.name} className="dark:text-white">
                           {dept.name}
@@ -202,8 +204,8 @@ export default function ReportsPage() {
                       });
                     }}
                   >
-                    Reset Filters
-                  </Button>
+                    {t('reports.resetFilters')}
+                    </Button>
                 </div>
               </div>
             </CardContent>
@@ -213,23 +215,23 @@ export default function ReportsPage() {
             <TabsList className="dark:bg-gray-800">
               <TabsTrigger value="sales" className="dark:data-[state=active]:bg-gray-700 dark:text-gray-200">
                 <TrendingUp className="w-4 h-4 mr-2" />
-                Sales
+                {t('reports.sales')}
               </TabsTrigger>
               <TabsTrigger value="premium" className="dark:data-[state=active]:bg-gray-700 dark:text-gray-200">
                 <Sparkles className="w-4 h-4 mr-2" />
-                Premium Analytics
+                {t('reports.premium')}
               </TabsTrigger>
               <TabsTrigger value="employees" className="dark:data-[state=active]:bg-gray-700 dark:text-gray-200">
                 <Users className="w-4 h-4 mr-2" />
-                Employees
+                {t('reports.employees')}
               </TabsTrigger>
               <TabsTrigger value="time" className="dark:data-[state=active]:bg-gray-700 dark:text-gray-200">
                 <Clock className="w-4 h-4 mr-2" />
-                Time Tracking
+                {t('reports.timeTracking')}
               </TabsTrigger>
               <TabsTrigger value="preset" className="dark:data-[state=active]:bg-gray-700 dark:text-gray-200">
                 <FileText className="w-4 h-4 mr-2" />
-                Preset Reports
+                {t('reports.preset')}
               </TabsTrigger>
             </TabsList>
             
