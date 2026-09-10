@@ -1,6 +1,20 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
 import Stripe from 'npm:stripe@17.4.0';
 
+// In-memory rate limiting to protect paid Stripe Identity credits from
+// anonymous abuse. Per-email cooldown + per-IP rolling cap.
+const emailLastCreated = new Map<string, number>();
+const ipHits = new Map<string, number[]>();
+const EMAIL_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes
+const IP_WINDOW_MS = 60 * 60 * 1000;     // 1 hour
+const IP_MAX = 10;
+
+function getClientIp(req: Request): string {
+  const fwd = req.headers.get('x-forwarded-for');
+  if (fwd) return fwd.split(',')[0].trim();
+  return req.headers.get('x-real-ip') || 'unknown';
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -12,6 +26,26 @@ Deno.serve(async (req) => {
       return Response.json({
         error: 'business_name and owner_email are required'
       }, { status: 400 });
+    }
+
+    // Rate-limit anonymous onboarding to protect paid Stripe Identity credits.
+    const now = Date.now();
+    const clientIp = getClientIp(req);
+
+    // Per-email cooldown: one session per email per window.
+    const lastForEmail = emailLastCreated.get(owner_email);
+    if (lastForEmail && now - lastForEmail < EMAIL_COOLDOWN_MS) {
+      return Response.json({
+        error: 'A verification session was recently created for this email. Please wait a few minutes before trying again.'
+      }, { status: 429 });
+    }
+
+    // Per-IP rolling cap: limits rotating-email abuse from a single source.
+    const hits = (ipHits.get(clientIp) || []).filter(t => now - t < IP_WINDOW_MS);
+    if (hits.length >= IP_MAX) {
+      return Response.json({
+        error: 'Too many verification requests from this network. Please try again later.'
+      }, { status: 429 });
     }
 
     // The merchant onboarding flow is anonymous by design, so a logged-in
@@ -80,6 +114,15 @@ Deno.serve(async (req) => {
       },
       ...(safeReturnUrl ? { return_url: safeReturnUrl } : {}),
     });
+
+    // Record this creation for rate limiting (bounded maps).
+    emailLastCreated.set(owner_email, now);
+    if (emailLastCreated.size > 5000) {
+      for (const [k, t] of emailLastCreated) if (now - t > EMAIL_COOLDOWN_MS) emailLastCreated.delete(k);
+    }
+    hits.push(now);
+    ipHits.set(clientIp, hits);
+    if (ipHits.size > 5000) ipHits.clear();
 
     return Response.json({
       success: true,
