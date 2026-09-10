@@ -1,3 +1,8 @@
+// In-memory SOL price cache. Collapses repeated/abusive calls into at most
+// one external fetch per TTL window, protecting CoinGecko/Coinbase rate limits.
+let solPriceCache = { price: null, expiresAt: 0 };
+const SOL_PRICE_TTL_MS = 60_000;
+
 Deno.serve(async (req) => {
     try {
         console.log('convertUSDToCrypto: Starting...');
@@ -27,38 +32,37 @@ Deno.serve(async (req) => {
             cryptoAmount = parseFloat(usd_amount);
             console.log('Using 1:1 ratio for stablecoin');
         } else if (token === 'SOL') {
-            // Fetch current SOL price from CoinGecko API
-            try {
-                const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd');
-                const data = await response.json();
-                
-                if (data.solana && data.solana.usd) {
-                    tokenPrice = data.solana.usd;
-                    cryptoAmount = parseFloat(usd_amount) / tokenPrice;
-                    console.log('SOL price fetched:', tokenPrice);
-                    console.log('Calculated amount (raw):', cryptoAmount, 'SOL');
-                } else {
-                    throw new Error('Unable to fetch SOL price from CoinGecko');
-                }
-            } catch (fetchError) {
-                console.error('Error fetching SOL price:', fetchError);
-                
-                // Fallback: Try alternative API
+            // Use cached price if still fresh, otherwise fetch (max one external
+            // call per TTL window regardless of request volume).
+            const now = Date.now();
+            if (solPriceCache.price != null && now < solPriceCache.expiresAt) {
+                tokenPrice = solPriceCache.price;
+                cryptoAmount = parseFloat(usd_amount) / tokenPrice;
+                console.log('SOL price from cache:', tokenPrice);
+            } else {
                 try {
+                    const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd');
+                    const data = await response.json();
+                    if (data.solana && data.solana.usd) {
+                        tokenPrice = data.solana.usd;
+                    } else {
+                        throw new Error('Unable to fetch SOL price from CoinGecko');
+                    }
+                } catch (fetchError) {
+                    console.error('Error fetching SOL price:', fetchError);
+                    // Fallback: Try alternative API
                     const response = await fetch('https://api.coinbase.com/v2/exchange-rates?currency=SOL');
                     const data = await response.json();
-                    
                     if (data.data && data.data.rates && data.data.rates.USD) {
                         tokenPrice = parseFloat(data.data.rates.USD);
-                        cryptoAmount = parseFloat(usd_amount) / tokenPrice;
-                        console.log('SOL price from Coinbase:', tokenPrice);
                     } else {
-                        throw new Error('Unable to fetch price from backup source');
+                        throw new Error('Unable to fetch current SOL price. Please try again in a moment.');
                     }
-                } catch (backupError) {
-                    console.error('Backup price fetch failed:', backupError);
-                    throw new Error('Unable to fetch current SOL price. Please try again in a moment.');
                 }
+                solPriceCache = { price: tokenPrice, expiresAt: now + SOL_PRICE_TTL_MS };
+                cryptoAmount = parseFloat(usd_amount) / tokenPrice;
+                console.log('SOL price fetched:', tokenPrice);
+                console.log('Calculated amount (raw):', cryptoAmount, 'SOL');
             }
         } else {
             // For other tokens, return error (custom tokens would need their own price source)
