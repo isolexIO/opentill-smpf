@@ -27,6 +27,7 @@ import SMPFWalletAdmin from './pages/SMPFWalletAdmin';
 import Brochure from './pages/Brochure';
 import BrochureFeature from './pages/BrochureFeature';
 import Community from './pages/Community';
+import { LanguageProvider } from '@/lib/i18n/useLanguage';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -146,6 +147,7 @@ function App() {
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
+        <LanguageProvider>
         <Router>
           <NavigationTracker />
           <ErrorBoundary>
@@ -155,6 +157,7 @@ function App() {
         </Router>
         <Toaster />
         <VisualEditAgent />
+        </LanguageProvider>
       </QueryClientProvider>
     </AuthProvider>
   )

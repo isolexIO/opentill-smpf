@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import CommunityLinks from '@/components/shared/CommunityLinks';
+import { useLanguage } from '@/lib/i18n/useLanguage';
 
 export default function PublicFooter() {
+  const { t } = useLanguage();
   const [settings, setSettings] = useState(null);
 
   useEffect(() => {
@@ -31,7 +33,7 @@ export default function PublicFooter() {
               <span className="text-xl font-bold text-white">openTILL</span>
             </div>
             <p className="text-gray-300 text-sm mb-4">
-              {settings?.company_info?.tagline || 'The next-generation point of sale system for modern businesses.'}
+              {settings?.company_info?.tagline || t('footer.tagline')}
             </p>
             <p className="text-gray-300 text-sm">
               📞 +1 (419) 729-3889
@@ -43,24 +45,24 @@ export default function PublicFooter() {
 
           {/* Product */}
           <div>
-            <h3 className="text-white font-semibold mb-4">Product</h3>
+            <h3 className="text-white font-semibold mb-4">{t('footer.product')}</h3>
             <ul className="space-y-2">
-              <li><a href={`/#features`} className="text-gray-300 hover:text-white text-sm transition-colors">Features</a></li>
-              <li><a href={`/#pricing`} className="text-gray-300 hover:text-white text-sm transition-colors">Pricing</a></li>
-              <li><a href={createPageUrl('DeviceShop')} className="text-gray-300 hover:text-white text-sm transition-colors">Device Shop</a></li>
+              <li><a href={`/#features`} className="text-gray-300 hover:text-white text-sm transition-colors">{t('nav.features')}</a></li>
+              <li><a href={`/#pricing`} className="text-gray-300 hover:text-white text-sm transition-colors">{t('nav.pricing')}</a></li>
+              <li><a href={createPageUrl('DeviceShop')} className="text-gray-300 hover:text-white text-sm transition-colors">{t('footer.deviceShop')}</a></li>
               <li>
                 <a href="https://ico.opentill.io/" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white text-sm transition-colors">
-                  $DUC Presale
+                  {t('nav.ducPresale')}
                 </a>
               </li>
               <li>
                 <a href={createPageUrl('DealerLanding')} className="text-gray-300 hover:text-white text-sm transition-colors">
-                  Become an Ambassador
+                  {t('footer.becomeAmbassador')}
                 </a>
               </li>
               <li>
                 <a href="/builders" className="text-gray-300 hover:text-white text-sm transition-colors">
-                  Build with Us
+                  {t('footer.buildWithUs')}
                 </a>
               </li>
             </ul>
@@ -68,18 +70,18 @@ export default function PublicFooter() {
 
           {/* Company */}
           <div>
-            <h3 className="text-white font-semibold mb-4">Company</h3>
+            <h3 className="text-white font-semibold mb-4">{t('footer.company')}</h3>
             <ul className="space-y-2">
-              <li><a href={createPageUrl('About')} className="text-gray-300 hover:text-white text-sm transition-colors">About</a></li>
-              <li><a href={createPageUrl('Contact')} className="text-gray-300 hover:text-white text-sm transition-colors">Contact</a></li>
+              <li><a href={createPageUrl('About')} className="text-gray-300 hover:text-white text-sm transition-colors">{t('nav.about')}</a></li>
+              <li><a href={createPageUrl('Contact')} className="text-gray-300 hover:text-white text-sm transition-colors">{t('nav.contact')}</a></li>
               <li>
                 <a href={createPageUrl('DealerLanding')} className="text-gray-300 hover:text-white text-sm transition-colors">
-                  Ambassador Portal
+                  {t('footer.ambassadorPortal')}
                 </a>
               </li>
               <li>
                 <a href={createPageUrl('CustomerPortal')} className="text-gray-300 hover:text-white text-sm transition-colors">
-                  Customer Portal
+                  {t('footer.customerPortal')}
                 </a>
               </li>
             </ul>
@@ -87,22 +89,22 @@ export default function PublicFooter() {
 
           {/* Legal */}
           <div>
-            <h3 className="text-white font-semibold mb-4">Legal</h3>
+            <h3 className="text-white font-semibold mb-4">{t('footer.legal')}</h3>
             <ul className="space-y-2">
-              <li><a href={createPageUrl('PrivacyPolicy')} className="text-gray-300 hover:text-white text-sm transition-colors">Privacy Policy</a></li>
-              <li><a href={createPageUrl('TermsOfService')} className="text-gray-300 hover:text-white text-sm transition-colors">Terms of Service</a></li>
-              <li><a href={createPageUrl('License')} className="text-gray-300 hover:text-white text-sm transition-colors">License</a></li>
-              <li><a href={createPageUrl('Copyright')} className="text-gray-300 hover:text-white text-sm transition-colors">Copyright</a></li>
+              <li><a href={createPageUrl('PrivacyPolicy')} className="text-gray-300 hover:text-white text-sm transition-colors">{t('footer.privacyPolicy')}</a></li>
+              <li><a href={createPageUrl('TermsOfService')} className="text-gray-300 hover:text-white text-sm transition-colors">{t('footer.termsOfService')}</a></li>
+              <li><a href={createPageUrl('License')} className="text-gray-300 hover:text-white text-sm transition-colors">{t('footer.license')}</a></li>
+              <li><a href={createPageUrl('Copyright')} className="text-gray-300 hover:text-white text-sm transition-colors">{t('footer.copyright')}</a></li>
             </ul>
           </div>
         </div>
 
         <div className="border-t border-white/10 mt-8 pt-8">
           <div className="mb-6">
-            <p className="text-center text-gray-400 text-xs mb-3 uppercase tracking-widest">Community</p>
+            <p className="text-center text-gray-400 text-xs mb-3 uppercase tracking-widest">{t('footer.community')}</p>
             <div className="flex justify-center mb-4">
               <a href={createPageUrl('Community')} className="text-white hover:text-green-300 text-sm font-medium transition-colors">
-                Join the openTILL Community Chat →
+                {t('footer.joinCommunity')}
               </a>
             </div>
             <CommunityLinks className="[&_a]:text-gray-300 [&_a]:hover:text-white [&_a]:bg-white/10 [&_a]:hover:bg-white/20 [&_a]:border-white/10" />

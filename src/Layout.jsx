@@ -29,6 +29,8 @@ import MobileBottomNav from '@/components/mobile/MobileBottomNav';
 import PublicNavbar from '@/components/layout/PublicNavbar';
 import PublicFooter from '@/components/layout/PublicFooter';
 import CherryChatWidget from '@/components/cherry/CherryChatWidget';
+import LanguageSelector from '@/components/i18n/LanguageSelector';
+import { useLanguage } from '@/lib/i18n/useLanguage';
 import { useNavigate } from 'react-router-dom';
 
 const PUBLIC_PAGES = ['Home', 'Login', 'PinLogin', 'EmailLogin', 'WalletLoginPage', 'OnlineMenu', 'CustomerDisplay', 'KitchenDisplay', 'MerchantOnboarding', 'POS', 'PrivacyPolicy', 'TermsOfService', 'License', 'Copyright', 'About', 'Contact', 'DeviceShop', 'DealerLanding', 'DealerDashboard', 'DealerHome', 'SuperAdmin', 'Marketplace', 'ChipDetail', 'Builders', 'BuilderOnboarding', 'DriverDashboard', 'PayInvoice', 'OpenTILLPayments', 'MobileStationDisplay', 'CustomerPortal', 'Community'];
@@ -51,6 +53,7 @@ const ROOT_PAGES = ['Home', 'SystemMenu', 'PinLogin', 'EmailLogin', 'WalletLogin
 
 export default function Layout({ children, currentPageName }) {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [user, setUser] = useState(null);
   const [pinUser, setPinUser] = useState(null);
   const [dealer, setDealer] = useState(null);
@@ -353,7 +356,7 @@ export default function Layout({ children, currentPageName }) {
                       {brandName}
                     </span>
                     <span className="text-xs text-gray-500 block -mt-1">
-                      Point of Sale
+                      {t('layout.pointOfSale')}
                     </span>
                   </div>
                 </Link>
@@ -373,15 +376,16 @@ export default function Layout({ children, currentPageName }) {
                     className="border-orange-500 text-orange-600 hover:bg-orange-50"
                   >
                     <AlertCircle className="w-4 h-4 mr-2" />
-                    Exit Impersonation
+                    {t('layout.exitImpersonation')}
                   </Button>
                 )}
 
+                <LanguageSelector variant="light" />
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => window.location.href = createPageUrl('Support')}
-                  title="Help & Support"
+                  title={t('layout.helpSupport')}
                 >
                   <HelpCircle className="w-5 h-5" />
                 </Button>
@@ -390,7 +394,7 @@ export default function Layout({ children, currentPageName }) {
                   variant="ghost"
                   size="icon"
                   onClick={() => window.location.href = createPageUrl('SystemMenu')}
-                  title="System Menu"
+                  title={t('layout.systemMenu')}
                 >
                   <Menu className="w-5 h-5" />
                 </Button>
@@ -407,16 +411,16 @@ export default function Layout({ children, currentPageName }) {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-56">
-                      <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                      <DropdownMenuLabel>{t('layout.myAccount')}</DropdownMenuLabel>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={() => window.location.href = createPageUrl('Settings')}>
                         <Settings className="w-4 h-4 mr-2" />
-                        Settings
+                        {t('layout.settings')}
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={handlePinLogout} className="text-red-600">
                         <LogOut className="w-4 h-4 mr-2" />
-                        Clock Out
+                        {t('layout.clockOut')}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -443,7 +447,7 @@ export default function Layout({ children, currentPageName }) {
         {!PUBLIC_PAGES.includes(currentPageName) && pinUser?.merchant_id && (
           <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 text-center text-sm font-medium shadow-md">
             <div className="max-w-7xl mx-auto flex items-center justify-center gap-2">
-              <span>Connected as:</span>
+              <span>{t('layout.connectedAs')}</span>
               <span className="font-bold">{dealer?.name || 'Merchant'}</span>
               {merchant && (
                 <span className="ml-2 px-2 py-1 bg-white/20 rounded-full text-xs">
@@ -472,17 +476,17 @@ export default function Layout({ children, currentPageName }) {
         )}
         <div className="text-xs bg-white rounded-full shadow-sm overflow-hidden">
           <Link to={createPageUrl('CustomerPortal')} className="px-3 py-1 inline-block text-blue-600 hover:text-blue-700 transition-colors">
-            Customer Portal
+            {t('layout.customerPortal')}
           </Link>
           {!dealer?.settings?.hide_opentill_branding && (
             <>
               <span className="text-gray-300">|</span>
               <Link to={createPageUrl('License')} className="px-3 py-1 inline-block text-blue-600 hover:text-blue-700 transition-colors">
-                License
+                {t('footer.license')}
               </Link>
               <span className="text-gray-300">|</span>
               <Link to={createPageUrl('Copyright')} className="px-3 py-1 inline-block text-blue-600 hover:text-blue-700 transition-colors">
-                Copyright
+                {t('footer.copyright')}
               </Link>
             </>
           )}

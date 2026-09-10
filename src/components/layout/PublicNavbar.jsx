@@ -3,8 +3,11 @@ import { Button } from '@/components/ui/button';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import CommunityLinks from '@/components/shared/CommunityLinks';
+import LanguageSelector from '@/components/i18n/LanguageSelector';
+import { useLanguage } from '@/lib/i18n/useLanguage';
 
 export default function PublicNavbar() {
+  const { t } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [subscriptionPlansEnabled, setSubscriptionPlansEnabled] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -60,55 +63,57 @@ export default function PublicNavbar() {
             </div>
             <div className="hidden md:flex items-center gap-6">
               <a href={createPageUrl('Home')} className="text-green-300 font-semibold">
-                Home
+                {t('nav.home')}
               </a>
               <a href={createPageUrl('Marketplace')} className="text-white hover:text-green-300 transition-colors">
-                Marketplace
+                {t('nav.marketplace')}
               </a>
               <a href={`/#features`} className="text-white hover:text-green-300 transition-colors">
-                Features
+                {t('nav.features')}
               </a>
               <a href={`/#pricing`} className="text-white hover:text-green-300 transition-colors">
-                Pricing
+                {t('nav.pricing')}
               </a>
               {subscriptionPlansEnabled && (
                 <a href={`/#support-tiers`} className="text-white hover:text-green-300 transition-colors">
-                  Support Tiers
+                  {t('nav.supportTiers')}
                 </a>
               )}
               <a href={createPageUrl('About')} className="text-white hover:text-green-300 transition-colors">
-                About
+                {t('nav.about')}
               </a>
               <a href={createPageUrl('Contact')} className="text-white hover:text-green-300 transition-colors">
-                Contact
+                {t('nav.contact')}
               </a>
               <a href="https://ico.opentill.io/" target="_blank" rel="noopener noreferrer" className="text-green-300 font-semibold hover:text-green-200 transition-colors">
-                $DUC Presale
+                {t('nav.ducPresale')}
               </a>
+              <LanguageSelector variant="dark" />
               {isAuthenticated ? (
                 <Button
                   onClick={handleSignOut}
                   className="bg-red-500 hover:bg-red-600 text-white border-0"
                 >
-                  Sign Out
+                  {t('nav.signOut')}
                 </Button>
               ) : (
                 <Button
                   onClick={() => window.location.href = createPageUrl('EmailLogin')}
                   className="bg-green-500 hover:bg-green-600 text-white"
                 >
-                  Sign In
+                  {t('nav.signIn')}
                 </Button>
               )}
             </div>
             <div className="md:hidden flex items-center gap-2">
+              <LanguageSelector variant="dark" />
               {isAuthenticated ? (
                 <Button onClick={handleSignOut} size="sm" className="bg-red-500 hover:bg-red-600 text-white border-0 text-xs px-3">
-                  Sign Out
+                  {t('nav.signOut')}
                 </Button>
               ) : (
                 <Button onClick={() => window.location.href = createPageUrl('EmailLogin')} size="sm" className="bg-green-500 hover:bg-green-600 text-white text-xs px-3">
-                  Sign In
+                  {t('nav.signIn')}
                 </Button>
               )}
               <button
@@ -129,26 +134,26 @@ export default function PublicNavbar() {
 
       {mobileMenuOpen && (
         <div className="md:hidden bg-black/80 backdrop-blur-md border-b border-white/10 px-6 py-4 space-y-3">
-          <a href={createPageUrl('Home')} className="block text-green-300 font-semibold py-2">Home</a>
-          <a href={createPageUrl('Marketplace')} className="block text-white hover:text-green-300 py-2">Marketplace</a>
-          <a href={`/#features`} onClick={() => setMobileMenuOpen(false)} className="block text-white hover:text-green-300 py-2">Features</a>
-          <a href={`/#pricing`} onClick={() => setMobileMenuOpen(false)} className="block text-white hover:text-green-300 py-2">Pricing</a>
+          <a href={createPageUrl('Home')} className="block text-green-300 font-semibold py-2">{t('nav.home')}</a>
+          <a href={createPageUrl('Marketplace')} className="block text-white hover:text-green-300 py-2">{t('nav.marketplace')}</a>
+          <a href={`/#features`} onClick={() => setMobileMenuOpen(false)} className="block text-white hover:text-green-300 py-2">{t('nav.features')}</a>
+          <a href={`/#pricing`} onClick={() => setMobileMenuOpen(false)} className="block text-white hover:text-green-300 py-2">{t('nav.pricing')}</a>
           {subscriptionPlansEnabled && (
-            <a href={`/#support-tiers`} onClick={() => setMobileMenuOpen(false)} className="block text-white hover:text-green-300 py-2">Support Tiers</a>
+            <a href={`/#support-tiers`} onClick={() => setMobileMenuOpen(false)} className="block text-white hover:text-green-300 py-2">{t('nav.supportTiers')}</a>
           )}
-          <a href={createPageUrl('About')} className="block text-white hover:text-green-300 py-2">About</a>
-          <a href={createPageUrl('Contact')} className="block text-white hover:text-green-300 py-2">Contact</a>
-          <a href="https://ico.opentill.io/" target="_blank" rel="noopener noreferrer" className="block text-green-300 font-semibold py-2">$DUC Presale</a>
+          <a href={createPageUrl('About')} className="block text-white hover:text-green-300 py-2">{t('nav.about')}</a>
+          <a href={createPageUrl('Contact')} className="block text-white hover:text-green-300 py-2">{t('nav.contact')}</a>
+          <a href="https://ico.opentill.io/" target="_blank" rel="noopener noreferrer" className="block text-green-300 font-semibold py-2">{t('nav.ducPresale')}</a>
           <div className="pt-2 border-t border-white/10">
             <CommunityLinks variant="compact" className="[&_a]:text-gray-300 [&_a]:hover:text-white justify-start" />
           </div>
           {isAuthenticated ? (
             <Button onClick={handleSignOut} className="w-full bg-red-500 hover:bg-red-600 text-white border-0 font-semibold mt-2">
-              Sign Out
+              {t('nav.signOut')}
             </Button>
           ) : (
             <Button onClick={() => window.location.href = buildOnboardingUrl()} className="w-full bg-white text-purple-700 hover:bg-gray-100 font-semibold mt-2">
-              Get Started Free
+              {t('nav.getStartedFree')}
             </Button>
           )}
         </div>

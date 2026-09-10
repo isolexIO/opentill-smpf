@@ -31,6 +31,7 @@ import { motion } from 'framer-motion';
 import PriceTicker from '@/components/vault/PriceTicker';
 import OpenTILLPaymentsSection from '@/components/home/OpenTILLPaymentsSection';
 import DUCPresaleSection from '@/components/home/DUCPresaleSection';
+import { useLanguage } from '@/lib/i18n/useLanguage';
 
 const FEATURE_ICONS = {
   DollarSign, Wallet, CreditCard, Package, BarChart3, Cpu, Shield,
@@ -51,6 +52,7 @@ const FEATURE_ACCENTS = {
 };
 
 function FeaturedChipsSection() {
+  const { t } = useLanguage();
   const [chips, setChips] = useState([]);
 
   useEffect(() => {
@@ -86,11 +88,11 @@ function FeaturedChipsSection() {
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-full text-sm font-bold mb-4">
             <Cpu className="w-4 h-4" />
-            FEATURED CHIPS
+            {t('home.featuredChips')}
           </div>
-          <h2 className="text-4xl font-black mb-4 text-gray-900 dark:text-white">Unlock Premium Features</h2>
+          <h2 className="text-4xl font-black mb-4 text-gray-900 dark:text-white">{t('home.unlockPremium')}</h2>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            Purchase Chips with $DUC to enhance your POS capabilities
+            {t('home.chipsDesc')}
           </p>
         </div>
 
@@ -108,7 +110,7 @@ function FeaturedChipsSection() {
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-sm text-gray-500">Price</span>
+                  <span className="text-sm text-gray-500">{t('home.price')}</span>
                   <span className="font-bold text-cyan-600">
                     {chip.billing_type === 'ONE_TIME' 
                       ? `${chip.price_duc} $DUC` 
@@ -119,7 +121,7 @@ function FeaturedChipsSection() {
                   className="w-full bg-cyan-600 hover:bg-cyan-700"
                   onClick={() => window.location.href = createPageUrl(`ChipDetail?id=${chip.id}`)}
                 >
-                  View Details
+                  {t('home.viewDetails')}
                 </Button>
               </CardContent>
             </Card>
@@ -132,7 +134,7 @@ function FeaturedChipsSection() {
             className="bg-cyan-600 hover:bg-cyan-700"
             onClick={() => window.location.href = createPageUrl('Marketplace')}
           >
-            View Marketplace
+            {t('home.viewMarketplace')}
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
         </div>
@@ -142,6 +144,7 @@ function FeaturedChipsSection() {
 }
 
 export default function HomePage() {
+  const { t } = useLanguage();
   const [isScrolled, setIsScrolled] = useState(false);
   const [subscriptionPlans, setSubscriptionPlans] = useState([]);
   const [isLoadingPlans, setIsLoadingPlans] = useState(true);
@@ -169,8 +172,8 @@ export default function HomePage() {
     if (!hash) return;
     const el = document.querySelector(hash);
     if (el) {
-      const t = setTimeout(() => el.scrollIntoView({ behavior: 'smooth' }), 100);
-      return () => clearTimeout(t);
+      const tmo = setTimeout(() => el.scrollIntoView({ behavior: 'smooth' }), 100);
+      return () => clearTimeout(tmo);
     }
   }, [loading]);
 
@@ -299,17 +302,17 @@ export default function HomePage() {
     {
       icon: Store,
       value: stats.loading ? '...' : stats.activeMerchants.toLocaleString(),
-      label: 'Active Merchants'
+      label: t('home.statMerchants')
     },
     {
       icon: Users,
       value: stats.loading ? '...' : (stats.activeAmbassadors || 0).toLocaleString(),
-      label: 'Active Ambassadors'
+      label: t('home.statAmbassadors')
     },
     {
       icon: Code,
       value: stats.loading ? '...' : stats.builderCount.toLocaleString(),
-      label: 'Builders'
+      label: t('home.statBuilders')
     }
   ];
 
@@ -317,7 +320,7 @@ export default function HomePage() {
     if (settings?.hero?.badge_text) {
       return settings.hero.badge_text;
     }
-    return settings?.hero?.badge_status === 'coming_soon' ? 'Coming Soon' : 'Now Available';
+    return settings?.hero?.badge_status === 'coming_soon' ? t('home.comingSoon') : t('home.nowAvailable');
   };
 
   const getBadgeColor = () => {
@@ -382,11 +385,11 @@ export default function HomePage() {
             </div>
 
             <h1 className="text-3xl sm:text-5xl md:text-7xl font-bold mb-6 text-white">
-              {heroSettings.headline || 'The Future of Point of Sale'}
+              {heroSettings.headline || t('home.heroHeadline')}
             </h1>
 
             <p className="text-base sm:text-xl md:text-2xl text-white/90 mb-8 max-w-3xl mx-auto">
-              {heroSettings.subheadline || 'Accept cash, card, crypto, and EBT with openTILL\'s dual-pricing compliant POS system'}
+              {heroSettings.subheadline || t('home.heroSubheadline')}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -395,7 +398,7 @@ export default function HomePage() {
                 className="text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 bg-white text-purple-600 hover:bg-gray-100 font-semibold shadow-2xl"
                 onClick={() => window.location.href = buildOnboardingUrl()}
               >
-                {heroSettings.cta_primary_text || 'Start Free Trial'}
+                {heroSettings.cta_primary_text || t('home.ctaPrimary')}
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
 
@@ -405,7 +408,7 @@ export default function HomePage() {
                 className="text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 bg-white/20 backdrop-blur-sm border-2 border-white text-white hover:bg-white hover:text-purple-600 font-semibold transition-all"
                 onClick={() => window.location.href = createPageUrl('EmailLogin')}
               >
-                {heroSettings.cta_secondary_text || 'Merchant Login'}
+                {heroSettings.cta_secondary_text || t('home.ctaSecondary')}
               </Button>
             </div>
           </motion.div>
@@ -455,10 +458,10 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900 dark:text-white">
-              {settings?.features_section?.headline || 'Everything You Need to Run Your Business'}
+              {settings?.features_section?.headline || t('home.featuresHeadline')}
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              {settings?.features_section?.subheadline || 'Powerful features built for modern commerce'}
+              {settings?.features_section?.subheadline || t('home.featuresSubheadline')}
             </p>
           </div>
 
@@ -501,10 +504,10 @@ export default function HomePage() {
                 <DollarSign className="w-6 h-6 text-white" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                Dual Pricing Compliant
+                {t('home.featDualPricingTitle')}
               </h3>
               <p className="text-gray-600 dark:text-gray-300">
-                Legally compliant surcharging and cash discount programs. Save on processing fees.
+                {t('home.featDualPricingDesc')}
               </p>
             </motion.div>
 
@@ -524,15 +527,15 @@ export default function HomePage() {
                 />
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                    Solana Pay
+                    {t('home.featSolanaPayTitle')}
                   </h3>
                   <p className="text-xs text-purple-600 dark:text-purple-400">
-                    Powered by Solana
+                    {t('home.featSolanaPayPoweredBy')}
                   </p>
                 </div>
               </div>
               <p className="text-gray-700 dark:text-gray-200">
-                Accept USDC and other crypto payments instantly with near-zero fees and sub-second settlement.
+                {t('home.featSolanaPayDesc')}
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
                 <span className="text-xs px-2 py-1 bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 rounded-full font-medium">
@@ -556,10 +559,10 @@ export default function HomePage() {
                 <CreditCard className="w-6 h-6 text-white" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                EBT/SNAP Accepted
+                {t('home.featEbtTitle')}
               </h3>
               <p className="text-gray-600 dark:text-gray-300">
-                Accept food assistance benefits with integrated EBT processing and automatic eligibility tracking.
+                {t('home.featEbtDesc')}
               </p>
             </motion.div>
 
@@ -575,10 +578,10 @@ export default function HomePage() {
                 <Wallet className="w-6 h-6 text-white" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                Multiple Payment Methods
+                {t('home.featMultiPayTitle')}
               </h3>
               <p className="text-gray-600 dark:text-gray-300">
-                Cash, credit/debit cards, crypto, EBT, and split payments all in one system.
+                {t('home.featMultiPayDesc')}
               </p>
             </motion.div>
 
@@ -594,10 +597,10 @@ export default function HomePage() {
                 <Package className="w-6 h-6 text-white" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                Smart Inventory
+                {t('home.featInventoryTitle')}
               </h3>
               <p className="text-gray-600 dark:text-gray-300">
-                Real-time stock tracking, low stock alerts, and automated reordering.
+                {t('home.featInventoryDesc')}
               </p>
             </motion.div>
 
@@ -613,10 +616,10 @@ export default function HomePage() {
                 <BarChart3 className="w-6 h-6 text-white" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                Advanced Analytics
+                {t('home.featAnalyticsTitle')}
               </h3>
               <p className="text-gray-600 dark:text-gray-300">
-                Comprehensive sales reports, trends analysis, and performance insights.
+                {t('home.featAnalyticsDesc')}
               </p>
             </motion.div>
 
@@ -632,10 +635,10 @@ export default function HomePage() {
                 <Cpu className="w-6 h-6 text-white" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                NFT-Gated Features
+                {t('home.featNftTitle')}
               </h3>
               <p className="text-gray-600 dark:text-gray-300">
-                Unlock premium features by connecting your wallet and holding specific NFTs. True Web3 integration.
+                {t('home.featNftDesc')}
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
                 <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-full font-medium">
@@ -659,10 +662,10 @@ export default function HomePage() {
                 <Shield className="w-6 h-6 text-white" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                Two-Factor Authentication
+                {t('home.feat2faTitle')}
               </h3>
               <p className="text-gray-600 dark:text-gray-300">
-                Enhanced security with 2FA. Secure email and Google authentication for your account.
+                {t('home.feat2faDesc')}
               </p>
             </motion.div>
 
@@ -678,10 +681,10 @@ export default function HomePage() {
                 <Package className="w-6 h-6 text-white" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                Chip-Based Features
+                {t('home.featChipTitle')}
               </h3>
               <p className="text-gray-600 dark:text-gray-300">
-                Modular system where each "chip" represents a feature. Unlock what you need when you need it.
+                {t('home.featChipDesc')}
               </p>
             </motion.div>
 
@@ -697,10 +700,10 @@ export default function HomePage() {
                 <ChefHat className="w-6 h-6 text-white" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                Kitchen Display System
+                {t('home.featKitchenTitle')}
               </h3>
               <p className="text-gray-600 dark:text-gray-300">
-                Stream orders to the kitchen in real time. Stations track each ticket from New to In Progress to Complete.
+                {t('home.featKitchenDesc')}
               </p>
             </motion.div>
 
@@ -716,10 +719,10 @@ export default function HomePage() {
                 <Monitor className="w-6 h-6 text-white" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                Customer Display
+                {t('home.featCustomerDisplayTitle')}
               </h3>
               <p className="text-gray-600 dark:text-gray-300">
-                Customer-facing screen for order approval, tipping, and payment method selection — synced live with the register.
+                {t('home.featCustomerDisplayDesc')}
               </p>
             </motion.div>
 
@@ -735,10 +738,10 @@ export default function HomePage() {
                 <FileText className="w-6 h-6 text-white" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                Invoicing & Paylinks
+                {t('home.featInvoicingTitle')}
               </h3>
               <p className="text-gray-600 dark:text-gray-300">
-                Send branded invoices with secure paylinks. Customers pay online by card or crypto, with automatic status tracking.
+                {t('home.featInvoicingDesc')}
               </p>
             </motion.div>
 
@@ -754,10 +757,10 @@ export default function HomePage() {
                 <Truck className="w-6 h-6 text-white" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                Delivery Management
+                {t('home.featDeliveryTitle')}
               </h3>
               <p className="text-gray-600 dark:text-gray-300">
-                Dispatch delivery jobs, assign drivers, and track pickups and drop-offs from a live driver dashboard.
+                {t('home.featDeliveryDesc')}
               </p>
             </motion.div>
 
@@ -773,10 +776,10 @@ export default function HomePage() {
                 <Terminal className="w-6 h-6 text-white" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                Non-Integrated Terminal
+                {t('home.featTerminalTitle')}
               </h3>
               <p className="text-gray-600 dark:text-gray-300">
-                Run card-present transactions on non-integrated terminals — access is gated by an NFT chip purchased with $DUC.
+                {t('home.featTerminalDesc')}
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
                 <span className="text-xs px-2 py-1 bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 rounded-full font-medium">
@@ -798,10 +801,10 @@ export default function HomePage() {
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-              Free to Start, Pay for What You Need
+              {t('home.pricingHeadline')}
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300">
-              Core POS system is completely free. Add premium features as needed.
+              {t('home.pricingSubheadline')}
             </p>
           </div>
 
@@ -816,45 +819,45 @@ export default function HomePage() {
               <Card className="h-full border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
                 <CardContent className="p-8">
                   <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                    Core System
+                    {t('home.coreSystem')}
                   </h3>
                   <div className="mb-6">
                     <span className="text-5xl font-bold text-green-600">
-                      FREE
+                      {t('home.free')}
                     </span>
-                    <span className="text-gray-600 dark:text-gray-400"> forever</span>
+                    <span className="text-gray-600 dark:text-gray-400"> {t('home.forever')}</span>
                   </div>
                   <Button
                     className="w-full mb-6 bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100"
                     size="lg"
                     onClick={() => window.location.href = buildOnboardingUrl()}
                   >
-                    Get Started Free
+                    {t('home.getStartedFree')}
                   </Button>
                   <ul className="space-y-3">
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-700 dark:text-gray-300">Full POS System</span>
+                      <span className="text-gray-700 dark:text-gray-300">{t('home.coreFullPos')}</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-700 dark:text-gray-300">Inventory Management</span>
+                      <span className="text-gray-700 dark:text-gray-300">{t('home.coreInventory')}</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-700 dark:text-gray-300">Customer Management</span>
+                      <span className="text-gray-700 dark:text-gray-300">{t('home.coreCustomers')}</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-700 dark:text-gray-300">Basic Reports</span>
+                      <span className="text-gray-700 dark:text-gray-300">{t('home.coreReports')}</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-700 dark:text-gray-300">Multi-Payment Support</span>
+                      <span className="text-gray-700 dark:text-gray-300">{t('home.coreMultiPay')}</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-700 dark:text-gray-300">Email Support</span>
+                      <span className="text-gray-700 dark:text-gray-300">{t('home.coreEmailSupport')}</span>
                     </li>
                   </ul>
                 </CardContent>
@@ -877,14 +880,14 @@ export default function HomePage() {
                 </div>
                 <CardContent className="p-8">
                   <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                    Premium Features
+                    {t('home.premiumFeatures')}
                   </h3>
                   <div className="mb-6">
                     <span className="text-3xl font-bold text-purple-600">
-                      Chip-Based
+                      {t('home.chipBased')}
                     </span>
                     <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                      Pay only for features you need
+                      {t('home.payOnlyNeeded')}
                     </p>
                   </div>
                   <Button
@@ -892,31 +895,31 @@ export default function HomePage() {
                     size="lg"
                     onClick={() => window.location.href = buildOnboardingUrl()}
                   >
-                    Explore Features
+                    {t('home.exploreFeatures')}
                   </Button>
                   <ul className="space-y-3">
                     <li className="flex items-start gap-2">
                       <Cpu className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-700 dark:text-gray-300">Advanced Analytics</span>
+                      <span className="text-gray-700 dark:text-gray-300">{t('home.premiumAnalytics')}</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <Cpu className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-700 dark:text-gray-300">AI Assistant</span>
+                      <span className="text-gray-700 dark:text-gray-300">{t('home.premiumAi')}</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <Cpu className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-700 dark:text-gray-300">Website Generator</span>
+                      <span className="text-gray-700 dark:text-gray-300">{t('home.premiumWebsite')}</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <Cpu className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-700 dark:text-gray-300">Custom Integrations</span>
+                      <span className="text-gray-700 dark:text-gray-300">{t('home.premiumIntegrations')}</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <Cpu className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-700 dark:text-gray-300">NFT-Gated Features</span>
+                      <span className="text-gray-700 dark:text-gray-300">{t('home.premiumNft')}</span>
                     </li>
                     <li className="text-sm text-purple-600 dark:text-purple-400 mt-4">
-                      One-time or recurring fees per chip
+                      {t('home.oneTimeRecurring')}
                     </li>
                   </ul>
                 </CardContent>
@@ -926,7 +929,7 @@ export default function HomePage() {
 
           <div className="mt-12 text-center">
             <p className="text-gray-600 dark:text-gray-400">
-              All merchants start with the free core system. Unlock advanced features through the Motherboard.
+              {t('home.allMerchantsStart')}
             </p>
           </div>
         </div>
@@ -938,10 +941,10 @@ export default function HomePage() {
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Support Tiers
+              {t('home.supportTiersHeadline')}
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              Choose the support plan that fits your business needs
+              {t('home.supportTiersSubheadline')}
             </p>
           </div>
 
@@ -951,7 +954,7 @@ export default function HomePage() {
             </div>
           ) : subscriptionPlans.length === 0 ? (
             <div className="text-center text-gray-500 dark:text-gray-400">
-              No support tiers available at this time.
+              {t('home.noTiers')}
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -968,7 +971,7 @@ export default function HomePage() {
                       <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                         <Badge className="bg-gradient-to-r from-purple-600 to-green-500 text-white px-4 py-1 text-sm font-semibold">
                           <Star className="w-3 h-3 mr-1" />
-                          POPULAR
+                          {t('home.popular')}
                         </Badge>
                       </div>
                     )}
@@ -983,7 +986,7 @@ export default function HomePage() {
                     <CardContent className="flex-1 flex flex-col">
                       <div className="mb-6">
                         {plan.price_monthly === 0 ? (
-                          <span className="text-5xl font-bold text-green-600">Custom</span>
+                          <span className="text-5xl font-bold text-green-600">{t('home.custom')}</span>
                         ) : (
                           <>
                             <span className="text-5xl font-bold text-gray-900 dark:text-white">
@@ -1005,7 +1008,7 @@ export default function HomePage() {
                         size="lg"
                         onClick={() => window.location.href = buildOnboardingUrl()}
                       >
-                        Choose {plan.name}
+                        {t('home.choose')} {plan.name}
                         <ArrowRight className="ml-2 w-5 h-5" />
                       </Button>
                       <ul className="space-y-3 flex-1">
@@ -1038,10 +1041,10 @@ export default function HomePage() {
             viewport={{ once: true }}
           >
             <h2 className="text-4xl font-bold mb-6">
-              {settings?.cta_section?.headline || 'Ready to Transform Your Business?'}
+              {settings?.cta_section?.headline || t('home.ctaHeadline')}
             </h2>
             <p className="text-xl mb-8 text-blue-100">
-              {settings?.cta_section?.subheadline || 'Start accepting payments with openTILL'}
+              {settings?.cta_section?.subheadline || t('home.ctaSubheadline')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
@@ -1049,7 +1052,7 @@ export default function HomePage() {
                 className="bg-white text-blue-600 hover:bg-gray-100"
                 onClick={() => window.location.href = buildOnboardingUrl()}
               >
-                {settings?.cta_section?.cta_text || 'Get Started Today'}
+                {settings?.cta_section?.cta_text || t('home.ctaText')}
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
 

@@ -45,6 +45,7 @@ import CommunityLinks from '../components/shared/CommunityLinks';
 import { useMerchantFeatures } from '../components/motherboard/useMerchantFeatures';
 import LockedFeatureTile from '../components/motherboard/LockedFeatureTile';
 import OpenTILLPaymentsLogo from '@/components/payment/OpenTILLPaymentsLogo';
+import { useLanguage } from '@/lib/i18n/useLanguage';
 
 // Map menu item IDs to the feature flag needed to unlock them
 const FEATURE_REQUIREMENTS = {
@@ -64,17 +65,8 @@ const FEATURE_REQUIREMENTS = {
 // Items that are always visible (no chip needed)
 const ALWAYS_ENABLED = new Set(['pos', 'products', 'orders', 'settings', 'departments', 'users', 'marketplace', 'motherboard', 'duc_vault', 'smpf_wallet', 'referral_program', 'super_admin', 'dealer_dashboard', 'opentill_payments', 'modifiers', 'website_hosting']);
 
-// Logical groupings shown as section headers on the System Menu
-const CATEGORIES = [
-  { id: 'selling', label: 'Selling' },
-  { id: 'catalog', label: 'Catalog' },
-  { id: 'customers', label: 'Customers & Online Ordering' },
-  { id: 'payments', label: 'Payments & Rewards' },
-  { id: 'insights', label: 'Insights & Growth' },
-  { id: 'platform', label: 'Platform & Admin' },
-];
-
 export default function SystemMenu() {
+  const { t } = useLanguage();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const { hasFeature, isAdmin: featureIsAdmin, loading: featuresLoading } = useMerchantFeatures();
@@ -86,6 +78,16 @@ export default function SystemMenu() {
     todaySales: 0
   });
   const [hasWebsite, setHasWebsite] = useState(false);
+
+  // Logical groupings shown as section headers on the System Menu
+  const CATEGORIES = [
+    { id: 'selling', label: t('menu.catSelling') },
+    { id: 'catalog', label: t('menu.catCatalog') },
+    { id: 'customers', label: t('menu.catCustomers') },
+    { id: 'payments', label: t('menu.catPayments') },
+    { id: 'insights', label: t('menu.catInsights') },
+    { id: 'platform', label: t('menu.catPlatform') },
+  ];
 
   useEffect(() => {
     loadUser();
@@ -228,8 +230,8 @@ export default function SystemMenu() {
         id: 'dealer_dashboard',
         category: 'platform',
         icon: <Building2 className="w-6 h-6" />,
-        title: 'Dealer Dashboard',
-        description: 'Manage merchants and commissions',
+        title: t('menu.dealerDashboardTitle'),
+        description: t('menu.dealerDashboardDesc'),
         path: 'DealerDashboard',
         color: 'from-purple-500 to-pink-500',
         permission: null
@@ -244,8 +246,8 @@ export default function SystemMenu() {
         id: 'super_admin',
         category: 'platform',
         icon: <Shield className="w-6 h-6" />,
-        title: 'Super Admin',
-        description: 'Platform management',
+        title: t('menu.superAdminTitle'),
+        description: t('menu.superAdminDesc'),
         path: 'SuperAdmin',
         color: 'from-red-600 to-red-700',
         permission: 'super_admin_only'
@@ -260,8 +262,8 @@ export default function SystemMenu() {
       id: 'pos',
       category: 'selling',
       icon: <CreditCard className="w-6 h-6" />,
-      title: 'Point of Sale',
-      description: 'Process orders and payments',
+      title: t('menu.posTitle'),
+      description: t('menu.posDesc'),
       path: 'POS',
       color: 'from-blue-500 to-blue-600',
       permission: 'process_orders'
@@ -270,8 +272,8 @@ export default function SystemMenu() {
       id: 'orders',
       category: 'selling',
       icon: <FileText className="w-6 h-6" />,
-      title: 'Orders',
-      description: 'View order history',
+      title: t('menu.ordersTitle'),
+      description: t('menu.ordersDesc'),
       path: 'Orders',
       color: 'from-orange-500 to-orange-600',
       permission: 'process_orders'
@@ -280,8 +282,8 @@ export default function SystemMenu() {
       id: 'invoices',
       category: 'selling',
       icon: <FileText className="w-6 h-6" />,
-      title: 'Invoices',
-      description: 'Send paylinks to customers',
+      title: t('menu.invoicesTitle'),
+      description: t('menu.invoicesDesc'),
       path: 'Invoices',
       color: 'from-emerald-500 to-teal-600',
       permission: null
@@ -290,8 +292,8 @@ export default function SystemMenu() {
       id: 'driver',
       category: 'selling',
       icon: <Truck className="w-6 h-6" />,
-      title: 'Delivery Dashboard',
-      description: 'Driver jobs & deliveries',
+      title: t('menu.driverTitle'),
+      description: t('menu.driverDesc'),
       path: 'DriverDashboard',
       color: 'from-amber-500 to-orange-600',
       permission: null
@@ -301,8 +303,8 @@ export default function SystemMenu() {
       id: 'products',
       category: 'catalog',
       icon: <Package className="w-6 h-6" />,
-      title: 'Products',
-      description: 'Manage product catalog',
+      title: t('menu.productsTitle'),
+      description: t('menu.productsDesc'),
       path: 'Products',
       color: 'from-purple-500 to-purple-600',
       permission: 'manage_inventory'
@@ -311,8 +313,8 @@ export default function SystemMenu() {
       id: 'departments',
       category: 'catalog',
       icon: <LayoutGrid className="w-6 h-6" />,
-      title: 'Departments',
-      description: 'Organize products',
+      title: t('menu.departmentsTitle'),
+      description: t('menu.departmentsDesc'),
       path: 'Departments',
       color: 'from-cyan-500 to-cyan-600',
       permission: 'manage_inventory'
@@ -321,8 +323,8 @@ export default function SystemMenu() {
       id: 'modifiers',
       category: 'catalog',
       icon: <Layers className="w-6 h-6" />,
-      title: 'Modifiers',
-      description: 'Grouped options & add-ons',
+      title: t('menu.modifiersTitle'),
+      description: t('menu.modifiersDesc'),
       path: 'Modifiers',
       color: 'from-fuchsia-500 to-purple-600',
       permission: 'manage_inventory'
@@ -331,8 +333,8 @@ export default function SystemMenu() {
       id: 'inventory',
       category: 'catalog',
       icon: <Box className="w-6 h-6" />,
-      title: 'Inventory',
-      description: 'Stock management',
+      title: t('menu.inventoryTitle'),
+      description: t('menu.inventoryDesc'),
       path: 'Inventory',
       color: 'from-lime-500 to-lime-600',
       permission: 'manage_inventory'
@@ -342,8 +344,8 @@ export default function SystemMenu() {
       id: 'customers',
       category: 'customers',
       icon: <Users className="w-6 h-6" />,
-      title: 'Customers',
-      description: 'Customer management',
+      title: t('menu.customersTitle'),
+      description: t('menu.customersDesc'),
       path: 'Customers',
       color: 'from-green-500 to-green-600',
       permission: 'manage_customers'
@@ -352,8 +354,8 @@ export default function SystemMenu() {
       id: 'loyalty',
       category: 'customers',
       icon: <Gift className="w-6 h-6" />,
-      title: 'Loyalty Program',
-      description: 'Rewards and points',
+      title: t('menu.loyaltyTitle'),
+      description: t('menu.loyaltyDesc'),
       path: 'LoyaltyProgram',
       color: 'from-pink-500 to-rose-600',
       permission: 'manage_settings'
@@ -362,8 +364,8 @@ export default function SystemMenu() {
       id: 'online_menu',
       category: 'customers',
       icon: <Globe className="w-6 h-6" />,
-      title: 'Online Menu',
-      description: 'Public ordering page',
+      title: t('menu.onlineMenuTitle'),
+      description: t('menu.onlineMenuDesc'),
       path: 'OnlineMenu',
       color: 'from-indigo-500 to-indigo-600',
       permission: 'process_orders'
@@ -372,8 +374,8 @@ export default function SystemMenu() {
       id: 'online_orders',
       category: 'customers',
       icon: <ShoppingBag className="w-6 h-6" />,
-      title: 'Online Orders',
-      description: 'Manage online orders',
+      title: t('menu.onlineOrdersTitle'),
+      description: t('menu.onlineOrdersDesc'),
       path: 'OnlineOrders',
       color: 'from-teal-500 to-teal-600',
       permission: 'process_orders'
@@ -383,8 +385,8 @@ export default function SystemMenu() {
       id: 'opentill_payments',
       category: 'payments',
       icon: <OpenTILLPaymentsLogo height="h-[90px]" width="w-[275px]" cover />,
-      title: 'openTILL Payments',
-      description: 'Stripe dashboard, connection & terminal',
+      title: t('menu.opentillPaymentsTitle'),
+      description: t('menu.opentillPaymentsDesc'),
       path: 'OpenTILLPayments',
       color: 'from-indigo-500 to-purple-600',
       permission: 'admin_settings'
@@ -393,8 +395,8 @@ export default function SystemMenu() {
       id: 'duc_vault',
       category: 'payments',
       icon: <Vault className="w-6 h-6" />,
-      title: '$DUC Vault',
-      description: 'Rewards, staking & swaps',
+      title: t('menu.ducVaultTitle'),
+      description: t('menu.ducVaultDesc'),
       path: 'DUCVault',
       color: 'from-yellow-500 to-orange-600',
       permission: 'admin_settings'
@@ -403,8 +405,8 @@ export default function SystemMenu() {
       id: 'smpf_wallet',
       category: 'payments',
       icon: <Wallet className="w-6 h-6" />,
-      title: 'SMPF Wallet',
-      description: 'Your $DUC & Solana wallet',
+      title: t('menu.smpfWalletTitle'),
+      description: t('menu.smpfWalletDesc'),
       path: 'SMPFWallet',
       color: 'from-emerald-500 to-teal-600',
       permission: null
@@ -413,8 +415,8 @@ export default function SystemMenu() {
       id: 'referral_program',
       category: 'payments',
       icon: <Gift className="w-6 h-6" />,
-      title: 'Referral Program',
-      description: 'Refer merchants and earn rewards',
+      title: t('menu.referralTitle'),
+      description: t('menu.referralDesc'),
       path: 'ReferralDashboard',
       color: 'from-purple-500 to-pink-500',
       permission: null
@@ -424,8 +426,8 @@ export default function SystemMenu() {
       id: 'reports',
       category: 'insights',
       icon: <BarChart3 className="w-6 h-6" />,
-      title: 'Reports',
-      description: 'Sales analytics',
+      title: t('menu.reportsTitle'),
+      description: t('menu.reportsDesc'),
       path: 'Reports',
       color: 'from-pink-500 to-pink-600',
       permission: 'view_reports'
@@ -434,8 +436,8 @@ export default function SystemMenu() {
       id: 'ai_assistant',
       category: 'insights',
       icon: <Lightbulb className="w-6 h-6" />,
-      title: 'AI Assistant',
-      description: 'Business insights & analysis',
+      title: t('menu.aiAssistantTitle'),
+      description: t('menu.aiAssistantDesc'),
       path: 'AIAssistant',
       color: 'from-green-400 to-teal-500',
       permission: 'view_reports'
@@ -444,8 +446,8 @@ export default function SystemMenu() {
       id: 'ai_website',
       category: 'insights',
       icon: <Sparkles className="w-6 h-6" />,
-      title: hasWebsite ? 'Manage Website' : 'AI Website Generator',
-      description: hasWebsite ? 'View analytics & manage your site' : 'Generate a website with AI',
+      title: hasWebsite ? t('menu.aiWebsiteManageTitle') : t('menu.aiWebsiteTitle'),
+      description: hasWebsite ? t('menu.aiWebsiteManageDesc') : t('menu.aiWebsiteDesc'),
       path: 'AIWebsiteGenerator',
       color: 'from-indigo-500 via-purple-500 to-pink-500',
       permission: 'admin_settings'
@@ -455,8 +457,8 @@ export default function SystemMenu() {
       id: 'marketplace',
       category: 'platform',
       icon: <Sparkles className="w-6 h-6" />,
-      title: 'Marketplace',
-      description: 'Browse and purchase chips',
+      title: t('menu.marketplaceTitle'),
+      description: t('menu.marketplaceDesc'),
       path: 'Marketplace',
       color: 'from-purple-600 to-pink-600',
       permission: null
@@ -465,8 +467,8 @@ export default function SystemMenu() {
       id: 'motherboard',
       category: 'platform',
       icon: <Cpu className="w-6 h-6" />,
-      title: 'Motherboard',
-      description: 'Install and manage chips',
+      title: t('menu.motherboardTitle'),
+      description: t('menu.motherboardDesc'),
       path: 'Motherboard',
       color: 'from-blue-600 to-purple-600',
       permission: 'admin_settings'
@@ -475,8 +477,8 @@ export default function SystemMenu() {
       id: 'users',
       category: 'platform',
       icon: <UserCircle className="w-6 h-6" />,
-      title: 'Employees',
-      description: 'Staff management',
+      title: t('menu.usersTitle'),
+      description: t('menu.usersDesc'),
       path: 'Users',
       color: 'from-red-500 to-red-600',
       permission: 'manage_users'
@@ -485,8 +487,8 @@ export default function SystemMenu() {
       id: 'device_monitor',
       category: 'platform',
       icon: <Monitor className="w-6 h-6" />,
-      title: 'Device Monitor',
-      description: 'Track active sessions',
+      title: t('menu.deviceMonitorTitle'),
+      description: t('menu.deviceMonitorDesc'),
       path: 'DeviceMonitor',
       color: 'from-violet-500 to-violet-600',
       permission: 'admin_settings'
@@ -495,8 +497,8 @@ export default function SystemMenu() {
       id: 'settings',
       category: 'platform',
       icon: <Settings className="w-6 h-6" />,
-      title: 'Settings',
-      description: 'System configuration',
+      title: t('menu.settingsTitle'),
+      description: t('menu.settingsDesc'),
       path: 'Settings',
       color: 'from-gray-500 to-gray-600',
       permission: 'admin_settings'
@@ -505,8 +507,8 @@ export default function SystemMenu() {
       id: 'website_hosting',
       category: 'platform',
       icon: <Globe className="w-6 h-6" />,
-      title: 'Website Hosting & Domains',
-      description: 'Hosting, domains & web services',
+      title: t('menu.websiteHostingTitle'),
+      description: t('menu.websiteHostingDesc'),
       external_url: 'https://ww3.opentill.io/',
       color: 'from-sky-500 to-blue-600',
       permission: null
@@ -571,7 +573,7 @@ export default function SystemMenu() {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-500">Loading...</p>
+          <p className="text-gray-500">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -594,10 +596,10 @@ export default function SystemMenu() {
             </div>
           </div>
           <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white mb-2">
-            openTILL
+            {t('menu.title')}
           </h1>
           <p className="text-base sm:text-xl text-gray-600 dark:text-gray-400 mb-4">
-            Next-Generation Point of Sale System
+            {t('menu.subtitle')}
           </p>
           <CommunityLinks />
         </motion.div>
@@ -608,7 +610,7 @@ export default function SystemMenu() {
               <CardContent className="p-4 sm:p-6">
                 <div className="flex items-center justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">Pending Orders</p>
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">{t('menu.pendingOrders')}</p>
                     <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{stats.pendingOrders}</p>
                   </div>
                   <Clock className="w-6 h-6 sm:w-8 sm:h-8 text-blue-500 flex-shrink-0" />
@@ -620,7 +622,7 @@ export default function SystemMenu() {
               <CardContent className="p-4 sm:p-6">
                 <div className="flex items-center justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">Low Stock Items</p>
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">{t('menu.lowStockItems')}</p>
                     <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{stats.lowStockItems}</p>
                   </div>
                   <AlertCircle className="w-6 h-6 sm:w-8 sm:h-8 text-orange-500 flex-shrink-0" />
@@ -632,7 +634,7 @@ export default function SystemMenu() {
               <CardContent className="p-4 sm:p-6">
                 <div className="flex items-center justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">Open Tickets</p>
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">{t('menu.openTickets')}</p>
                     <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{stats.openTickets}</p>
                   </div>
                   <HelpCircle className="w-6 h-6 sm:w-8 sm:h-8 text-purple-500 flex-shrink-0" />
@@ -644,7 +646,7 @@ export default function SystemMenu() {
               <CardContent className="p-4 sm:p-6">
                 <div className="flex items-center justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">Today's Sales</p>
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">{t('menu.todaySales')}</p>
                     <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">${stats.todaySales}</p>
                   </div>
                   <DollarSign className="w-6 h-6 sm:w-8 sm:h-8 text-green-500 flex-shrink-0" />
@@ -679,7 +681,7 @@ export default function SystemMenu() {
             className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
           >
             <HelpCircle className="w-5 h-5" />
-            <span>Need help? View User Guide & Support</span>
+            <span>{t('menu.needHelp')}</span>
           </button>
         </div>
 
@@ -694,7 +696,7 @@ export default function SystemMenu() {
               className="inline-flex items-center gap-2 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
             >
               <Clock className="w-5 h-5" />
-              <span>Clock Out</span>
+              <span>{t('menu.clockOut')}</span>
             </button>
           ) : (
             <button
@@ -702,7 +704,7 @@ export default function SystemMenu() {
               className="inline-flex items-center gap-2 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
             >
               <AlertCircle className="w-5 h-5" />
-              <span>Merchant Logout</span>
+              <span>{t('menu.merchantLogout')}</span>
             </button>
           )}
         </div>
