@@ -6,6 +6,7 @@ import { Wallet, CheckCircle, Info, ChevronRight, Loader2, Monitor, ExternalLink
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import SolanaWalletProvider from '@/components/auth/SolanaWalletProvider';
+import { useLanguage } from '@/lib/i18n/useLanguage';
 
 function isMobileOrApp() {
   const ua = navigator.userAgent || '';
@@ -32,6 +33,7 @@ function buildSolflareDeepLink() {
 }
 
 function MobileWalletConnect({ formData, onChange, onNext, onBack }) {
+  const { t } = useLanguage();
   const [manualMode, setManualMode] = useState(false);
   const [connectingWallet, setConnectingWallet] = useState(null);
 
@@ -83,15 +85,15 @@ function MobileWalletConnect({ formData, onChange, onNext, onBack }) {
               <Wallet className="w-7 h-7 text-purple-500" />
             </div>
           </div>
-          <h2 className="text-2xl font-black text-slate-900">Paste Wallet Address</h2>
-          <p className="text-slate-500 text-sm">Open your wallet app, copy your address, and paste it below.</p>
+          <h2 className="text-2xl font-black text-slate-900">{t('onboarding.pasteWalletAddress')}</h2>
+          <p className="text-slate-500 text-sm">{t('onboarding.pasteWalletSub')}</p>
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="wallet" className="font-medium text-slate-700">Solana Wallet Address</Label>
+          <Label htmlFor="wallet" className="font-medium text-slate-700">{t('onboarding.solanaWalletAddress')}</Label>
           <Input
             id="wallet"
-            placeholder="Paste your public wallet address..."
+            placeholder={t('onboarding.pasteWalletPh')}
             value={formData.wallet_address || ''}
             onChange={(e) => onChange('wallet_address', e.target.value.trim())}
             className="font-mono text-sm h-11"
@@ -99,10 +101,10 @@ function MobileWalletConnect({ formData, onChange, onNext, onBack }) {
           {formData.wallet_address && (
             isValidSolana(formData.wallet_address) ? (
               <p className="flex items-center gap-1 text-xs text-cyan-600">
-                <CheckCircle className="w-3.5 h-3.5" /> Valid Solana address
+                <CheckCircle className="w-3.5 h-3.5" /> {t('onboarding.validSolanaAddress')}
               </p>
             ) : (
-              <p className="text-xs text-amber-600">Address format looks off — double check before continuing.</p>
+              <p className="text-xs text-amber-600">{t('onboarding.addressFormatOff')}</p>
             )
           )}
         </div>
@@ -111,11 +113,11 @@ function MobileWalletConnect({ formData, onChange, onNext, onBack }) {
           type="button"
           onClick={() => setManualMode(false)}
           className="text-xs text-slate-400 underline"
-        >← Back to wallet connect</button>
+        >{t('onboarding.backToWalletConnect')}</button>
 
         <div className="flex items-start gap-2 bg-blue-50 border border-blue-100 rounded-xl p-3 text-xs text-blue-700">
           <Info className="w-4 h-4 shrink-0 mt-0.5" />
-          <p>Your wallet is used only to receive $DUC rewards. You can add or change it later in Settings.</p>
+          <p>{t('onboarding.walletUsedForRewards')}</p>
         </div>
 
         <div className="flex gap-3 pt-1">
@@ -125,7 +127,7 @@ function MobileWalletConnect({ formData, onChange, onNext, onBack }) {
             onClick={onNext}
             className="flex-[2] bg-cyan-600 hover:bg-cyan-700 text-white h-12 font-bold rounded-xl"
           >
-            {formData.wallet_address && isValidSolana(formData.wallet_address) ? 'Continue with Wallet' : 'Skip for Now'}
+            {formData.wallet_address && isValidSolana(formData.wallet_address) ? t('onboarding.continueWithWallet') : t('onboarding.skipForNow')}
           </Button>
         </div>
       </div>
@@ -140,21 +142,21 @@ function MobileWalletConnect({ formData, onChange, onNext, onBack }) {
             <Wallet className="w-7 h-7 text-purple-500" />
           </div>
         </div>
-        <h2 className="text-2xl font-black text-slate-900">Connect Your Wallet</h2>
-        <p className="text-slate-500 text-sm">Your Solana wallet will receive $DUC rewards. You can skip this now.</p>
+        <h2 className="text-2xl font-black text-slate-900">{t('onboarding.connectYourWallet')}</h2>
+        <p className="text-slate-500 text-sm">{t('onboarding.connectWalletSub')}</p>
       </div>
 
       {formData.wallet_address && isValidSolana(formData.wallet_address) && (
         <div className="p-3 bg-green-50 border border-green-200 rounded-xl">
           <p className="text-xs text-green-700 flex items-center gap-1">
             <CheckCircle className="w-3.5 h-3.5" />
-            Connected: {formData.wallet_address.slice(0, 8)}...{formData.wallet_address.slice(-8)}
+            {t('onboarding.connected')} {formData.wallet_address.slice(0, 8)}...{formData.wallet_address.slice(-8)}
           </p>
         </div>
       )}
 
       <div className="space-y-3">
-        <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Open Wallet App</p>
+        <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest">{t('onboarding.openWalletApp')}</p>
 
         {/* Phantom */}
         <button
@@ -167,8 +169,8 @@ function MobileWalletConnect({ formData, onChange, onNext, onBack }) {
             <Wallet className="w-5 h-5 hidden" />
           </div>
           <div className="flex-1">
-            <p className="font-bold text-sm">Connect with Phantom</p>
-            <p className="text-white/70 text-xs">Opens Phantom wallet app</p>
+            <p className="font-bold text-sm">{t('onboarding.connectWithPhantom')}</p>
+            <p className="text-white/70 text-xs">{t('onboarding.opensPhantom')}</p>
           </div>
           <ExternalLink className="w-4 h-4 text-white/60" />
         </button>
@@ -184,8 +186,8 @@ function MobileWalletConnect({ formData, onChange, onNext, onBack }) {
             <Wallet className="w-5 h-5 hidden" />
           </div>
           <div className="flex-1">
-            <p className="font-bold text-sm">Connect with Solflare</p>
-            <p className="text-white/70 text-xs">Opens Solflare wallet app</p>
+            <p className="font-bold text-sm">{t('onboarding.connectWithSolflare')}</p>
+            <p className="text-white/70 text-xs">{t('onboarding.opensSolflare')}</p>
           </div>
           <ExternalLink className="w-4 h-4 text-white/60" />
         </button>
@@ -195,14 +197,14 @@ function MobileWalletConnect({ formData, onChange, onNext, onBack }) {
           onClick={() => setManualMode(true)}
           className="w-full flex items-center justify-between p-4 bg-slate-50 border border-dashed border-slate-300 rounded-xl text-slate-500 hover:bg-slate-100 transition-all text-sm"
         >
-          <span>Or paste wallet address manually</span>
+          <span>{t('onboarding.orPasteManually')}</span>
           <ChevronRight className="w-4 h-4" />
         </button>
       </div>
 
       <div className="flex items-start gap-2 bg-blue-50 border border-blue-100 rounded-xl p-3 text-xs text-blue-700">
         <Info className="w-4 h-4 shrink-0 mt-0.5" />
-        <p>Your wallet is used only to receive $DUC rewards. You can add or change it later in Settings.</p>
+        <p>{t('onboarding.walletUsedForRewards')}</p>
       </div>
 
       <div className="flex gap-3 pt-1">
@@ -212,7 +214,7 @@ function MobileWalletConnect({ formData, onChange, onNext, onBack }) {
           onClick={onNext}
           className="flex-[2] bg-cyan-600 hover:bg-cyan-700 text-white h-12 font-bold rounded-xl"
         >
-          {formData.wallet_address && isValidSolana(formData.wallet_address) ? 'Continue with Wallet' : 'Skip for Now'}
+          {formData.wallet_address && isValidSolana(formData.wallet_address) ? t('onboarding.continueWithWallet') : t('onboarding.skipForNow')}
         </Button>
       </div>
     </div>
@@ -220,6 +222,7 @@ function MobileWalletConnect({ formData, onChange, onNext, onBack }) {
 }
 
 function DesktopWalletConnect({ formData, onChange, onNext, onBack }) {
+  const { t } = useLanguage();
   const { publicKey, connected, connecting, signMessage } = useWallet();
   const [manualMode, setManualMode] = useState(!!formData.wallet_address);
   const [signing, setSigning] = useState(false);
@@ -264,16 +267,16 @@ function DesktopWalletConnect({ formData, onChange, onNext, onBack }) {
               <Wallet className="w-7 h-7 text-purple-500" />
             </div>
           </div>
-          <h2 className="text-2xl font-black text-slate-900">Connect Your Wallet</h2>
-          <p className="text-slate-500 text-sm">Your Solana wallet will receive $DUC rewards. You can skip this now.</p>
+          <h2 className="text-2xl font-black text-slate-900">{t('onboarding.connectYourWallet')}</h2>
+          <p className="text-slate-500 text-sm">{t('onboarding.connectWalletSub')}</p>
         </div>
 
         <div className="space-y-3">
           <div className="space-y-1.5">
-            <Label htmlFor="wallet" className="font-medium text-slate-700">Solana Wallet Address</Label>
+            <Label htmlFor="wallet" className="font-medium text-slate-700">{t('onboarding.solanaWalletAddress')}</Label>
             <Input
               id="wallet"
-              placeholder="Enter your public wallet address..."
+              placeholder={t('onboarding.enterWalletPh')}
               value={formData.wallet_address || ''}
               onChange={(e) => onChange('wallet_address', e.target.value.trim())}
               className="font-mono text-sm h-11"
@@ -281,10 +284,10 @@ function DesktopWalletConnect({ formData, onChange, onNext, onBack }) {
             {formData.wallet_address && (
               isValidSolana(formData.wallet_address) ? (
                 <p className="flex items-center gap-1 text-xs text-cyan-600">
-                  <CheckCircle className="w-3.5 h-3.5" /> Valid Solana address
+                  <CheckCircle className="w-3.5 h-3.5" /> {t('onboarding.validSolanaAddress')}
                 </p>
               ) : (
-                <p className="text-xs text-amber-600">Address format looks off — double check before continuing.</p>
+                <p className="text-xs text-amber-600">{t('onboarding.addressFormatOff')}</p>
               )
             )}
           </div>
@@ -292,18 +295,18 @@ function DesktopWalletConnect({ formData, onChange, onNext, onBack }) {
             type="button"
             onClick={() => { setManualMode(false); onChange('wallet_address', ''); }}
             className="text-xs text-slate-400 underline"
-          >← Back to connect wallet</button>
+          >{t('onboarding.backToConnectWallet')}</button>
         </div>
 
         <div className="flex items-start gap-2 bg-blue-50 border border-blue-100 rounded-xl p-3 text-xs text-blue-700">
           <Info className="w-4 h-4 shrink-0 mt-0.5" />
-          <p>Your wallet is used only to receive $DUC rewards. You can add or change it later in Settings.</p>
+          <p>{t('onboarding.walletUsedForRewards')}</p>
         </div>
 
         <div className="flex gap-3 pt-1">
           <Button type="button" variant="outline" onClick={onBack} className="flex-1 h-12">Back</Button>
           <Button type="button" onClick={onNext} className="flex-[2] bg-cyan-600 hover:bg-cyan-700 text-white h-12 font-bold rounded-xl">
-            {formData.wallet_address && isValidSolana(formData.wallet_address) ? 'Continue with Wallet' : 'Skip for Now'}
+            {formData.wallet_address && isValidSolana(formData.wallet_address) ? t('onboarding.continueWithWallet') : t('onboarding.skipForNow')}
           </Button>
         </div>
       </div>
@@ -318,13 +321,13 @@ function DesktopWalletConnect({ formData, onChange, onNext, onBack }) {
             <Wallet className="w-7 h-7 text-purple-500" />
           </div>
         </div>
-        <h2 className="text-2xl font-black text-slate-900">Connect Your Wallet</h2>
-        <p className="text-slate-500 text-sm">Your Solana wallet will receive $DUC rewards. You can skip this now.</p>
+        <h2 className="text-2xl font-black text-slate-900">{t('onboarding.connectYourWallet')}</h2>
+        <p className="text-slate-500 text-sm">{t('onboarding.connectWalletSub')}</p>
       </div>
 
       <div className="flex items-start gap-2 bg-slate-50 border border-slate-100 rounded-xl p-3 text-xs text-slate-600">
         <Monitor className="w-4 h-4 shrink-0 mt-0.5" />
-        <p>Use your browser wallet extension (Phantom, Solflare, Backpack, etc.)</p>
+        <p>{t('onboarding.useBrowserExtension')}</p>
       </div>
 
       <div className="space-y-3">
@@ -334,7 +337,7 @@ function DesktopWalletConnect({ formData, onChange, onNext, onBack }) {
           <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
             <p className="text-xs text-yellow-700 flex items-center gap-1">
               <Loader2 className="w-3 h-3 animate-spin" />
-              Please sign the message in your wallet to verify ownership...
+              {t('onboarding.pleaseSignMessage')}
             </p>
           </div>
         )}
@@ -342,7 +345,7 @@ function DesktopWalletConnect({ formData, onChange, onNext, onBack }) {
           <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
             <p className="text-xs text-green-700 flex items-center gap-1">
               <CheckCircle className="w-3 h-3" />
-              Verified: {publicKey.toString().slice(0, 8)}...{publicKey.toString().slice(-8)}
+              {t('onboarding.verified')} {publicKey.toString().slice(0, 8)}...{publicKey.toString().slice(-8)}
             </p>
           </div>
         )}
@@ -352,20 +355,20 @@ function DesktopWalletConnect({ formData, onChange, onNext, onBack }) {
           onClick={() => setManualMode(true)}
           className="w-full flex items-center justify-between p-4 bg-slate-50 border border-dashed border-slate-300 rounded-xl text-slate-500 hover:bg-slate-100 transition-all text-sm"
         >
-          <span>Or paste wallet address</span>
+          <span>{t('onboarding.orPasteAddress')}</span>
           <ChevronRight className="w-4 h-4" />
         </button>
       </div>
 
       <div className="flex items-start gap-2 bg-blue-50 border border-blue-100 rounded-xl p-3 text-xs text-blue-700">
         <Info className="w-4 h-4 shrink-0 mt-0.5" />
-        <p>Your wallet is used only to receive $DUC rewards. You can add or change it later in Settings.</p>
+        <p>{t('onboarding.walletUsedForRewards')}</p>
       </div>
 
       <div className="flex gap-3 pt-1">
         <Button type="button" variant="outline" onClick={onBack} className="flex-1 h-12">Back</Button>
         <Button type="button" onClick={onNext} disabled={connecting || signing} className="flex-[2] bg-cyan-600 hover:bg-cyan-700 text-white h-12 font-bold rounded-xl">
-          {signing ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Signing...</> : connecting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Connecting...</> : formData.wallet_address ? 'Continue with Wallet' : 'Skip for Now'}
+          {signing ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t('onboarding.signing')}</> : connecting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t('onboarding.connecting')}</> : formData.wallet_address ? t('onboarding.continueWithWallet') : t('onboarding.skipForNow')}
         </Button>
       </div>
     </div>

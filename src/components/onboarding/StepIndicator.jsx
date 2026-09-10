@@ -1,17 +1,13 @@
 import React from 'react';
 import { CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/lib/i18n/useLanguage';
 
-const steps = [
-  { id: 1, label: 'Referral' },
-  { id: 2, label: 'Business' },
-  { id: 3, label: 'Payments' },
-  { id: 4, label: 'Identity' },
-  { id: 5, label: 'Wallet' },
-  { id: 6, label: 'Review' },
-];
+const stepKeys = ['stepReferral', 'stepBusiness', 'stepPayments', 'stepIdentity', 'stepWallet', 'stepReview'];
 
 export default function StepIndicator({ currentStep }) {
+  const { t } = useLanguage();
+  const steps = stepKeys.map((k, i) => ({ id: i + 1, label: t(`onboarding.${k}`) }));
   return (
     <div className="flex items-center justify-center gap-0 w-full mb-8">
       {steps.map((step, idx) => {

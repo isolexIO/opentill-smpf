@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 import { Shield, Loader2, CheckCircle, AlertCircle, Camera, FileCheck2, ExternalLink } from 'lucide-react';
+import { useLanguage } from '@/lib/i18n/useLanguage';
 
 const STORAGE_KEY = 'opentill_onboarding_form';
 
@@ -21,6 +22,7 @@ export function clearOnboardingForm() {
 }
 
 export default function StepStripeIdentity({ formData, onChange, onNext, onBack }) {
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -85,11 +87,11 @@ export default function StepStripeIdentity({ formData, onChange, onNext, onBack 
             <Shield className="w-7 h-7 text-cyan-500" />
           </div>
         </div>
-        <h2 className="text-2xl font-black text-slate-900">Identity Verification</h2>
+        <h2 className="text-2xl font-black text-slate-900">{t('onboarding.identityVerification')}</h2>
         <p className="text-slate-500 text-sm">
           {formData.accept_card
-            ? "Since you're accepting card payments through openTILL Payments, identity verification is required. You'll need a government-issued ID and a selfie."
-            : "Identity verification is only required if you accept card payments through openTILL Payments. You can skip this step and verify later."}
+            ? t('onboarding.identityRequiredCard')
+            : t('onboarding.identityNotRequired')}
         </p>
       </div>
 
@@ -97,8 +99,8 @@ export default function StepStripeIdentity({ formData, onChange, onNext, onBack 
         <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
           <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-semibold text-amber-800">Verification not required</p>
-            <p className="text-xs text-amber-700">You can skip this step and submit your application. You'll be asked to verify your identity later if you add card payments.</p>
+            <p className="text-sm font-semibold text-amber-800">{t('onboarding.verificationNotRequired')}</p>
+            <p className="text-xs text-amber-700">{t('onboarding.verificationNotRequiredDesc')}</p>
           </div>
         </div>
       )}
@@ -107,8 +109,8 @@ export default function StepStripeIdentity({ formData, onChange, onNext, onBack 
         <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-xl px-4 py-4">
           <CheckCircle className="w-5 h-5 text-green-600 shrink-0" />
           <div className="flex-1">
-            <p className="text-green-700 font-semibold text-sm">Identity Verified</p>
-            <p className="text-green-600 text-xs">Your identity has been verified with Stripe.</p>
+            <p className="text-green-700 font-semibold text-sm">{t('onboarding.identityVerified')}</p>
+            <p className="text-green-600 text-xs">{t('onboarding.identityVerifiedDesc')}</p>
           </div>
         </div>
       ) : (
@@ -117,15 +119,15 @@ export default function StepStripeIdentity({ formData, onChange, onNext, onBack 
             <div className="flex items-start gap-3 bg-slate-50 rounded-xl p-4">
               <FileCheck2 className="w-5 h-5 text-cyan-500 shrink-0 mt-0.5" />
               <div>
-                <p className="text-sm font-semibold text-slate-700">Government-Issued ID</p>
-                <p className="text-xs text-slate-500">Driver's license, passport, or ID card</p>
+                <p className="text-sm font-semibold text-slate-700">{t('onboarding.governmentIssuedId')}</p>
+                <p className="text-xs text-slate-500">{t('onboarding.governmentIdDesc')}</p>
               </div>
             </div>
             <div className="flex items-start gap-3 bg-slate-50 rounded-xl p-4">
               <Camera className="w-5 h-5 text-cyan-500 shrink-0 mt-0.5" />
               <div>
-                <p className="text-sm font-semibold text-slate-700">Selfie Photo</p>
-                <p className="text-xs text-slate-500">A live selfie to match your ID</p>
+                <p className="text-sm font-semibold text-slate-700">{t('onboarding.selfiePhoto')}</p>
+                <p className="text-xs text-slate-500">{t('onboarding.selfieDesc')}</p>
               </div>
             </div>
           </div>
@@ -143,27 +145,27 @@ export default function StepStripeIdentity({ formData, onChange, onNext, onBack 
             className="w-full bg-cyan-600 hover:bg-cyan-700 text-white h-12 font-bold rounded-xl"
           >
             {loading ? (
-              <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Preparing verification...</>
+              <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> {t('onboarding.preparingVerification')}</>
             ) : (
-              <><Shield className="w-4 h-4 mr-2" /> Start Identity Verification <ExternalLink className="w-3 h-3 ml-1" /></>
+              <><Shield className="w-4 h-4 mr-2" /> {t('onboarding.startIdentityVerification')} <ExternalLink className="w-3 h-3 ml-1" /></>
             )}
           </Button>
         </>
       )}
 
       <div className="bg-cyan-50 border border-cyan-100 rounded-xl px-4 py-3 text-xs text-cyan-700">
-        You'll be redirected to Stripe's secure verification page. Your ID and selfie are processed by Stripe — openTILL receives only the verification result, not your document images.
+        {t('onboarding.identityRedirectNote')}
       </div>
 
       <div className="flex gap-3 pt-1">
-        <Button type="button" variant="outline" onClick={onBack} className="flex-1 h-12" disabled={loading}>Back</Button>
+        <Button type="button" variant="outline" onClick={onBack} className="flex-1 h-12" disabled={loading}>{t('onboarding.back')}</Button>
         <Button
           type="button"
           onClick={onNext}
           disabled={(formData.accept_card && !alreadyVerified) || loading}
           className="flex-[2] bg-cyan-600 hover:bg-cyan-700 text-white h-12 font-bold rounded-xl"
         >
-          {formData.accept_card ? 'Continue' : 'Skip & Continue'}
+          {formData.accept_card ? t('onboarding.continue') : t('onboarding.skipContinue')}
         </Button>
       </div>
     </div>

@@ -15,6 +15,7 @@ import {
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { buildPricing, FUNDING } from "@/lib/pricing";
+import { useLanguage } from "@/lib/i18n/useLanguage";
 
 export default function Cart({
   cart,
@@ -29,6 +30,7 @@ export default function Cart({
   isMobile,
   settings,
 }) {
+  const { t } = useLanguage();
   const handleOptimisticUpdate = (index, newQuantity) => {
     // Optimistic update: immediately update UI state
     if (newQuantity > 0) {
@@ -95,7 +97,7 @@ export default function Cart({
   return (
     <div className="flex flex-col h-full">
       <div className="p-4 border-b">
-        <h2 className="text-xl font-bold">Current Order</h2>
+        <h2 className="text-xl font-bold">{t('pos.currentOrder')}</h2>
         {selectedCustomer && (
           <div className="flex items-center mt-2">
             <Users className="w-4 h-4 mr-2 text-gray-500" />
@@ -109,13 +111,13 @@ export default function Cart({
             {hasEbtEligibleItems && (
               <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">
                 <ShieldCheck className="w-3 h-3 mr-1" />
-                EBT Eligible: ${totals.ebtEligibleTotal}
+                {t('pos.ebtEligible')}: ${totals.ebtEligibleTotal}
               </Badge>
             )}
             {hasAgeRestrictedItems && (
               <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-300">
                 <AlertTriangle className="w-3 h-3 mr-1" />
-                Age Verification Required
+                {t('pos.ageVerificationRequired')}
               </Badge>
             )}
           </div>
@@ -126,7 +128,7 @@ export default function Cart({
         <div className="p-4 space-y-4">
           {cart.length === 0 ? (
             <div className="text-center py-10">
-              <p className="text-gray-500">Cart is empty</p>
+              <p className="text-gray-500">{t('pos.cartEmpty')}</p>
             </div>
           ) : (
             cart.map((item, index) => (
@@ -163,7 +165,7 @@ export default function Cart({
                 </div>
                 <div className="flex items-center gap-2">
                   {item.pricing_type === 'weight' ? (
-                    <span className="text-xs text-gray-400 italic mr-1">weighed</span>
+                    <span className="text-xs text-gray-400 italic mr-1">{t('pos.weighed')}</span>
                   ) : (
                     <div className="flex items-center border rounded-md">
                       <Button
@@ -209,11 +211,11 @@ export default function Cart({
         <div className="p-4 border-t bg-gray-50 dark:bg-gray-800/50">
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span>Subtotal</span>
+              <span>{t('pos.subtotal')}</span>
               <span>${totals.subtotal}</span>
             </div>
             <div className="flex items-center justify-between text-sm">
-              <span>Discount</span>
+              <span>{t('pos.discount')}</span>
               <div className="flex items-center gap-2 w-24">
                 <Input
                   type="number"
@@ -227,12 +229,12 @@ export default function Cart({
             </div>
              {Number(totals.discountAmount) > 0 && (
                 <div className="flex justify-between text-sm text-red-500">
-                    <span>Discount Applied</span>
+                    <span>{t('pos.discountApplied')}</span>
                     <span>-${totals.discountAmount}</span>
                 </div>
              )}
             <div className="flex justify-between text-sm">
-              <span>Tax</span>
+              <span>{t('pos.tax')}</span>
               <span>${totals.taxAmount}</span>
             </div>
             {surchargeLine > 0 && (
@@ -247,17 +249,17 @@ export default function Cart({
             {showDualPrices ? (
                  <div className="space-y-2">
                     <div className="flex justify-between text-lg font-bold text-green-600">
-                        <span>Cash Price</span>
+                        <span>{t('pos.cashPrice')}</span>
                         <span>${engineCash.toFixed(2)}</span>
                     </div>
                      <div className="flex justify-between text-xl font-bold">
-                        <span>Card Price</span>
+                        <span>{t('pos.cardPrice')}</span>
                         <span>${engineCard.toFixed(2)}</span>
                     </div>
                 </div>
             ) : (
                  <div className="flex justify-between text-2xl font-bold">
-                    <span>Total</span>
+                 <span>{t('pos.total')}</span>
                     <span>${(parseFloat(totals.cardTotal) || engineCard).toFixed(2)}</span>
                 </div>
             )}
@@ -272,7 +274,7 @@ export default function Cart({
                 className="w-full min-h-[44px]"
               >
                 <UtensilsCrossed className="w-4 h-4 mr-2" />
-                Send to Kitchen
+                {t('pos.sendToKitchen')}
               </Button>
             )}
             <Button
@@ -281,7 +283,7 @@ export default function Cart({
               className="w-full min-h-[44px] bg-blue-600 hover:bg-blue-700"
               disabled={cart.length === 0}
             >
-              Pay
+              {t('pos.pay')}
             </Button>
           </div>
         </div>

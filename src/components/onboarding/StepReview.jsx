@@ -1,26 +1,28 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader2, Building2, Mail, Phone, MapPin, Wallet, Tag, CheckCircle } from 'lucide-react';
+import { useLanguage } from '@/lib/i18n/useLanguage';
 
 export default function StepReview({ formData, onSubmit, onBack, loading, error }) {
+  const { t } = useLanguage();
   const paymentLabels = [
-    formData.accept_cash && 'Cash',
-    formData.accept_card && 'Card',
-    formData.accept_ebt && 'EBT',
-    formData.accept_crypto && 'Crypto',
+    formData.accept_cash && t('pos.cash'),
+    formData.accept_card && t('onboarding.creditDebitCards'),
+    formData.accept_ebt && t('pos.ebtSnap'),
+    formData.accept_crypto && t('onboarding.solanaPayCrypto'),
   ].filter(Boolean).join(', ');
 
   const rows = [
-    { icon: <Building2 className="w-4 h-4" />, label: 'Business', value: formData.business_name },
-    { icon: <Mail className="w-4 h-4" />, label: 'Email', value: formData.owner_email },
-    { icon: <span className="w-4 h-4 text-xs font-bold flex items-center justify-center">👤</span>, label: 'Owner', value: `${formData.owner_first_name} ${formData.owner_last_name}`.trim() },
-    formData.phone && { icon: <Phone className="w-4 h-4" />, label: 'Phone', value: formData.phone },
-    formData.address && { icon: <MapPin className="w-4 h-4" />, label: 'Address', value: formData.address },
-    formData.stripe_identity_verified && { icon: <span className="w-4 h-4">🛡️</span>, label: 'Identity', value: 'Stripe Verified ✓' },
-    paymentLabels && { icon: <span className="w-4 h-4">💳</span>, label: 'Payments', value: paymentLabels },
-    formData.pricing_mode && { icon: <span className="w-4 h-4">💱</span>, label: 'Pricing', value: formData.pricing_mode === 'surcharge' ? 'Card Surcharge' : 'Cash Discount' },
-    formData.wallet_address && { icon: <Wallet className="w-4 h-4" />, label: 'Wallet', value: formData.wallet_address.slice(0, 6) + '...' + formData.wallet_address.slice(-4) },
-    formData.referral_code && { icon: <Tag className="w-4 h-4" />, label: 'Referral', value: formData.referral_code },
+    { icon: <Building2 className="w-4 h-4" />, label: t('onboarding.business'), value: formData.business_name },
+    { icon: <Mail className="w-4 h-4" />, label: t('onboarding.email'), value: formData.owner_email },
+    { icon: <span className="w-4 h-4 text-xs font-bold flex items-center justify-center">👤</span>, label: t('onboarding.owner'), value: `${formData.owner_first_name} ${formData.owner_last_name}`.trim() },
+    formData.phone && { icon: <Phone className="w-4 h-4" />, label: t('onboarding.phone'), value: formData.phone },
+    formData.address && { icon: <MapPin className="w-4 h-4" />, label: t('onboarding.address'), value: formData.address },
+    formData.stripe_identity_verified && { icon: <span className="w-4 h-4">🛡️</span>, label: t('onboarding.identity'), value: t('onboarding.stripeVerified') },
+    paymentLabels && { icon: <span className="w-4 h-4">💳</span>, label: t('onboarding.payments'), value: paymentLabels },
+    formData.pricing_mode && { icon: <span className="w-4 h-4">💱</span>, label: t('onboarding.pricing'), value: formData.pricing_mode === 'surcharge' ? t('onboarding.cardSurcharge') : t('onboarding.cashDiscount') },
+    formData.wallet_address && { icon: <Wallet className="w-4 h-4" />, label: t('onboarding.wallet'), value: formData.wallet_address.slice(0, 6) + '...' + formData.wallet_address.slice(-4) },
+    formData.referral_code && { icon: <Tag className="w-4 h-4" />, label: t('onboarding.referral'), value: formData.referral_code },
   ].filter(Boolean);
 
   return (
@@ -31,8 +33,8 @@ export default function StepReview({ formData, onSubmit, onBack, loading, error 
             <CheckCircle className="w-7 h-7 text-green-500" />
           </div>
         </div>
-        <h2 className="text-2xl font-black text-slate-900">Review & Submit</h2>
-        <p className="text-slate-500 text-sm">Double-check your details before submitting your application.</p>
+        <h2 className="text-2xl font-black text-slate-900">{t('onboarding.reviewSubmit')}</h2>
+        <p className="text-slate-500 text-sm">{t('onboarding.reviewSub')}</p>
       </div>
 
       <div className="bg-slate-50 border border-slate-100 rounded-2xl divide-y divide-slate-100 overflow-hidden">
@@ -52,18 +54,18 @@ export default function StepReview({ formData, onSubmit, onBack, loading, error 
       )}
 
       <div className="bg-cyan-50 border border-cyan-100 rounded-xl px-4 py-3 text-xs text-cyan-700">
-        By submitting, our team will review your application and activate your account within 24 hours. You'll receive an email once you're approved.
+        {t('onboarding.reviewNote')}
       </div>
 
       <div className="flex gap-3 pt-1">
-        <Button type="button" variant="outline" onClick={onBack} disabled={loading} className="flex-1 h-12">Back</Button>
+        <Button type="button" variant="outline" onClick={onBack} disabled={loading} className="flex-1 h-12">{t('onboarding.back')}</Button>
         <Button
           type="button"
           onClick={onSubmit}
           disabled={loading}
           className="flex-[2] bg-cyan-600 hover:bg-cyan-700 text-white h-12 font-bold rounded-xl"
         >
-          {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Submitting...</> : 'Submit Application'}
+          {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> {t('onboarding.submitting')}</> : t('onboarding.submitApplication')}
         </Button>
       </div>
     </div>

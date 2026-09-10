@@ -3,21 +3,22 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { base44 } from '@/api/base44Client';
 import { Upload, FileCheck2, Loader2, X, AlertCircle } from 'lucide-react';
-
-const DOCS = [
-  { key: 'gov_id_url', label: 'Government-Issued ID', hint: 'Driver\'s license or passport', required: true },
-  { key: 'business_license_url', label: 'Business License', hint: 'State or local business license', required: false },
-  { key: 'void_check_url', label: 'Voided Check / Bank Letter', hint: 'For payment disbursements', required: false },
-];
+import { useLanguage } from '@/lib/i18n/useLanguage';
 
 export default function StepDocuments({ formData, onChange, onNext, onBack }) {
+  const { t } = useLanguage();
+  const DOCS = [
+    { key: 'gov_id_url', label: t('onboarding.govId'), hint: t('onboarding.govIdHint'), required: true },
+    { key: 'business_license_url', label: t('onboarding.businessLicense'), hint: t('onboarding.businessLicenseHint'), required: false },
+    { key: 'void_check_url', label: t('onboarding.voidedCheck'), hint: t('onboarding.voidedCheckHint'), required: false },
+  ];
   const [uploading, setUploading] = useState({});
   const [errors, setErrors] = useState({});
 
   const handleFile = async (key, file) => {
     if (!file) return;
     if (file.size > 10 * 1024 * 1024) {
-      setErrors(e => ({ ...e, [key]: 'File must be under 10MB.' }));
+      setErrors(e => ({ ...e, [key]: t('onboarding.fileUnder10mb') }));
       return;
     }
     setErrors(e => ({ ...e, [key]: null }));
@@ -26,7 +27,7 @@ export default function StepDocuments({ formData, onChange, onNext, onBack }) {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       onChange(key, file_url);
     } catch {
-      setErrors(e => ({ ...e, [key]: 'Upload failed. Please try again.' }));
+      setErrors(e => ({ ...e, [key]: t('onboarding.uploadFailed') }));
     } finally {
       setUploading(u => ({ ...u, [key]: false }));
     }
@@ -37,8 +38,8 @@ export default function StepDocuments({ formData, onChange, onNext, onBack }) {
   return (
     <div className="space-y-5">
       <div className="text-center space-y-1 mb-2">
-        <h2 className="text-2xl font-black text-slate-900">Document Upload</h2>
-        <p className="text-slate-500 text-sm">Upload documents to verify your identity and business. Only the government ID is required.</p>
+        <h2 className="text-2xl font-black text-slate-900">{t('onboarding.documentUpload')}</h2>
+        <p className="text-slate-500 text-sm">{t('onboarding.documentUploadSub')}</p>
       </div>
 
       {DOCS.map(({ key, label, hint, required }) => (
@@ -52,7 +53,7 @@ export default function StepDocuments({ formData, onChange, onNext, onBack }) {
           {formData[key] ? (
             <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
               <FileCheck2 className="w-5 h-5 text-green-600 shrink-0" />
-              <span className="text-green-700 text-sm font-medium flex-1 truncate">Uploaded successfully</span>
+              <span className="text-green-700 text-sm font-medium flex-1 truncate">{t('onboarding.uploadedSuccessfully')}</span>
               <button
                 type="button"
                 onClick={() => onChange(key, '')}
@@ -69,7 +70,7 @@ export default function StepDocuments({ formData, onChange, onNext, onBack }) {
                 <Upload className="w-6 h-6 text-slate-400" />
               )}
               <span className="text-sm text-slate-500">
-                {uploading[key] ? 'Uploading...' : 'Click to upload (PDF, JPG, PNG — max 10MB)'}
+                {uploading[key] ? t('onboarding.uploading') : t('onboarding.clickToUpload')}
               </span>
               <input
                 type="file"
@@ -90,14 +91,14 @@ export default function StepDocuments({ formData, onChange, onNext, onBack }) {
       ))}
 
       <div className="flex gap-3 pt-2">
-        <Button type="button" variant="outline" onClick={onBack} className="flex-1 h-12">Back</Button>
+        <Button type="button" variant="outline" onClick={onBack} className="flex-1 h-12">{t('onboarding.back')}</Button>
         <Button
           type="button"
           onClick={onNext}
           disabled={!valid || Object.values(uploading).some(Boolean)}
           className="flex-[2] bg-cyan-600 hover:bg-cyan-700 text-white h-12 font-bold rounded-xl"
         >
-          Continue
+          {t('onboarding.continue')}
         </Button>
       </div>
     </div>

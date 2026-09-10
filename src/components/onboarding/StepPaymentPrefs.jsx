@@ -3,30 +3,30 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { CreditCard, Banknote, Smartphone, Coins, Percent, DollarSign } from 'lucide-react';
-
-const PAYMENT_METHODS = [
-  { key: 'accept_cash', icon: <Banknote className="w-5 h-5" />, label: 'Cash', desc: 'Accept physical cash payments' },
-  { key: 'accept_card', icon: <CreditCard className="w-5 h-5" />, label: 'Credit / Debit Cards', desc: 'Visa, Mastercard, Amex, etc.' },
-  { key: 'accept_ebt', icon: <Smartphone className="w-5 h-5" />, label: 'EBT / SNAP', desc: 'Government food assistance benefits' },
-  { key: 'accept_crypto', icon: <Coins className="w-5 h-5" />, label: 'Solana Pay (Crypto)', desc: 'USDC, SOL, and other SPL tokens' },
-];
-
-const PRICING_MODES = [
-  {
-    key: 'surcharge',
-    label: 'Card Surcharge',
-    desc: 'Add a fee to card transactions. Cash price is base price.',
-    icon: <Percent className="w-5 h-5" />,
-  },
-  {
-    key: 'cash_discount',
-    label: 'Cash Discount',
-    desc: 'Offer a discount for cash payments. Card price is base price.',
-    icon: <DollarSign className="w-5 h-5" />,
-  },
-];
+import { useLanguage } from '@/lib/i18n/useLanguage';
 
 export default function StepPaymentPrefs({ formData, onChange, onNext, onBack }) {
+  const { t } = useLanguage();
+  const PAYMENT_METHODS = [
+    { key: 'accept_cash', icon: <Banknote className="w-5 h-5" />, label: t('pos.cash'), desc: t('onboarding.cashDesc') },
+    { key: 'accept_card', icon: <CreditCard className="w-5 h-5" />, label: t('onboarding.creditDebitCards'), desc: t('onboarding.creditDebitDesc') },
+    { key: 'accept_ebt', icon: <Smartphone className="w-5 h-5" />, label: t('onboarding.ebtSnap'), desc: t('onboarding.ebtSnapDesc') },
+    { key: 'accept_crypto', icon: <Coins className="w-5 h-5" />, label: t('onboarding.solanaPayCrypto'), desc: t('onboarding.solanaPayDesc') },
+  ];
+  const PRICING_MODES = [
+    {
+      key: 'surcharge',
+      label: t('onboarding.cardSurcharge'),
+      desc: t('onboarding.cardSurchargeDesc'),
+      icon: <Percent className="w-5 h-5" />,
+    },
+    {
+      key: 'cash_discount',
+      label: t('onboarding.cashDiscount'),
+      desc: t('onboarding.cashDiscountDesc'),
+      icon: <DollarSign className="w-5 h-5" />,
+    },
+  ];
   const toggle = (key) => onChange(key, !formData[key]);
 
   const atLeastOne = PAYMENT_METHODS.some(m => formData[m.key]);
@@ -34,13 +34,13 @@ export default function StepPaymentPrefs({ formData, onChange, onNext, onBack })
   return (
     <div className="space-y-6">
       <div className="text-center space-y-1 mb-2">
-        <h2 className="text-2xl font-black text-slate-900">Payment Preferences</h2>
-        <p className="text-slate-500 text-sm">Choose which payment methods you want to accept and how you'd like to handle pricing.</p>
+        <h2 className="text-2xl font-black text-slate-900">{t('onboarding.paymentPreferences')}</h2>
+        <p className="text-slate-500 text-sm">{t('onboarding.paymentPrefsSub')}</p>
       </div>
 
       {/* Payment Methods */}
       <div className="space-y-2">
-        <Label className="text-slate-700 font-semibold">Accepted Payment Methods</Label>
+        <Label className="text-slate-700 font-semibold">{t('onboarding.acceptedPaymentMethods')}</Label>
         <div className="grid grid-cols-1 gap-2">
           {PAYMENT_METHODS.map(({ key, icon, label, desc }) => {
             const active = !!formData[key];
@@ -76,8 +76,8 @@ export default function StepPaymentPrefs({ formData, onChange, onNext, onBack })
       {/* Dual Pricing Mode (only if cards accepted) */}
       {formData.accept_card && (
         <div className="space-y-2">
-          <Label className="text-slate-700 font-semibold">Dual Pricing Strategy</Label>
-          <p className="text-xs text-slate-400 -mt-1">How do you want to handle the difference between cash and card pricing?</p>
+          <Label className="text-slate-700 font-semibold">{t('onboarding.dualPricingStrategy')}</Label>
+          <p className="text-xs text-slate-400 -mt-1">{t('onboarding.dualPricingSub')}</p>
           <div className="grid grid-cols-1 gap-2">
             {PRICING_MODES.map(({ key, label, desc, icon }) => {
               const active = formData.pricing_mode === key;
@@ -112,14 +112,14 @@ export default function StepPaymentPrefs({ formData, onChange, onNext, onBack })
       )}
 
       <div className="flex gap-3 pt-1">
-        <Button type="button" variant="outline" onClick={onBack} className="flex-1 h-12">Back</Button>
+        <Button type="button" variant="outline" onClick={onBack} className="flex-1 h-12">{t('onboarding.back')}</Button>
         <Button
           type="button"
           onClick={onNext}
           disabled={!atLeastOne}
           className="flex-[2] bg-cyan-600 hover:bg-cyan-700 text-white h-12 font-bold rounded-xl"
         >
-          Continue
+          {t('onboarding.continue')}
         </Button>
       </div>
     </div>

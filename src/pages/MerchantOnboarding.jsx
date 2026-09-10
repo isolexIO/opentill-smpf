@@ -14,6 +14,7 @@ import StepWallet from '@/components/onboarding/StepWallet';
 import StepReview from '@/components/onboarding/StepReview';
 import AmbassadorBanner from '@/components/onboarding/AmbassadorBanner';
 import SolanaWalletProvider from '@/components/auth/SolanaWalletProvider';
+import { useLanguage } from '@/lib/i18n/useLanguage';
 
 const INITIAL = {
   business_name: '',
@@ -36,6 +37,7 @@ const INITIAL = {
 };
 
 export default function MerchantOnboarding() {
+  const { t } = useLanguage();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState(INITIAL);
   const [loading, setLoading] = useState(false);
@@ -162,19 +164,19 @@ export default function MerchantOnboarding() {
               </div>
             </div>
             <div className="space-y-2">
-              <h2 className="text-3xl font-black text-slate-900 tracking-tight">Application Submitted!</h2>
+              <h2 className="text-3xl font-black text-slate-900 tracking-tight">{t('onboarding.applicationSubmitted')}</h2>
               <p className="text-slate-500">
-                Welcome to <span className="font-bold text-slate-800">openTILL</span>. Our team will review your application and activate your account within 24 hours.
+                {t('onboarding.welcomeToOpenTILL')}
               </p>
               {formData.referral_code && (
                 <div className="inline-flex items-center gap-2 bg-cyan-50 text-cyan-700 text-sm font-semibold px-4 py-2 rounded-full border border-cyan-200">
                   <CheckCircle className="w-4 h-4" />
-                  Referral code <strong>{formData.referral_code}</strong> applied
+                  <strong>{formData.referral_code}</strong> {t('onboarding.referralCodeApplied')}
                 </div>
               )}
             </div>
             <div className="space-y-3 pt-2">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Join Our Community</p>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('onboarding.joinOurCommunity')}</p>
               <div className="grid grid-cols-3 gap-3">
                 <a href="https://x.com/opentill" target="_blank" rel="noreferrer"
                    className="flex items-center justify-center p-3 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-sm">
@@ -193,7 +195,7 @@ export default function MerchantOnboarding() {
                 className="w-full bg-cyan-600 hover:bg-cyan-700 text-white h-12 rounded-xl text-base font-bold shadow-lg"
                 onClick={() => window.location.href = createPageUrl('EmailLogin')}
               >
-                Go to Merchant Login
+                {t('onboarding.goToMerchantLogin')}
               </Button>
             </div>
           </CardContent>
@@ -273,9 +275,9 @@ export default function MerchantOnboarding() {
         </Card>
 
         <p className="text-center text-xs text-slate-400 mt-4">
-          Already have an account?{' '}
+          {t('onboarding.alreadyHaveAccount')}{' '}
           <a href={createPageUrl('EmailLogin')} className="text-cyan-600 font-semibold hover:underline">
-            Sign in
+            {t('onboarding.signIn')}
           </a>
         </p>
       </div>

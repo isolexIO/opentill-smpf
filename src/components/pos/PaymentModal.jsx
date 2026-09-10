@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Coins, CreditCard as CreditCardIcon, Banknote, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { useLanguage } from "@/lib/i18n/useLanguage";
 
 export default function PaymentModal({
   isOpen,
@@ -21,6 +22,7 @@ export default function PaymentModal({
   cart,
   order,
 }) {
+  const { t } = useLanguage();
   const [selectedMethod, setSelectedMethod] = useState(null);
   const [cashReceived, setCashReceived] = useState("");
   const [change, setChange] = useState(0);
@@ -143,20 +145,20 @@ export default function PaymentModal({
   const renderInitialSelection = () => (
     <>
       <DialogHeader>
-        <DialogTitle>Select Payment Method</DialogTitle>
+        <DialogTitle>{t('pos.selectPaymentMethod')}</DialogTitle>
         <DialogDescription>
           {isDualPricingActive ? (
             <div className="mt-2 text-center space-y-2">
               <div className="p-3 rounded-md bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
-                <div className="text-lg font-bold text-green-600 dark:text-green-300">Cash Price: ${totals.cashTotal}</div>
+                <div className="text-lg font-bold text-green-600 dark:text-green-300">{t('pos.cashPrice')}: ${totals.cashTotal}</div>
               </div>
               <div className="p-3 rounded-md bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
-                <div className="text-lg font-bold text-blue-600 dark:text-blue-300">Non-Cash Price: ${totals.cardTotal}</div>
+                <div className="text-lg font-bold text-blue-600 dark:text-blue-300">{t('pos.nonCashPrice')}: ${totals.cardTotal}</div>
               </div>
             </div>
           ) : (
              <div className="mt-2 text-center text-2xl font-bold">
-               Total: ${totals.cardTotal}
+               {t('pos.total')}: ${totals.cardTotal}
              </div>
           )}
         </DialogDescription>
@@ -168,7 +170,7 @@ export default function PaymentModal({
           onClick={() => setSelectedMethod("cash")}
         >
           <Coins className="w-8 h-8" />
-          <span>Cash</span>
+          <span>{t('pos.cash')}</span>
         </Button>
         
         {isEbtEnabled && hasEbtItems && (
@@ -178,8 +180,8 @@ export default function PaymentModal({
             onClick={() => setSelectedMethod("ebt")}
           >
             <Banknote className="w-8 h-8 text-green-600" />
-            <span>EBT/SNAP</span>
-            <span className="text-xs text-green-600">Eligible: ${ebtEligibleTotal.toFixed(2)}</span>
+            <span>{t('pos.ebtSnap')}</span>
+            <span className="text-xs text-green-600">{t('pos.eligible')}: ${ebtEligibleTotal.toFixed(2)}</span>
           </Button>
         )}
         
@@ -190,8 +192,8 @@ export default function PaymentModal({
             onClick={() => setSelectedMethod('non_integrated')}
           >
             <CreditCardIcon className="w-8 h-8" />
-            <span>Customer Terminal</span>
-            <span className="text-xs text-gray-500">External Device</span>
+            <span>{t('pos.customerTerminal')}</span>
+            <span className="text-xs text-gray-500">{t('pos.externalDevice')}</span>
           </Button>
         ) : (
           <Button
@@ -206,8 +208,8 @@ export default function PaymentModal({
             }}
           >
             <CreditCardIcon className="w-8 h-8" />
-            <span>Customer Terminal</span>
-            {isCardManual && <span className="text-xs text-gray-500">Manual Entry</span>}
+            <span>{t('pos.customerTerminal')}</span>
+            {isCardManual && <span className="text-xs text-gray-500">{t('pos.manualEntry')}</span>}
           </Button>
         )}
       </div>
@@ -217,33 +219,33 @@ export default function PaymentModal({
   const renderCardManualEntry = () => (
     <>
       <DialogHeader>
-        <DialogTitle>Process Card Payment</DialogTitle>
+        <DialogTitle>{t('pos.processCardPayment')}</DialogTitle>
         <DialogDescription>
-          Amount to charge: <span className="font-bold text-xl">${finalCardTotal.toFixed(2)}</span>
+          {t('pos.amountToCharge')}: <span className="font-bold text-xl">${finalCardTotal.toFixed(2)}</span>
         </DialogDescription>
       </DialogHeader>
       {!isProcessing ? (
         <div className="py-6 space-y-4">
           <div className="p-4 bg-blue-50 border border-blue-200 rounded-md">
             <p className="text-sm font-medium text-blue-800 mb-2">
-              Instructions:
+              {t('pos.instructions')}:
             </p>
             <ol className="text-sm text-blue-700 space-y-1 list-decimal list-inside">
-              <li>Process ${finalCardTotal.toFixed(2)} on your card terminal</li>
-              <li>Enter the approval code below</li>
-              <li>Confirm payment success or failure</li>
+              <li>{t('pos.processOnTerminal').replace('{amount}', `$${finalCardTotal.toFixed(2)}`)}</li>
+              <li>{t('pos.enterApprovalCodeBelow')}</li>
+              <li>{t('pos.confirmSuccessOrFailure')}</li>
             </ol>
           </div>
 
           {(selectedMethod === 'card_manual' || (isNonIntegratedEnabled && settings?.payment_gateways?.non_integrated?.require_approval_code)) && (
             <div className="space-y-2">
-              <label htmlFor="approval-code" className="text-sm font-medium">Approval Code *</label>
+              <label htmlFor="approval-code" className="text-sm font-medium">{t('pos.approvalCode')} *</label>
               <Input
                 id="approval-code"
                 type="text"
                 value={manualApprovalCode}
                 onChange={(e) => setManualApprovalCode(e.target.value)}
-                placeholder="Enter approval code from terminal"
+                placeholder={t('pos.enterApprovalCodePh')}
                 autoFocus
               />
             </div>
@@ -251,7 +253,7 @@ export default function PaymentModal({
 
           {(selectedMethod === 'card_manual' || (isNonIntegratedEnabled && settings?.payment_gateways?.non_integrated?.require_last_4)) && (
             <div className="space-y-2">
-              <label htmlFor="card-last4" className="text-sm font-medium">Card Last 4 Digits *</label>
+              <label htmlFor="card-last4" className="text-sm font-medium">{t('pos.cardLast4')} *</label>
               <Input
                 id="card-last4"
                 type="text"
@@ -265,12 +267,12 @@ export default function PaymentModal({
 
           {(selectedMethod === 'card_manual' || (isNonIntegratedEnabled && settings?.payment_gateways?.non_integrated?.allow_notes)) && (
             <div className="space-y-2">
-              <label htmlFor="notes" className="text-sm font-medium">Transaction Notes (Optional)</label>
+              <label htmlFor="notes" className="text-sm font-medium">{t('pos.transactionNotes')}</label>
               <Textarea
                 id="notes"
                 value={transactionNotes}
                 onChange={(e) => setTransactionNotes(e.target.value)}
-                placeholder="Any additional notes..."
+                placeholder={t('pos.transactionNotesPh')}
                 rows={2}
               />
             </div>
@@ -278,7 +280,7 @@ export default function PaymentModal({
 
           <div className="flex justify-between pt-4">
             <Button variant="ghost" onClick={() => setSelectedMethod(null)}>
-              Back
+              {t('pos.back')}
             </Button>
             <Button
               onClick={() => setIsProcessing(true)}
@@ -287,7 +289,7 @@ export default function PaymentModal({
                 ((selectedMethod === 'card_manual' || (isNonIntegratedEnabled && settings?.payment_gateways?.non_integrated?.require_last_4)) && (!manualLast4 || manualLast4.length !== 4))
               }
             >
-              Continue
+              {t('pos.continue')}
             </Button>
           </div>
         </div>
@@ -295,9 +297,9 @@ export default function PaymentModal({
         <div className="py-8 space-y-6">
           <div className="text-center">
             <AlertCircle className="w-16 h-16 mx-auto mb-4 text-orange-500" />
-            <h3 className="text-xl font-bold mb-2">Confirm Payment Status</h3>
+            <h3 className="text-xl font-bold mb-2">{t('pos.confirmPaymentStatusTitle')}</h3>
             <p className="text-gray-600">
-              Did the payment of <span className="font-bold">${finalCardTotal.toFixed(2)}</span> process successfully on your card terminal?
+              {t('pos.didPaymentProcess')} <span className="font-bold">${finalCardTotal.toFixed(2)}</span> {t('pos.processSuccessfullyOnTerminal')}
             </p>
           </div>
 
@@ -308,7 +310,7 @@ export default function PaymentModal({
               onClick={() => handleManualConfirmation(false)}
             >
               <XCircle className="w-8 h-8 text-red-600" />
-              <span className="text-red-600">Payment Failed</span>
+              <span className="text-red-600">{t('pos.paymentFailed')}</span>
             </Button>
 
             <Button
@@ -316,7 +318,7 @@ export default function PaymentModal({
               onClick={() => handleManualConfirmation(true)}
             >
               <CheckCircle className="w-8 h-8" />
-              <span>Payment Successful</span>
+              <span>{t('pos.paymentSuccessful')}</span>
             </Button>
           </div>
         </div>
@@ -327,30 +329,30 @@ export default function PaymentModal({
   const renderCardProcessing = () => (
     <>
       <DialogHeader>
-        <DialogTitle>Process Card Payment</DialogTitle>
+        <DialogTitle>{t('pos.processCardPayment')}</DialogTitle>
         <DialogDescription>
-          The customer has chosen to pay by card. The total is <span className="font-bold text-xl">${finalCardTotal.toFixed(2)}</span> (including a ${finalTipAmount.toFixed(2)} tip).
+          {t('pos.customerChosenCard')} <span className="font-bold text-xl">${finalCardTotal.toFixed(2)}</span> {t('pos.includingTip')} ${finalTipAmount.toFixed(2)}{t('pos.tipSuffix')}.
         </DialogDescription>
       </DialogHeader>
       <div className="py-6 space-y-4">
         {isCardManual || isNonIntegratedEnabled ? (
           <div className="p-4 bg-blue-50 border border-blue-200 rounded-md">
             <p className="text-sm font-medium text-blue-800 mb-2">
-              Instructions:
+              {t('pos.instructions')}:
             </p>
             <ol className="text-sm text-blue-700 space-y-1 list-decimal list-inside">
-              <li>Process ${finalCardTotal.toFixed(2)} on your card terminal</li>
-              <li>Wait for approval from the terminal</li>
-              <li>Click the button below to confirm payment received</li>
+              <li>{t('pos.processOnTerminal').replace('{amount}', `$${finalCardTotal.toFixed(2)}`)}</li>
+              <li>{t('pos.waitForApproval')}</li>
+              <li>{t('pos.clickToConfirmReceived')}</li>
             </ol>
           </div>
         ) : (
-          <p className="text-center">Please use the connected card reader to complete the transaction.</p>
+          <p className="text-center">{t('pos.useCardReader')}</p>
         )}
       </div>
       <div className="flex justify-end gap-3">
         <Button variant="outline" onClick={onClose}>
-          Cancel
+          {t('pos.cancel')}
         </Button>
         <Button
           onClick={() => {
@@ -363,7 +365,7 @@ export default function PaymentModal({
           className="bg-green-600 hover:bg-green-700"
         >
           <CreditCardIcon className="w-4 h-4 mr-2" />
-          Confirm Payment Received
+          {t('pos.confirmPaymentReceived')}
         </Button>
       </div>
     </>
@@ -372,15 +374,15 @@ export default function PaymentModal({
   const renderCashPayment = () => (
     <>
       <DialogHeader>
-        <DialogTitle>Cash Payment</DialogTitle>
+        <DialogTitle>{t('pos.cashPayment')}</DialogTitle>
         <DialogDescription>
-          Total amount due:
+          {t('pos.totalAmountDue')}:
           <span className="font-bold text-2xl ml-2">${finalCashTotal.toFixed(2)}</span>
         </DialogDescription>
       </DialogHeader>
       <div className="py-6 space-y-4">
         <div className="space-y-1">
-          <label htmlFor="cash-received" className="text-sm font-medium">Cash Received</label>
+          <label htmlFor="cash-received" className="text-sm font-medium">{t('pos.cashReceived')}</label>
           <Input
             id="cash-received"
             type="number"
@@ -393,17 +395,17 @@ export default function PaymentModal({
         </div>
         {change > 0 && (
           <div className="text-center text-lg">
-            Change Due: <span className="font-bold text-2xl text-green-600">${change.toFixed(2)}</span>
+            {t('pos.changeDue')}: <span className="font-bold text-2xl text-green-600">${change.toFixed(2)}</span>
           </div>
         )}
       </div>
       <div className="flex justify-between">
-        <Button variant="ghost" onClick={() => setSelectedMethod(null)}>Back</Button>
+        <Button variant="ghost" onClick={() => setSelectedMethod(null)}>{t('pos.back')}</Button>
         <Button
           onClick={() => handlePayment("cash")}
           disabled={!cashReceived || parseFloat(cashReceived) < finalCashTotal}
         >
-          Finalize Payment
+          {t('pos.finalizePayment')}
         </Button>
       </div>
     </>
@@ -419,17 +421,17 @@ export default function PaymentModal({
       return (
         <>
           <DialogHeader>
-            <DialogTitle>EBT/SNAP Payment</DialogTitle>
+            <DialogTitle>{t('pos.ebtSnapPayment')}</DialogTitle>
             <DialogDescription>
               <div className="mt-2 space-y-2">
                 <div className="text-sm">
-                  <strong>Total Due:</strong> ${finalCashTotal.toFixed(2)}
+                  <strong>{t('pos.totalDue')}:</strong> ${finalCashTotal.toFixed(2)}
                 </div>
                 <div className="text-sm text-green-600">
-                  <strong>EBT Eligible:</strong> ${ebtEligibleTotal.toFixed(2)}
+                  <strong>{t('pos.ebtEligibleLabel')}:</strong> ${ebtEligibleTotal.toFixed(2)}
                 </div>
                 <div className="text-sm text-orange-600">
-                  <strong>Max EBT Amount:</strong> ${maxEbtAmount.toFixed(2)}
+                  <strong>{t('pos.maxEbtAmount')}:</strong> ${maxEbtAmount.toFixed(2)}
                 </div>
               </div>
             </DialogDescription>
@@ -437,17 +439,17 @@ export default function PaymentModal({
           <div className="py-6 space-y-4">
             <div className="p-4 bg-green-50 border border-green-200 rounded-md">
               <p className="text-sm font-medium text-green-800 mb-2">
-                Instructions:
+                {t('pos.instructions')}:
               </p>
               <ol className="text-sm text-green-700 space-y-1 list-decimal list-inside">
-                <li>Process EBT payment on your EBT terminal</li>
-                <li>Enter the approval code and card details below</li>
-                <li>Confirm payment success</li>
+                <li>{t('pos.processEbtOnTerminal')}</li>
+                <li>{t('pos.enterApprovalAndCard')}</li>
+                <li>{t('pos.confirmPaymentSuccess')}</li>
               </ol>
             </div>
 
             <div className="space-y-1">
-              <label htmlFor="ebt-amount" className="text-sm font-medium">EBT Amount *</label>
+              <label htmlFor="ebt-amount" className="text-sm font-medium">{t('pos.ebtAmount')} *</label>
               <Input
                 id="ebt-amount"
                 type="number"
@@ -455,24 +457,24 @@ export default function PaymentModal({
                 max={maxEbtAmount}
                 value={ebtAmount}
                 onChange={(e) => setEbtAmount(e.target.value)}
-                placeholder={`Max: ${maxEbtAmount.toFixed(2)}`}
+                placeholder={`${t('pos.max')}: ${maxEbtAmount.toFixed(2)}`}
                 autoFocus
               />
             </div>
 
             <div className="space-y-1">
-              <label htmlFor="ebt-approval" className="text-sm font-medium">Approval Code *</label>
+              <label htmlFor="ebt-approval" className="text-sm font-medium">{t('pos.approvalCode')} *</label>
               <Input
                 id="ebt-approval"
                 type="text"
                 value={ebtApprovalCode}
                 onChange={(e) => setEbtApprovalCode(e.target.value)}
-                placeholder="Enter approval code from EBT terminal"
+                placeholder={t('pos.enterApprovalCodePh')}
               />
             </div>
 
             <div className="space-y-1">
-              <label htmlFor="ebt-last4" className="text-sm font-medium">Card Last 4 Digits *</label>
+              <label htmlFor="ebt-last4" className="text-sm font-medium">{t('pos.cardLast4')} *</label>
               <Input
                 id="ebt-last4"
                 type="text"
@@ -486,12 +488,12 @@ export default function PaymentModal({
             {needsSplitPayment && (
               <div className="p-4 bg-yellow-50 border border-yellow-300 rounded-md">
                 <p className="text-sm font-medium text-yellow-800 mb-2">
-                  Split Payment Required
+                  {t('pos.splitPaymentRequired')}
                 </p>
                 <p className="text-sm text-yellow-700 mb-3">
-                  Remaining balance: <strong>${remainingAmount.toFixed(2)}</strong>
+                  {t('pos.remainingBalance')}: <strong>${remainingAmount.toFixed(2)}</strong>
                 </p>
-                <label className="text-sm font-medium">Pay remaining with:</label>
+                <label className="text-sm font-medium">{t('pos.payRemainingWith')}:</label>
                 <div className="flex gap-2 mt-2">
                   <Button
                     type="button"
@@ -499,7 +501,7 @@ export default function PaymentModal({
                     size="sm"
                     onClick={() => setOtherPaymentMethod('cash')}
                   >
-                    Cash
+                    {t('pos.cash')}
                   </Button>
                   <Button
                     type="button"
@@ -507,14 +509,14 @@ export default function PaymentModal({
                     size="sm"
                     onClick={() => setOtherPaymentMethod('card')}
                   >
-                    Card
+                    {t('pos.customerTerminal')}
                   </Button>
                 </div>
               </div>
             )}
           </div>
           <div className="flex justify-between">
-            <Button variant="ghost" onClick={() => setSelectedMethod(null)}>Back</Button>
+            <Button variant="ghost" onClick={() => setSelectedMethod(null)}>{t('pos.back')}</Button>
             <Button
               onClick={() => setIsProcessing(true)}
               disabled={
@@ -527,7 +529,7 @@ export default function PaymentModal({
                 (needsSplitPayment && !otherPaymentMethod)
               }
             >
-              Continue
+              {t('pos.continue')}
             </Button>
           </div>
         </>
@@ -538,18 +540,18 @@ export default function PaymentModal({
       return (
         <>
           <DialogHeader>
-            <DialogTitle>Confirm EBT Payment</DialogTitle>
+            <DialogTitle>{t('pos.confirmEbtPayment')}</DialogTitle>
           </DialogHeader>
           <div className="py-8 space-y-6">
             <div className="text-center">
               <AlertCircle className="w-16 h-16 mx-auto mb-4 text-orange-500" />
-              <h3 className="text-xl font-bold mb-2">Confirm Payment Status</h3>
+              <h3 className="text-xl font-bold mb-2">{t('pos.confirmPaymentStatusTitle')}</h3>
               <p className="text-gray-600">
-                Did the EBT payment of <span className="font-bold">${currentEbtAmount.toFixed(2)}</span> process successfully?
+                {t('pos.didEbtProcess')} <span className="font-bold">${currentEbtAmount.toFixed(2)}</span> {t('pos.processSuccessfullyQ')}
               </p>
               {needsSplitPayment && (
                 <p className="text-sm text-gray-500 mt-2">
-                  Remaining ${remainingAmount.toFixed(2)} will be collected after confirmation
+                  {t('pos.remainingWillBeCollected').replace('{amount}', `$${remainingAmount.toFixed(2)}`)}
                 </p>
               )}
             </div>
@@ -561,7 +563,7 @@ export default function PaymentModal({
                 onClick={() => handleManualConfirmation(false)}
               >
                 <XCircle className="w-8 h-8 text-red-600" />
-                <span className="text-red-600">Payment Failed</span>
+                <span className="text-red-600">{t('pos.paymentFailed')}</span>
               </Button>
 
               <Button
@@ -569,7 +571,7 @@ export default function PaymentModal({
                 onClick={() => handleManualConfirmation(true)}
               >
                 <CheckCircle className="w-8 h-8" />
-                <span>Payment Successful</span>
+                <span>{t('pos.paymentSuccessful')}</span>
               </Button>
             </div>
           </div>

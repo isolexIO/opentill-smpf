@@ -4,8 +4,10 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 import { CheckCircle, Loader2, Tag, Gift, Lock, Phone, Mail, Globe, Building2 } from 'lucide-react';
+import { useLanguage } from '@/lib/i18n/useLanguage';
 
 export default function StepReferral({ formData, onChange, onNext, locked, dealerReferral }) {
+  const { t } = useLanguage();
   const [checking, setChecking] = useState(false);
   const [referrerInfo, setReferrerInfo] = useState(null);
   const [dealerInfo, setDealerInfo] = useState(null);
@@ -80,13 +82,13 @@ export default function StepReferral({ formData, onChange, onNext, locked, deale
             <Gift className="w-7 h-7 text-cyan-600" />
           </div>
         </div>
-        <h2 className="text-2xl font-black text-slate-900">You're Invited!</h2>
-        <p className="text-slate-500 text-sm">Enter your referral code to unlock rewards for you and your referrer.</p>
+        <h2 className="text-2xl font-black text-slate-900">{t('onboarding.youreInvited')}</h2>
+        <p className="text-slate-500 text-sm">{t('onboarding.enterReferralCode')}</p>
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="ref_code" className="text-cyan-700 font-semibold flex items-center gap-1">
-          <Tag className="w-4 h-4" /> Referral Code
+          <Tag className="w-4 h-4" /> {t('onboarding.referralCode')}
         </Label>
         <div className="flex gap-2">
           <Input
@@ -106,7 +108,7 @@ export default function StepReferral({ formData, onChange, onNext, locked, deale
               disabled={checking || !formData.referral_code}
               className="shrink-0 border-cyan-300 text-cyan-700"
             >
-              {checking ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Verify'}
+              {checking ? <Loader2 className="w-4 h-4 animate-spin" /> : t('onboarding.verify')}
             </Button>
           )}
         </div>
@@ -115,10 +117,10 @@ export default function StepReferral({ formData, onChange, onNext, locked, deale
           <div className="flex items-center gap-3 bg-cyan-50 border border-cyan-200 rounded-xl p-3">
             <CheckCircle className="w-5 h-5 text-cyan-500 shrink-0" />
             <div>
-              <p className="text-sm font-bold text-cyan-800">Valid referral code!</p>
+              <p className="text-sm font-bold text-cyan-800">{t('onboarding.validReferralCode')}</p>
               <p className="text-xs text-cyan-600">
-                Referred by: <strong>{referrerInfo.name || referrerInfo.business_name}</strong>
-                {referrerInfo.type === 'customer' && <span className="ml-1">(openTILL Customer)</span>}
+                {t('onboarding.referredBy')}: <strong>{referrerInfo.name || referrerInfo.business_name}</strong>
+                {referrerInfo.type === 'customer' && <span className="ml-1">{t('onboarding.opentillCustomer')}</span>}
               </p>
             </div>
           </div>
@@ -129,8 +131,8 @@ export default function StepReferral({ formData, onChange, onNext, locked, deale
             <div className="flex items-center gap-3">
               <CheckCircle className="w-5 h-5 text-cyan-500 shrink-0" />
               <div>
-                <p className="text-sm font-bold text-cyan-800">Ambassador referral applied!</p>
-                <p className="text-xs text-cyan-600">You were invited by a verified openTILL Ambassador.</p>
+                <p className="text-sm font-bold text-cyan-800">{t('onboarding.ambassadorReferralApplied')}</p>
+                <p className="text-xs text-cyan-600">{t('onboarding.invitedByAmbassador')}</p>
               </div>
             </div>
             <div className="flex items-start gap-3 bg-white/70 rounded-lg p-3">
@@ -171,7 +173,7 @@ export default function StepReferral({ formData, onChange, onNext, locked, deale
 
         {locked && formData.referral_code && (
           <p className="text-xs text-cyan-700 bg-cyan-50 border border-cyan-200 rounded-lg px-3 py-2 flex items-center gap-1.5">
-            <Lock className="w-3 h-3 shrink-0" /> Referral code applied via your invite link and locked.
+            <Lock className="w-3 h-3 shrink-0" /> {t('onboarding.referralLocked')}
           </p>
         )}
       </div>
@@ -181,11 +183,11 @@ export default function StepReferral({ formData, onChange, onNext, locked, deale
           onClick={onNext}
           className="w-full bg-cyan-600 hover:bg-cyan-700 text-white h-12 text-base font-bold rounded-xl"
         >
-          Continue {(referrerInfo || dealerInfo) ? '— Referral Applied ✓' : ''}
+          {t('onboarding.continue')} {(referrerInfo || dealerInfo) ? t('onboarding.referralApplied') : ''}
         </Button>
         {!formData.referral_code && (
           <Button variant="ghost" onClick={onNext} className="text-slate-400 text-sm">
-            I don't have a referral code
+            {t('onboarding.noReferralCode')}
           </Button>
         )}
       </div>

@@ -25,6 +25,7 @@ import {
   User,
 } from "lucide-react";
 import { createPageUrl } from "@/utils";
+import { useLanguage } from "@/lib/i18n/useLanguage";
 
 export default function POSToolbar({
   stationName,
@@ -59,12 +60,13 @@ export default function POSToolbar({
   onLock,
   onClockOut,
 }) {
+  const { t } = useLanguage();
   return (
     <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-3 md:p-4 sticky top-0 z-10">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-4">
         <div className="flex items-center gap-2 md:gap-4">
           <CreditCard className="w-5 h-5 md:w-6 md:h-6 text-blue-600" />
-          <h1 className="text-lg md:text-2xl font-bold text-gray-900 dark:text-white">POS</h1>
+          <h1 className="text-lg md:text-2xl font-bold text-gray-900 dark:text-white">{t('pos.title')}</h1>
           <Badge variant="outline" className="text-xs">
             {stationName}
           </Badge>
@@ -107,7 +109,7 @@ export default function POSToolbar({
               className="flex-1 sm:flex-none relative"
             >
               <Monitor className="w-4 h-4 mr-2" />
-              Tickets
+              {t('pos.tickets')}
               {openTicketsCount > 0 && (
                 <Badge className="ml-2 bg-red-500">{openTicketsCount}</Badge>
               )}
@@ -124,7 +126,7 @@ export default function POSToolbar({
             className="flex-1 sm:flex-none relative"
           >
             <Globe className="w-4 h-4 mr-2" />
-            Online
+            {t('pos.online')}
             {pendingOnlineOrdersCount > 0 && (
               <Badge className="ml-2 bg-orange-500">{pendingOnlineOrdersCount}</Badge>
             )}
@@ -134,11 +136,11 @@ export default function POSToolbar({
             variant="outline"
             size="sm"
             onClick={onOpenCustomerDisplay}
-            title="Customer Display"
+            title={t('pos.cd')}
             className="flex-1 sm:flex-none"
           >
             <MonitorPlay className="w-4 h-4 mr-2" />
-            CD
+            {t('pos.cd')}
           </Button>
 
           {isKitchenDisplayEnabled && (
@@ -146,11 +148,11 @@ export default function POSToolbar({
               variant="outline"
               size="sm"
               onClick={onOpenKitchenDisplay}
-              title="Kitchen Display"
+              title={t('pos.kd')}
               className="flex-1 sm:flex-none"
             >
               <Monitor className="w-4 h-4 mr-2" />
-              KD
+              {t('pos.kd')}
             </Button>
           )}
 
@@ -158,7 +160,7 @@ export default function POSToolbar({
             <>
               {posProductView === 'products' && (
                 <Button variant="outline" size="sm" onClick={onBackToDepartments}>
-                  ← Departments
+                  ← {t('pos.departments')}
                 </Button>
               )}
 
@@ -170,7 +172,7 @@ export default function POSToolbar({
 
               {posMode === "restaurant" && (
                 <Input
-                  placeholder="Table #"
+                  placeholder={t('pos.tableNumber')}
                   value={tableNumber}
                   onChange={(e) => onTableNumberChange(e.target.value)}
                   className="w-24"
@@ -181,10 +183,10 @@ export default function POSToolbar({
                 variant="outline"
                 size="sm"
                 onClick={onOpenItemDialog}
-                title="Add Open Item"
+                title={t('pos.openItem')}
               >
                 <Package className="w-4 h-4 mr-2" />
-                Open Item
+                {t('pos.openItem')}
               </Button>
 
               {isCameraScannerEnabled && (
@@ -192,10 +194,10 @@ export default function POSToolbar({
                   variant="outline"
                   size="sm"
                   onClick={onOpenCameraScanner}
-                  title="Scan Barcode"
+                  title={t('pos.scan')}
                 >
                   <Camera className="w-4 h-4 mr-2" />
-                  Scan
+                  {t('pos.scan')}
                 </Button>
               )}
 
@@ -207,7 +209,7 @@ export default function POSToolbar({
                   className="bg-orange-500 text-white hover:bg-orange-600"
                 >
                   <Monitor className="w-4 h-4 mr-2" />
-                  Send to Kitchen
+                  {t('pos.sendToKitchen')}
                 </Button>
               )}
             </>
@@ -216,7 +218,7 @@ export default function POSToolbar({
           {!isDemo && activeStaff && (
             <Button variant="outline" size="sm" onClick={onLock}>
               <Lock className="w-4 h-4 mr-2" />
-              Lock
+              {t('pos.lock')}
             </Button>
           )}
 
@@ -227,20 +229,20 @@ export default function POSToolbar({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuLabel>System</DropdownMenuLabel>
+              <DropdownMenuLabel>{t('pos.system')}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => window.location.href = createPageUrl('SystemMenu')}>
                 <Menu className="w-4 h-4 mr-2" />
-                System Menu
+                {t('pos.systemMenu')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => window.location.href = createPageUrl('Settings')}>
                 <Settings className="w-4 h-4 mr-2" />
-                Settings
+                {t('pos.settings')}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={onClockOut}>
                 <Lock className="w-4 h-4 mr-2" />
-                Lock Terminal
+                {t('pos.lockTerminal')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
