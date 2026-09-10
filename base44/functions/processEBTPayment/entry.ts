@@ -1,12 +1,10 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.46';
 
-// EBT/SNAP payment processing. Supports two modes:
-//  - "manual": cashier runs the EBT card on a standalone terminal, then
-//    confirms the transaction in the POS with the approval code. No external
-//    API call is made; the transaction is recorded for audit/reconciliation.
-//  - integrated providers (fis, first_data, worldpay, clover): the function
-//    calls the configured EBT gateway (EBT_GATEWAY_URL + EBT_API_KEY /
-//    EBT_API_SECRET secrets) to authorize / refund / void the transaction.
+// EBT/SNAP payment processing. Manual mode only: the cashier runs the EBT
+// card on a standalone terminal and confirms the transaction in the POS with
+// the approval code. No external API call is made; the transaction is
+// recorded for audit/reconciliation. Integrated gateway mode is not enabled
+// on this platform.
 //
 // Actions: 'balance' (balance inquiry), 'purchase', 'refund', 'void'.
 
@@ -116,114 +114,13 @@ Deno.serve(async (req) => {
     }
 
     // ---- Integrated mode ---------------------------------------------------
-    // Call the configured EBT gateway. Credentials live in platform secrets,
-    // never on the merchant entity.
-    const gatewayUrl = Deno.env.get('EBT_GATEWAY_URL');
-    const apiKey = Deno.env.get('EBT_API_KEY');
-    const apiSecret = Deno.env.get('EBT_API_SECRET');
-
-    if (!gatewayUrl || !apiKey) {
-      return Response.json({
-        success: false,
-        error: 'EBT processor not configured. Set EBT_GATEWAY_URL and EBT_API_KEY secrets to use integrated EBT.',
-      }, { status: 500 });
-    }
-
-    // Load + validate the order for purchase/refund
-    let order = null;
-    if (orderId) {
-      const orders = await base44.asServiceRole.entities.Order.filter({ id: orderId });
-      if (!orders || orders.length === 0) {
-        return Response.json({ success: false, error: 'Order not found' }, { status: 404 });
-      }
-      order = orders[0];
-      if (order.merchant_id !== merchantId) {
-        return Response.json({ success: false, error: 'Forbidden' }, { status: 403 });
-      }
-    }
-
-    const billableAmount = action === 'purchase' && order
-      ? Number(order.ebt_eligible_total || order.total || 0)
-      : Number(amount || 0);
-
-    if ((action === 'purchase' || action === 'refund') && (!Number.isFinite(billableAmount) || billableAmount <= 0)) {
-      return Response.json({ success: false, error: 'Invalid amount' }, { status: 400 });
-    }
-
-    // Enforce per-merchant max transaction limit if configured
-    if (ebtConfig.max_transaction_amount && ebtConfig.max_transaction_amount > 0 && billableAmount > ebtConfig.max_transaction_amount) {
-      return Response.json({
-        success: false,
-        error: `Amount exceeds the configured EBT maximum ($${ebtConfig.max_transaction_amount})`,
-      }, { status: 400 });
-    }
-
-    const payload = {
-      provider: ebtConfig.provider,
-      merchant_id: ebtConfig.merchant_id,
-      terminal_id: ebtConfig.terminal_id,
-      store_number: ebtConfig.store_number || null,
-      test_mode: !!ebtConfig.test_mode,
-      action,
-      amount: Math.round(billableAmount * 100), // cents
-      card: ebtCardNumber || null,
-      pin: pin || null,
-      transaction_id: transactionId || null,
-      order_id: orderId || null,
-    };
-
-    const gatewayRes = await fetch(`${gatewayUrl.replace(/\/$/, '')}/ebt/${action}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-        ...(apiSecret ? { 'X-Api-Secret': apiSecret } : {}),
-      },
-      body: JSON.stringify(payload),
-    });
-
-    const gatewayData = await gatewayRes.json().catch(() => ({}));
-
-    if (!gatewayRes.ok) {
-      return Response.json({
-        success: false,
-        error: gatewayData?.error || gatewayData?.message || `EBT gateway returned ${gatewayRes.status}`,
-        gateway_status: gatewayRes.status,
-      }, { status: 502 });
-    }
-
-    // Record the successful EBT transaction on the order
-    if (order && action === 'purchase') {
-      await base44.asServiceRole.entities.Order.update(orderId, {
-        payment_method: 'ebt',
-        ebt_amount: billableAmount,
-        payment_details: {
-          ...(order.payment_details || {}),
-          ebt: {
-            mode: 'integrated',
-            provider: ebtConfig.provider,
-            action,
-            amount: billableAmount,
-            transaction_id: gatewayData.transaction_id || gatewayData.id || null,
-            approval_code: gatewayData.approval_code || null,
-            balance: gatewayData.balance || null,
-            card_last_4: ebtCardNumber || null,
-            processed_at: new Date().toISOString(),
-          },
-        },
-        status: 'completed',
-      });
-    }
-
+    // Integrated EBT gateway credentials are not configured on this platform
+    // (manual mode is the supported EBT fulfillment path). Any non-manual
+    // request is rejected here without referencing external secrets.
     return Response.json({
-      success: true,
-      mode: 'integrated',
-      action,
-      amount: billableAmount,
-      transaction_id: gatewayData.transaction_id || gatewayData.id || null,
-      approval_code: gatewayData.approval_code || null,
-      balance: gatewayData.balance || null,
-    });
+      success: false,
+      error: 'Integrated EBT is not available. Set the merchant EBT provider to "manual" and record the approval code from your standalone EBT terminal.',
+    }, { status: 501 });
   } catch (error) {
     console.error('processEBTPayment error:', error);
     return Response.json({ success: false, error: error.message }, { status: 500 });
