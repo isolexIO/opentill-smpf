@@ -110,6 +110,64 @@ export default function POSPage() {
     };
   }, []);
 
+  // Handle return from Stripe-hosted wallet (Apple Pay / Google Pay) checkout.
+  // On success the URL carries wallet_paid=1&session_id=...; on cancel,
+  // wallet_canceled=1. We confirm the paid order server-side, notify the cashier,
+  // then strip the query params so a refresh doesn't reprocess.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get('session_id');
+    const paid = params.get('wallet_paid') === '1';
+    const canceled = params.get('wallet_canceled') === '1';
+    if (!sessionId && !canceled) return;
+
+    const cleanUrl = () => {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('wallet_paid');
+      url.searchParams.delete('wallet_canceled');
+      url.searchParams.delete('session_id');
+      window.history.replaceState({}, '', url.toString());
+    };
+
+    if (canceled && !paid) {
+      cleanUrl();
+      return;
+    }
+
+    let cancelled = false;
+    (async () => {
+      try {
+        let merchantId = settings?.merchant_id;
+        if (!merchantId) {
+          try {
+            const pin = JSON.parse(localStorage.getItem('pinLoggedInUser') || 'null');
+            merchantId = pin?.merchant_id;
+          } catch { /* ignore */ }
+        }
+        if (!merchantId) {
+          try { merchantId = (await base44.auth.me())?.merchant_id; } catch { /* ignore */ }
+        }
+        if (!merchantId || !sessionId) { cleanUrl(); return; }
+
+        const { data } = await base44.functions.invoke('confirmWalletCheckout', { sessionId, merchantId });
+        if (cancelled) return;
+        if (data?.success) {
+          alert(`Payment successful!\nOrder completed via Apple Pay / Google Pay.`);
+        } else {
+          alert(data?.error || 'Wallet payment could not be confirmed.');
+        }
+      } catch (e) {
+        if (!cancelled) {
+          console.error('Wallet confirm error:', e);
+          alert('Wallet payment could not be confirmed.');
+        }
+      } finally {
+        if (!cancelled) cleanUrl();
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
   // Load initial data - ONLY ONCE on mount
   useEffect(() => {
     const initializePOS = async () => {
@@ -1158,6 +1216,47 @@ export default function POSPage() {
     }
   };
 
+  // Apple Pay / Google Pay via Stripe-hosted Checkout. Redirects the cashier's
+  // browser to Stripe's Checkout page (where Apple Pay / Google Pay appear
+  // automatically), then returns to the POS which confirms the paid order.
+  const handleWalletPayment = async () => {
+    if (!requireStaff()) return;
+    if (settings?.merchant_id === 'demo') {
+      alert('Demo Mode: Wallet payment is simulated.');
+      setCart([]);
+      setSelectedCustomer(null);
+      setDiscountPercent(0);
+      setTableNumber("");
+      setShowPaymentChoice(false);
+      setCurrentOrderId(null);
+      setOrder(null);
+      setPosProductView('departments');
+      setSelectedDepartment('all');
+      return;
+    }
+    if (!currentOrderId) {
+      alert('No order found. Please add items to cart first.');
+      return;
+    }
+    try {
+      setShowPaymentChoice(false);
+      const returnUrl = `${window.location.origin}${window.location.pathname}`;
+      const { data } = await base44.functions.invoke('createWalletCheckoutSession', {
+        orderId: currentOrderId,
+        merchantId: settings.merchant_id,
+        returnUrl,
+      });
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        alert(data?.error || 'Could not start wallet payment. Make sure your Stripe account is activated.');
+      }
+    } catch (e) {
+      console.error('Wallet checkout error:', e);
+      alert(e?.response?.data?.error || e?.message || 'Could not start wallet payment.');
+    }
+  };
+
   const startInteractivePaymentFlow = async () => {
     if (settings?.merchant_id === 'demo') {
       alert('Demo Mode: Interactive payment flow not available.');
@@ -1919,6 +2018,7 @@ export default function POSPage() {
         onCashSelected={handleCashPayment}
         onEbtSelected={handleEbtPayment}
         onCustomerTerminalSelected={handleCustomerTerminal}
+        onWalletSelected={handleWalletPayment}
         order={order}
         waitingForCustomer={waitingForCustomer}
         customerSelectedMethod={customerSelectedMethod}

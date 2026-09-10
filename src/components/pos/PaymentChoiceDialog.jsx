@@ -1,7 +1,7 @@
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Loader2, DollarSign, CreditCard, Banknote, CheckCircle } from 'lucide-react';
+import { Loader2, DollarSign, CreditCard, Banknote, CheckCircle, Wallet } from 'lucide-react';
 
 export default function PaymentChoiceDialog({ 
   isOpen, 
@@ -9,6 +9,7 @@ export default function PaymentChoiceDialog({
   onCashSelected,
   onEbtSelected,
   onCustomerTerminalSelected, 
+  onWalletSelected,
   order,
   cart = [],
   totals,
@@ -22,6 +23,12 @@ export default function PaymentChoiceDialog({
   const hasEbtItems = cart.some(item => item?.ebt_eligible);
   const ebtEligibleTotal = parseFloat(totals?.ebtEligibleTotal || 0);
   const showEbtOption = isEbtEnabled && hasEbtItems && ebtEligibleTotal > 0;
+
+  // Apple Pay / Google Pay via Stripe-hosted Checkout. Requires the merchant's
+  // own Stripe Connect account to be connected + charges-enabled. The actual
+  // charges_enabled check happens server-side; here we only gate the button on
+  // the merchant having Stripe enabled with a connected account id.
+  const showWalletOption = !!(settings?.payment_gateways?.stripe?.enabled && settings?.payment_gateways?.stripe?.account_id);
 
   console.log('PaymentChoiceDialog: Rendering', {
     isOpen,
@@ -115,6 +122,23 @@ export default function PaymentChoiceDialog({
                 </div>
               </div>
             </Button>
+
+            {/* Apple Pay / Google Pay (Stripe-hosted Checkout) */}
+            {showWalletOption && (
+              <Button
+                onClick={onWalletSelected}
+                variant="outline"
+                className="h-20 flex items-center justify-start gap-4 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:border-indigo-500 dark:border-gray-600 dark:text-white"
+              >
+                <Wallet className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
+                <div className="text-left">
+                  <div className="font-semibold text-lg">Apple Pay / Google Pay</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                    Tap to pay on this device
+                  </div>
+                </div>
+              </Button>
+            )}
           </div>
 
           {showEbtOption && (

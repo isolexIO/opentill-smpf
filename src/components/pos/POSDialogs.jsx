@@ -21,6 +21,7 @@ export default function POSDialogs({
   onCashSelected,
   onEbtSelected,
   onCustomerTerminalSelected,
+  onWalletSelected,
   order,
   waitingForCustomer,
   customerSelectedMethod,
@@ -77,6 +78,8 @@ export default function POSDialogs({
           onCashSelected={onCashSelected}
           onEbtSelected={onEbtSelected}
           onCustomerTerminalSelected={onCustomerTerminalSelected}
+          onWalletSelected={onWalletSelected}
+          settings={settings}
           order={order}
           waitingForCustomer={waitingForCustomer}
           customerSelectedMethod={customerSelectedMethod}
