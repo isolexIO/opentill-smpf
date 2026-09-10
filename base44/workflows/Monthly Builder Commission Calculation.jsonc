@@ -1,0 +1,41 @@
+{
+  "name": "Monthly Builder Commission Calculation",
+  "description": "Automatically calculates and creates BuilderPayout records for all verified builders based on their chips' paid subscription revenue, on the 1st of each month.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "50 4 1 * *",
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "monthly_builder_commission_calculation",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "calculateBuilderCommissions",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

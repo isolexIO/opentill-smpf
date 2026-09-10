@@ -7,6 +7,15 @@
       "description": "Optional description for search visibility and SEO (up to 1000 characters)",
       "maxLength": 1000
     },
+    "builder_id": {
+      "type": "string",
+      "description": "Builder who owns this chip. Used to attribute ChipSubscription revenue for builder commission payouts."
+    },
+    "revenue_share_percent": {
+      "type": "number",
+      "default": 70,
+      "description": "Percentage of chip subscription revenue paid to the builder (default 70%)"
+    },
     "name": {
       "type": "string",
       "description": "Chip name"

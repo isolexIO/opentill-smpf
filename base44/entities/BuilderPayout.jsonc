@@ -1,0 +1,165 @@
+{
+  "name": "BuilderPayout",
+  "type": "object",
+  "properties": {
+    "description": {
+      "type": "string",
+      "description": "Optional description for search visibility and SEO (up to 1000 characters)",
+      "maxLength": 1000
+    },
+    "builder_id": {
+      "type": "string",
+      "description": "Reference to Builder receiving payout"
+    },
+    "period_start": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Billing period start date"
+    },
+    "period_end": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Billing period end date"
+    },
+    "gross_revenue": {
+      "type": "number",
+      "default": 0,
+      "description": "Total chip subscription revenue for the period ($DUC)"
+    },
+    "commission_amount": {
+      "type": "number",
+      "default": 0,
+      "description": "Builder's share of revenue ($DUC)"
+    },
+    "revenue_share_percent": {
+      "type": "number",
+      "default": 70,
+      "description": "Revenue share percentage applied"
+    },
+    "platform_share": {
+      "type": "number",
+      "default": 0,
+      "description": "Platform's share of revenue ($DUC)"
+    },
+    "payout_method": {
+      "type": "string",
+      "enum": [
+        "stripe_connect",
+        "solana",
+        "manual"
+      ],
+      "default": "solana",
+      "description": "How the builder receives this payout"
+    },
+    "payout_destination": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Destination details: { solana: { solana_wallet, tx_signature, duc_amount, duc_mint } }"
+    },
+    "fees": {
+      "type": "number",
+      "default": 0,
+      "description": "Processing fees"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "scheduled",
+        "processing",
+        "completed",
+        "failed",
+        "canceled",
+        "on_hold",
+        "manual_review"
+      ],
+      "default": "pending",
+      "description": "Payout status"
+    },
+    "scheduled_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When payout is scheduled to execute"
+    },
+    "processed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When payout was actually processed"
+    },
+    "attempt_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of processing attempts"
+    },
+    "error_message": {
+      "type": "string",
+      "description": "Error details if failed"
+    },
+    "breakdown": {
+      "type": "array",
+      "description": "Per-chip revenue + commission breakdown for this payout",
+      "items": {
+        "type": "object",
+        "properties": {
+          "chip_id": {
+            "type": "string"
+          },
+          "chip_name": {
+            "type": "string"
+          },
+          "subscriptions": {
+            "type": "number"
+          },
+          "revenue": {
+            "type": "number"
+          },
+          "revenue_share_percent": {
+            "type": "number"
+          },
+          "commission": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "notes": {
+      "type": "string",
+      "description": "Admin notes or additional context"
+    }
+  },
+  "required": [
+    "builder_id",
+    "period_start",
+    "period_end",
+    "commission_amount"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.builder_id": "{{user.data.builder_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
