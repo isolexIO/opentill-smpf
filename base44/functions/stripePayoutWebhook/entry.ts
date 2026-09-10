@@ -11,7 +11,18 @@ const webhookSecret = Deno.env.get('STRIPE_PAYOUT_WEBHOOK_SECRET');
 
 Deno.serve(async (req) => {
   try {
+    // The webhook signing secret IS the caller authentication: only Stripe
+    // can produce a valid signature for it. Refuse to process if the secret
+    // isn't configured, so the endpoint can never run unauthenticated.
+    if (!webhookSecret) {
+      console.error('STRIPE_PAYOUT_WEBHOOK_SECRET is not configured');
+      return Response.json({ error: 'Webhook not configured' }, { status: 500 });
+    }
+
     const signature = req.headers.get('stripe-signature');
+    if (!signature) {
+      return Response.json({ error: 'Missing signature' }, { status: 400 });
+    }
     const body = await req.text();
 
     let event;
