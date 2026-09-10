@@ -3,8 +3,35 @@
 let solPriceCache = { price: null, expiresAt: 0 };
 const SOL_PRICE_TTL_MS = 60_000;
 
+// In-memory per-IP rate limiting. This function is a public, stateless price
+// converter called from the customer-facing checkout display, so it cannot
+// require a logged-in user. Rate-limiting prevents anonymous resource abuse.
+const ipHits = new Map<string, number[]>();
+const IP_WINDOW_MS = 60_000;  // 1 minute
+const IP_MAX = 30;
+
+function getClientIp(req: Request): string {
+  const fwd = req.headers.get('x-forwarded-for');
+  if (fwd) return fwd.split(',')[0].trim();
+  return req.headers.get('x-real-ip') || 'unknown';
+}
+
 Deno.serve(async (req) => {
     try {
+        // Rate-limit anonymous callers to protect this public endpoint.
+        const now = Date.now();
+        const clientIp = getClientIp(req);
+        const hits = (ipHits.get(clientIp) || []).filter(t => now - t < IP_WINDOW_MS);
+        if (hits.length >= IP_MAX) {
+            return Response.json({
+                success: false,
+                error: 'Too many requests. Please try again later.'
+            }, { status: 429 });
+        }
+        hits.push(now);
+        ipHits.set(clientIp, hits);
+        if (ipHits.size > 5000) ipHits.clear();
+
         console.log('convertUSDToCrypto: Starting...');
         
         const body = await req.json();
