@@ -114,7 +114,7 @@ function FeaturedChipsSection() {
                   <span className="font-bold text-cyan-600">
                     {chip.billing_type === 'ONE_TIME' 
                       ? `${chip.price_duc} $DUC` 
-                      : `${chip.recurring_price_duc} $DUC/mo`}
+                      : `${chip.recurring_price_duc} $DUC${t('home.perMonth')}`}
                   </span>
                 </div>
                 <Button 
@@ -539,10 +539,10 @@ export default function HomePage() {
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
                 <span className="text-xs px-2 py-1 bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 rounded-full font-medium">
-                  ⚡ Instant
+                  {t('home.tagInstant')}
                 </span>
                 <span className="text-xs px-2 py-1 bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 rounded-full font-medium">
-                  💰 Near-Zero Fees
+                  {t('home.tagNearZeroFees')}
                 </span>
               </div>
             </motion.div>
@@ -642,10 +642,10 @@ export default function HomePage() {
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
                 <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-full font-medium">
-                  🔓 Motherboard
+                  {t('home.tagMotherboard')}
                 </span>
                 <span className="text-xs px-2 py-1 bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 rounded-full font-medium">
-                  💎 NFT Verified
+                  {t('home.tagNftVerified')}
                 </span>
               </div>
             </motion.div>
@@ -783,10 +783,10 @@ export default function HomePage() {
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
                 <span className="text-xs px-2 py-1 bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 rounded-full font-medium">
-                  💳 Card-Present
+                  {t('home.tagCardPresent')}
                 </span>
                 <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-full font-medium">
-                  🪙 NFT-Gated
+                  {t('home.tagNftGated')}
                 </span>
               </div>
             </motion.div>
@@ -875,7 +875,7 @@ export default function HomePage() {
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                   <Badge className="bg-gradient-to-r from-purple-600 to-green-500 text-white px-4 py-1 text-sm font-semibold">
                     <Cpu className="w-3 h-3 mr-1" />
-                    MODULAR
+                    {t('home.modular')}
                   </Badge>
                 </div>
                 <CardContent className="p-8">
@@ -992,12 +992,12 @@ export default function HomePage() {
                             <span className="text-5xl font-bold text-gray-900 dark:text-white">
                               ${plan.price_monthly}
                             </span>
-                            <span className="text-gray-600 dark:text-gray-400">/mo</span>
+                            <span className="text-gray-600 dark:text-gray-400">{t('home.perMonth')}</span>
                           </>
                         )}
                         {plan.price_annual && (
                           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                            or ${plan.price_annual}/year
+                            {t('home.orPerYear').replace('{amount}', plan.price_annual)}
                           </p>
                         )}
                       </div>

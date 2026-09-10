@@ -14,6 +14,7 @@ import {
   Monitor,
 } from 'lucide-react';
 import OpenTILLPaymentsLogo from '@/components/payment/OpenTILLPaymentsLogo';
+import { useLanguage } from '@/lib/i18n/useLanguage';
 
 // Official Stripe Terminal product images (publicly hosted on Stripe's CDN)
 const TERMINALS = [
@@ -54,39 +55,41 @@ const TERMINALS = [
   },
 ];
 
-const RATES = [
-  {
-    label: 'Card-Present Rate',
-    value: '2.7% + $0.05',
-    sub: 'per in-person transaction',
-  },
-  {
-    label: 'Platform Fee',
-    value: '0.80%',
-    sub: 'included in surcharge',
-  },
-  {
-    label: 'Effective Total',
-    value: '3.5% + $0.05',
-    sub: 'recovered via dual pricing',
-  },
-];
-
-const BENEFITS = [
-  'Dual-pricing compliant surcharging',
-  'Next-day settlement & automatic payouts',
-  'PCI-DSS Level 1 secure card-present processing',
-  'Tap, dip, or swipe — contactless ready',
-];
-
 export default function OpenTILLPaymentsSection() {
+  const { t } = useLanguage();
+
+  const RATES = [
+    {
+      label: t('home.payments.rateCardPresent'),
+      value: '2.7% + $0.05',
+      sub: t('home.payments.rateCardPresentSub'),
+    },
+    {
+      label: t('home.payments.ratePlatformFee'),
+      value: '0.80%',
+      sub: t('home.payments.ratePlatformFeeSub'),
+    },
+    {
+      label: t('home.payments.rateEffective'),
+      value: '3.5% + $0.05',
+      sub: t('home.payments.rateEffectiveSub'),
+    },
+  ];
+
+  const BENEFITS = [
+    t('home.payments.benefit1'),
+    t('home.payments.benefit2'),
+    t('home.payments.benefit3'),
+    t('home.payments.benefit4'),
+  ];
+
   return (
     <section id="opentill-payments" className="py-24 bg-white dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-full text-sm font-bold mb-4">
             <CreditCard className="w-4 h-4" />
-            POWERED BY STRIPE
+            {t('home.payments.badge')}
           </div>
 
           <motion.div
@@ -100,11 +103,10 @@ export default function OpenTILLPaymentsSection() {
           </motion.div>
 
           <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900 dark:text-white">
-            Accept Card Payments In Person
+            {t('home.payments.title')}
           </h2>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            openTILL Payments pairs compliant dual pricing with Stripe Terminal hardware —
-            countertop, mobile, and handheld readers that just work.
+            {t('home.payments.subtitle')}
           </p>
         </div>
 
@@ -151,14 +153,13 @@ export default function OpenTILLPaymentsSection() {
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 rounded-full text-sm font-bold mb-3">
             <Shield className="w-4 h-4" />
-            COMPATIBLE TERMINALS
+            {t('home.payments.terminalsBadge')}
           </div>
           <h3 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
-            Hardware That Works With openTILL
+            {t('home.payments.terminalsTitle')}
           </h3>
           <p className="text-gray-600 dark:text-gray-300 mt-2 max-w-2xl mx-auto">
-            Every reader below is supported by openTILL Payments over internet-connected
-            Stripe Terminal — provision locations and register readers right from your dashboard.
+            {t('home.payments.terminalsSub')}
           </p>
         </div>
 
@@ -228,7 +229,7 @@ export default function OpenTILLPaymentsSection() {
               }}
             >
               <Zap className="w-5 h-5 mr-2" />
-              Get Started with openTILL Payments
+              {t('home.payments.ctaStart')}
               <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
             <Button
@@ -237,13 +238,12 @@ export default function OpenTILLPaymentsSection() {
               className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
               onClick={() => window.open('https://dashboard.stripe.com/acct_1ColPxKPXlOKSou1/terminal/shop', '_blank', 'noopener,noreferrer')}
             >
-              Shop Terminals
+              {t('home.payments.ctaShop')}
               <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
           </div>
           <p className="text-xs text-gray-400 mt-4">
-            Processing rates shown are the in-person card-present rate plus the openTILL
-            platform fee. Surcharges sync automatically with dual pricing.
+            {t('home.payments.footnote')}
           </p>
         </div>
       </div>

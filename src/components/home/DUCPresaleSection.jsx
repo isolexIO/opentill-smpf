@@ -4,18 +4,21 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Rocket, ArrowRight, TrendingUp, Lock, Sparkles } from 'lucide-react';
 import { DUC_LOGO_URL, DUC_PRESALE_URL } from '@/lib/smpfConstants';
+import { useLanguage } from '@/lib/i18n/useLanguage';
 
 const DUC_LOGO = DUC_LOGO_URL;
 
 const ICO_URL = DUC_PRESALE_URL;
 
-const HIGHLIGHTS = [
-  { icon: TrendingUp, label: 'Early-Bird Pricing', desc: 'Lowest token price available during the presale window.' },
-  { icon: Lock, label: 'Locked Vesting', desc: 'Roadmap-backed tokenomics with transparent unlock schedules.' },
-  { icon: Sparkles, label: 'Utility Across openTILL', desc: 'Spend $DUC on chips, staking, and platform rewards.' },
-];
-
 export default function DUCPresaleSection() {
+  const { t } = useLanguage();
+
+  const HIGHLIGHTS = [
+    { icon: TrendingUp, label: t('home.duc.highlight1'), desc: t('home.duc.highlight1Desc') },
+    { icon: Lock, label: t('home.duc.highlight2'), desc: t('home.duc.highlight2Desc') },
+    { icon: Sparkles, label: t('home.duc.highlight3'), desc: t('home.duc.highlight3Desc') },
+  ];
+
   return (
     <section className="py-20 px-4 relative overflow-hidden bg-gradient-to-br from-purple-700 via-indigo-700 to-blue-800">
       <div className="absolute inset-0 z-0 opacity-20">
@@ -32,7 +35,7 @@ export default function DUCPresaleSection() {
         >
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/15 backdrop-blur-sm border border-white/30 text-white rounded-full text-sm font-bold mb-6">
             <Rocket className="w-4 h-4" />
-            $DUC PRESALE IS LIVE
+            {t('home.duc.badge')}
           </div>
 
           <div className="flex justify-center mb-6">
@@ -40,11 +43,10 @@ export default function DUCPresaleSection() {
           </div>
 
           <h2 className="text-4xl md:text-5xl font-black text-white mb-4">
-            Get $DUC Before It Lists
+            {t('home.duc.title')}
           </h2>
           <p className="text-xl text-white/90 max-w-2xl mx-auto mb-10">
-            The $DUC token powers the openTILL ecosystem — loyalty rewards, chip-based features,
-            and on-platform staking. Join the presale now to lock in early-bird pricing.
+            {t('home.duc.subtitle')}
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10 max-w-4xl mx-auto">
@@ -72,7 +74,7 @@ export default function DUCPresaleSection() {
               onClick={() => window.open(ICO_URL, '_blank')}
             >
               <Rocket className="mr-2 w-5 h-5" />
-              Join the $DUC Presale
+              {t('home.duc.ctaJoin')}
               <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
             <Button
@@ -81,12 +83,12 @@ export default function DUCPresaleSection() {
               className="text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 bg-white/20 backdrop-blur-sm border-2 border-white text-white hover:bg-white hover:text-purple-700 font-semibold transition-all"
               onClick={() => window.open(ICO_URL, '_blank')}
             >
-              Learn More
+              {t('home.duc.ctaLearn')}
             </Button>
           </div>
 
           <p className="text-xs text-white/70 mt-6">
-            Visit{' '}
+            {t('home.duc.footnotePre')}{' '}
             <a
               href={ICO_URL}
               target="_blank"
@@ -95,7 +97,7 @@ export default function DUCPresaleSection() {
             >
               ico.opentill.io
             </a>{' '}
-            for full tokenomics, vesting schedules, and participation terms.
+            {t('home.duc.footnotePost')}
           </p>
         </motion.div>
       </div>

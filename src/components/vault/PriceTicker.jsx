@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { TrendingUp, TrendingDown } from 'lucide-react';
+import { useLanguage } from '@/lib/i18n/useLanguage';
 
 const DEFAULT_MINT = 'FPzmBaifnDkTDi26cuiEkRGofnvF7ReXUtWT7Eebjupx';
 
 export default function PriceTicker() {
+  const { t } = useLanguage();
   const [price, setPrice] = useState(null);
   const [change24h, setChange24h] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -61,7 +63,7 @@ export default function PriceTicker() {
     return (
       <div className="bg-gray-900 text-white py-2 overflow-hidden">
         <div className="animate-pulse flex items-center justify-center">
-          <span className="text-sm">Loading {tokenSymbol} price...</span>
+          <span className="text-sm">{t('home.priceTicker.loading').replace('{token}', tokenSymbol)}</span>
         </div>
       </div>
     );
