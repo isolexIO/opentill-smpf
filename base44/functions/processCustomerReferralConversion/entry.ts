@@ -29,6 +29,17 @@ Deno.serve(async (req) => {
     let body = {};
     try { body = await req.json(); } catch { body = {}; }
 
+    // SECURITY: Only allow calls from entity automations (payload has `event`)
+    // or authenticated platform admins. Prevents direct unauthenticated calls
+    // from issuing customer referral $DUC rewards.
+    let user = null;
+    try { user = await base44.auth.me(); } catch (e) {}
+    const isAdmin = user && ['admin', 'super_admin', 'root_admin'].includes(user.role);
+    const isEntityAutomation = !!(body.event && body.event.type);
+    if (!isAdmin && !isEntityAutomation) {
+      return Response.json({ error: 'Unauthorized' }, { status: 403 });
+    }
+
     // Support both entity-automation payloads and direct calls.
     let merchant_id;
     if (body.event && body.data) {
