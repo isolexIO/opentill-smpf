@@ -64,21 +64,43 @@ Deno.serve(async (req) => {
             }
         });
 
-        // Send email
-        const info = await transporter.sendMail({
-            from: `"openTILL POS" <${smtpUser}>`,
-            to: to,
-            subject: subject,
-            text: text,
-            html: html
-        });
+        // Send via SMTP. Fall back to the platform email service
+        // (Core.SendEmail) if SMTP fails, mirroring activateMerchant /
+        // manageLead so admin/invite comms still go out when SMTP is
+        // unavailable. Core.SendEmail reaches registered users always;
+        // unregistered recipients require a paid plan + custom domain.
+        let smtpError = null;
+        try {
+            const info = await transporter.sendMail({
+                from: `"openTILL POS" <${smtpUser}>`,
+                to: to,
+                subject: subject,
+                text: text || (html ? html.replace(/<[^>]+>/g, '') : undefined),
+                html: html
+            });
+            console.log('Email sent via SMTP:', info.messageId);
+            return Response.json({ success: true, messageId: info.messageId, via: 'smtp' });
+        } catch (err) {
+            smtpError = err;
+            console.error('SMTP send failed, falling back to Core.SendEmail:', err);
+        }
 
-        console.log('Email sent:', info.messageId);
-
-        return Response.json({
-            success: true,
-            messageId: info.messageId
-        });
+        try {
+            await base44.asServiceRole.integrations.Core.SendEmail({
+                to,
+                subject,
+                html: html || text,
+                text: text || (html ? html.replace(/<[^>]+>/g, '') : undefined)
+            });
+            console.log('Email sent via Core.SendEmail to:', to);
+            return Response.json({ success: true, via: 'core', smtpError: smtpError?.message });
+        } catch (coreError) {
+            console.error('Core.SendEmail also failed:', coreError);
+            return Response.json({
+                success: false,
+                error: (smtpError?.message || 'SMTP failed') + ' | ' + (coreError.message || 'Core email failed')
+            }, { status: 500 });
+        }
 
     } catch (error) {
         console.error('sendEmail ERROR:', error);
