@@ -31,6 +31,7 @@ import { motion } from 'framer-motion';
 import PriceTicker from '@/components/vault/PriceTicker';
 import OpenTILLPaymentsSection from '@/components/home/OpenTILLPaymentsSection';
 import DUCPresaleSection from '@/components/home/DUCPresaleSection';
+import FreeReaderAdvert from '@/components/home/FreeReaderAdvert';
 import { useLanguage } from '@/lib/i18n/useLanguage';
 
 const FEATURE_ICONS = {
@@ -414,6 +415,9 @@ export default function HomePage() {
           </motion.div>
         </div>
       </section>
+
+      {/* Free Reader M2 Advert */}
+      <FreeReaderAdvert />
 
       {/* Stats Section */}
       <section className="py-20 bg-white dark:bg-gray-900">
