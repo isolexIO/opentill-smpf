@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, ExternalLink, LayoutDashboard, ArrowLeft, CheckCircle2, CreditCard } from 'lucide-react';
+import { Loader2, ExternalLink, LayoutDashboard, ArrowLeft, CheckCircle2, CreditCard, Gift } from 'lucide-react';
 import OpenTILLPaymentsLogo from '@/components/payment/OpenTILLPaymentsLogo';
 import StripeConnectOnboarding from '@/components/settings/StripeConnectOnboarding';
 import StripeTerminalCard from '@/components/settings/StripeTerminalCard';
@@ -84,12 +84,35 @@ export default function OpenTILLPayments() {
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
       <div className="max-w-5xl mx-auto">
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex items-center gap-4 mb-4">
           <Button variant="ghost" size="icon" onClick={() => window.location.href = createPageUrl('SystemMenu')}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex-1 flex justify-center">
             <OpenTILLPaymentsLogo height="h-auto" width="w-[350px]" scale={2.5} />
+          </div>
+        </div>
+
+        {/* Free Reader Hero Banner */}
+        <div
+          className="mb-6 rounded-xl overflow-hidden border border-blue-200 cursor-pointer hover:shadow-lg transition-shadow"
+          onClick={() => setActiveTab('connection')}
+        >
+          <div className="flex items-center bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-3 gap-4">
+            <div className="flex-1 text-white">
+              <p className="text-sm font-bold flex items-center gap-2">
+                <Gift className="w-4 h-4" />
+                Free Stripe Reader M2 with your new account
+              </p>
+              <p className="text-xs text-blue-100 mt-0.5">
+                Contactless + chip reader included — just keep a card on file. Return within 30 days of canceling or $100 fee applies.
+              </p>
+            </div>
+            <img
+              src="https://media.base44.com/images/public/6970e2871534100b4ebb8d45/413fe198a_generated_image.png"
+              alt="Stripe Reader M2"
+              className="w-16 h-16 object-contain shrink-0 rounded-lg bg-white/10 p-1"
+            />
           </div>
         </div>
 
