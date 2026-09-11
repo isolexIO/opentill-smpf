@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Twitter, Github, Terminal, CheckCircle } from 'lucide-react';
+import { Twitter, Github, Terminal, CheckCircle, CreditCard, Gift } from 'lucide-react';
 import StepIndicator from '@/components/onboarding/StepIndicator';
 import StepReferral from '@/components/onboarding/StepReferral';
 import StepBusiness from '@/components/onboarding/StepBusiness';
@@ -46,6 +46,7 @@ export default function MerchantOnboarding() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [merchantId, setMerchantId] = useState(null);
   const [referralLocked, setReferralLocked] = useState(false);
   const [dealerReferral, setDealerReferral] = useState(false);
   const [dealerId, setDealerId] = useState(null);
@@ -141,6 +142,7 @@ export default function MerchantOnboarding() {
       if (!res.data?.success) {
         throw new Error(res.data?.error || 'Registration failed.');
       }
+      setMerchantId(res.data?.merchant?.id || null);
       setSuccess(true);
     } catch (err) {
       // Surface the specific backend error (e.g. duplicate email) instead of
@@ -180,6 +182,30 @@ export default function MerchantOnboarding() {
                 </div>
               )}
             </div>
+
+            {formData.wants_free_reader && (
+              <div className="rounded-2xl border-2 border-blue-200 bg-blue-50 p-4 text-left space-y-3">
+                <div className="flex items-center gap-2">
+                  <Gift className="w-5 h-5 text-blue-600" />
+                  <p className="font-bold text-blue-900 text-sm">Free Stripe Reader M2 — Action Required</p>
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  You opted in for a free reader. After logging in, go to{' '}
+                  <strong>openTILL Payments</strong> to put your card on file for the $100
+                  non-return fee. No charge at enrollment — the card is only charged if the reader
+                  is not returned within 30 days of cancellation.
+                </p>
+                <Button
+                  variant="outline"
+                  className="w-full border-blue-300 text-blue-700 hover:bg-blue-100 h-11 rounded-xl font-semibold"
+                  onClick={() => window.location.href = createPageUrl('OpenTILLPayments')}
+                >
+                  <CreditCard className="w-4 h-4 mr-2" />
+                  Put Card on File for Free Reader
+                </Button>
+              </div>
+            )}
+
             <div className="space-y-3 pt-2">
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('onboarding.joinOurCommunity')}</p>
               <div className="grid grid-cols-3 gap-3">

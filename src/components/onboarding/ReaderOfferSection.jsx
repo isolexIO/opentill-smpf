@@ -1,17 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
-import { Gift, CheckCircle2 } from 'lucide-react';
+import { Gift, CheckCircle2, CreditCard, Info } from 'lucide-react';
 
 const READER_M2_IMG = 'https://b.stripecdn.com/docs-statics-srv/assets/stripem2.bf6a7eabd353369bfa596a81ab51ca9a.png';
 
 export default function ReaderOfferSection({ formData, onChange }) {
   const optedIn = !!formData.wants_free_reader;
+  const [showInfo, setShowInfo] = useState(false);
 
   const toggle = () => {
     const next = !optedIn;
     onChange('wants_free_reader', next);
     onChange('reader_agreement_accepted', next);
+    if (!next) setShowInfo(false);
   };
 
   return (
@@ -76,6 +78,34 @@ export default function ReaderOfferSection({ formData, onChange }) {
           </p>
         </div>
       </button>
+
+      {optedIn && (
+        <div className="space-y-2">
+          <button
+            type="button"
+            onClick={() => setShowInfo(true)}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-blue-600 text-white font-semibold text-sm hover:bg-blue-700 transition-colors shadow-sm"
+          >
+            <CreditCard className="w-4 h-4" />
+            Put Card on File for Free Reader
+          </button>
+          {showInfo ? (
+            <div className="flex items-start gap-2 rounded-lg bg-blue-50 border border-blue-200 p-3 text-xs text-blue-800 leading-relaxed">
+              <Info className="w-4 h-4 shrink-0 mt-0.5" />
+              <p>
+                After your account is created and activated, log in and visit{' '}
+                <strong>openTILL Payments</strong> to securely put your card on file for the
+                $100 non-return fee. No charge at enrollment — the card is only charged if the
+                reader is not returned within 30 days of cancellation.
+              </p>
+            </div>
+          ) : (
+            <p className="text-[11px] text-slate-400 text-center">
+              You'll put your card on file after account activation via openTILL Payments.
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }
