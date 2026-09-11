@@ -97,6 +97,18 @@ Deno.serve(async (req) => {
 
     const base44 = createClientFromRequest(req);
 
+    // Validate invite links point to our own app origin (prevents branded
+    // phishing emails with attacker-controlled external URLs).
+    const appOrigin = new URL(req.url).origin;
+    const validateInviteLink = (link) => {
+      if (!link || typeof link !== 'string') return null;
+      try {
+        const u = new URL(link);
+        if ((u.protocol === 'https:' || u.protocol === 'http:') && u.origin === appOrigin) return link;
+      } catch {}
+      return null;
+    };
+
     // Resolve dealer_id from a verified identity only — never trust the
     // client-supplied `dealer_id` directly (would allow cross-dealer access).
     let resolvedDealerId;
@@ -281,6 +293,11 @@ Deno.serve(async (req) => {
         return Response.json({ success: false, error: 'No email on file' }, { status: 400 });
       }
 
+      const safeInviteLink = validateInviteLink(invite_link);
+      if (!safeInviteLink) {
+        return Response.json({ success: false, error: 'Invite link must point to the application domain' }, { status: 400 });
+      }
+
       await sendEmail(
         base44,
         lead.email,
@@ -295,11 +312,11 @@ Deno.serve(async (req) => {
             Click the button below to get started. This link will automatically associate your account with our network.
           </p>
           <div style="text-align:center;margin:32px 0;">
-            <a href="${escapeHtml(invite_link)}" style="display:inline-block;padding:14px 40px;background:linear-gradient(90deg,#7B2FD6 0%,#0FD17A 100%);color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;border-radius:10px;box-shadow:0 4px 16px rgba(123,47,214,0.35);">Accept Invitation &rarr;</a>
+            <a href="${escapeHtml(safeInviteLink)}" style="display:inline-block;padding:14px 40px;background:linear-gradient(90deg,#7B2FD6 0%,#0FD17A 100%);color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;border-radius:10px;box-shadow:0 4px 16px rgba(123,47,214,0.35);">Accept Invitation &rarr;</a>
           </div>
           <p style="margin:24px 0 0 0;font-size:13px;color:#71717a;line-height:1.6;">
             If the button doesn't work, copy and paste this link into your browser:<br>
-            <span style="color:#7B2FD6;word-break:break-all;">${escapeHtml(invite_link)}</span>
+            <span style="color:#7B2FD6;word-break:break-all;">${escapeHtml(safeInviteLink)}</span>
           </p>
           <p style="margin:24px 0 0 0;font-size:14px;color:#52525b;line-height:1.7;">
             Best regards,<br>
@@ -482,6 +499,10 @@ Deno.serve(async (req) => {
       if (!matching) {
         return Response.json({ success: false, error: 'No matching leads' }, { status: 404 });
       }
+      const safeInviteLink = validateInviteLink(invite_link);
+      if (!safeInviteLink) {
+        return Response.json({ success: false, error: 'Invite link must point to the application domain' }, { status: 400 });
+      }
       let sent = 0;
       const now = new Date().toISOString();
       const updatesBatch = [];
@@ -502,11 +523,11 @@ Deno.serve(async (req) => {
                 Click the button below to get started. This link will automatically associate your account with our network.
               </p>
               <div style="text-align:center;margin:32px 0;">
-                <a href="${escapeHtml(invite_link || '')}" style="display:inline-block;padding:14px 40px;background:linear-gradient(90deg,#7B2FD6 0%,#0FD17A 100%);color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;border-radius:10px;box-shadow:0 4px 16px rgba(123,47,214,0.35);">Accept Invitation &rarr;</a>
+                <a href="${escapeHtml(safeInviteLink)}" style="display:inline-block;padding:14px 40px;background:linear-gradient(90deg,#7B2FD6 0%,#0FD17A 100%);color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;border-radius:10px;box-shadow:0 4px 16px rgba(123,47,214,0.35);">Accept Invitation &rarr;</a>
               </div>
               <p style="margin:24px 0 0 0;font-size:13px;color:#71717a;line-height:1.6;">
                 If the button doesn't work, copy and paste this link into your browser:<br>
-                <span style="color:#7B2FD6;word-break:break-all;">${escapeHtml(invite_link || '')}</span>
+                <span style="color:#7B2FD6;word-break:break-all;">${escapeHtml(safeInviteLink)}</span>
               </p>
               <p style="margin:24px 0 0 0;font-size:14px;color:#52525b;line-height:1.7;">
                 Best regards,<br>

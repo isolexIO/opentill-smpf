@@ -1,0 +1,125 @@
+{
+  "name": "cLINKReward",
+  "type": "object",
+  "properties": {
+    "description": {
+      "type": "string",
+      "description": "Optional description for search visibility and SEO (up to 1000 characters)",
+      "maxLength": 1000
+    },
+    "merchant_id": {
+      "type": "string",
+      "description": "Merchant receiving rewards"
+    },
+    "reward_type": {
+      "type": "string",
+      "enum": [
+        "processing_volume",
+        "bonus",
+        "referral",
+        "staking_yield"
+      ],
+      "description": "Type of reward"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Amount of $DUC earned"
+    },
+    "processing_volume": {
+      "type": "number",
+      "description": "CC processing volume that generated this reward"
+    },
+    "reward_percentage": {
+      "type": "number",
+      "description": "Percentage used for calculation"
+    },
+    "period_start": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Start of reward period"
+    },
+    "period_end": {
+      "type": "string",
+      "format": "date-time",
+      "description": "End of reward period"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "available",
+        "claimed",
+        "staked"
+      ],
+      "default": "pending",
+      "description": "Reward status"
+    },
+    "source_reference": {
+      "type": "string",
+      "description": "Id of the source reward that generated this (e.g. referral bonus) \u2014 used for idempotency / replay protection"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Additional context data (e.g. referral linkage)"
+    },
+    "claimed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When reward was claimed"
+    },
+    "claimed_by": {
+      "type": "string",
+      "description": "User who claimed"
+    },
+    "transaction_signature": {
+      "type": "string",
+      "description": "On-chain transaction signature"
+    },
+    "wallet_address": {
+      "type": "string",
+      "description": "Wallet that received the reward"
+    }
+  },
+  "required": [
+    "merchant_id",
+    "amount",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.merchant_id": "{{user.data.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.merchant_id": "{{user.data.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -50,8 +50,9 @@ Deno.serve(async (req) => {
                     error: 'HTML email bodies are restricted to administrators'
                 }, { status: 403 });
             }
-            // Non-admins without dealer scope may only email themselves
-            if (!isAmbassador && normalizedTo !== selfEmail) {
+            // Non-admins (including ambassadors) may only email themselves,
+            // closing the open mail relay via dealer scope.
+            if (normalizedTo !== selfEmail) {
                 return Response.json({
                     success: false,
                     error: 'You may only send emails to your own registered address'

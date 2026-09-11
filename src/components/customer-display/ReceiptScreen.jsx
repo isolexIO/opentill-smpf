@@ -66,9 +66,7 @@ export default function ReceiptScreen({ order, merchant, onReturnToIdle }) {
       const res = await base44.functions.invoke('sendReceiptSMS', {
         phone: digits,
         carrier,
-        receipt_url: receiptUrl,
-        order_number: order?.order_number,
-        business_name: merchant?.business_name,
+        order_id: order?.id,
       });
       if (res.data?.success) {
         setMode('sent');

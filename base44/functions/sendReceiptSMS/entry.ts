@@ -14,7 +14,7 @@ const CARRIER_GATEWAYS = {
   metropcs: 'mymetropcs.com',
 };
 
-// Simple in-memory rate limiting (per-IP) to protect the public endpoint
+// Simple in-memory rate limiting (per-IP) to protect the endpoint
 const ipHits = new Map();
 function rateLimited(ip, maxPerWindow = 5, windowMs = 60000) {
   const now = Date.now();
@@ -32,8 +32,17 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Too many requests. Please wait a minute.' }, { status: 429 });
     }
 
+    // Require authentication — prevents unauthenticated SMS relay abuse.
+    const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me();
+    if (!user) {
+      return Response.json({ error: 'Authentication required' }, { status: 401 });
+    }
+    const isAdmin = user.role === 'admin' || user.role === 'root_admin' || user.role === 'super_admin';
+    const callerMerchantId = (user.data && user.data.merchant_id) || user.merchant_id;
+
     const body = await req.json();
-    const { phone, carrier, receipt_url, order_number, business_name } = body;
+    const { phone, carrier, order_id } = body;
 
     // Validate phone (10 digits)
     const digits = String(phone || '').replace(/\D/g, '');
@@ -47,8 +56,35 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unsupported carrier' }, { status: 400 });
     }
 
-    if (!receipt_url) {
-      return Response.json({ error: 'receipt_url is required' }, { status: 400 });
+    // Require an order_id — the receipt URL and business name are derived
+    // server-side from the order so callers cannot inject phishing links or
+    // spoof the sender brand.
+    if (!order_id) {
+      return Response.json({ error: 'order_id is required' }, { status: 400 });
+    }
+
+    const orders = await base44.asServiceRole.entities.Order.filter({ id: order_id });
+    if (!orders || orders.length === 0) {
+      return Response.json({ error: 'Order not found' }, { status: 404 });
+    }
+    const order = orders[0];
+    if (!isAdmin && order.merchant_id !== callerMerchantId) {
+      return Response.json({ error: 'Forbidden: order does not belong to your merchant' }, { status: 403 });
+    }
+
+    // Generate the receipt URL server-side from the app origin.
+    const appOrigin = new URL(req.url).origin;
+    const receiptUrl = `${appOrigin}/receipt/${order_id}`;
+
+    // Resolve the business name from the merchant record (no client input).
+    let businessName = 'openTILL';
+    try {
+      const merchants = await base44.asServiceRole.entities.Merchant.filter({ id: order.merchant_id });
+      if (merchants && merchants.length > 0) {
+        businessName = merchants[0].business_name || merchants[0].display_name || 'openTILL';
+      }
+    } catch {
+      // fall back to default brand name
     }
 
     // Verify SMTP credentials are configured
@@ -73,7 +109,7 @@ Deno.serve(async (req) => {
     });
 
     const smsEmail = `${digits}@${gateway}`;
-    const smsBody = `Your ${business_name || 'openTILL'} receipt (Order #${order_number || ''}): ${receipt_url}`.slice(0, 160);
+    const smsBody = `Your ${businessName} receipt (Order #${order.order_number || ''}): ${receiptUrl}`.slice(0, 160);
 
     await transporter.sendMail({
       from: `"openTILL POS" <${smtpUser}>`,
