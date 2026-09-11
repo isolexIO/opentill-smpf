@@ -1,17 +1,4 @@
 {
-  "name": "CC Processing Rewards",
-  "description": "Automatically awards $cLINK rewards to merchants based on credit card processing volume",
-  "trigger": {
-    "condition": null,
-    "config": {
-      "trigger_type": "entity",
-      "events": [
-        "create",
-        "update"
-      ],
-      "entity_name": "Order"
-    }
-  },
   "definition": {
     "document": {
       "dsl": "1.0.0",
@@ -24,14 +11,30 @@
         "run_function": {
           "call": "invoke_backend_function",
           "with": {
-            "function_name": "calculateCCRewards",
-            "args": {}
+            "function_name": "processOrderReward",
+            "args": {
+              "_internal_secret": "ot_automation_4f8a7c2e9b1d",
+              "order_id": "${ .trigger.entity_id }"
+            }
           },
           "then": "end"
         }
       }
     ]
   },
+  "description": "Automatically awards $DUC rewards to merchants based on credit card processing volume when an order completes.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "create",
+        "update"
+      ],
+      "entity_name": "Order"
+    }
+  },
+  "name": "CC Processing Rewards",
   "x-base44-migrated-from-automation": {
     "legacy_payload_function": "calculateCCRewards"
   }

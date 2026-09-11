@@ -13,13 +13,16 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
+    // SECURITY: require an admin session OR a valid automation secret. Anonymous
+    // internet callers are rejected; scheduled workflows pass the secret in args.
+    const AUTOMATION_SECRET = 'ot_automation_4f8a7c2e9b1d';
     let user = null;
     try { user = await base44.auth.me(); } catch (e) {}
-    if (user && user.role !== 'admin') {
-      return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
-    }
-
+    const isAdmin = user && ['admin', 'super_admin', 'root_admin'].includes(user.role);
     const body = await req.json().catch(() => ({})) || {};
+    if (!isAdmin && body._internal_secret !== AUTOMATION_SECRET) {
+      return Response.json({ error: 'Unauthorized: admin session or automation secret required' }, { status: 401 });
+    }
     const since = body.since ? new Date(body.since) : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     const until = body.until ? new Date(body.until) : new Date();
     const limit = Math.min(Number(body.limit) || 250, 500);

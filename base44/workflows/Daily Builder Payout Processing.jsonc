@@ -31,7 +31,9 @@
           "call": "invoke_backend_function",
           "with": {
             "function_name": "processBuilderPayouts",
-            "args": {}
+            "args": {
+              "_internal_secret": "ot_automation_4f8a7c2e9b1d"
+            }
           },
           "then": "end"
         }

@@ -1,5 +1,26 @@
 {
-  "name": "Monthly Dealer Payout Calculation",
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "monthly_dealer_payout_calculation",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "calculateDealerPayouts",
+            "args": {
+              "_internal_secret": "ot_automation_4f8a7c2e9b1d"
+            }
+          },
+          "then": "end"
+        }
+      }
+    ]
+  },
   "description": "Automatically calculates and creates DealerPayout records for all active dealers based on their payout cadence, on the 1st of each month.",
   "trigger": {
     "condition": null,
@@ -18,26 +39,7 @@
       "ends_after_count": null
     }
   },
-  "definition": {
-    "document": {
-      "dsl": "1.0.0",
-      "name": "monthly_dealer_payout_calculation",
-      "version": "1.0",
-      "namespace": "base44"
-    },
-    "do": [
-      {
-        "run_function": {
-          "call": "invoke_backend_function",
-          "with": {
-            "function_name": "calculateDealerPayouts",
-            "args": {}
-          },
-          "then": "end"
-        }
-      }
-    ]
-  },
+  "name": "Monthly Dealer Payout Calculation",
   "x-base44-migrated-from-automation": {
     "legacy_payload_function": "calculateDealerPayouts"
   }

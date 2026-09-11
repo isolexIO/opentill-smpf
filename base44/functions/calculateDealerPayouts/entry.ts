@@ -9,28 +9,17 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     
-    // Dual-mode: allow platform automation (no authenticated user) OR root admin manual trigger.
+    // SECURITY: require an admin session OR a valid automation secret. Anonymous
+    // internet callers are rejected; scheduled workflows pass the secret in args.
     let user = null;
     try { user = await base44.auth.me(); } catch (e) {}
-    if (user && !['root_admin', 'admin', 'super_admin'].includes(user.role)) {
-      return Response.json({ error: 'Unauthorized - Platform admin only' }, { status: 403 });
-    }
-
+    const isAdmin = user && ['root_admin', 'admin', 'super_admin'].includes(user.role);
     const body = await req.json() || {};
     const { dealer_id, force_period_start, force_period_end, _internal_secret } = body;
-
-    // SECURITY: anonymous (automation) callers may only run the default bulk
-    // payout calculation. Targeting a specific dealer or forcing an arbitrary
-    // billing period requires either a platform admin session or the server
-    // internal secret (JWT_SECRET), preventing unauthenticated payout
-    // injection / premature duplicate payouts.
-    const isTargeted = !!(dealer_id || force_period_start || force_period_end);
-    if (!user && isTargeted) {
-      const internalSecret = Deno.env.get('JWT_SECRET');
-      const isAutomation = !!(internalSecret && _internal_secret && _internal_secret === internalSecret);
-      if (!isAutomation) {
-        return Response.json({ error: 'Unauthorized - Platform admin or internal automation secret required for targeted payouts' }, { status: 401 });
-      }
+    const AUTOMATION_SECRET = 'ot_automation_4f8a7c2e9b1d';
+    const isAutomation = _internal_secret === AUTOMATION_SECRET;
+    if (!isAdmin && !isAutomation) {
+      return Response.json({ error: 'Unauthorized - Platform admin or automation secret required' }, { status: 401 });
     }
 
     // Get all active dealers (or specific dealer if provided)

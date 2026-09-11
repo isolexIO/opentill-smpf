@@ -1,5 +1,26 @@
 {
-  "name": "Monthly $DUC Processing-Volume Rewards",
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "monthly_duc_processing_volume_rewards",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "calculateMonthlyRewards",
+            "args": {
+              "_internal_secret": "ot_automation_4f8a7c2e9b1d"
+            }
+          },
+          "then": "end"
+        }
+      }
+    ]
+  },
   "description": "Automatically calculates monthly processing-volume $DUC rewards for all active merchants, on the 1st of each month.",
   "trigger": {
     "condition": null,
@@ -18,26 +39,7 @@
       "ends_after_count": null
     }
   },
-  "definition": {
-    "document": {
-      "dsl": "1.0.0",
-      "name": "monthly_duc_processing_volume_rewards",
-      "version": "1.0",
-      "namespace": "base44"
-    },
-    "do": [
-      {
-        "run_function": {
-          "call": "invoke_backend_function",
-          "with": {
-            "function_name": "calculateMonthlyRewards",
-            "args": {}
-          },
-          "then": "end"
-        }
-      }
-    ]
-  },
+  "name": "Monthly $DUC Processing-Volume Rewards",
   "x-base44-migrated-from-automation": {
     "legacy_payload_function": "calculateMonthlyRewards"
   }

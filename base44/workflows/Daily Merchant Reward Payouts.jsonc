@@ -1,6 +1,6 @@
 {
   "name": "Daily Merchant Reward Payouts",
-  "description": "Daily job that automatically pays out available $DUC merchant rewards (cLINKReward) to each merchant's configured Solana wallet, above the minimum claim threshold.",
+  "description": "Daily job that automatically pays out available $DUC merchant rewards (DUCReward) to each merchant's configured Solana wallet, above the minimum claim threshold.",
   "trigger": {
     "condition": null,
     "config": {
@@ -31,7 +31,9 @@
           "call": "invoke_backend_function",
           "with": {
             "function_name": "processMerchantRewardPayouts",
-            "args": {}
+            "args": {
+              "_internal_secret": "ot_automation_4f8a7c2e9b1d"
+            }
           },
           "then": "end"
         }

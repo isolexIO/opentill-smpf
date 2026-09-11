@@ -1,5 +1,26 @@
 {
-  "name": "Daily Surcharge Settlement Reconciliation",
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "daily_surcharge_settlement_reconciliation",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "reconcileSurchargeSettlements",
+            "args": {
+              "_internal_secret": "ot_automation_4f8a7c2e9b1d"
+            }
+          },
+          "then": "end"
+        }
+      }
+    ]
+  },
   "description": "Daily job that back-fills SurchargeSettlement.actual_fee_cents from Stripe balance transactions and flags variances.",
   "trigger": {
     "condition": null,
@@ -18,26 +39,7 @@
       "ends_after_count": null
     }
   },
-  "definition": {
-    "document": {
-      "dsl": "1.0.0",
-      "name": "daily_surcharge_settlement_reconciliation",
-      "version": "1.0",
-      "namespace": "base44"
-    },
-    "do": [
-      {
-        "run_function": {
-          "call": "invoke_backend_function",
-          "with": {
-            "function_name": "reconcileSurchargeSettlements",
-            "args": {}
-          },
-          "then": "end"
-        }
-      }
-    ]
-  },
+  "name": "Daily Surcharge Settlement Reconciliation",
   "x-base44-migrated-from-automation": {
     "legacy_payload_function": "reconcileSurchargeSettlements"
   }

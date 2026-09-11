@@ -1,16 +1,26 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+// Shared automation secret. Scheduled/entity workflows pass this in args; the
+// same constant is defined in every admin-only automation function so anonymous
+// internet callers (who do not know it) are rejected.
+const AUTOMATION_SECRET = 'ot_automation_4f8a7c2e9b1d';
+
+/**
+ * Awards a $DUC processing-volume reward for a single completed card order.
+ * Replaces the migrated calculateCCRewards for the entity-triggered workflow so
+ * the caller can be authenticated via the automation secret (the legacy
+ * compatibility layer did not forward workflow args, so a secret could not be
+ * validated there). The order is always re-fetched from the database — the
+ * caller-supplied order_id is only a pointer, never trusted for values.
+ */
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const body = await req.json();
-    const { event, data, old_data } = body;
+    const body = await req.json().catch(() => ({})) || {};
 
     // SECURITY: require an admin session OR a valid automation secret. The
-    // entity-triggered workflow now calls processOrderReward instead; this
-    // function is retained for direct admin use and must not accept anonymous
-    // or forged-event calls.
-    const AUTOMATION_SECRET = 'ot_automation_4f8a7c2e9b1d';
+    // entity-triggered workflow passes the secret in args; anonymous internet
+    // callers are rejected.
     let user = null;
     try { user = await base44.auth.me(); } catch (e) {}
     const isAdmin = user && ['admin', 'super_admin', 'root_admin'].includes(user.role);
@@ -19,70 +29,52 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized: admin session or automation secret required' }, { status: 401 });
     }
 
-    // Only process completed orders with card payments
-    if (event.type !== 'create' && event.type !== 'update') {
-      return Response.json({ success: true, message: 'Skipped - not a relevant event' });
+    const { order_id } = body;
+    if (!order_id) {
+      return Response.json({ success: true, message: 'Skipped - no order_id provided' });
     }
 
-    if (!data || !data.id) {
-      return Response.json({ success: true, message: 'Skipped - missing order id in payload' });
-    }
-
-    // SECURITY: Do not trust the inbound payload. Fetch the authoritative order
-    // record from the database and use its values. This prevents unauthenticated
-    // callers from forging event payloads to mint rewards for non-existent or
-    // non-qualifying orders.
-    const orderResults = await base44.asServiceRole.entities.Order.filter({ id: data.id });
+    // Fetch the authoritative order record from the database (never trust the
+    // caller payload).
+    const orderResults = await base44.asServiceRole.entities.Order.filter({ id: order_id });
     if (!orderResults || orderResults.length === 0) {
       return Response.json({ success: true, message: 'Skipped - order not found in database' });
     }
     const order = orderResults[0];
 
-    // Use DB-trusted values, not the payload
     if (order.status !== 'completed') {
       return Response.json({ success: true, message: 'Skipped - order not completed' });
     }
 
     // Check if this is a card payment (card, ebt, or split with card)
-    const isCardPayment = order.payment_method === 'card' || 
+    const isCardPayment = order.payment_method === 'card' ||
                           order.payment_method === 'ebt' ||
                           (order.payment_method === 'split' && order.payment_details?.card_amount > 0);
-
     if (!isCardPayment) {
       return Response.json({ success: true, message: 'Skipped - not a card payment' });
     }
 
-    // Prevent duplicate rewards on ANY event (create or update) — an attacker
-    // replaying a create event must not be able to mint a second reward.
+    // Idempotency: prevent duplicate rewards on replays.
     const existingRewards = await base44.asServiceRole.entities.DUCReward.filter({
       merchant_id: order.merchant_id,
       source_reference: order.id
     });
-
     if (existingRewards && existingRewards.length > 0) {
       return Response.json({ success: true, message: 'Reward already exists for this order' });
     }
 
     // Get reward settings
-    const globalSettings = await base44.asServiceRole.entities.DUCVaultSettings.filter({
-      merchant_id: null
-    });
-
-    const merchantSettings = await base44.asServiceRole.entities.DUCVaultSettings.filter({
-      merchant_id: order.merchant_id
-    });
-
+    const globalSettings = await base44.asServiceRole.entities.DUCVaultSettings.filter({ merchant_id: null });
+    const merchantSettings = await base44.asServiceRole.entities.DUCVaultSettings.filter({ merchant_id: order.merchant_id });
     const settings = merchantSettings[0] || globalSettings[0];
-    
+
     if (!settings || !settings.vault_enabled) {
       return Response.json({ success: true, message: 'Vault not enabled for merchant' });
     }
 
-    // Calculate reward amount based on card processing volume
-    // Default: 0.1% of card processing volume in $DUC
-    const rewardRate = settings.cc_reward_rate || 0.001; // 0.1%
-    
-    // Calculate card amount (using DB-trusted order values)
+    // Calculate reward amount based on card processing volume (default 0.1%)
+    const rewardRate = settings.cc_reward_rate || 0.001;
+
     let cardAmount = 0;
     if (order.payment_method === 'split' && order.payment_details?.card_amount) {
       cardAmount = order.payment_details.card_amount;
@@ -92,12 +84,11 @@ Deno.serve(async (req) => {
 
     const rewardAmount = cardAmount * rewardRate;
 
-    // Only create reward if amount is above minimum threshold
     const minReward = settings.min_reward_amount || 0.01;
     if (rewardAmount < minReward) {
-      return Response.json({ 
-        success: true, 
-        message: `Reward amount ${rewardAmount} below minimum ${minReward}` 
+      return Response.json({
+        success: true,
+        message: `Reward amount ${rewardAmount} below minimum ${minReward}`
       });
     }
 
@@ -112,7 +103,6 @@ Deno.serve(async (req) => {
           order_total: order.total || 0
         });
       } catch (loyaltyErr) {
-        // Non-fatal: log but don't fail the reward creation
         console.error('Customer $DUC loyalty error:', loyaltyErr.message);
       }
     }
@@ -153,12 +143,8 @@ Deno.serve(async (req) => {
       card_amount: cardAmount,
       order_id: order.id
     });
-
   } catch (error) {
-    console.error('CC Rewards calculation error:', error);
-    return Response.json({
-      success: false,
-      error: error.message
-    }, { status: 500 });
+    console.error('processOrderReward error:', error);
+    return Response.json({ success: false, error: error.message }, { status: 500 });
   }
 });

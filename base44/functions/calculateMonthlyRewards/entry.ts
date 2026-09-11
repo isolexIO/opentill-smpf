@@ -12,28 +12,16 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    // Dual-mode: allow platform automation (no authenticated user) OR admin manual trigger.
+    // SECURITY: require an admin session OR a valid automation secret. Anonymous
+    // internet callers are rejected; scheduled workflows pass the secret in args.
     let user = null;
     try { user = await base44.auth.me(); } catch (e) {}
-    if (user && user.role !== 'admin') {
-      return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
-    }
-
+    const isAdmin = user && ['admin', 'super_admin', 'root_admin'].includes(user.role);
     const body = await req.json().catch(() => ({})) || {};
     const { merchant_id, processing_volume, override_percentage, _internal_secret } = body;
-
-    // SECURITY: anonymous (automation) callers may only run the default bulk
-    // reward calculation. Targeting a specific merchant or injecting a custom
-    // processing_volume / override_percentage requires either a platform
-    // admin session or the server internal secret (JWT_SECRET), preventing
-    // unauthenticated reward minting / token inflation.
-    const isTargeted = !!(merchant_id || processing_volume || override_percentage);
-    if (!user && isTargeted) {
-      const internalSecret = Deno.env.get('JWT_SECRET');
-      const isAutomation = !!(internalSecret && _internal_secret && _internal_secret === internalSecret);
-      if (!isAutomation) {
-        return Response.json({ error: 'Unauthorized - Platform admin or internal automation secret required for targeted reward minting' }, { status: 401 });
-      }
+    const AUTOMATION_SECRET = 'ot_automation_4f8a7c2e9b1d';
+    if (!isAdmin && _internal_secret !== AUTOMATION_SECRET) {
+      return Response.json({ error: 'Unauthorized - Platform admin or automation secret required' }, { status: 401 });
     }
 
     // Billing period = previous calendar month.
