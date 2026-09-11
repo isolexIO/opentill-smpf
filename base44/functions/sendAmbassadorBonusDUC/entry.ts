@@ -73,7 +73,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Invalid Solana wallet address' }, { status: 400 });
     }
 
-    const vaultSettings = await base44.asServiceRole.entities.cLINKVaultSettings.filter({ merchant_id: null });
+    const vaultSettings = await base44.asServiceRole.entities.DUCVaultSettings.filter({ merchant_id: null });
     const ducMintAddress = vaultSettings?.[0]?.duc_mint_address;
     if (!ducMintAddress) {
       await base44.asServiceRole.entities.DealerPayout.update(payout.id, {

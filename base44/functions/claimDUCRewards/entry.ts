@@ -25,7 +25,7 @@ Deno.serve(async (req) => {
     }
 
     // Get available rewards
-    const rewards = await base44.asServiceRole.entities.cLINKReward.filter({
+    const rewards = await base44.asServiceRole.entities.DUCReward.filter({
       merchant_id: merchant_id,
       status: 'available'
     });
@@ -41,10 +41,10 @@ Deno.serve(async (req) => {
     }
 
     // Check minimum threshold
-    const settings = await base44.asServiceRole.entities.cLINKVaultSettings.filter({
+    const settings = await base44.asServiceRole.entities.DUCVaultSettings.filter({
       merchant_id: merchant_id
     });
-    const globalSettings = await base44.asServiceRole.entities.cLINKVaultSettings.filter({
+    const globalSettings = await base44.asServiceRole.entities.DUCVaultSettings.filter({
       merchant_id: null
     });
     
@@ -77,7 +77,7 @@ Deno.serve(async (req) => {
 
       if (toUpdate >= reward.amount) {
         // Fully consumed — mark this reward claimed.
-        await base44.asServiceRole.entities.cLINKReward.update(reward.id, {
+        await base44.asServiceRole.entities.DUCReward.update(reward.id, {
           status: 'claimed',
           claimed_at: new Date().toISOString(),
           claimed_by: user.id,
@@ -87,10 +87,10 @@ Deno.serve(async (req) => {
       } else {
         // Partially consumed — keep the leftover available and record the
         // claimed portion as a separate claimed reward for the audit trail.
-        await base44.asServiceRole.entities.cLINKReward.update(reward.id, {
+        await base44.asServiceRole.entities.DUCReward.update(reward.id, {
           amount: reward.amount - toUpdate
         });
-        await base44.asServiceRole.entities.cLINKReward.create({
+        await base44.asServiceRole.entities.DUCReward.create({
           merchant_id: reward.merchant_id,
           reward_type: reward.reward_type,
           amount: toUpdate,

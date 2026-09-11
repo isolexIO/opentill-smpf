@@ -1,0 +1,128 @@
+{
+  "name": "DUCVaultSettings",
+  "type": "object",
+  "properties": {
+    "description": {
+      "type": "string",
+      "description": "Optional description for search visibility and SEO (up to 1000 characters)",
+      "maxLength": 1000
+    },
+    "merchant_id": {
+      "type": "string",
+      "description": "Merchant ID (null for global settings)"
+    },
+    "vault_enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether vault is enabled for this merchant"
+    },
+    "reward_percentage": {
+      "type": "number",
+      "default": 0.5,
+      "description": "Reward percentage (0.5 = 0.5%)"
+    },
+    "minimum_claim_threshold": {
+      "type": "number",
+      "default": 10,
+      "description": "Minimum $DUC required to claim"
+    },
+    "staking_apy": {
+      "type": "number",
+      "default": 12,
+      "description": "Default staking APY percentage"
+    },
+    "staking_lockup_days": {
+      "type": "number",
+      "default": 90,
+      "description": "Default lockup period in days"
+    },
+    "jupiter_referral_code": {
+      "type": "string",
+      "description": "Jupiter swap referral code"
+    },
+    "duc_mint_address": {
+      "type": "string",
+      "description": "Solana token mint address for $DUC"
+    },
+    "token_symbol": {
+      "type": "string",
+      "default": "$DUC",
+      "description": "Display symbol for the vault token"
+    },
+    "auto_calculate_rewards": {
+      "type": "boolean",
+      "default": true,
+      "description": "Automatically calculate monthly rewards"
+    },
+    "cc_reward_rate": {
+      "type": "number",
+      "default": 0.001,
+      "description": "Rate of CC processing volume earned as $DUC (0.001 = 0.1%)"
+    },
+    "min_reward_amount": {
+      "type": "number",
+      "default": 0.01,
+      "description": "Minimum reward amount per transaction"
+    },
+    "staking_vault_address": {
+      "type": "string",
+      "description": "Solana wallet address holding staked tokens"
+    },
+    "central_vault_wallet": {
+      "type": "string",
+      "description": "Platform central vault wallet address"
+    },
+    "network": {
+      "type": "string",
+      "enum": [
+        "mainnet-beta",
+        "devnet"
+      ],
+      "default": "mainnet-beta",
+      "description": "Solana network used for vault operations"
+    },
+    "referral_reward_rate": {
+      "type": "number",
+      "default": 0.1,
+      "description": "Percentage of referred merchant rewards earned by referrer (0.1 = 10%)"
+    },
+    "min_referral_reward": {
+      "type": "number",
+      "default": 0.001,
+      "description": "Minimum referral reward amount per transaction"
+    }
+  },
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.merchant_id": "{{user.data.merchant_id}}"
+        },
+        {
+          "data.merchant_id": null
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "required": []
+}

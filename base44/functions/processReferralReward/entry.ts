@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
     // referral rewards (token inflation). We ignore client-supplied values.
     let sourceRewards;
     try {
-      sourceRewards = await base44.asServiceRole.entities.cLINKReward.filter({ id: data.id });
+      sourceRewards = await base44.asServiceRole.entities.DUCReward.filter({ id: data.id });
     } catch (e) {
       // Non-existent / invalid id — ignore spoofed requests gracefully.
       return Response.json({ success: true, message: 'Source reward not found - ignoring' });
@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
 
     // Idempotency / replay protection: never issue more than one referral
     // bonus per source reward, even if this function is called directly.
-    const alreadyIssued = await base44.asServiceRole.entities.cLINKReward.filter({
+    const alreadyIssued = await base44.asServiceRole.entities.DUCReward.filter({
       source_reference: data.id,
       reward_type: 'referral'
     });
@@ -66,7 +66,7 @@ Deno.serve(async (req) => {
     const referral = referrals[0];
 
     // Get vault settings for referral reward rate
-    const globalSettings = await base44.asServiceRole.entities.cLINKVaultSettings.filter({
+    const globalSettings = await base44.asServiceRole.entities.DUCVaultSettings.filter({
       merchant_id: null
     });
 
@@ -89,7 +89,7 @@ Deno.serve(async (req) => {
 
     // Create referral reward for the referrer — referral bonuses are ALWAYS
     // issued as $DUC vault rewards, regardless of the merchant's payout method.
-    await base44.asServiceRole.entities.cLINKReward.create({
+    await base44.asServiceRole.entities.DUCReward.create({
       merchant_id: referral.referrer_merchant_id,
       amount: referralRewardAmount,
       reward_type: 'referral',

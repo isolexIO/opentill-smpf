@@ -56,23 +56,23 @@ async function prepareStakeTransaction(base44, { merchant_id, amount, user }) {
   }
 
   // Get staking settings
-  const settings = await base44.asServiceRole.entities.cLINKVaultSettings.filter({
+  const settings = await base44.asServiceRole.entities.DUCVaultSettings.filter({
     merchant_id: merchant_id
   });
-  const globalSettings = await base44.asServiceRole.entities.cLINKVaultSettings.filter({
+  const globalSettings = await base44.asServiceRole.entities.DUCVaultSettings.filter({
     merchant_id: null
   });
   
   const apy = settings[0]?.staking_apy || globalSettings[0]?.staking_apy || 12;
   const lockupDays = settings[0]?.staking_lockup_days || globalSettings[0]?.staking_lockup_days || 90;
-  const clinkMint = globalSettings[0]?.clink_mint_address;
+  const ducMint = globalSettings[0]?.duc_mint_address;
   const stakingVault = globalSettings[0]?.staking_vault_address;
   const network = globalSettings[0]?.network || 'mainnet-beta';
 
-  if (!clinkMint) {
+  if (!ducMint) {
     return Response.json({
       success: false,
-      error: '$cLINK token mint address not configured'
+      error: '$DUC token mint address not configured'
     }, { status: 400 });
   }
 
@@ -90,7 +90,7 @@ async function prepareStakeTransaction(base44, { merchant_id, amount, user }) {
 
     const connection = new Connection(rpcUrl, 'confirmed');
     const userPubkey = new PublicKey(user.wallet_address);
-    const mintPubkey = new PublicKey(clinkMint);
+    const mintPubkey = new PublicKey(ducMint);
     const vaultPubkey = new PublicKey(stakingVault);
 
     // Get associated token accounts
@@ -169,7 +169,7 @@ async function prepareStakeTransaction(base44, { merchant_id, amount, user }) {
 // Verify stake transaction after user signs
 async function verifyStakeTransaction(base44, { merchant_id, amount, signed_transaction, user }) {
   try {
-    const globalSettings = await base44.asServiceRole.entities.cLINKVaultSettings.filter({
+    const globalSettings = await base44.asServiceRole.entities.DUCVaultSettings.filter({
       merchant_id: null
     });
     
@@ -203,7 +203,7 @@ async function verifyStakeTransaction(base44, { merchant_id, amount, signed_tran
     const unlocksAt = new Date(stakedAt.getTime() + lockupDays * 24 * 60 * 60 * 1000);
 
     // Create stake record with real on-chain signature
-    const stake = await base44.asServiceRole.entities.cLINKStake.create({
+    const stake = await base44.asServiceRole.entities.DUCStake.create({
       merchant_id: merchant_id,
       amount: amount,
       apy: apy,
@@ -219,8 +219,8 @@ async function verifyStakeTransaction(base44, { merchant_id, amount, signed_tran
     await base44.asServiceRole.entities.SystemLog.create({
       merchant_id: merchant_id,
       log_type: 'merchant_action',
-      action: '$cLINK Staked On-Chain',
-      description: `Merchant staked ${amount} $cLINK at ${apy}% APY for ${lockupDays} days`,
+      action: '$DUC Staked On-Chain',
+      description: `Merchant staked ${amount} $DUC at ${apy}% APY for ${lockupDays} days`,
       user_email: user.email,
       user_id: user.id,
       severity: 'info',

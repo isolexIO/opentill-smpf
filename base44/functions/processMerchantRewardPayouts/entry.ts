@@ -3,7 +3,7 @@ import { Connection, PublicKey, Keypair } from 'npm:@solana/web3.js@1.95.8';
 import { getOrCreateAssociatedTokenAccount, getAssociatedTokenAddress, transferChecked, TOKEN_PROGRAM_ID } from 'npm:@solana/spl-token@0.3.9';
 
 /**
- * Daily Job: automatically pay out "available" $DUC merchant rewards (cLINKReward)
+ * Daily Job: automatically pay out "available" $DUC merchant rewards (DUCReward)
  * to each merchant's configured Solana wallet, replacing the manual mock claim with
  * a real on-chain transfer. Only merchants with a configured Solana wallet
  * (settings.solana_pay.wallet_address) and rewards above the minimum claim threshold
@@ -24,7 +24,7 @@ Deno.serve(async (req) => {
     const results = { processed: 0, paid: 0, skipped: 0, errors: [], total_paid: 0 };
 
     // Global vault settings for the minimum claim threshold + $DUC mint.
-    const globalSettings = await base44.asServiceRole.entities.cLINKVaultSettings.filter({ merchant_id: null });
+    const globalSettings = await base44.asServiceRole.entities.DUCVaultSettings.filter({ merchant_id: null });
     const globalMinThreshold = globalSettings?.[0]?.minimum_claim_threshold || 10;
 
     const merchants = await base44.asServiceRole.entities.Merchant.filter({ status: 'active' });
@@ -39,7 +39,7 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        const rewards = await base44.asServiceRole.entities.cLINKReward.filter({
+        const rewards = await base44.asServiceRole.entities.DUCReward.filter({
           merchant_id: merchant.id,
           status: 'available'
         });
@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
         const totalAvailable = rewards.reduce((s, r) => s + (r.amount || 0), 0);
 
         // Per-merchant threshold override, else global.
-        const merchantSettings = await base44.asServiceRole.entities.cLINKVaultSettings.filter({ merchant_id: merchant.id });
+        const merchantSettings = await base44.asServiceRole.entities.DUCVaultSettings.filter({ merchant_id: merchant.id });
         const minThreshold = merchantSettings?.[0]?.minimum_claim_threshold || globalMinThreshold;
 
         if (totalAvailable < minThreshold) {
@@ -67,7 +67,7 @@ Deno.serve(async (req) => {
 
         // Mark all swept rewards as claimed with the real on-chain signature.
         for (const reward of rewards) {
-          await base44.asServiceRole.entities.cLINKReward.update(reward.id, {
+          await base44.asServiceRole.entities.DUCReward.update(reward.id, {
             status: 'claimed',
             claimed_at: new Date().toISOString(),
             claimed_by: 'automation',
@@ -124,7 +124,7 @@ async function processSolana(base44, recipientWallet, amount) {
       return { success: false, error: 'Invalid Solana wallet address' };
     }
 
-    const vaultSettings = await base44.asServiceRole.entities.cLINKVaultSettings.filter({ merchant_id: null });
+    const vaultSettings = await base44.asServiceRole.entities.DUCVaultSettings.filter({ merchant_id: null });
     const ducMintAddress = vaultSettings?.[0]?.duc_mint_address;
     if (!ducMintAddress) {
       return { success: false, error: '$DUC mint address not configured in vault settings' };

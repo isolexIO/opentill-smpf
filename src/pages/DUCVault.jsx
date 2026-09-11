@@ -86,8 +86,8 @@ export default function DUCVault() {
       setUser(currentUser);
       setWalletConnected(!!(currentUser?.wallet_address));
 
-      const settings = await base44.entities.cLINKVaultSettings.filter({ merchant_id: merchantId });
-      const globalSettings = await base44.entities.cLINKVaultSettings.filter({ merchant_id: null });
+      const settings = await base44.entities.DUCVaultSettings.filter({ merchant_id: merchantId });
+      const globalSettings = await base44.entities.DUCVaultSettings.filter({ merchant_id: null });
 
       const merchantSettings = settings[0];
       const global = globalSettings[0];
@@ -96,7 +96,7 @@ export default function DUCVault() {
       setVaultSettings(effectiveSettings);
       setVaultEnabled(merchantSettings?.vault_enabled ?? global?.vault_enabled ?? false);
 
-      const rewards = await base44.entities.cLINKReward.filter({ merchant_id: merchantId });
+      const rewards = await base44.entities.DUCReward.filter({ merchant_id: merchantId });
 
       const total = rewards.reduce((sum, r) => sum + r.amount, 0);
       const avail = rewards.filter(r => r.status === 'available').reduce((sum, r) => sum + r.amount, 0);
@@ -107,7 +107,7 @@ export default function DUCVault() {
       setPending(pend);
       setRewardHistory(rewards.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
 
-      const activeStakes = await base44.entities.cLINKStake.filter({ merchant_id: merchantId, status: 'active' });
+      const activeStakes = await base44.entities.DUCStake.filter({ merchant_id: merchantId, status: 'active' });
       const stakedTotal = activeStakes.reduce((sum, s) => sum + s.amount, 0);
       setStaked(stakedTotal);
       setStakes(activeStakes);
@@ -126,7 +126,7 @@ export default function DUCVault() {
       const impersonatedUserJSON = localStorage.getItem('pinLoggedInUser');
       const merchantId = impersonatedUserJSON ? JSON.parse(impersonatedUserJSON).merchant_id : user.merchant_id;
 
-      const { data } = await base44.functions.invoke('claimCLINKRewards', {
+      const { data } = await base44.functions.invoke('claimDUCRewards', {
         merchant_id: merchantId,
         amount: parseFloat(claimAmount) || available
       });
@@ -154,7 +154,7 @@ export default function DUCVault() {
       const impersonatedUserJSON = localStorage.getItem('pinLoggedInUser');
       const merchantId = impersonatedUserJSON ? JSON.parse(impersonatedUserJSON).merchant_id : user.merchant_id;
 
-      const { data: prepData } = await base44.functions.invoke('stakeCLINK', {
+      const { data: prepData } = await base44.functions.invoke('stakeDUC', {
         merchant_id: merchantId, amount: parseFloat(stakeAmount), action: 'prepare'
       });
       if (!prepData.success) throw new Error(prepData.error);
@@ -166,7 +166,7 @@ export default function DUCVault() {
       const signedTx = await provider.signTransaction(txBuffer);
       const signedTxBase64 = btoa(String.fromCharCode(...signedTx.serialize()));
 
-      const { data: verifyData } = await base44.functions.invoke('stakeCLINK', {
+      const { data: verifyData } = await base44.functions.invoke('stakeDUC', {
         merchant_id: merchantId, amount: parseFloat(stakeAmount), action: 'verify', signed_transaction: signedTxBase64
       });
 
@@ -193,7 +193,7 @@ export default function DUCVault() {
       const impersonatedUserJSON = localStorage.getItem('pinLoggedInUser');
       const merchantId = impersonatedUserJSON ? JSON.parse(impersonatedUserJSON).merchant_id : user.merchant_id;
 
-      const { data: quoteData } = await base44.functions.invoke('swapCLINKViaJupiter', {
+      const { data: quoteData } = await base44.functions.invoke('swapDUCViaJupiter', {
         merchant_id: merchantId, from_amount: parseFloat(swapAmount), to_token: swapTo, action: 'quote'
       });
       if (!quoteData.success) throw new Error(quoteData.error);
@@ -203,7 +203,7 @@ export default function DUCVault() {
       );
       if (!confirmSwap) { setSwapping(false); return; }
 
-      const { data: prepData } = await base44.functions.invoke('swapCLINKViaJupiter', {
+      const { data: prepData } = await base44.functions.invoke('swapDUCViaJupiter', {
         merchant_id: merchantId, from_amount: parseFloat(swapAmount), to_token: swapTo, action: 'prepare'
       });
       if (!prepData.success) throw new Error(prepData.error);
@@ -217,7 +217,7 @@ export default function DUCVault() {
       const signedTx = await provider.signTransaction(versionedTx);
       const signedTxBase64 = btoa(String.fromCharCode(...signedTx.serialize()));
 
-      const { data: verifyData } = await base44.functions.invoke('swapCLINKViaJupiter', {
+      const { data: verifyData } = await base44.functions.invoke('swapDUCViaJupiter', {
         merchant_id: merchantId, action: 'verify', signed_transaction: signedTxBase64
       });
 

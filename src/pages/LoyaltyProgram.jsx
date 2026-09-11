@@ -72,7 +72,7 @@ export default function LoyaltyProgramPage() {
         setLoyaltySettings(m.settings?.loyalty_program || loyaltySettings);
 
         // Load merchant's $DUC vault balance
-        const vaultRewards = await base44.entities.cLINKReward.filter({ merchant_id: user.merchant_id, status: 'available' });
+        const vaultRewards = await base44.entities.DUCReward.filter({ merchant_id: user.merchant_id, status: 'available' });
         const vaultBalance = vaultRewards.reduce((sum, r) => sum + r.amount, 0);
         setMerchantVaultBalance(vaultBalance);
       }

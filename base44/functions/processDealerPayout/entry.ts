@@ -334,7 +334,7 @@ async function processSolana(base44, dealer, payout, amount) {
     }
 
     // Resolve $DUC mint address from global vault settings
-    const vaultSettings = await base44.asServiceRole.entities.cLINKVaultSettings.filter({ merchant_id: null });
+    const vaultSettings = await base44.asServiceRole.entities.DUCVaultSettings.filter({ merchant_id: null });
     const ducMintAddress = vaultSettings?.[0]?.duc_mint_address;
     if (!ducMintAddress) {
       return { success: false, error: '$DUC mint address not configured in vault settings' };

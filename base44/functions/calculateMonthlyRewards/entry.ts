@@ -61,7 +61,7 @@ async function runBulkMonthlyRewards(base44, user, periodStart, periodEnd) {
       results.processed++;
 
       // Idempotency: skip if a processing_volume reward already exists for this period.
-      const existing = await base44.asServiceRole.entities.cLINKReward.filter({
+      const existing = await base44.asServiceRole.entities.DUCReward.filter({
         merchant_id: merchant.id,
         reward_type: 'processing_volume',
         period_start: periodStart.toISOString()
@@ -96,8 +96,8 @@ async function runBulkMonthlyRewards(base44, user, periodStart, periodEnd) {
 
 async function runMerchantMonthlyReward(base44, user, merchant_id, processing_volume, override_percentage, periodStart, periodEnd) {
   // Get reward percentage
-  const merchantSettings = await base44.asServiceRole.entities.cLINKVaultSettings.filter({ merchant_id });
-  const globalSettings = await base44.asServiceRole.entities.cLINKVaultSettings.filter({ merchant_id: null });
+  const merchantSettings = await base44.asServiceRole.entities.DUCVaultSettings.filter({ merchant_id });
+  const globalSettings = await base44.asServiceRole.entities.DUCVaultSettings.filter({ merchant_id: null });
 
   const rewardPercentage = override_percentage ||
     merchantSettings[0]?.reward_percentage ||
@@ -130,7 +130,7 @@ async function runMerchantMonthlyReward(base44, user, merchant_id, processing_vo
     };
   }
 
-  const reward = await base44.asServiceRole.entities.cLINKReward.create({
+  const reward = await base44.asServiceRole.entities.DUCReward.create({
     merchant_id,
     reward_type: 'processing_volume',
     amount: rewardAmount,

@@ -45,17 +45,17 @@ async function getSwapQuote(base44, { merchant_id, from_amount, to_token, user }
   }
 
   // Get Jupiter referral code and token settings
-  const globalSettings = await base44.asServiceRole.entities.cLINKVaultSettings.filter({
+  const globalSettings = await base44.asServiceRole.entities.DUCVaultSettings.filter({
     merchant_id: null
   });
   
-  const clinkMint = globalSettings[0]?.clink_mint_address || '';
+  const ducMint = globalSettings[0]?.duc_mint_address || '';
   const network = globalSettings[0]?.network || 'mainnet-beta';
 
-  if (!clinkMint) {
+  if (!ducMint) {
     return Response.json({
       success: false,
-      error: '$cLINK token mint address not configured'
+      error: '$DUC token mint address not configured'
     }, { status: 400 });
   }
 
@@ -74,12 +74,12 @@ async function getSwapQuote(base44, { merchant_id, from_amount, to_token, user }
     }, { status: 400 });
   }
 
-  // Convert amount to lamports (assuming 9 decimals for $cLINK)
+  // Convert amount to lamports (assuming 9 decimals for $DUC)
   const amountInLamports = Math.floor(from_amount * 1e9);
 
   try {
     // Call Jupiter Quote API
-    const quoteUrl = `https://quote-api.jup.ag/v6/quote?inputMint=${clinkMint}&outputMint=${outputMint}&amount=${amountInLamports}&slippageBps=50`;
+    const quoteUrl = `https://quote-api.jup.ag/v6/quote?inputMint=${ducMint}&outputMint=${outputMint}&amount=${amountInLamports}&slippageBps=50`;
     
     const quoteResponse = await fetch(quoteUrl);
     
@@ -125,17 +125,17 @@ async function prepareSwapTransaction(base44, { merchant_id, from_amount, to_tok
   }
 
   // Get settings
-  const globalSettings = await base44.asServiceRole.entities.cLINKVaultSettings.filter({
+  const globalSettings = await base44.asServiceRole.entities.DUCVaultSettings.filter({
     merchant_id: null
   });
   
   const referralAccount = globalSettings[0]?.jupiter_referral_account || null;
-  const clinkMint = globalSettings[0]?.clink_mint_address || '';
+  const ducMint = globalSettings[0]?.duc_mint_address || '';
 
-  if (!clinkMint) {
+  if (!ducMint) {
     return Response.json({
       success: false,
-      error: '$cLINK token mint address not configured'
+      error: '$DUC token mint address not configured'
     }, { status: 400 });
   }
 
@@ -150,7 +150,7 @@ async function prepareSwapTransaction(base44, { merchant_id, from_amount, to_tok
 
   try {
     // Get quote first
-    const quoteUrl = `https://quote-api.jup.ag/v6/quote?inputMint=${clinkMint}&outputMint=${outputMint}&amount=${amountInLamports}&slippageBps=50`;
+    const quoteUrl = `https://quote-api.jup.ag/v6/quote?inputMint=${ducMint}&outputMint=${outputMint}&amount=${amountInLamports}&slippageBps=50`;
     const quoteResponse = await fetch(quoteUrl);
     const quoteData = await quoteResponse.json();
 
@@ -198,7 +198,7 @@ async function prepareSwapTransaction(base44, { merchant_id, from_amount, to_tok
 // Verify swap transaction after user signs and submits
 async function verifySwapTransaction(base44, { merchant_id, signed_transaction, user }) {
   try {
-    const globalSettings = await base44.asServiceRole.entities.cLINKVaultSettings.filter({
+    const globalSettings = await base44.asServiceRole.entities.DUCVaultSettings.filter({
       merchant_id: null
     });
     
@@ -235,8 +235,8 @@ async function verifySwapTransaction(base44, { merchant_id, signed_transaction, 
     await base44.asServiceRole.entities.SystemLog.create({
       merchant_id: merchant_id,
       log_type: 'merchant_action',
-      action: '$cLINK Swapped via Jupiter',
-      description: `Successfully swapped $cLINK via Jupiter`,
+      action: '$DUC Swapped via Jupiter',
+      description: `Successfully swapped $DUC via Jupiter`,
       user_email: user.email,
       user_id: user.id,
       severity: 'info',

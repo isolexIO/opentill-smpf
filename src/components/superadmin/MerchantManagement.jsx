@@ -274,7 +274,7 @@ openTILL Support`
 
   const loadVaultSettings = async (merchantId) => {
     try {
-      const settings = await base44.entities.cLINKVaultSettings.filter({
+      const settings = await base44.entities.DUCVaultSettings.filter({
         merchant_id: merchantId
       });
       setVaultSettings(settings[0] || null);
@@ -285,19 +285,19 @@ openTILL Support`
 
   const handleToggleVault = async (merchant, enabled) => {
     try {
-      // Create or update cLINKVaultSettings for this merchant
-      const existing = await base44.entities.cLINKVaultSettings.filter({
+      // Create or update DUCVaultSettings for this merchant
+      const existing = await base44.entities.DUCVaultSettings.filter({
         merchant_id: merchant.id
       });
 
       if (existing && existing.length > 0) {
         // Update existing
-        await base44.entities.cLINKVaultSettings.update(existing[0].id, {
+        await base44.entities.DUCVaultSettings.update(existing[0].id, {
           vault_enabled: enabled
         });
       } else {
         // Create new
-        await base44.entities.cLINKVaultSettings.create({
+        await base44.entities.DUCVaultSettings.create({
           merchant_id: merchant.id,
           vault_enabled: enabled
         });

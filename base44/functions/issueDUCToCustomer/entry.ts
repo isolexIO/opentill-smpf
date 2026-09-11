@@ -100,8 +100,8 @@ Deno.serve(async (req) => {
       return Response.json({ success: true, message: 'No $DUC to issue' });
     }
 
-    // Check merchant vault balance (available cLINKReward records)
-    const vaultRewards = await base44.asServiceRole.entities.cLINKReward.filter({
+    // Check merchant vault balance (available DUCReward records)
+    const vaultRewards = await base44.asServiceRole.entities.DUCReward.filter({
       merchant_id: merchant_id,
       status: 'available'
     });
@@ -143,7 +143,7 @@ Deno.serve(async (req) => {
       if (remaining <= 0) break;
       if (reward.amount <= remaining) {
         // Consume entire reward record
-        await base44.asServiceRole.entities.cLINKReward.update(reward.id, {
+        await base44.asServiceRole.entities.DUCReward.update(reward.id, {
           status: 'claimed',
           claimed_at: new Date().toISOString(),
           claimed_by: `customer:${customer.id}`,
@@ -153,7 +153,7 @@ Deno.serve(async (req) => {
       } else {
         // Partially consume - split isn't supported so we just mark and note remainder
         // We update the amount to reflect what's left
-        await base44.asServiceRole.entities.cLINKReward.update(reward.id, {
+        await base44.asServiceRole.entities.DUCReward.update(reward.id, {
           amount: reward.amount - remaining
         });
         remaining = 0;

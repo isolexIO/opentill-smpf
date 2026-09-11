@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
 
     // Prevent duplicate rewards on ANY event (create or update) — an attacker
     // replaying a create event must not be able to mint a second reward.
-    const existingRewards = await base44.asServiceRole.entities.cLINKReward.filter({
+    const existingRewards = await base44.asServiceRole.entities.DUCReward.filter({
       merchant_id: order.merchant_id,
       source_reference: order.id
     });
@@ -61,11 +61,11 @@ Deno.serve(async (req) => {
     }
 
     // Get reward settings
-    const globalSettings = await base44.asServiceRole.entities.cLINKVaultSettings.filter({
+    const globalSettings = await base44.asServiceRole.entities.DUCVaultSettings.filter({
       merchant_id: null
     });
 
-    const merchantSettings = await base44.asServiceRole.entities.cLINKVaultSettings.filter({
+    const merchantSettings = await base44.asServiceRole.entities.DUCVaultSettings.filter({
       merchant_id: order.merchant_id
     });
 
@@ -115,7 +115,7 @@ Deno.serve(async (req) => {
     }
 
     // Create reward record
-    await base44.asServiceRole.entities.cLINKReward.create({
+    await base44.asServiceRole.entities.DUCReward.create({
       merchant_id: order.merchant_id,
       amount: rewardAmount,
       reward_type: 'processing_volume',
