@@ -82,36 +82,40 @@ export default function TermsOfServicePage() {
             </ul>
           </section>
 
-          {/* Section 4: Subscription and Billing */}
+          {/* Section 4: Account Activation and Fees */}
           <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">4. Subscription and Billing</h2>
-            
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 mt-6">Subscription Plans</h3>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">4. Account Activation and Fees</h2>
+
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 mt-6">No Subscription Plans or Platform Fees</h3>
             <p className="text-gray-700 leading-relaxed dark:text-gray-300">
-              openTILL offers various subscription plans with different features and pricing. 
-              You may select a plan during registration and can upgrade or downgrade at any time.
+              Isolex does not offer subscription plans and does not charge a recurring platform fee for use of
+              the Service. There is no free trial because there is no paid subscription to convert to. Once your
+              merchant account is activated, you may use the Service without paying any recurring software
+              license or platform access fee.
             </p>
 
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 mt-6">Free Trial</h3>
-            <p className="text-gray-700 leading-relaxed dark:text-gray-300">
-              New accounts receive a 14-day free trial. You will not be charged during the trial period. 
-              After the trial ends, you will be charged according to your selected plan unless you cancel.
-            </p>
-
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 mt-6">Billing</h3>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 mt-6">Activation</h3>
             <ul className="list-disc pl-6 space-y-2 text-gray-700 dark:text-gray-300">
-              <li>Subscription fees are billed monthly or annually in advance</li>
-              <li>All fees are non-refundable except as required by law</li>
-              <li>We may change pricing with 30 days' notice</li>
-              <li>Failed payments may result in service suspension</li>
-              <li>You are responsible for all applicable taxes</li>
+              <li>Your account is activated by Isolex (or your Ambassador) after registration and verification</li>
+              <li>You may begin using the Service as soon as activation is complete</li>
+              <li>We may decline or deactivate an account at any time for reasons set out in these Terms</li>
             </ul>
 
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 mt-6">Transaction Fees</h3>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 mt-6">Payment Processing Fees</h3>
             <p className="text-gray-700 leading-relaxed dark:text-gray-300">
-              In addition to subscription fees, payment processing fees apply based on the payment method used 
-              (card, crypto, EBT, etc.). These fees are separate from your subscription and are deducted from 
-              each transaction.
+              While there is no platform subscription fee, payment processing fees apply to transactions you
+              process through the Service. These fees are set by the underlying payment processor (e.g.,
+              Stripe), depend on the payment method used (card, crypto, EBT, etc.), and are deducted from each
+              transaction. You are responsible for reviewing and accepting the applicable processing rates
+              before accepting payments.
+            </p>
+
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 mt-6">Optional Hardware and Chip Purchases</h3>
+            <p className="text-gray-700 leading-relaxed dark:text-gray-300">
+              Certain optional items — such as the free Stripe Reader M2 program (subject to its own terms in
+              Section 6), device-shop hardware, and openTILL Chip NFTs — may carry one-time or recurring
+              charges. Those charges are disclosed at the point of purchase and are separate from any payment
+              processing fees. You are responsible for all applicable taxes on any such purchases.
             </p>
           </section>
 
@@ -350,7 +354,7 @@ export default function TermsOfServicePage() {
 
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 mt-6">Limitation of Liability</h3>
             <p className="text-gray-700 leading-relaxed mb-3 dark:text-gray-300">
-              TO THE MAXIMUM EXTENT PERMITTED BY LAW, OPENTILL CORPORATION SHALL NOT BE LIABLE FOR:
+              TO THE MAXIMUM EXTENT PERMITTED BY LAW, ISOLEX CORPORATION SHALL NOT BE LIABLE FOR:
             </p>
             <ul className="list-disc pl-6 space-y-2 text-gray-700 dark:text-gray-300">
               <li>Indirect, incidental, special, or consequential damages</li>
@@ -400,8 +404,10 @@ export default function TermsOfServicePage() {
             
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 mt-6">By You</h3>
             <p className="text-gray-700 leading-relaxed dark:text-gray-300">
-              You may cancel your subscription at any time through your account settings. Cancellation takes 
-              effect at the end of your current billing period. No refunds for partial periods.
+              You may deactivate or close your account at any time through your account settings or by
+              contacting support. Because there is no paid subscription, no billing period or refund applies.
+              If you enrolled in the free Stripe Reader M2 program, the return and Non-Return Fee terms in
+              Section 6 continue to apply after deactivation.
             </p>
 
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 mt-6">By Us</h3>
@@ -412,7 +418,7 @@ export default function TermsOfServicePage() {
               <li>You violate these Terms</li>
               <li>You engage in fraudulent or illegal activity</li>
               <li>Your account poses a security risk</li>
-              <li>You fail to pay subscription fees</li>
+              <li>You fail to pay applicable processing fees or hardware-related charges</li>
               <li>We cease operations or discontinue the Service</li>
             </ul>
 
@@ -461,9 +467,9 @@ export default function TermsOfServicePage() {
           <section className="mb-8">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">14. Changes to Terms</h2>
             <p className="text-gray-700 leading-relaxed dark:text-gray-300">
-              We may modify these Terms at any time. Material changes will be communicated via email or through 
-              the Service. Your continued use after changes constitutes acceptance. If you disagree with changes, 
-              you must cancel your subscription.
+              We may modify these Terms at any time. Material changes will be communicated via email or through
+              the Service. Your continued use after changes constitutes acceptance. If you disagree with changes,
+              you must stop using the Service and deactivate your account.
             </p>
           </section>
 

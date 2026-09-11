@@ -70,7 +70,7 @@ export default function LicensePage() {
             </h2>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
               THE SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO 
-              THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. OPENTILL CORPORATION DOES 
+              THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. ISOLEX CORPORATION DOES
               NOT WARRANT THAT THE SOFTWARE WILL MEET YOUR REQUIREMENTS OR THAT THE SOFTWARE WILL OPERATE UNINTERRUPTED OR ERROR-FREE.
             </p>
           </div>
@@ -80,12 +80,12 @@ export default function LicensePage() {
               5. Limitation of Liability
             </h2>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-              IN NO EVENT SHALL OPENTILL CORPORATION BE LIABLE FOR ANY SPECIAL, INDIRECT, INCIDENTAL, CONSEQUENTIAL, OR PUNITIVE 
-              DAMAGES, INCLUDING LOST PROFITS, LOST DATA, OR BUSINESS INTERRUPTION, EVEN IF OPENTILL CORPORATION HAS BEEN ADVISED 
+              IN NO EVENT SHALL ISOLEX CORPORATION BE LIABLE FOR ANY SPECIAL, INDIRECT, INCIDENTAL, CONSEQUENTIAL, OR PUNITIVE
+              DAMAGES, INCLUDING LOST PROFITS, LOST DATA, OR BUSINESS INTERRUPTION, EVEN IF ISOLEX CORPORATION HAS BEEN ADVISED
               OF THE POSSIBILITY OF SUCH DAMAGES.
             </p>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-              THE TOTAL LIABILITY OF OPENTILL CORPORATION UNDER THIS AGREEMENT SHALL NOT EXCEED THE AMOUNT PAID BY YOU FOR THE SOFTWARE 
+              THE TOTAL LIABILITY OF ISOLEX CORPORATION UNDER THIS AGREEMENT SHALL NOT EXCEED THE AMOUNT PAID BY YOU FOR THE SOFTWARE
               IN THE TWELVE (12) MONTHS PRECEDING THE CLAIM.
             </p>
           </div>
@@ -95,8 +95,8 @@ export default function LicensePage() {
               6. Support and Maintenance
             </h2>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-              Isolex Corporation may provide updates, patches, and upgrades to the Software at its sole discretion. Isolex Corporation 
-              is not obligated to provide technical support unless such support is included in your subscription or service agreement.
+              Isolex Corporation may provide updates, patches, and upgrades to the Software at its sole discretion. Isolex Corporation
+              is not obligated to provide technical support. Support, if any, is provided at Isolex Corporation's sole discretion.
             </p>
           </div>
 
