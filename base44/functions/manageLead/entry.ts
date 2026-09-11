@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 import { verify } from 'https://deno.land/x/djwt@v2.8/mod.ts';
+// redeploy trigger
 
 const JWT_SECRET = Deno.env.get('JWT_SECRET');
 
