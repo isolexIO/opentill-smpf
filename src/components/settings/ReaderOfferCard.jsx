@@ -39,9 +39,8 @@ export default function ReaderOfferCard({ merchantId, stripeConnected }) {
     setLoading(true);
     setError(null);
     try {
-      const me = await base44.auth.me();
-      if (!me?.merchant_id) { setLoading(false); return; }
-      const merchants = await base44.entities.Merchant.filter({ id: me.merchant_id });
+      if (!merchantId) { setLoading(false); return; }
+      const merchants = await base44.entities.Merchant.filter({ id: merchantId });
       if (merchants?.length > 0) {
         setReaderProgram(merchants[0].settings?.reader_program || null);
       }

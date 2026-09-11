@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/components/ui/use-toast';
 import { Loader2, MapPin, Cpu, Plus, RefreshCw, CheckCircle, AlertCircle, CreditCard } from 'lucide-react';
 import BluetoothReaderPairing from '@/components/settings/BluetoothReaderPairing';
+import getMerchantId from '@/lib/getMerchantId';
 
 export default function StripeTerminalCard() {
   const { toast } = useToast();
@@ -24,10 +25,10 @@ export default function StripeTerminalCard() {
     let mounted = true;
     (async () => {
       try {
-        const me = await base44.auth.me();
-        if (me?.merchant_id) {
-          setMerchantId(me.merchant_id);
-          await loadStatus(me.merchant_id, mounted);
+        const mid = await getMerchantId();
+        if (mid) {
+          setMerchantId(mid);
+          await loadStatus(mid, mounted);
         } else {
           setLoading(false);
           setError('No merchant account linked to your user.');

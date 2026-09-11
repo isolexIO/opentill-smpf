@@ -10,6 +10,7 @@ import OpenTILLPaymentsLogo from '@/components/payment/OpenTILLPaymentsLogo';
 import StripeConnectOnboarding from '@/components/settings/StripeConnectOnboarding';
 import StripeTerminalCard from '@/components/settings/StripeTerminalCard';
 import ReaderOfferCard from '@/components/settings/ReaderOfferCard';
+import getMerchantId from '@/lib/getMerchantId';
 
 export default function OpenTILLPayments() {
   const [merchantId, setMerchantId] = useState(null);
@@ -24,10 +25,10 @@ export default function OpenTILLPayments() {
     let mounted = true;
     (async () => {
       try {
-        const me = await base44.auth.me();
-        if (me?.merchant_id) {
-          setMerchantId(me.merchant_id);
-          const merchants = await base44.entities.Merchant.filter({ id: me.merchant_id });
+        const mid = await getMerchantId();
+        if (mid) {
+          setMerchantId(mid);
+          const merchants = await base44.entities.Merchant.filter({ id: mid });
           if (mounted && merchants && merchants.length > 0) {
             setAccountId(merchants[0].settings?.payment_gateways?.stripe?.account_id || null);
           }

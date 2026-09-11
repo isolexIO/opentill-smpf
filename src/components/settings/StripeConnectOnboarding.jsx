@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/components/ui/use-toast';
 import { Loader2, CreditCard, CheckCircle2, ExternalLink, AlertCircle, Percent, DollarSign } from 'lucide-react';
 import OpenTILLPaymentsLogo from '@/components/payment/OpenTILLPaymentsLogo';
+import getMerchantId from '@/lib/getMerchantId';
 
 // Standard openTILL Payments pricing — Stripe in-person (card-present) processing + openTILL platform fee
 const STRIPE_PROCESSING_PERCENT = 2.7;
@@ -27,10 +28,10 @@ export default function StripeConnectOnboarding() {
     let mounted = true;
     (async () => {
       try {
-        const me = await base44.auth.me();
-        if (me?.merchant_id) {
-          setMerchantId(me.merchant_id);
-          const merchants = await base44.entities.Merchant.filter({ id: me.merchant_id });
+        const mid = await getMerchantId();
+        if (mid) {
+          setMerchantId(mid);
+          const merchants = await base44.entities.Merchant.filter({ id: mid });
           if (mounted && merchants && merchants.length > 0) {
             setAccountId(merchants[0].settings?.payment_gateways?.stripe?.account_id || null);
           }
