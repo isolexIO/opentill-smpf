@@ -21,19 +21,42 @@ Deno.serve(async (req) => {
             }, { status: 400 });
         }
 
-        // SECURITY (open mail relay): restrict delivery to the authenticated
-        // user's own email address only. Platform admins and ambassadors
-        // (users with dealer_id) are allowed to send to arbitrary addresses
-        // for legitimate admin/invite comms.
+        // SECURITY (open mail relay): prevent the function from being used as
+        // a platform-branded phishing relay. Platform admins may send fully
+        // controlled HTML to any address for legitimate admin/invite comms.
+        // Non-admin users (including ambassadors) may only send plain-text
+        // bodies — this preserves the merchant/ambassador invite flow (which
+        // uses text) while neutralizing the attacker-controlled HTML vector.
+        // Non-admins without a dealer scope may only send to their own address.
         const isAdmin = user.role === 'admin' || user.role === 'root_admin' || user.role === 'super_admin';
         const isAmbassador = !!(user.data && user.data.dealer_id);
         const normalizedTo = String(to).trim().toLowerCase();
         const selfEmail = String(user.email || '').trim().toLowerCase();
-        if (!isAdmin && !isAmbassador && normalizedTo !== selfEmail) {
+
+        // Reject header injection / multiple recipients / malformed addresses
+        const toStr = String(to).trim();
+        if (/[\r\n,;]/.test(toStr) || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(toStr)) {
             return Response.json({
                 success: false,
-                error: 'You may only send emails to your own registered address'
-            }, { status: 403 });
+                error: 'Invalid recipient address'
+            }, { status: 400 });
+        }
+
+        if (!isAdmin) {
+            // Non-admins cannot send attacker-controlled HTML bodies
+            if (html) {
+                return Response.json({
+                    success: false,
+                    error: 'HTML email bodies are restricted to administrators'
+                }, { status: 403 });
+            }
+            // Non-admins without dealer scope may only email themselves
+            if (!isAmbassador && normalizedTo !== selfEmail) {
+                return Response.json({
+                    success: false,
+                    error: 'You may only send emails to your own registered address'
+                }, { status: 403 });
+            }
         }
 
         // Verify SMTP credentials are configured
