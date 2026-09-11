@@ -37,6 +37,19 @@ Deno.serve(async (req) => {
     const dealerFilter = dealer_id ? { legacy_dealer_id: dealer_id, status: 'active' } : { status: 'active' };
     const dealers = await base44.asServiceRole.entities.Ambassador.filter(dealerFilter);
 
+    // Track each dealer's base commission and created payout so recruitment
+    // override commissions can be attributed to upline ambassadors after the
+    // main loop. The override is additive — it never reduces the sub's
+    // commission. The override % is configured per-ambassador by super admins
+    // (Ambassador.referral_commission_percent).
+    const dealerMap = {};
+    const commissionByDealer = {};
+    const payoutByDealer = {};
+    for (const d of dealers) {
+      dealerMap[d.legacy_dealer_id || d.id] = d;
+      dealerMap[d.id] = d;
+    }
+
     const results = {
       processed: 0,
       created: 0,
@@ -130,6 +143,7 @@ Deno.serve(async (req) => {
 
         // Calculate base commission
         const commissionAmount = (grossAmount * dealer.commission_percent) / 100;
+        commissionByDealer[dealer.legacy_dealer_id || dealer.id] = commissionAmount;
 
         // Calculate ambassador bonuses (ambassadors pay no platform fees)
         const activeMerchantCount = payoutItems.length;
@@ -183,6 +197,9 @@ Deno.serve(async (req) => {
           bonus_amount: bonusAmount,
           notes: bonusAmount > 0 ? `${notes ? notes + ' ' : ''}Includes $${bonusAmount.toFixed(2)} ambassador bonus.` : notes
         });
+
+        // Track payout for override attribution
+        payoutByDealer[dealer.legacy_dealer_id || dealer.id] = payout;
 
         // Mark carried-over on_hold payouts as canceled so their amounts
         // aren't double-counted in future cycles.
@@ -248,6 +265,63 @@ Deno.serve(async (req) => {
 
       results.processed++;
     }
+
+    // ── Recruitment override commissions ──
+    // Each ambassador with a referral_commission_percent earns that % of the
+    // residual commission of ambassadors they recruited. This is ADDITIVE —
+    // the sub-ambassador's commission is never reduced. The override % is
+    // configured per-ambassador by super admins.
+    const overrideByUpline = {};
+    for (const sub of dealers) {
+      const uplineId = sub.referred_by_ambassador_id;
+      if (!uplineId) continue;
+      const subKey = sub.legacy_dealer_id || sub.id;
+      const subCommission = commissionByDealer[subKey] || 0;
+      if (subCommission <= 0) continue;
+      const upline = dealerMap[uplineId];
+      if (!upline) continue;
+      const overridePct = upline.referral_commission_percent || 0;
+      if (overridePct <= 0) continue;
+      const override = (subCommission * overridePct) / 100;
+      const uplineKey = upline.legacy_dealer_id || upline.id;
+      if (!overrideByUpline[uplineKey]) {
+        overrideByUpline[uplineKey] = { upline, total: 0, subs: [] };
+      }
+      overrideByUpline[uplineKey].total += override;
+      overrideByUpline[uplineKey].subs.push({ name: sub.name, amount: override, pct: overridePct });
+      const uplinePayout = payoutByDealer[uplineKey];
+      if (uplinePayout) {
+        await base44.asServiceRole.entities.DealerPayoutItem.create({
+          payout_id: uplinePayout.id,
+          merchant_id: subKey,
+          merchant_name: `Recruitment override from ${sub.name}`,
+          amount: override,
+          commission_percent: overridePct,
+          billing_period_start: uplinePayout.period_start,
+          billing_period_end: uplinePayout.period_end
+        });
+      }
+    }
+    let overrideTotal = 0;
+    for (const [uplineKey, info] of Object.entries(overrideByUpline)) {
+      const uplinePayout = payoutByDealer[uplineKey];
+      if (!uplinePayout) continue;
+      const newCommission = (uplinePayout.commission_amount || 0) + info.total;
+      const update = { commission_amount: newCommission };
+      if (uplinePayout.status === 'on_hold') {
+        update.carryover_amount = (uplinePayout.carryover_amount || 0) + info.total;
+      }
+      const subSummary = info.subs.map((s) => `${s.name} (${s.pct}% = $${s.amount.toFixed(2)})`).join(', ');
+      update.notes = `${uplinePayout.notes || ''} Includes $${info.total.toFixed(2)} recruitment override commission [${subSummary}].`.trim();
+      await base44.asServiceRole.entities.DealerPayout.update(uplinePayout.id, update);
+      await base44.asServiceRole.entities.Ambassador.update(info.upline.id, {
+        commission_earned: (info.upline.commission_earned || 0) + info.total,
+        commission_pending: newCommission
+      });
+      overrideTotal += info.total;
+    }
+    results.override_total = overrideTotal;
+    results.override_uplines = Object.keys(overrideByUpline).length;
 
     // Log the calculation
     await base44.asServiceRole.entities.SystemLog.create({

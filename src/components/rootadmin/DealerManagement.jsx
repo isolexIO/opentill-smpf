@@ -813,7 +813,7 @@ export default function DealerManagement() {
                         value={editDialog.ambassador.referral_commission_percent ?? 0}
                         onChange={(e) => updateAmbassador('referral_commission_percent', parseFloat(e.target.value) || 0)}
                       />
-                      <p className="text-xs text-gray-500 mt-1">% earned on commissions of ambassadors they recruited</p>
+                      <p className="text-xs text-gray-500 mt-1">% of each recruited ambassador's residual commission, paid to this ambassador on top — does not reduce the recruit's commission</p>
                     </div>
                   </div>
                 </div>
