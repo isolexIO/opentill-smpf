@@ -21,6 +21,7 @@ export default function StepReview({ formData, onSubmit, onBack, loading, error 
     formData.stripe_identity_verified && { icon: <span className="w-4 h-4">🛡️</span>, label: t('onboarding.identity'), value: t('onboarding.stripeVerified') },
     paymentLabels && { icon: <span className="w-4 h-4">💳</span>, label: t('onboarding.payments'), value: paymentLabels },
     formData.pricing_mode && { icon: <span className="w-4 h-4">💱</span>, label: t('onboarding.pricing'), value: formData.pricing_mode === 'surcharge' ? t('onboarding.cardSurcharge') : t('onboarding.cashDiscount') },
+    formData.accept_card && formData.wants_free_reader && { icon: <span className="w-4 h-4">🎁</span>, label: 'Free Reader', value: 'Stripe Reader M2 included' },
     formData.wallet_address && { icon: <Wallet className="w-4 h-4" />, label: t('onboarding.wallet'), value: formData.wallet_address.slice(0, 6) + '...' + formData.wallet_address.slice(-4) },
     formData.referral_code && { icon: <Tag className="w-4 h-4" />, label: t('onboarding.referral'), value: formData.referral_code },
   ].filter(Boolean);

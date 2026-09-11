@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { CreditCard, Banknote, Smartphone, Coins, Percent, DollarSign } from 'lucide-react';
+import ReaderOfferSection from '@/components/onboarding/ReaderOfferSection';
 import { useLanguage } from '@/lib/i18n/useLanguage';
 
 export default function StepPaymentPrefs({ formData, onChange, onNext, onBack }) {
@@ -72,6 +73,11 @@ export default function StepPaymentPrefs({ formData, onChange, onNext, onBack })
           })}
         </div>
       </div>
+
+      {/* Free Reader Offer (only if cards accepted) */}
+      {formData.accept_card && (
+        <ReaderOfferSection formData={formData} onChange={onChange} />
+      )}
 
       {/* Dual Pricing Mode (only if cards accepted) */}
       {formData.accept_card && (

@@ -34,6 +34,9 @@ const INITIAL = {
   accept_ebt: false,
   accept_crypto: false,
   pricing_mode: 'surcharge',
+  // Free Reader M2 opt-in
+  wants_free_reader: false,
+  reader_agreement_accepted: false,
 };
 
 export default function MerchantOnboarding() {
@@ -130,6 +133,8 @@ export default function MerchantOnboarding() {
           accept_ebt: formData.accept_ebt,
           accept_crypto: formData.accept_crypto,
           pricing_mode: formData.pricing_mode,
+          wants_free_reader: formData.accept_card && formData.wants_free_reader,
+          reader_agreement_accepted: formData.accept_card && formData.reader_agreement_accepted,
         },
       });
 
