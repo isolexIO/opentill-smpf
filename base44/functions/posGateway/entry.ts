@@ -91,6 +91,22 @@ function scopeQuery(entity, merchantId, query) {
   return q;
 }
 
+// Merchant-facing fields a PIN-session merchant admin may update through the
+// gateway. Privileged fields (status, dealer_id, admin_pin, temp_password,
+// features_enabled, trial_ends_at, subdomain_status, is_demo, suspended_at,
+// etc.) are excluded to prevent mass-assignment via asServiceRole.
+const MERCHANT_UPDATE_ALLOWED = new Set([
+  'business_name', 'display_name', 'phone', 'address', 'tax_id', 'settings'
+]);
+
+function filterMerchantUpdate(data) {
+  const filtered = {};
+  for (const key of Object.keys(data || {})) {
+    if (MERCHANT_UPDATE_ALLOWED.has(key)) filtered[key] = data[key];
+  }
+  return filtered;
+}
+
 function scopeCreate(entity, merchantId, dealerId, data) {
   const d = { ...(data || {}) };
   if (entity === 'Merchant') return d;
@@ -146,7 +162,8 @@ async function handleEntity(base44, entity, method, args, merchantId, dealerId) 
     case 'update': {
       const [id, data] = args || [];
       await assertOwnsId(base44, entity, id, merchantId);
-      return await sr.update(id, data || {});
+      const updateData = entity === 'Merchant' ? filterMerchantUpdate(data) : (data || {});
+      return await sr.update(id, updateData);
     }
     case 'delete': {
       const [id] = args || [];

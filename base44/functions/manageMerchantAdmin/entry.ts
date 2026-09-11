@@ -124,7 +124,23 @@ Deno.serve(async (req) => {
         }, { status: 400 });
       }
 
-      const updated = await base44.asServiceRole.entities.Merchant.update(merchant_id, data);
+      // Field whitelist: non-admin merchant owners may only update
+      // merchant-facing fields. Privileged fields (status, dealer_id,
+      // admin_pin, temp_password, features_enabled, trial_ends_at,
+      // subdomain_status, sns_subdomain_status, is_demo, suspended_at, etc.)
+      // are admin-restricted and silently dropped from owner updates.
+      let updateData = data;
+      if (user.role !== 'admin') {
+        const ALLOWED_OWNER_FIELDS = new Set([
+          'business_name', 'display_name', 'phone', 'address', 'tax_id', 'settings'
+        ]);
+        updateData = {};
+        for (const key of Object.keys(data)) {
+          if (ALLOWED_OWNER_FIELDS.has(key)) updateData[key] = data[key];
+        }
+      }
+
+      const updated = await base44.asServiceRole.entities.Merchant.update(merchant_id, updateData);
       return Response.json({
         success: true,
         merchant: updated
