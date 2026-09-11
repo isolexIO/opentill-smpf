@@ -228,6 +228,66 @@ export default function TermsOfServicePage() {
               payment guarantor. You are responsible for fulfilling orders, deliveries, and invoices, and for any
               disputes with your customers.
             </p>
+
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 mt-6">Free Stripe Reader M2 Program</h3>
+            <p className="text-gray-700 leading-relaxed dark:text-gray-300">
+              When you activate a new openTILL Payments account, you may be eligible to receive one (1) Stripe Reader M2
+              card reader at no cost (the "Free Reader"). The following terms apply to the Free Reader program:
+            </p>
+
+            <h4 className="text-base font-semibold text-gray-800 dark:text-gray-200 mb-2 mt-4">Card on File Required</h4>
+            <p className="text-gray-700 leading-relaxed dark:text-gray-300">
+              To receive the Free Reader, you must provide a valid credit or debit card to be kept on file. This card will
+              not be charged at the time of enrollment. By providing your card and accepting these Terms, you authorize
+              openTILL Corporation to charge your card a Non-Return Fee (defined below) if the Reader is not returned
+              within the Return Period (defined below) after cancellation of your openTILL Payments account, or is
+              returned but not in Good Working Order (defined below).
+            </p>
+
+            <h4 className="text-base font-semibold text-gray-800 dark:text-gray-200 mb-2 mt-4">Return Obligation</h4>
+            <p className="text-gray-700 leading-relaxed dark:text-gray-300">
+              If you cancel your openTILL Payments account for any reason, you must return the Free Reader to openTILL
+              Corporation within thirty (30) days of the cancellation date (the "Return Period"). You are responsible for
+              the cost of return shipping. The Reader must be returned in Good Working Order as defined below.
+            </p>
+
+            <h4 className="text-base font-semibold text-gray-800 dark:text-gray-200 mb-2 mt-4">Non-Return Fee</h4>
+            <p className="text-gray-700 leading-relaxed dark:text-gray-300">
+              If the Free Reader is not received by openTILL Corporation within the Return Period, or is received but
+              not in Good Working Order, you will be charged a non-return fee of One Hundred Dollars (USD $100.00) (the
+              "Non-Return Fee") to the card you provided at enrollment. You authorize openTILL Corporation to process
+              this charge automatically after the Return Period expires without further notice. The Non-Return Fee is
+              in addition to any other amounts you may owe under these Terms and does not constitute a purchase of the
+              Reader.
+            </p>
+
+            <h4 className="text-base font-semibold text-gray-800 dark:text-gray-200 mb-2 mt-4">Good Working Order Defined</h4>
+            <p className="text-gray-700 leading-relaxed dark:text-gray-300">
+              For purposes of this Section, "Good Working Order" means the Reader meets all of the following conditions:
+            </p>
+            <ul className="list-disc pl-6 space-y-1 text-gray-700 dark:text-gray-300">
+              <li>Is free of physical damage, including but not limited to cracked, chipped, or shattered screens, broken casing, or damaged ports</li>
+              <li>Has no liquid or water damage, and no evidence of exposure to moisture or humidity beyond normal use</li>
+              <li>Is free of significant cosmetic damage beyond normal wear and tear, including deep scratches, dents, or markings that impair functionality or readability</li>
+              <li>Boots and powers on successfully when connected to a power source</li>
+              <li>Successfully connects to a network (Wi-Fi or cellular, as applicable to the reader model) and can communicate with the Stripe Terminal API</li>
+              <li>Can read and process card transactions (contactless, chip, and swipe, as applicable to the reader model)</li>
+              <li>Includes all original accessories and components provided with the Reader, including charging cable, power adapter, and any included mounts or stands</li>
+              <li>Is free of any software or firmware modifications, jailbreaks, or unauthorized alterations</li>
+            </ul>
+            <p className="text-gray-700 leading-relaxed dark:text-gray-300 mt-2">
+              openTILL Corporation reserves the right to determine, in its reasonable discretion, whether a returned
+              Reader meets the Good Working Order standard. If the Reader does not meet this standard, the Non-Return
+              Fee will apply and will be charged to the card on file.
+            </p>
+
+            <h4 className="text-base font-semibold text-gray-800 dark:text-gray-200 mb-2 mt-4">Ownership & Responsibility</h4>
+            <p className="text-gray-700 leading-relaxed dark:text-gray-300">
+              The Free Reader remains the property of openTILL Corporation until the earlier of (a) successful return in
+              Good Working Order within the Return Period, or (b) payment of the Non-Return Fee. You are responsible for
+              loss, theft, or damage to the Reader while in your possession. If the Reader is lost or stolen, the
+              Non-Return Fee will apply.
+            </p>
           </section>
 
           {/* Section 7: Data and Privacy */}

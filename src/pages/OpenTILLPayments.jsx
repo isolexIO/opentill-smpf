@@ -9,6 +9,7 @@ import { Loader2, ExternalLink, LayoutDashboard, ArrowLeft, CheckCircle2, Credit
 import OpenTILLPaymentsLogo from '@/components/payment/OpenTILLPaymentsLogo';
 import StripeConnectOnboarding from '@/components/settings/StripeConnectOnboarding';
 import StripeTerminalCard from '@/components/settings/StripeTerminalCard';
+import ReaderOfferCard from '@/components/settings/ReaderOfferCard';
 
 export default function OpenTILLPayments() {
   const [merchantId, setMerchantId] = useState(null);
@@ -17,6 +18,7 @@ export default function OpenTILLPayments() {
   const [dashboardUrl, setDashboardUrl] = useState(null);
   const [generatingLink, setGeneratingLink] = useState(false);
   const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState('dashboard');
 
   useEffect(() => {
     let mounted = true;
@@ -39,6 +41,14 @@ export default function OpenTILLPayments() {
       }
     })();
     return () => { mounted = false; };
+  }, []);
+
+  // Switch to connection tab when returning from Stripe reader deposit setup
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('reader_deposit') || params.get('tab') === 'connection') {
+      setActiveTab('connection');
+    }
   }, []);
 
   const handleOpenDashboard = async () => {
@@ -88,7 +98,7 @@ export default function OpenTILLPayments() {
           </Alert>
         )}
 
-        <Tabs defaultValue="dashboard" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-3 mb-6">
             <TabsTrigger value="dashboard">
               <LayoutDashboard className="w-4 h-4 mr-2" />
@@ -148,8 +158,9 @@ export default function OpenTILLPayments() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="connection">
+          <TabsContent value="connection" className="space-y-4">
             <StripeConnectOnboarding />
+            <ReaderOfferCard merchantId={merchantId} stripeConnected={!!accountId} />
           </TabsContent>
 
           <TabsContent value="terminal">
