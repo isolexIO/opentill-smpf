@@ -96,7 +96,7 @@ export default function OpenTILLPayments() {
         {/* Free Reader Hero Banner */}
         <div
           className="mb-6 rounded-xl overflow-hidden border border-blue-200 cursor-pointer hover:shadow-lg transition-shadow"
-          onClick={() => setActiveTab('connection')}
+          onClick={() => window.location.href = createPageUrl('MerchantOnboarding')}
         >
           <div className="flex items-center bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-3 gap-4">
             <div className="flex-1 text-white">
@@ -105,11 +105,11 @@ export default function OpenTILLPayments() {
                 Free Stripe Reader M2 with your new account
               </p>
               <p className="text-xs text-blue-100 mt-0.5">
-                Contactless + chip reader included — just keep a card on file. Return within 30 days of canceling or $100 fee applies.
+                Sign up to get a contactless + chip reader included — just keep a card on file. Return within 30 days of canceling or $100 fee applies.
               </p>
             </div>
             <img
-              src="https://media.base44.com/images/public/6970e2871534100b4ebb8d45/413fe198a_generated_image.png"
+              src="https://b.stripecdn.com/docs-statics-srv/assets/stripem2.bf6a7eabd353369bfa596a81ab51ca9a.png"
               alt="Stripe Reader M2"
               className="w-16 h-16 object-contain shrink-0 rounded-lg bg-white/10 p-1"
             />
