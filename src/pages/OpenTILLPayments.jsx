@@ -20,6 +20,7 @@ export default function OpenTILLPayments() {
   const [generatingLink, setGeneratingLink] = useState(false);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [readerStarting, setReaderStarting] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -70,6 +71,30 @@ export default function OpenTILLPayments() {
     }
   };
 
+  const handleGetReader = async () => {
+    if (!merchantId) {
+      setError('No merchant account linked to your user.');
+      return;
+    }
+    setReaderStarting(true);
+    setError(null);
+    try {
+      const res = await base44.functions.invoke('setupReaderDeposit', {
+        merchant_id: merchantId,
+        return_url: window.location.href,
+      });
+      if (res.data?.checkout_url) {
+        window.location.href = res.data.checkout_url;
+      } else {
+        setError(res.data?.error || 'Could not start card setup.');
+      }
+    } catch (e) {
+      setError(e.response?.data?.error || e.message || 'Failed to start card setup.');
+    } finally {
+      setReaderStarting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -93,19 +118,21 @@ export default function OpenTILLPayments() {
           </div>
         </div>
 
-        {/* Free Reader Hero Banner */}
-        <div
-          className="mb-6 rounded-xl overflow-hidden border border-blue-200 cursor-pointer hover:shadow-lg transition-shadow"
-          onClick={() => window.location.href = createPageUrl('MerchantOnboarding')}
+        {/* Free Reader Hero Banner — Stripe card-on-file enrollment */}
+        <button
+          type="button"
+          onClick={handleGetReader}
+          disabled={readerStarting || !merchantId}
+          className="mb-6 w-full rounded-xl overflow-hidden border border-blue-200 hover:shadow-lg transition-shadow text-left disabled:opacity-60 disabled:cursor-not-allowed"
         >
           <div className="flex items-center bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-3 gap-4">
             <div className="flex-1 text-white">
               <p className="text-sm font-bold flex items-center gap-2">
-                <Gift className="w-4 h-4" />
-                Free Stripe Reader M2 with your new account
+                {readerStarting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Gift className="w-4 h-4" />}
+                {readerStarting ? 'Redirecting to Stripe...' : 'Put Card on File & Get Free Reader'}
               </p>
               <p className="text-xs text-blue-100 mt-0.5">
-                Sign up to get a contactless + chip reader included — just keep a card on file. Return within 30 days of canceling or $100 fee applies.
+                Securely save a card via Stripe and agree to the reader program terms. $100 fee applies only if the reader is not returned within 30 days of cancellation.
               </p>
             </div>
             <img
@@ -114,7 +141,7 @@ export default function OpenTILLPayments() {
               className="w-16 h-16 object-contain shrink-0 rounded-lg bg-white/10 p-1"
             />
           </div>
-        </div>
+        </button>
 
         {error && (
           <Alert variant="destructive" className="mb-6">
