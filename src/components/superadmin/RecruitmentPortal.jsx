@@ -76,32 +76,45 @@ export default function RecruitmentPortal() {
       const link = invite.type === 'ambassador' ? ambassadorLink : builderLink;
       const role = invite.type === 'ambassador' ? 'Ambassador' : 'Builder';
       const subject = `You're invited to become an Isolex ${role}`;
-      const html = `
-        <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#0b1120;color:#e5e7eb;border-radius:12px;overflow:hidden">
-          <div style="padding:32px;background:linear-gradient(135deg,#7B2FD6,#0FD17A);text-align:center">
-            <h1 style="color:#fff;margin:0;font-size:24px">Isolex Corporation</h1>
-            <p style="color:#fff;opacity:0.9;margin:4px 0 0">${role} Invitation</p>
+      const noteHtml = invite.note ? `<br/><br/>${invite.note.replace(/\n/g, '<br/>')}` : '';
+      const html = `<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f4f5;padding:32px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+        <tr><td style="height:6px;background:linear-gradient(90deg,#7B2FD6 0%,#0FD17A 100%);font-size:0;line-height:0;">&nbsp;</td></tr>
+        <tr><td style="padding:40px 48px 24px 48px;text-align:center;">
+          <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6970e2871534100b4ebb8d45/8e45f76fe_DUC3.png" alt="openTILL" width="56" height="56" style="display:block;margin:0 auto 16px auto;border-radius:12px;" />
+          <h1 style="margin:0;font-size:24px;font-weight:800;color:#18181b;letter-spacing:-0.5px;">openTILL <span style="color:#7B2FD6;">SMPF</span></h1>
+          <p style="margin:6px 0 0 0;font-size:13px;color:#71717a;font-weight:500;letter-spacing:0.5px;text-transform:uppercase;">${role} Invitation</p>
+        </td></tr>
+        <tr><td style="padding:0 48px 40px 48px;">
+          <p style="font-size:16px;color:#18181b;margin:0 0 16px 0;">Hi ${invite.name},</p>
+          <p style="line-height:1.7;color:#3f3f46;font-size:15px;margin:0 0 24px 0;">
+            You've been invited to join the openTILL SMPF platform as a <strong style="color:#7B2FD6;">${role}</strong>.${noteHtml}
+          </p>
+          <div style="text-align:center;margin:32px 0;">
+            <a href="${link}" style="display:inline-block;background:linear-gradient(135deg,#7B2FD6,#0FD17A);color:#ffffff;padding:14px 36px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:16px;">Get Started</a>
           </div>
-          <div style="padding:32px">
-            <p style="font-size:16px">Hi ${invite.name},</p>
-            <p style="line-height:1.6;color:#cbd5e1">
-              You've been invited to join the Isolex platform as a <strong style="color:#fff">${role}</strong>.
-              ${invite.note ? `<br/><br/>${invite.note.replace(/\n/g, '<br/>')}` : ''}
-            </p>
-            <div style="text-align:center;margin:28px 0">
-              <a href="${link}" style="display:inline-block;background:linear-gradient(135deg,#7B2FD6,#0FD17A);color:#fff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:16px">
-                Get Started
-              </a>
-            </div>
-            <p style="line-height:1.6;color:#94a3b8;font-size:13px">
-              Or copy this link: ${link}
-            </p>
-            <hr style="border:none;border-top:1px solid #1e293b;margin:24px 0"/>
-            <p style="font-size:12px;color:#64748b">
-              © ${new Date().getFullYear()} Isolex Corporation. All rights reserved.
-            </p>
-          </div>
-        </div>`;
+          <p style="line-height:1.6;color:#71717a;font-size:13px;margin:0;">
+            Or copy this link: <a href="${link}" style="color:#7B2FD6;word-break:break-all;">${link}</a>
+          </p>
+        </td></tr>
+        <tr><td style="padding:32px 48px;background:#fafafa;border-top:1px solid #e4e4e7;">
+          <p style="margin:0 0 8px 0;font-size:13px;color:#71717a;line-height:1.6;">
+            <strong style="color:#3f3f46;">openTILL SMPF</strong> — The blockchain-integrated Point of Sale for modern commerce.
+          </p>
+          <p style="margin:0;font-size:12px;color:#a1a1aa;line-height:1.6;">
+            &copy; ${new Date().getFullYear()} Isolex Corporation. All rights reserved.<br>
+            This is an automated message — please do not reply directly to this email.
+          </p>
+        </td></tr>
+        <tr><td style="height:6px;background:linear-gradient(90deg,#0FD17A 0%,#7B2FD6 100%);font-size:0;line-height:0;">&nbsp;</td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>`;
 
       const res = await base44.functions.invoke('sendEmail', {
         to: invite.email,
