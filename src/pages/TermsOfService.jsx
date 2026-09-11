@@ -239,7 +239,7 @@ export default function TermsOfServicePage() {
             <p className="text-gray-700 leading-relaxed dark:text-gray-300">
               To receive the Free Reader, you must provide a valid credit or debit card to be kept on file. This card will
               not be charged at the time of enrollment. By providing your card and accepting these Terms, you authorize
-              openTILL Corporation to charge your card a Non-Return Fee (defined below) if the Reader is not returned
+              Isolex Corporation to charge your card a Non-Return Fee (defined below) if the Reader is not returned
               within the Return Period (defined below) after cancellation of your openTILL Payments account, or is
               returned but not in Good Working Order (defined below).
             </p>
@@ -253,9 +253,9 @@ export default function TermsOfServicePage() {
 
             <h4 className="text-base font-semibold text-gray-800 dark:text-gray-200 mb-2 mt-4">Non-Return Fee</h4>
             <p className="text-gray-700 leading-relaxed dark:text-gray-300">
-              If the Free Reader is not received by openTILL Corporation within the Return Period, or is received but
+              If the Free Reader is not received by Isolex Corporation within the Return Period, or is received but
               not in Good Working Order, you will be charged a non-return fee of One Hundred Dollars (USD $100.00) (the
-              "Non-Return Fee") to the card you provided at enrollment. You authorize openTILL Corporation to process
+              "Non-Return Fee") to the card you provided at enrollment. You authorize Isolex Corporation to process
               this charge automatically after the Return Period expires without further notice. The Non-Return Fee is
               in addition to any other amounts you may owe under these Terms and does not constitute a purchase of the
               Reader.
@@ -276,14 +276,14 @@ export default function TermsOfServicePage() {
               <li>Is free of any software or firmware modifications, jailbreaks, or unauthorized alterations</li>
             </ul>
             <p className="text-gray-700 leading-relaxed dark:text-gray-300 mt-2">
-              openTILL Corporation reserves the right to determine, in its reasonable discretion, whether a returned
+              Isolex Corporation reserves the right to determine, in its reasonable discretion, whether a returned
               Reader meets the Good Working Order standard. If the Reader does not meet this standard, the Non-Return
               Fee will apply and will be charged to the card on file.
             </p>
 
             <h4 className="text-base font-semibold text-gray-800 dark:text-gray-200 mb-2 mt-4">Ownership & Responsibility</h4>
             <p className="text-gray-700 leading-relaxed dark:text-gray-300">
-              The Free Reader remains the property of openTILL Corporation until the earlier of (a) successful return in
+              The Free Reader remains the property of Isolex Corporation until the earlier of (a) successful return in
               Good Working Order within the Return Period, or (b) payment of the Non-Return Fee. You are responsible for
               loss, theft, or damage to the Reader while in your possession. If the Reader is lost or stolen, the
               Non-Return Fee will apply.
@@ -312,7 +312,7 @@ export default function TermsOfServicePage() {
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 mt-6">Our Rights</h3>
             <p className="text-gray-700 leading-relaxed dark:text-gray-300">
               All rights, title, and interest in openTILL, including software, trademarks, logos, and content, 
-              are owned by openTILL Corporation. These Terms do not grant you any ownership rights.
+              are owned by Isolex Corporation. These Terms do not grant you any ownership rights.
             </p>
 
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 mt-6">Your License</h3>
@@ -382,7 +382,7 @@ export default function TermsOfServicePage() {
           <section className="mb-8">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">10. Indemnification</h2>
             <p className="text-gray-700 leading-relaxed dark:text-gray-300">
-              You agree to indemnify and hold harmless openTILL Corporation, its officers, directors, employees, and 
+              You agree to indemnify and hold harmless Isolex Corporation, its officers, directors, employees, and 
               agents from any claims, damages, losses, or expenses (including legal fees) arising from:
             </p>
             <ul className="list-disc pl-6 space-y-2 text-gray-700 dark:text-gray-300">
@@ -471,7 +471,7 @@ export default function TermsOfServicePage() {
           <section className="mb-8">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">15. General Provisions</h2>
             <ul className="list-disc pl-6 space-y-2 text-gray-700 dark:text-gray-300">
-              <li><strong>Entire Agreement:</strong> These Terms constitute the entire agreement between you and openTILL Corporation</li>
+              <li><strong>Entire Agreement:</strong> These Terms constitute the entire agreement between you and Isolex Corporation</li>
               <li><strong>Severability:</strong> If any provision is invalid, the rest remains in effect</li>
               <li><strong>Waiver:</strong> Our failure to enforce a right does not waive that right</li>
               <li><strong>Assignment:</strong> You may not assign these Terms without our consent</li>
@@ -490,7 +490,7 @@ export default function TermsOfServicePage() {
               For questions about these Terms of Service, please contact us:
             </p>
             <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 dark:bg-gray-700 dark:border-gray-600">
-              <p className="font-semibold text-gray-900 dark:text-white mb-2">openTILL Corporation</p>
+              <p className="font-semibold text-gray-900 dark:text-white mb-2">Isolex Corporation</p>
               <p className="text-gray-700 dark:text-gray-300">Email: <a href="mailto:legal@openTILL.io" className="text-purple-600 hover:underline">legal@openTILL.io</a></p>
               <p className="text-gray-700 dark:text-gray-300">Support: <a href="mailto:support@openTILL.io" className="text-purple-600 hover:underline">support@openTILL.io</a></p>
               <p className="text-gray-700 dark:text-gray-300">Report Issues: <a href={createPageUrl('Support')} className="text-purple-600 hover:underline">Support / Ticket Portal</a></p>

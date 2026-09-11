@@ -221,7 +221,7 @@ export default function EmailLoginPage() {
         </Card>
 
         <p className="text-center text-white/20 text-xs">
-          © {new Date().getFullYear()} openTILL Corporation · openTILL
+          © {new Date().getFullYear()} Isolex Corporation · openTILL
         </p>
       </div>
     </div>

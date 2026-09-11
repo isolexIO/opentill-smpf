@@ -111,7 +111,7 @@ export default function PublicFooter() {
           </div>
 
           <p className="text-gray-400 text-sm text-center">
-            {settings?.company_info?.copyright_text || `© ${new Date().getFullYear()} openTILL Corporation. All rights reserved.`}
+            {settings?.company_info?.copyright_text || `© ${new Date().getFullYear()} Isolex Corporation. All rights reserved.`}
           </p>
         </div>
       </div>

@@ -127,7 +127,7 @@ function generateReceiptHtml(order, merchant) {
 
     <div class="line"></div>
     <div class="center">Thank you for your business!</div>
-    <div class="center" style="font-size:0.85em;color:#888;">Powered by openTILL Corporation</div>
+    <div class="center" style="font-size:0.85em;color:#888;">Powered by Isolex Corporation</div>
   </div>
 </body>
 </html>

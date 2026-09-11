@@ -470,7 +470,7 @@ export default function Layout({ children, currentPageName }) {
       <div className="fixed bottom-20 right-4 flex flex-col items-end gap-2 z-50 md:bottom-4">
         {!dealer?.settings?.hide_opentill_branding && (
           <div className="text-xs text-gray-500 bg-white px-3 py-1 rounded-full shadow-sm">
-            © openTILL Corporation {new Date().getFullYear()}
+            © Isolex Corporation {new Date().getFullYear()}
           </div>
         )}
         <div className="text-xs bg-white rounded-full shadow-sm overflow-hidden">
