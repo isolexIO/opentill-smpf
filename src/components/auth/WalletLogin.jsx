@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -17,13 +17,28 @@ function WalletLoginContent({ onSuccess, merchantId }) {
   const [showJupiterQR, setShowJupiterQR] = useState(false);
   const [authenticated, setAuthenticated] = useState(false);
 
+  // Refs to prevent re-trigger loops from unstable signMessage references
+  // and to track which wallet we've already attempted to authenticate.
+  const signMessageRef = useRef(signMessage);
+  signMessageRef.current = signMessage;
+  const attemptedKeyRef = useRef(null);
+  const authenticatedRef = useRef(false);
+
   useEffect(() => {
-    // Wait until all three are ready: connected, publicKey, AND signMessage
-    if (connected && publicKey && signMessage && !authenticated && !authenticating) {
+    const key = publicKey?.toString();
+    // Trigger authentication once per unique wallet connection
+    if (connected && publicKey && signMessage && !authenticatedRef.current && attemptedKeyRef.current !== key) {
+      attemptedKeyRef.current = key;
       handleAuthenticate();
     }
+    // Reset when wallet disconnects so user can reconnect/retry
+    if (!connected && !publicKey) {
+      attemptedKeyRef.current = null;
+      authenticatedRef.current = false;
+      setAuthenticated(false);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [connected, publicKey, signMessage, authenticated]);
+  }, [connected, publicKey, signMessage]);
 
   useEffect(() => {
     if (!error) return;
@@ -32,18 +47,19 @@ function WalletLoginContent({ onSuccess, merchantId }) {
   }, [error]);
 
   const handleAuthenticate = async () => {
-    if (!publicKey || !signMessage || authenticating || authenticated) return;
+    const sm = signMessageRef.current;
+    if (!publicKey || !sm || authenticatedRef.current) return;
     setAuthenticating(true);
     setError('');
     try {
       const message = `Sign this message to login to openTILL\n\nWallet: ${publicKey.toString()}\nTimestamp: ${Date.now()}`;
       const encodedMessage = new TextEncoder().encode(message);
-      const signature = await signMessage(encodedMessage);
+      const signature = await sm(encodedMessage);
 
       const detectedWalletType = (wallet?.name || '').toLowerCase();
-      const walletType = ['phantom', 'solflare', 'backpack', 'jupiter'].includes(detectedWalletType)
-        ? detectedWalletType
-        : 'phantom';
+      const walletType = ['phantom', 'solflare', 'backpack', 'jupiter'].some(wt =>
+        detectedWalletType.includes(wt)
+      ) ? detectedWalletType : 'phantom';
       const { data } = await base44.functions.invoke('authenticateWallet', {
         wallet_address: publicKey.toString(),
         wallet_type: walletType,
@@ -66,6 +82,7 @@ function WalletLoginContent({ onSuccess, merchantId }) {
       }
 
       if (data.user) {
+        authenticatedRef.current = true;
         setAuthenticated(true);
         localStorage.setItem('pinLoggedInUser', JSON.stringify(data.user));
         if (onSuccess) {
