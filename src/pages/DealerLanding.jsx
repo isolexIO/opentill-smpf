@@ -31,6 +31,15 @@ export default function DealerLanding() {
   });
 
   useEffect(() => {
+    // Capture an ambassador recruitment referral code from the URL
+    // (?ambassador_ref=CODE) so the new ambassador is linked to their upline.
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get('ambassador_ref') || params.get('ambassadorRef') || '';
+    if (ref) {
+      const code = ref.trim().toUpperCase();
+      localStorage.setItem('ambassadorRef', code);
+      setRegisterForm(prev => ({ ...prev, referralCode: code }));
+    }
     checkExistingAuth();
     loadStats();
     loadLandingSettings();
@@ -75,7 +84,10 @@ export default function DealerLanding() {
     try {
       const me = await base44.auth.me();
       if (me && me.email) {
-        const { data } = await base44.functions.invoke('dealerAuth', { action: 'google_auth' });
+        const { data } = await base44.functions.invoke('dealerAuth', {
+          action: 'google_auth',
+          referral_code: localStorage.getItem('ambassadorRef') || ''
+        });
         if (data?.success) {
           localStorage.setItem('dealerToken', data.token);
           localStorage.setItem('dealerData', JSON.stringify(data.dealer));
@@ -274,7 +286,7 @@ export default function DealerLanding() {
                         </span>
                         <div className="flex-1 border-t border-white/10" />
                       </div>
-                      <AmbassadorWalletLogin onDone={handleWalletDone} />
+                      <AmbassadorWalletLogin onDone={handleWalletDone} referralCode={registerForm.referralCode} />
                       <div className="relative flex items-center gap-2 pt-1">
                         <div className="flex-1 border-t border-white/10" />
                         <span className="text-white/30 text-xs whitespace-nowrap">{t('dealerLanding.orEmail')}</span>
@@ -391,6 +403,12 @@ export default function DealerLanding() {
                             onChange={e => setRegisterForm({ ...registerForm, referralCode: e.target.value })}
                             className="bg-white/5 border-white/15 text-white placeholder:text-white/25 focus:border-emerald-500"
                           />
+                          {registerForm.referralCode && (
+                            <p className="text-xs text-emerald-300 flex items-center gap-1 mt-1">
+                              <CheckCircle className="w-3 h-3" />
+                              You were referred by an ambassador (code: {registerForm.referralCode})
+                            </p>
+                          )}
                         </div>
                         <Button type="submit" disabled={loading}
                           className="w-full h-11 bg-gradient-to-r from-emerald-500 to-purple-600 hover:from-emerald-400 hover:to-purple-500 text-white font-semibold">

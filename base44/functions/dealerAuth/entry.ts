@@ -160,6 +160,64 @@ function makeSlug(seed) {
   return `${base}-${Date.now().toString(36)}`;
 }
 
+// ── Ambassador-to-ambassador recruitment helpers ──
+// An ambassador recruits other ambassadors by sharing a link carrying their
+// referral_code (?ambassador_ref=CODE). When a new ambassador signs up, the
+// referrer is recorded on the new ambassador (referred_by_ambassador_id) so
+// the upline can be credited and the downline displayed in their dashboard.
+
+// Resolve a recruiting ambassador by the referral_code from a share link.
+// Returns the ambassador record or null.
+async function resolveReferrer(base44, referralCode) {
+  if (!referralCode) return null;
+  const code = String(referralCode).trim().toUpperCase();
+  if (!code) return null;
+  try {
+    const matches = await base44.asServiceRole.entities.Ambassador.filter({ referral_code: code });
+    if (matches && matches.length > 0) return matches[0];
+  } catch { /* ignore */ }
+  return null;
+}
+
+// Generate and persist a unique recruitment referral_code for an ambassador.
+// Returns the code. Idempotent — if one already exists it is returned as-is.
+async function ensureReferralCode(base44, ambassadorId, name) {
+  // Read the current record to see if a code already exists.
+  const existing = await base44.asServiceRole.entities.Ambassador.filter({ id: ambassadorId });
+  if (existing && existing[0] && existing[0].referral_code) {
+    return existing[0].referral_code;
+  }
+  const base = (name || 'amb')
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, '')
+    .slice(0, 6) || 'AMB';
+  let code = '';
+  let isUnique = false;
+  let attempts = 0;
+  while (!isUnique && attempts < 12) {
+    const suffix = Math.random().toString(36).slice(2, 6).toUpperCase();
+    code = `${base}${suffix}`;
+    const clash = await base44.asServiceRole.entities.Ambassador.filter({ referral_code: code });
+    isUnique = !clash || clash.length === 0;
+    attempts++;
+  }
+  if (!isUnique) return null;
+  await base44.asServiceRole.entities.Ambassador.update(ambassadorId, { referral_code: code });
+  return code;
+}
+
+// Link a newly created ambassador to the ambassador that recruited them.
+// No-op when there is no referrer or the referrer is the same account.
+async function linkReferrer(base44, newAmbassadorId, referralCode) {
+  const referrer = await resolveReferrer(base44, referralCode);
+  if (!referrer || referrer.id === newAmbassadorId) return null;
+  await base44.asServiceRole.entities.Ambassador.update(newAmbassadorId, {
+    referred_by_ambassador_id: referrer.id,
+    recruited_at: new Date().toISOString()
+  });
+  return referrer;
+}
+
 const DEFAULT_AMBASSADOR_FIELDS = {
   status: 'active',
   primary_color: '#7B2FD6',
@@ -338,6 +396,32 @@ Deno.serve(async (req) => {
       // Auto-provision a demo merchant for the new ambassador
       await provisionDemoMerchant(base44, ambassador.id, ambassador.name, ambassador.owner_email, ambassador.owner_name);
 
+      // Generate this ambassador's own recruitment code, and link them to the
+      // ambassador that recruited them (if a referral_code was provided).
+      try {
+        await ensureReferralCode(base44, ambassador.id, company || name);
+        if (referral_code) {
+          const referrer = await linkReferrer(base44, ambassador.id, referral_code);
+          if (referrer) {
+            await base44.asServiceRole.entities.AuditLog.create({
+              action_type: 'login',
+              actor_id: ambassador.id,
+              actor_email: ambassador.owner_email,
+              actor_role: 'dealer_admin',
+              description: 'Ambassador recruited by upline',
+              metadata: {
+                ambassador_id: ambassador.id,
+                upline_ambassador_id: referrer.id,
+                upline_name: referrer.name,
+                referral_code
+              }
+            });
+          }
+        }
+      } catch (e) {
+        console.error('Recruitment linkage failed (non-fatal):', e.message || e);
+      }
+
       const dealerId = ambassador.id;
       const token = await generateToken(dealerId, ambassador.owner_email);
 
@@ -379,6 +463,7 @@ Deno.serve(async (req) => {
         }, { status: 401 });
       }
 
+      const { referral_code } = body;
       const email = me.email.toLowerCase().trim();
       const ambassadors = await base44.asServiceRole.entities.Ambassador.filter({
         owner_email: email
@@ -411,6 +496,15 @@ Deno.serve(async (req) => {
         // Auto-provision a demo merchant for the new ambassador
         await provisionDemoMerchant(base44, ambassador.id, ambassador.name, ambassador.owner_email, ambassador.owner_name);
 
+        // Recruitment: generate this ambassador's code and link them to the
+        // ambassador that recruited them (if a referral_code was passed).
+        try {
+          await ensureReferralCode(base44, ambassador.id, ambassador.name);
+          if (referral_code) await linkReferrer(base44, ambassador.id, referral_code);
+        } catch (e) {
+          console.error('Recruitment linkage failed (non-fatal):', e.message || e);
+        }
+
         isNew = true;
       }
 
@@ -435,7 +529,7 @@ Deno.serve(async (req) => {
 
     // SOLANA WALLET AUTH (sign-in or sign-up)
     if (action === 'wallet_auth') {
-      const { wallet_address, wallet_type, signature_data } = body;
+      const { wallet_address, wallet_type, signature_data, referral_code } = body;
 
       if (!wallet_address) {
         return Response.json({
@@ -491,6 +585,16 @@ Deno.serve(async (req) => {
           await base44.asServiceRole.entities.Ambassador.update(ambassador.id, {
             legacy_dealer_id: ambassador.id
           });
+
+          // Recruitment: generate this ambassador's code and link them to the
+          // ambassador that recruited them (if a referral_code was passed).
+          try {
+            await ensureReferralCode(base44, ambassador.id, ambassador.name);
+            if (referral_code) await linkReferrer(base44, ambassador.id, referral_code);
+          } catch (e) {
+            console.error('Recruitment linkage failed (non-fatal):', e.message || e);
+          }
+
           isNew = true;
         }
       }
@@ -601,6 +705,106 @@ Deno.serve(async (req) => {
       const updated = await base44.asServiceRole.entities.Ambassador.update(ambassador.id, updates);
       const { password_hash, ...safeAmbassador } = updated;
       return Response.json({ success: true, dealer: safeAmbassador });
+    }
+
+    // GET RECRUITMENT INFO
+    // Returns the calling ambassador's recruitment referral_code (generating
+    // one if missing), their shareable recruitment link, their override
+    // commission rate, and a summary of their downline. Token-authenticated so
+    // it works for Ambassador Hub sessions (email / Google / wallet).
+    if (action === 'get_recruitment_info') {
+      const token = body.token;
+      if (!token) {
+        return Response.json({ success: false, error: 'No token provided' }, { status: 401 });
+      }
+      const payload = await verifyToken(token);
+      if (!payload) {
+        return Response.json({ success: false, error: 'Invalid or expired token' }, { status: 401 });
+      }
+      let ambassadors = await base44.asServiceRole.entities.Ambassador.filter({ legacy_dealer_id: payload.dealer_id });
+      if (ambassadors.length === 0 && payload.email) {
+        ambassadors = await base44.asServiceRole.entities.Ambassador.filter({ owner_email: payload.email });
+      }
+      if (ambassadors.length === 0) {
+        return Response.json({ success: false, error: 'Ambassador not found' }, { status: 404 });
+      }
+      const ambassador = ambassadors[0];
+
+      // Ensure the ambassador has a recruitment code to share.
+      let code = ambassador.referral_code;
+      if (!code) {
+        code = await ensureReferralCode(base44, ambassador.id, ambassador.name);
+      }
+
+      const origin = (req.headers.get('origin') || req.headers.get('referer') || 'https://opentill.base44.app').replace(/\/$/, '');
+      const shareUrl = `${origin}/DealerLanding?ambassador_ref=${encodeURIComponent(code || '')}`;
+
+      // Downline summary
+      const downline = await base44.asServiceRole.entities.Ambassador.filter({
+        referred_by_ambassador_id: ambassador.id
+      });
+      const activeRecruits = (downline || []).filter(a => a.status === 'active').length;
+
+      return Response.json({
+        success: true,
+        referral_code: code,
+        share_url: shareUrl,
+        referral_commission_percent: ambassador.referral_commission_percent || 0,
+        total_recruits: (downline || []).length,
+        active_recruits: activeRecruits
+      });
+    }
+
+    // GET DOWNLINE
+    // Returns the list of ambassadors recruited by the calling ambassador,
+    // with per-recruit stats for the dashboard table. Token-authenticated.
+    if (action === 'get_downline') {
+      const token = body.token;
+      if (!token) {
+        return Response.json({ success: false, error: 'No token provided' }, { status: 401 });
+      }
+      const payload = await verifyToken(token);
+      if (!payload) {
+        return Response.json({ success: false, error: 'Invalid or expired token' }, { status: 401 });
+      }
+      let ambassadors = await base44.asServiceRole.entities.Ambassador.filter({ legacy_dealer_id: payload.dealer_id });
+      if (ambassadors.length === 0 && payload.email) {
+        ambassadors = await base44.asServiceRole.entities.Ambassador.filter({ owner_email: payload.email });
+      }
+      if (ambassadors.length === 0) {
+        return Response.json({ success: false, error: 'Ambassador not found' }, { status: 404 });
+      }
+      const ambassador = ambassadors[0];
+
+      const downline = await base44.asServiceRole.entities.Ambassador.filter({
+        referred_by_ambassador_id: ambassador.id
+      });
+
+      const rows = (downline || []).map(a => ({
+        id: a.id,
+        name: a.name,
+        slug: a.slug,
+        owner_email: a.owner_email,
+        status: a.status,
+        total_merchants: a.total_merchants || 0,
+        commission_earned: a.commission_earned || 0,
+        commission_pending: a.commission_pending || 0,
+        recruited_at: a.recruited_at || null,
+        referral_code: a.referral_code || null
+      }));
+
+      // Sort newest recruits first.
+      rows.sort((x, y) => {
+        const xt = x.recruited_at ? new Date(x.recruited_at).getTime() : 0;
+        const yt = y.recruited_at ? new Date(y.recruited_at).getTime() : 0;
+        return yt - xt;
+      });
+
+      return Response.json({
+        success: true,
+        downline: rows,
+        referral_commission_percent: ambassador.referral_commission_percent || 0
+      });
     }
 
     return Response.json({ success: false, error: 'Invalid action' }, { status: 400 });

@@ -18,6 +18,7 @@ import MerchantManagement from '../components/dealer/MerchantManagement.jsx';
 import LeadManagement from '../components/dealer/LeadManagement.jsx';
 import StaffManagement from '../components/dealer/StaffManagement.jsx';
 import MerchantAnalytics from '../components/dealer/MerchantAnalytics.jsx';
+import AmbassadorRecruitment from '../components/dealer/AmbassadorRecruitment.jsx';
 import DealerBrandingSettings from '../components/dealer/DealerBrandingSettings.jsx';
 import ICOLink from '../components/vault/ICOLink';
 import { useLanguage } from '@/lib/i18n/useLanguage';
@@ -250,6 +251,7 @@ export default function DealerDashboardPage() {
               { value: 'analytics', icon: BarChart3, label: t('dealer.analytics') },
               { value: 'marketing', icon: Sparkles, label: t('dealer.aiMarketing') },
               { value: 'payouts', icon: Wallet, label: t('dealer.payouts') },
+              { value: 'ambassadors', icon: Users, label: 'Ambassadors' },
               { value: 'staff', icon: Users, label: t('dealer.staff') },
               { value: 'settings', icon: Settings, label: t('dealer.settings') },
             ].map(t => (
@@ -276,6 +278,9 @@ export default function DealerDashboardPage() {
           </TabsContent>
           <TabsContent value="payouts">
             <PayoutDashboard dealer={dealer} onUpdate={loadDealerData} />
+          </TabsContent>
+          <TabsContent value="ambassadors">
+            <AmbassadorRecruitment dealer={dealer} />
           </TabsContent>
           <TabsContent value="staff">
             <StaffManagement dealerId={dealer.legacy_dealer_id} />

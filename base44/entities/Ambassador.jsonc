@@ -154,6 +154,24 @@
       "type": "number",
       "default": 0
     },
+    "referral_code": {
+      "type": "string",
+      "description": "Unique share code this ambassador uses to recruit other ambassadors. Used in ?ambassador_ref=CODE links."
+    },
+    "referred_by_ambassador_id": {
+      "type": "string",
+      "description": "Ambassador who recruited this ambassador (the upline). Null for top-level ambassadors."
+    },
+    "recruited_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this ambassador was recruited by their upline"
+    },
+    "referral_commission_percent": {
+      "type": "number",
+      "default": 0,
+      "description": "Override commission % this ambassador earns on their recruited ambassadors' commissions. Set by admins."
+    },
     "payout_method": {
       "type": "string",
       "enum": [

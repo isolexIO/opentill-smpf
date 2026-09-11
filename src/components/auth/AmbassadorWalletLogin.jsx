@@ -7,7 +7,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import SolanaWalletProvider from './SolanaWalletProvider';
 
-function AmbassadorWalletLoginContent({ onDone }) {
+function AmbassadorWalletLoginContent({ onDone, referralCode }) {
   const { publicKey, connected, signMessage, connecting, wallet } = useWallet();
   const [authenticating, setAuthenticating] = useState(false);
   const [error, setError] = useState('');
@@ -44,6 +44,7 @@ function AmbassadorWalletLoginContent({ onDone }) {
         action: 'wallet_auth',
         wallet_address: publicKey.toString(),
         wallet_type: walletType,
+        referral_code: referralCode || '',
         signature_data: {
           signature: Array.from(signature),
           message,
@@ -99,10 +100,10 @@ function AmbassadorWalletLoginContent({ onDone }) {
   );
 }
 
-export default function AmbassadorWalletLogin({ onDone }) {
+export default function AmbassadorWalletLogin({ onDone, referralCode }) {
   return (
     <SolanaWalletProvider autoConnect={false}>
-      <AmbassadorWalletLoginContent onDone={onDone} />
+      <AmbassadorWalletLoginContent onDone={onDone} referralCode={referralCode} />
     </SolanaWalletProvider>
   );
 }
