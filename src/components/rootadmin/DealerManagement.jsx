@@ -91,6 +91,7 @@ export default function DealerManagement() {
         commission_percent: 10,
         platform_fee_monthly: 0,
         signup_bonus_per_merchant: 0,
+        signup_bonus_currency: 'USD',
         bonus_per_active_merchant: 0,
         milestone_bonus_threshold: 0,
         milestone_bonus_amount: 0,
@@ -713,21 +714,6 @@ export default function DealerManagement() {
 
               {/* Billing Tab */}
               <TabsContent value="billing" className="space-y-4">
-                <div>
-                  <Label>Commission Percentage</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    max="100"
-                    step="0.1"
-                    value={editDialog.ambassador.commission_percent}
-                    onChange={(e) => updateAmbassador('commission_percent', parseFloat(e.target.value))}
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Ambassador earns this % of each merchant's subscription revenue
-                  </p>
-                </div>
-
                 <div className="border-t pt-4 space-y-4">
                   <div>
                     <p className="font-semibold text-sm">Bonus Structure</p>
@@ -736,15 +722,27 @@ export default function DealerManagement() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label>Signup Bonus per Merchant ($)</Label>
-                      <Input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={editDialog.ambassador.signup_bonus_per_merchant || 0}
-                        onChange={(e) => updateAmbassador('signup_bonus_per_merchant', parseFloat(e.target.value) || 0)}
-                      />
-                      <p className="text-xs text-gray-500 mt-1">One-time bonus when a new merchant signs up</p>
+                      <Label>Upfront Bonus per Activated Merchant</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={editDialog.ambassador.signup_bonus_per_merchant || 0}
+                          onChange={(e) => updateAmbassador('signup_bonus_per_merchant', parseFloat(e.target.value) || 0)}
+                        />
+                        <Select
+                          value={editDialog.ambassador.signup_bonus_currency || 'USD'}
+                          onValueChange={(value) => updateAmbassador('signup_bonus_currency', value)}
+                        >
+                          <SelectTrigger className="w-28"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="USD">USD</SelectItem>
+                            <SelectItem value="DUC">DUC</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">One-time bonus when a new merchant signs up (USD via Stripe, DUC via Solana)</p>
                     </div>
 
                     <div>
@@ -783,6 +781,39 @@ export default function DealerManagement() {
                         onChange={(e) => updateAmbassador('milestone_bonus_amount', parseFloat(e.target.value) || 0)}
                       />
                       <p className="text-xs text-gray-500 mt-1">Bonus paid each period the threshold is met</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t pt-4 space-y-4">
+                  <div>
+                    <p className="font-semibold text-sm">Residual Commissions</p>
+                    <p className="text-xs text-gray-500">Ongoing commission percentages the ambassador earns.</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Direct Commission (%)</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.1"
+                        value={editDialog.ambassador.commission_percent ?? 0}
+                        onChange={(e) => updateAmbassador('commission_percent', parseFloat(e.target.value) || 0)}
+                      />
+                      <p className="text-xs text-gray-500 mt-1">% of each merchant's subscription revenue</p>
+                    </div>
+                    <div>
+                      <Label>Recruitment Override (%)</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.1"
+                        value={editDialog.ambassador.referral_commission_percent ?? 0}
+                        onChange={(e) => updateAmbassador('referral_commission_percent', parseFloat(e.target.value) || 0)}
+                      />
+                      <p className="text-xs text-gray-500 mt-1">% earned on commissions of ambassadors they recruited</p>
                     </div>
                   </div>
                 </div>

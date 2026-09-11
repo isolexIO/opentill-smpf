@@ -26,7 +26,8 @@ import {
   Vault,
   Wallet,
   LifeBuoy,
-  MessageSquare
+  MessageSquare,
+  Megaphone
 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { useLanguage } from '@/lib/i18n/useLanguage';
@@ -58,6 +59,7 @@ import FeedbackManager from '../components/superadmin/FeedbackManager';
 import BrochureManager from '../components/superadmin/BrochureManager';
 import ComplianceRuleManager from '../components/superadmin/ComplianceRuleManager';
 import CustomerReferralSettings from '../components/superadmin/CustomerReferralSettings';
+import RecruitmentPortal from '../components/superadmin/RecruitmentPortal';
 
 export default function SuperAdminPage() {
   const { t } = useLanguage();
@@ -235,6 +237,7 @@ export default function SuperAdminPage() {
         { key: 'merchants', icon: Users, label: t('superAdmin.merchants') },
         { key: 'dealers', icon: Building2, label: t('superAdmin.ambassadors') },
         { key: 'builders', icon: Users, label: t('superAdmin.builders') },
+        { key: 'recruitment', icon: Megaphone, label: 'Recruitment' },
         { key: 'users', icon: Users, label: t('superAdmin.users') },
       ],
     },
@@ -287,6 +290,7 @@ export default function SuperAdminPage() {
     reports: t('superAdmin.tabReports'), ads: t('superAdmin.tabAds'), notifications: t('superAdmin.tabNotifications'), settings: t('superAdmin.tabSettings'),
     support: t('superAdmin.tabSupport'), feedback: t('superAdmin.tabFeedback'), brochure: t('superAdmin.tabBrochure'),
     compliance: t('superAdmin.tabCompliance'),
+    recruitment: 'Recruitment',
   };
 
   return (
@@ -467,6 +471,10 @@ export default function SuperAdminPage() {
 
           {activeTab === 'builders' && (
             <BuilderManagement />
+          )}
+
+          {activeTab === 'recruitment' && (
+            <RecruitmentPortal />
           )}
 
           {activeTab === 'users' && (

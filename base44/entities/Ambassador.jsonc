@@ -133,7 +133,16 @@
     "signup_bonus_per_merchant": {
       "type": "number",
       "default": 0,
-      "description": "One-time $ bonus paid to ambassador when a new merchant signs up"
+      "description": "One-time upfront bonus paid to ambassador when a new merchant signs up (amount in signup_bonus_currency)"
+    },
+    "signup_bonus_currency": {
+      "type": "string",
+      "enum": [
+        "USD",
+        "DUC"
+      ],
+      "default": "USD",
+      "description": "Currency the upfront signup bonus is paid in. USD via Stripe, DUC via Solana."
     },
     "bonus_per_active_merchant": {
       "type": "number",
