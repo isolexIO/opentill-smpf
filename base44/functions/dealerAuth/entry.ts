@@ -684,12 +684,15 @@ Deno.serve(async (req) => {
 
       const ambassador = ambassadors[0];
       const incoming = body.updates || {};
+      // SECURITY: only branding and contact fields are self-service editable.
+      // Billing/payout-sensitive fields (hold days, payout enable, stripe
+      // connection, billing mode) are admin-only — allowing ambassadors to set
+      // them would bypass the mandatory payout hold period and fraud controls.
       const allowed = new Set([
         'logo_url', 'favicon_url', 'primary_color', 'secondary_color', 'domain',
         'contact_phone', 'owner_name', 'settings',
         'payout_method', 'payout_destination', 'payout_minimum', 'payout_cadence',
-        'payout_hold_days', 'payout_enabled', 'solana_wallet_address',
-        'payout_methods', 'stripe_connected', 'stripe_account_id', 'billing_mode'
+        'solana_wallet_address', 'payout_methods'
       ]);
 
       const updates = {};

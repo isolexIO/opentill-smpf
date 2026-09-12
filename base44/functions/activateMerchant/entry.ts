@@ -45,10 +45,10 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'merchant_id is required' }, { status: 400 });
     }
 
-    // Derive the app base URL from the request origin so the login link in the
-    // email always points back to the correct deployment.
-    const origin = req.headers.get('origin') || req.headers.get('referer') || 'https://opentill.openTILL.io';
-    const appUrl = origin.replace(/\/$/, '');
+    // Use a trusted, server-side base URL for sensitive email links. Never
+    // derive this from client-controlled Origin/Referer headers — an attacker
+    // can spoof them to inject phishing links into welcome emails.
+    const appUrl = (Deno.env.get('APP_BASE_URL') || 'https://opentill.base44.app').replace(/\/$/, '');
 
     const now = new Date().toISOString();
 

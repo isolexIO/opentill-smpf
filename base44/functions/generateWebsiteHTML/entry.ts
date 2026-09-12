@@ -27,12 +27,26 @@ Deno.serve(async (req) => {
       ? `\n- Use these generated images throughout the site: ${imageUrls.join(', ')}`
       : '';
 
+    // SECURITY: validate/escape values interpolated into the inline script to
+    // prevent XSS via the apiOrigin or websiteId parameters (e.g. breaking out
+    // of the JS string literal with '; alert(1); //).
+    const safeWebsiteId = String(websiteId || '').replace(/[^a-zA-Z0-9_-]/g, '');
+    let safeApiOrigin = '';
+    if (apiOrigin) {
+      try {
+        const u = new URL(String(apiOrigin));
+        if (u.protocol === 'https:' || u.protocol === 'http:') {
+          safeApiOrigin = u.origin;
+        }
+      } catch { /* invalid origin -> leave empty */ }
+    }
+
     const analyticsScript = `
 <!-- Analytics Tracking -->
 <script>
 (function() {
-  const WEBSITE_ID = '${websiteId}';
-  const API_URL = '${apiOrigin || ''}';
+  const WEBSITE_ID = '${safeWebsiteId}';
+  const API_URL = '${safeApiOrigin}';
   
   let visitorId = localStorage.getItem('visitor_id');
   if (!visitorId) {
