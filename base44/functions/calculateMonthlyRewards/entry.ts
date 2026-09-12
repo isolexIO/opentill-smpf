@@ -19,7 +19,7 @@ Deno.serve(async (req) => {
     const isAdmin = user && ['admin', 'super_admin', 'root_admin'].includes(user.role);
     const body = await req.json().catch(() => ({})) || {};
     const { merchant_id, processing_volume, override_percentage, _internal_secret } = body;
-    const AUTOMATION_SECRET = 'ot_automation_4f8a7c2e9b1d';
+    const AUTOMATION_SECRET = Deno.env.get('AUTOMATION_SECRET') || '';
     if (!isAdmin && _internal_secret !== AUTOMATION_SECRET) {
       return Response.json({ error: 'Unauthorized - Platform admin or automation secret required' }, { status: 401 });
     }
