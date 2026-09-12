@@ -57,7 +57,7 @@ const EMPTY_FORM = {
   message: '',
   type: 'info',
   priority: 'normal',
-  target_scope: 'all',
+  target_scope: 'roles',
   target_merchants: [],
   target_dealer_ids: [],
   target_user_ids: [],
@@ -116,6 +116,18 @@ export default function NotificationManager() {
       return;
     }
 
+    // Notifications must be targeted to specific involved parties — no broadcast.
+    const targetCount =
+      formData.target_scope === 'roles' ? formData.target_roles.length
+        : formData.target_scope === 'users' ? formData.target_user_ids.length
+          : formData.target_scope === 'dealers' ? formData.target_dealer_ids.length
+            : formData.target_scope === 'merchants' ? formData.target_merchants.length
+              : 0;
+    if (targetCount === 0) {
+      alert('Select at least one recipient. Notifications can only be sent to involved parties.');
+      return;
+    }
+
     try {
       const notificationData = {
         title: formData.title,
@@ -159,7 +171,7 @@ export default function NotificationManager() {
           ? 'dealers'
           : (notification.target_merchants?.length > 0)
             ? 'merchants'
-            : 'all';
+            : 'roles';
     setFormData({
       title: notification.title,
       message: notification.message,
@@ -443,7 +455,6 @@ export default function NotificationManager() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Users (Broadcast)</SelectItem>
                   <SelectItem value="roles">Group by Role</SelectItem>
                   <SelectItem value="users">Individual Users</SelectItem>
                   <SelectItem value="dealers">Specific Dealers</SelectItem>
