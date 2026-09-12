@@ -16,7 +16,9 @@ Deno.serve(async (req) => {
 
     // SECURITY: require an admin session OR a valid automation secret. Anonymous
     // internet callers are rejected; scheduled workflows pass the secret in args.
-    const AUTOMATION_SECRET = 'ot_automation_4f8a7c2e9b1d';
+    // Read from server-side secret (not hardcoded) — workflows pass the
+    // matching value in their args. Fail-closed if unset (admin still works).
+    const AUTOMATION_SECRET = Deno.env.get('AUTOMATION_SECRET') || '';
     let user = null;
     try { user = await base44.auth.me(); } catch (e) {}
     const isAdmin = user && ['admin', 'super_admin', 'root_admin'].includes(user.role);

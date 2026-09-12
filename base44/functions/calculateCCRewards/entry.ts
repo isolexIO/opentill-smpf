@@ -10,7 +10,9 @@ Deno.serve(async (req) => {
     // entity-triggered workflow now calls processOrderReward instead; this
     // function is retained for direct admin use and must not accept anonymous
     // or forged-event calls.
-    const AUTOMATION_SECRET = 'ot_automation_4f8a7c2e9b1d';
+    // Read from server-side secret (not hardcoded) — workflows pass the
+    // matching value in their args. Fail-closed if unset (admin still works).
+    const AUTOMATION_SECRET = Deno.env.get('AUTOMATION_SECRET') || '';
     let user = null;
     try { user = await base44.auth.me(); } catch (e) {}
     const isAdmin = user && ['admin', 'super_admin', 'root_admin'].includes(user.role);

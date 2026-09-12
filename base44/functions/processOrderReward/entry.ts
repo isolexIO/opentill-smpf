@@ -3,7 +3,9 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 // Shared automation secret. Scheduled/entity workflows pass this in args; the
 // same constant is defined in every admin-only automation function so anonymous
 // internet callers (who do not know it) are rejected.
-const AUTOMATION_SECRET = 'ot_automation_4f8a7c2e9b1d';
+// Read from server-side secret (not hardcoded) — workflows pass the matching
+// value in their args. Fail-closed if unset (admin still works).
+const AUTOMATION_SECRET = Deno.env.get('AUTOMATION_SECRET') || '';
 
 /**
  * Awards a $DUC processing-volume reward for a single completed card order.
