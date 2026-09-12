@@ -43,14 +43,35 @@
       "items": {
         "type": "string"
       },
-      "description": "Array of merchant IDs (empty = broadcast to all merchants)"
+      "description": "Array of merchant IDs (empty = not merchant-targeted)"
     },
     "target_dealer_ids": {
       "type": "array",
       "items": {
         "type": "string"
       },
-      "description": "Array of dealer IDs to target (empty = all dealers)"
+      "description": "Array of dealer IDs to target (empty = not dealer-targeted)"
+    },
+    "target_user_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of individual user IDs to target (empty = not user-targeted)"
+    },
+    "target_roles": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "admin",
+          "user",
+          "dealer_admin",
+          "ambassador",
+          "root_admin"
+        ]
+      },
+      "description": "Array of roles to target as a group (empty = not role-targeted)"
     },
     "is_active": {
       "type": "boolean",
@@ -138,7 +159,34 @@
           }
         },
         {
-          "data.target_merchants": []
+          "data.target_user_ids": {
+            "$in": [
+              "{{user.id}}"
+            ]
+          }
+        },
+        {
+          "data.target_roles": {
+            "$in": [
+              "{{user.role}}"
+            ]
+          }
+        },
+        {
+          "$and": [
+            {
+              "data.target_merchants": []
+            },
+            {
+              "data.target_dealer_ids": []
+            },
+            {
+              "data.target_user_ids": []
+            },
+            {
+              "data.target_roles": []
+            }
+          ]
         }
       ]
     },
