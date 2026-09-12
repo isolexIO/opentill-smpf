@@ -41,32 +41,44 @@ import {
   Info,
   CheckCircle,
   AlertTriangle,
-  Megaphone
+  Megaphone,
 } from 'lucide-react';
+
+const ROLE_OPTIONS = [
+  { value: 'admin', label: 'Admins' },
+  { value: 'user', label: 'Users (Merchants)' },
+  { value: 'dealer_admin', label: 'Dealer Admins' },
+  { value: 'ambassador', label: 'Ambassadors' },
+  { value: 'root_admin', label: 'Root Admins' },
+];
+
+const EMPTY_FORM = {
+  title: '',
+  message: '',
+  type: 'info',
+  priority: 'normal',
+  target_scope: 'all',
+  target_merchants: [],
+  target_dealer_ids: [],
+  target_user_ids: [],
+  target_roles: [],
+  is_active: true,
+  is_dismissible: true,
+  expires_at: '',
+  action_url: '',
+  action_text: '',
+};
 
 export default function NotificationManager() {
   const [notifications, setNotifications] = useState([]);
   const [merchants, setMerchants] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [dealers, setDealers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingNotification, setEditingNotification] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
-
-  const [dealers, setDealers] = useState([]);
-  const [formData, setFormData] = useState({
-    title: '',
-    message: '',
-    type: 'info',
-    priority: 'normal',
-    target_scope: 'all',
-    target_merchants: [],
-    target_dealer_ids: [],
-    is_active: true,
-    is_dismissible: true,
-    expires_at: '',
-    action_url: '',
-    action_text: ''
-  });
+  const [formData, setFormData] = useState(EMPTY_FORM);
 
   useEffect(() => {
     loadData();
@@ -78,15 +90,17 @@ export default function NotificationManager() {
       const user = await base44.auth.me();
       setCurrentUser(user);
 
-      const [notificationsList, merchantsList, dealersList] = await Promise.all([
+      const [notificationsList, merchantsList, dealersList, usersList] = await Promise.all([
         base44.entities.MerchantNotification.list('-created_date'),
         base44.entities.Merchant.list('business_name'),
-        base44.entities.Ambassador.list('name')
+        base44.entities.Ambassador.list('name'),
+        base44.entities.User.list('full_name'),
       ]);
 
       setNotifications(notificationsList);
       setMerchants(merchantsList);
       setDealers(dealersList);
+      setUsers(usersList);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -110,13 +124,15 @@ export default function NotificationManager() {
         priority: formData.priority,
         target_merchants: formData.target_scope === 'merchants' ? formData.target_merchants : [],
         target_dealer_ids: formData.target_scope === 'dealers' ? formData.target_dealer_ids : [],
+        target_user_ids: formData.target_scope === 'users' ? formData.target_user_ids : [],
+        target_roles: formData.target_scope === 'roles' ? formData.target_roles : [],
         is_active: formData.is_active,
         is_dismissible: formData.is_dismissible,
-        expires_at: formData.expires_at,
-        action_url: formData.action_url,
-        action_text: formData.action_text,
+        expires_at: formData.expires_at || null,
+        action_url: formData.action_url || null,
+        action_text: formData.action_text || null,
         created_by: currentUser.id,
-        created_by_email: currentUser.email
+        created_by_email: currentUser.email,
       };
 
       if (editingNotification) {
@@ -135,8 +151,15 @@ export default function NotificationManager() {
 
   const handleEdit = (notification) => {
     setEditingNotification(notification);
-    const scope = (notification.target_dealer_ids?.length > 0) ? 'dealers'
-      : (notification.target_merchants?.length > 0) ? 'merchants' : 'all';
+    const scope = (notification.target_user_ids?.length > 0)
+      ? 'users'
+      : (notification.target_roles?.length > 0)
+        ? 'roles'
+        : (notification.target_dealer_ids?.length > 0)
+          ? 'dealers'
+          : (notification.target_merchants?.length > 0)
+            ? 'merchants'
+            : 'all';
     setFormData({
       title: notification.title,
       message: notification.message,
@@ -145,11 +168,13 @@ export default function NotificationManager() {
       target_scope: scope,
       target_merchants: notification.target_merchants || [],
       target_dealer_ids: notification.target_dealer_ids || [],
+      target_user_ids: notification.target_user_ids || [],
+      target_roles: notification.target_roles || [],
       is_active: notification.is_active,
       is_dismissible: notification.is_dismissible,
       expires_at: notification.expires_at || '',
       action_url: notification.action_url || '',
-      action_text: notification.action_text || ''
+      action_text: notification.action_text || '',
     });
     setIsDialogOpen(true);
   };
@@ -169,19 +194,16 @@ export default function NotificationManager() {
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
     setEditingNotification(null);
-    setFormData({
-      title: '',
-      message: '',
-      type: 'info',
-      priority: 'normal',
-      target_scope: 'all',
-      target_merchants: [],
-      target_dealer_ids: [],
-      is_active: true,
-      is_dismissible: true,
-      expires_at: '',
-      action_url: '',
-      action_text: ''
+    setFormData(EMPTY_FORM);
+  };
+
+  const toggleArrayValue = (field, value) => {
+    setFormData((prev) => {
+      const arr = prev[field];
+      const updated = arr.includes(value)
+        ? arr.filter((v) => v !== value)
+        : [...arr, value];
+      return { ...prev, [field]: updated };
     });
   };
 
@@ -208,7 +230,7 @@ export default function NotificationManager() {
       warning: { color: 'bg-yellow-100 text-yellow-800', label: 'Warning' },
       success: { color: 'bg-green-100 text-green-800', label: 'Success' },
       error: { color: 'bg-red-100 text-red-800', label: 'Error' },
-      announcement: { color: 'bg-purple-100 text-purple-800', label: 'Announcement' }
+      announcement: { color: 'bg-purple-100 text-purple-800', label: 'Announcement' },
     };
     const config = configs[type] || configs.info;
     return <Badge className={config.color}>{config.label}</Badge>;
@@ -219,10 +241,18 @@ export default function NotificationManager() {
       low: { color: 'bg-gray-100 text-gray-800', label: 'Low' },
       normal: { color: 'bg-blue-100 text-blue-800', label: 'Normal' },
       high: { color: 'bg-orange-100 text-orange-800', label: 'High' },
-      urgent: { color: 'bg-red-100 text-red-800', label: 'Urgent' }
+      urgent: { color: 'bg-red-100 text-red-800', label: 'Urgent' },
     };
     const config = configs[priority] || configs.normal;
     return <Badge className={config.color}>{config.label}</Badge>;
+  };
+
+  const getTargetLabel = (n) => {
+    if (n.target_user_ids?.length > 0) return `${n.target_user_ids.length} user(s)`;
+    if (n.target_roles?.length > 0) return `${n.target_roles.length} role(s)`;
+    if (n.target_dealer_ids?.length > 0) return `${n.target_dealer_ids.length} dealer(s)`;
+    if (n.target_merchants?.length > 0) return `${n.target_merchants.length} merchant(s)`;
+    return 'All';
   };
 
   return (
@@ -281,13 +311,7 @@ export default function NotificationManager() {
                     <TableCell className="font-medium">{notification.title}</TableCell>
                     <TableCell>{getTypeBadge(notification.type)}</TableCell>
                     <TableCell>{getPriorityBadge(notification.priority)}</TableCell>
-                    <TableCell>
-                     {notification.target_dealer_ids?.length > 0
-                       ? `${notification.target_dealer_ids.length} dealer(s)`
-                       : notification.target_merchants?.length > 0
-                         ? `${notification.target_merchants.length} merchant(s)`
-                         : 'All'}
-                    </TableCell>
+                    <TableCell>{getTargetLabel(notification)}</TableCell>
                     <TableCell>
                       <Badge variant={notification.is_active ? 'default' : 'secondary'}>
                         {notification.is_active ? 'Active' : 'Inactive'}
@@ -333,7 +357,8 @@ export default function NotificationManager() {
               {editingNotification ? 'Edit Notification' : 'Create Notification'}
             </DialogTitle>
             <DialogDescription>
-              Send notifications to all or specific merchants
+              Send notifications to all users, specific groups (roles/dealers/merchants), or
+              individual users.
             </DialogDescription>
           </DialogHeader>
 
@@ -403,42 +428,99 @@ export default function NotificationManager() {
               <Label>Target Audience</Label>
               <Select
                 value={formData.target_scope}
-                onValueChange={(value) => setFormData({ ...formData, target_scope: value, target_merchants: [], target_dealer_ids: [] })}
+                onValueChange={(value) =>
+                  setFormData({
+                    ...formData,
+                    target_scope: value,
+                    target_merchants: [],
+                    target_dealer_ids: [],
+                    target_user_ids: [],
+                    target_roles: [],
+                  })
+                }
               >
                 <SelectTrigger className="mt-1">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Merchants (Broadcast)</SelectItem>
+                  <SelectItem value="all">All Users (Broadcast)</SelectItem>
+                  <SelectItem value="roles">Group by Role</SelectItem>
+                  <SelectItem value="users">Individual Users</SelectItem>
                   <SelectItem value="dealers">Specific Dealers</SelectItem>
                   <SelectItem value="merchants">Specific Merchants</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
+            {formData.target_scope === 'roles' && (
+              <div>
+                <Label>Select Roles (Groups)</Label>
+                <div className="mt-1 border rounded-md p-2 space-y-1">
+                  {ROLE_OPTIONS.map((r) => (
+                    <label
+                      key={r.value}
+                      className="flex items-center gap-2 text-sm cursor-pointer hover:bg-gray-50 px-1 py-0.5 rounded"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={formData.target_roles.includes(r.value)}
+                        onChange={() => toggleArrayValue('target_roles', r.value)}
+                      />
+                      {r.label}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {formData.target_scope === 'users' && (
+              <div>
+                <Label>Select Individual Users</Label>
+                <div className="mt-1 border rounded-md max-h-40 overflow-y-auto p-2 space-y-1">
+                  {users.map((u) => (
+                    <label
+                      key={u.id}
+                      className="flex items-center gap-2 text-sm cursor-pointer hover:bg-gray-50 px-1 py-0.5 rounded"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={formData.target_user_ids.includes(u.id)}
+                        onChange={() => toggleArrayValue('target_user_ids', u.id)}
+                      />
+                      {u.full_name || u.email}{' '}
+                      <span className="text-xs text-gray-400">({u.role || 'user'})</span>
+                    </label>
+                  ))}
+                  {users.length === 0 && (
+                    <p className="text-sm text-gray-400">No users found</p>
+                  )}
+                </div>
+              </div>
+            )}
+
             {formData.target_scope === 'dealers' && (
               <div>
                 <Label>Select Dealers</Label>
                 <div className="mt-1 border rounded-md max-h-40 overflow-y-auto p-2 space-y-1">
-                  {dealers.map(d => {
+                  {dealers.map((d) => {
                     const did = d.legacy_dealer_id || d.id;
                     return (
-                    <label key={d.id} className="flex items-center gap-2 text-sm cursor-pointer hover:bg-gray-50 px-1 py-0.5 rounded">
-                      <input
-                        type="checkbox"
-                        checked={formData.target_dealer_ids.includes(did)}
-                        onChange={(e) => {
-                          const updated = e.target.checked
-                            ? [...formData.target_dealer_ids, did]
-                            : formData.target_dealer_ids.filter(id => id !== did);
-                          setFormData({ ...formData, target_dealer_ids: updated });
-                        }}
-                      />
-                      {d.name}
-                    </label>
+                      <label
+                        key={d.id}
+                        className="flex items-center gap-2 text-sm cursor-pointer hover:bg-gray-50 px-1 py-0.5 rounded"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={formData.target_dealer_ids.includes(did)}
+                          onChange={() => toggleArrayValue('target_dealer_ids', did)}
+                        />
+                        {d.name}
+                      </label>
                     );
                   })}
-                  {dealers.length === 0 && <p className="text-sm text-gray-400">No dealers found</p>}
+                  {dealers.length === 0 && (
+                    <p className="text-sm text-gray-400">No dealers found</p>
+                  )}
                 </div>
               </div>
             )}
@@ -447,22 +529,22 @@ export default function NotificationManager() {
               <div>
                 <Label>Select Merchants</Label>
                 <div className="mt-1 border rounded-md max-h-40 overflow-y-auto p-2 space-y-1">
-                  {merchants.map(m => (
-                    <label key={m.id} className="flex items-center gap-2 text-sm cursor-pointer hover:bg-gray-50 px-1 py-0.5 rounded">
+                  {merchants.map((m) => (
+                    <label
+                      key={m.id}
+                      className="flex items-center gap-2 text-sm cursor-pointer hover:bg-gray-50 px-1 py-0.5 rounded"
+                    >
                       <input
                         type="checkbox"
                         checked={formData.target_merchants.includes(m.id)}
-                        onChange={(e) => {
-                          const updated = e.target.checked
-                            ? [...formData.target_merchants, m.id]
-                            : formData.target_merchants.filter(id => id !== m.id);
-                          setFormData({ ...formData, target_merchants: updated });
-                        }}
+                        onChange={() => toggleArrayValue('target_merchants', m.id)}
                       />
                       {m.business_name}
                     </label>
                   ))}
-                  {merchants.length === 0 && <p className="text-sm text-gray-400">No merchants found</p>}
+                  {merchants.length === 0 && (
+                    <p className="text-sm text-gray-400">No merchants found</p>
+                  )}
                 </div>
               </div>
             )}
@@ -513,7 +595,9 @@ export default function NotificationManager() {
                 <Switch
                   id="is_dismissible"
                   checked={formData.is_dismissible}
-                  onCheckedChange={(checked) => setFormData({ ...formData, is_dismissible: checked })}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, is_dismissible: checked })
+                  }
                 />
                 <Label htmlFor="is_dismissible">Dismissible</Label>
               </div>

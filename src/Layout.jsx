@@ -25,6 +25,7 @@ import {
 // This import is necessary for the `return <Home />` statement to be valid.
 import Home from '@/pages/Home';
 import NotificationBanner from '@/components/notifications/NotificationBanner';
+import NotificationCenter from '@/components/notifications/NotificationCenter';
 import MobileBottomNav from '@/components/mobile/MobileBottomNav';
 import PublicNavbar from '@/components/layout/PublicNavbar';
 import PublicFooter from '@/components/layout/PublicFooter';
@@ -379,6 +380,7 @@ export default function Layout({ children, currentPageName }) {
                   </Button>
                 )}
 
+                <NotificationCenter />
                 <LanguageSelector variant="light" />
                 <Button
                   variant="ghost"
@@ -427,6 +429,7 @@ export default function Layout({ children, currentPageName }) {
               </div>
 
               <div className="md:hidden flex items-center space-x-2">
+                <NotificationCenter />
                 <Button
                   variant="ghost"
                   size="icon"

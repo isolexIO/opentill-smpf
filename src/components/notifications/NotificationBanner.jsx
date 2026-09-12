@@ -96,9 +96,22 @@ export default function NotificationBanner() {
         // silently fails for regular merchant users.
         if (localDismissed.has(notification.id)) return false;
 
-        // Check if targeted to this merchant (or all merchants)
-        if (!notification.target_merchants || notification.target_merchants.length === 0) return true;
-        return notification.target_merchants.includes(currentUser.merchant_id);
+        // Targeting: a broadcast (all targeting arrays empty) is shown to
+        // everyone. Otherwise the notification must explicitly target this
+        // user, role, merchant, or dealer — this mirrors the server-side RLS
+        // so a dealer/role/user-targeted notification never leaks to others.
+        const tm = notification.target_merchants || [];
+        const td = notification.target_dealer_ids || [];
+        const tu = notification.target_user_ids || [];
+        const tr = notification.target_roles || [];
+        const isBroadcast =
+          tm.length === 0 && td.length === 0 && tu.length === 0 && tr.length === 0;
+        if (isBroadcast) return true;
+        if (tu.includes(currentUser.id)) return true;
+        if (tr.includes(currentUser.role)) return true;
+        if (tm.includes(currentUser.merchant_id)) return true;
+        if (td.includes(currentUser.dealer_id)) return true;
+        return false;
       });
 
       // Sort by priority
@@ -109,16 +122,20 @@ export default function NotificationBanner() {
 
       setNotifications(relevantNotifications);
 
-      // Mark as viewed
-      for (const notification of relevantNotifications) {
-        if (!notification.read_by?.includes(currentUser.id)) {
-          try {
-            await base44.entities.MerchantNotification.update(notification.id, {
-              read_by: [...(notification.read_by || []), currentUser.id],
-              view_count: (notification.view_count || 0) + 1
-            });
-          } catch (err) {
-            console.log('Could not update notification read status');
+      // Mark as viewed — only admins can write to MerchantNotification (RLS),
+      // so skip the silently-failing update for regular users. Their read /
+      // dismissed state is tracked locally in the Notification Center.
+      if (currentUser.role === 'admin') {
+        for (const notification of relevantNotifications) {
+          if (!notification.read_by?.includes(currentUser.id)) {
+            try {
+              await base44.entities.MerchantNotification.update(notification.id, {
+                read_by: [...(notification.read_by || []), currentUser.id],
+                view_count: (notification.view_count || 0) + 1
+              });
+            } catch (err) {
+              console.log('Could not update notification read status');
+            }
           }
         }
       }
