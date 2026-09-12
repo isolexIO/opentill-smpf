@@ -78,7 +78,7 @@ Deno.serve(async (req) => {
             message: `${merchant.business_name} (${merchant.owner_email}) has registered and is pending activation.`,
             type: 'info',
             priority: 'high',
-            target_merchants: [], // Empty array = all admins can see
+            target_roles: ['admin', 'root_admin', 'super_admin'], // Only admins (the involved parties) see pending-merchant alerts
             is_active: true,
             is_dismissible: true,
             action_url: dedupeUrl,

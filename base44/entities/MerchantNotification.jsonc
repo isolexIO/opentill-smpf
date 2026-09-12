@@ -68,7 +68,8 @@
           "user",
           "dealer_admin",
           "ambassador",
-          "root_admin"
+          "root_admin",
+          "super_admin"
         ]
       },
       "description": "Array of roles to target as a group (empty = not role-targeted)"

@@ -173,20 +173,16 @@ Deno.serve(async (req) => {
     // Create notification record in database
     try {
       await base44.asServiceRole.entities.MerchantNotification.create({
-        user_email: ambassador.contact_email || ambassador.owner_email,
-        notification_type: `payout_${type}`,
         title: notificationTitle,
         message: notificationMessage,
-        is_read: false,
-        metadata: {
-          ambassador_id,
-          ambassador_name: ambassador.name,
-          amount,
-          merchant_names,
-          details,
-          error_message,
-          timestamp: new Date().toISOString()
-        }
+        type: (type === 'failed' || type === 'system_issue') ? 'error' : 'success',
+        priority: ['failed', 'system_issue', 'admin_action'].includes(type) ? 'high' : 'normal',
+        // Only the involved ambassador sees this automated payout notification.
+        target_dealer_ids: [ambassador.legacy_dealer_id || ambassador.id],
+        is_active: true,
+        is_dismissible: true,
+        created_by: 'system',
+        created_by_email: 'system@opentill.local'
       });
     } catch (dbError) {
       console.error('Database notification failed:', dbError);
