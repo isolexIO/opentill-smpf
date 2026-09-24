@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Cpu, Wallet, RefreshCw, AlertCircle, Power, PowerOff, CheckCircle, Lock, ExternalLink } from 'lucide-react';
 import { createPageUrl } from '@/utils';
+import CardIssuingPanel from '@/components/motherboard/CardIssuingPanel';
 
 export default function Motherboard() {
   const [user, setUser] = useState(null);
@@ -198,6 +199,19 @@ export default function Motherboard() {
             )}
           </CardContent>
         </Card>
+
+        {(() => {
+          const issuingChip = allChips.find(c => c.symbol === 'ISSUE');
+          const issuingInstalled = issuingChip && isInstalled(issuingChip.id);
+          if (issuingChip && issuingInstalled && canAccessChip(issuingChip)) {
+            return (
+              <div className="lg:col-span-3">
+                <CardIssuingPanel chip={issuingChip} merchant={merchant} />
+              </div>
+            );
+          }
+          return null;
+        })()}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {allChips.map(chip => {
