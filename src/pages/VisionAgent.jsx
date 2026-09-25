@@ -41,11 +41,33 @@ export default function VisionAgent() {
       setConversations(list || []);
       if (list && list.length > 0 && !activeId) {
         openConversation(list[0].id, list[0]);
+      } else if (!list || list.length === 0) {
+        // First-time visitor — have the agent initiate contact
+        initiateContact();
       }
     } catch (e) {
       console.error('Error listing conversations', e);
     } finally {
       setLoadingList(false);
+    }
+  };
+
+  // Auto-create a conversation and seed it so the agent greets first-time visitors
+  const initiateContact = async () => {
+    try {
+      const conv = await base44.agents.createConversation({
+        agent_name: AGENT_NAME,
+        metadata: { name: 'Vision Chat', description: 'Conversation with the openTILL Vision Agent' }
+      });
+      setConversations(prev => [conv, ...prev]);
+      openConversation(conv.id, conv);
+      await base44.agents.addMessage(conv, {
+        role: 'user',
+        content: "Hi! I'm a first-time visitor. Please introduce yourself and give me a quick overview of the openTILL SMPF vision, $DUC rewards, and the ambassador & builder networks."
+      });
+    } catch (e) {
+      // Likely unauthenticated — fall back to a static greeting in the empty state
+      console.error('Error initiating contact', e);
     }
   };
 
@@ -181,11 +203,16 @@ export default function VisionAgent() {
             <CardContent className="p-0 flex flex-col flex-1">
               <div className="flex-1 overflow-y-auto p-4 space-y-4" style={{ maxHeight: 560 }}>
                 {messages.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center text-center text-gray-400">
-                    <Sparkles className="w-10 h-10 mb-3 text-indigo-400" />
-                    <p className="text-sm max-w-sm">
-                      Ask me anything about openTILL — our POS, $DUC rewards, the ambassador &amp; builder networks, the chip marketplace, and the road ahead.
-                    </p>
+                  <div className="flex justify-start">
+                    <div className="max-w-[85%] px-4 py-3 rounded-2xl bg-white border border-gray-200 text-gray-800">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Sparkles className="w-4 h-4 text-indigo-500" />
+                        <span className="text-xs font-semibold text-indigo-600">Vision Agent</span>
+                      </div>
+                      <ReactMarkdown className="prose prose-sm max-w-none">
+                        {"👋 Welcome to **openTILL SMPF**! I'm the Vision Agent — your guide to the next generation of point of sale.\n\nI can tell you about our POS platform, **$DUC** crypto rewards, the **Ambassador** & **Builder** networks, the chip marketplace, and what's on our roadmap. Ask me anything, or sign in to start a full conversation."}
+                      </ReactMarkdown>
+                    </div>
                   </div>
                 ) : (
                   messages.map((m, i) => (
