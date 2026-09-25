@@ -65,6 +65,11 @@ export default function PublicFooter() {
                   {t('footer.buildWithUs')}
                 </a>
               </li>
+              <li>
+                <a href={createPageUrl('VisionAgent')} className="text-gray-300 hover:text-white text-sm transition-colors">
+                  Vision Agent
+                </a>
+              </li>
             </ul>
           </div>
 

@@ -85,6 +85,9 @@ export default function PublicNavbar() {
               <a href={createPageUrl('Contact')} className="text-white hover:text-green-300 transition-colors">
                 {t('nav.contact')}
               </a>
+              <a href={createPageUrl('VisionAgent')} className="text-white hover:text-green-300 transition-colors">
+                Vision Agent
+              </a>
               <a href="https://ico.opentill.io/" target="_blank" rel="noopener noreferrer" className="text-green-300 font-semibold hover:text-green-200 transition-colors">
                 {t('nav.ducPresale')}
               </a>
@@ -143,6 +146,7 @@ export default function PublicNavbar() {
           )}
           <a href={createPageUrl('About')} className="block text-white hover:text-green-300 py-2">{t('nav.about')}</a>
           <a href={createPageUrl('Contact')} className="block text-white hover:text-green-300 py-2">{t('nav.contact')}</a>
+          <a href={createPageUrl('VisionAgent')} className="block text-white hover:text-green-300 py-2">Vision Agent</a>
           <a href="https://ico.opentill.io/" target="_blank" rel="noopener noreferrer" className="block text-green-300 font-semibold py-2">{t('nav.ducPresale')}</a>
           <div className="pt-2 border-t border-white/10">
             <CommunityLinks variant="compact" className="[&_a]:text-gray-300 [&_a]:hover:text-white justify-start" />
