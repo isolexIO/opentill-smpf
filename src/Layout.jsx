@@ -34,7 +34,7 @@ import LanguageSelector from '@/components/i18n/LanguageSelector';
 import { useLanguage } from '@/lib/i18n/useLanguage';
 import { useNavigate } from 'react-router-dom';
 
-const PUBLIC_PAGES = ['Home', 'Login', 'PinLogin', 'EmailLogin', 'WalletLoginPage', 'OnlineMenu', 'CustomerDisplay', 'KitchenDisplay', 'MerchantOnboarding', 'POS', 'PrivacyPolicy', 'TermsOfService', 'License', 'Copyright', 'About', 'Contact', 'DeviceShop', 'DealerLanding', 'DealerDashboard', 'DealerHome', 'SuperAdmin', 'Marketplace', 'ChipDetail', 'Builders', 'BuilderOnboarding', 'DriverDashboard', 'PayInvoice', 'OpenTILLPayments', 'MobileStationDisplay', 'CustomerPortal', 'Community'];
+const PUBLIC_PAGES = ['Home', 'Login', 'PinLogin', 'EmailLogin', 'WalletLoginPage', 'OnlineMenu', 'CustomerDisplay', 'KitchenDisplay', 'MerchantOnboarding', 'POS', 'PrivacyPolicy', 'TermsOfService', 'License', 'Copyright', 'About', 'Contact', 'DeviceShop', 'DealerLanding', 'DealerDashboard', 'DealerHome', 'SuperAdmin', 'Marketplace', 'ChipDetail', 'Builders', 'BuilderOnboarding', 'DriverDashboard', 'PayInvoice', 'OpenTILLPayments', 'MobileStationDisplay', 'CustomerPortal', 'Community', 'VisionAgent'];
 
 function PublicLayout({ children }) {
   return (
