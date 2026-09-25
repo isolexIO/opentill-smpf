@@ -27,6 +27,7 @@ import SMPFWalletAdmin from './pages/SMPFWalletAdmin';
 import Brochure from './pages/Brochure';
 import BrochureFeature from './pages/BrochureFeature';
 import Community from './pages/Community';
+import VisionAgent from './pages/VisionAgent';
 import Receipt from './pages/Receipt';
 import { LanguageProvider } from '@/lib/i18n/useLanguage';
 
@@ -131,6 +132,11 @@ const AuthenticatedApp = () => {
       <Route path="/Community" element={
         <LayoutWrapper currentPageName="Community">
           <Community />
+        </LayoutWrapper>
+      } />
+      <Route path="/VisionAgent" element={
+        <LayoutWrapper currentPageName="VisionAgent">
+          <VisionAgent />
         </LayoutWrapper>
       } />
       <Route path="/mobile/station/:token" element={
