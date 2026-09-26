@@ -28,6 +28,10 @@ import Brochure from './pages/Brochure';
 import BrochureFeature from './pages/BrochureFeature';
 import Community from './pages/Community';
 import VisionAgent from './pages/VisionAgent';
+import TableManager from './pages/TableManager';
+import RecipeManager from './pages/RecipeManager';
+import Reservations from './pages/Reservations';
+import OnlineReservations from './pages/OnlineReservations';
 import Receipt from './pages/Receipt';
 import { LanguageProvider } from '@/lib/i18n/useLanguage';
 
@@ -137,6 +141,26 @@ const AuthenticatedApp = () => {
       <Route path="/VisionAgent" element={
         <LayoutWrapper currentPageName="VisionAgent">
           <VisionAgent />
+        </LayoutWrapper>
+      } />
+      <Route path="/TableManager" element={
+        <LayoutWrapper currentPageName="TableManager">
+          <TableManager />
+        </LayoutWrapper>
+      } />
+      <Route path="/RecipeManager" element={
+        <LayoutWrapper currentPageName="RecipeManager">
+          <RecipeManager />
+        </LayoutWrapper>
+      } />
+      <Route path="/Reservations" element={
+        <LayoutWrapper currentPageName="Reservations">
+          <Reservations />
+        </LayoutWrapper>
+      } />
+      <Route path="/OnlineReservations" element={
+        <LayoutWrapper currentPageName="OnlineReservations">
+          <OnlineReservations />
         </LayoutWrapper>
       } />
       <Route path="/mobile/station/:token" element={

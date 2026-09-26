@@ -12,11 +12,27 @@ export default function KitchenDisplay() {
   const [deviceSessionId, setDeviceSessionId] = useState(null);
   const [stationInfo, setStationInfo] = useState(null);
   const [stationId, setStationId] = useState(null);
+  const [recipes, setRecipes] = useState({});
   const audioRef = useRef(null);
 
   useEffect(() => {
     loadMerchantId();
   }, []);
+
+  // Load recipes so prep steps show under each item on the kitchen display
+  useEffect(() => {
+    if (!merchantId) return;
+    (async () => {
+      try {
+        const list = await base44.entities.Recipe.filter({ merchant_id: merchantId, display_on_kitchen_display: true, is_active: true }, 'product_name', 500);
+        const map = {};
+        (list || []).forEach(r => { map[r.product_id] = r; });
+        setRecipes(map);
+      } catch (e) {
+        console.warn('Could not load recipes', e);
+      }
+    })();
+  }, [merchantId]);
 
   useEffect(() => {
     if (!merchantId) return;
@@ -324,6 +340,22 @@ export default function KitchenDisplay() {
                               {mod.name}
                             </div>
                           ))}
+                        </div>
+                      )}
+                      {recipes[item.product_id] && (recipes[item.product_id].steps || []).length > 0 && (
+                        <div className="text-xs text-gray-700 mt-2 bg-orange-50 border border-orange-200 rounded p-2">
+                          <div className="font-semibold text-orange-700 mb-1 flex items-center gap-1 capitalize">
+                            <ChefHat className="w-3 h-3" />
+                            {recipes[item.product_id].station} · {recipes[item.product_id].prep_time_minutes}m
+                          </div>
+                          <ol className="list-decimal list-inside space-y-0.5">
+                            {(recipes[item.product_id].steps || []).map((s, i) => (
+                              <li key={i}>{s.instruction}{s.time_minutes ? ` (${s.time_minutes}m)` : ''}</li>
+                            ))}
+                          </ol>
+                          {recipes[item.product_id].plating_notes && (
+                            <div className="mt-1 pt-1 border-t border-orange-200 italic">Plate: {recipes[item.product_id].plating_notes}</div>
+                          )}
                         </div>
                       )}
                     </div>

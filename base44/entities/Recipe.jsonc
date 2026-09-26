@@ -1,0 +1,167 @@
+{
+  "name": "Recipe",
+  "type": "object",
+  "properties": {
+    "description": {
+      "type": "string",
+      "description": "Optional description for search visibility and SEO (up to 1000 characters)",
+      "maxLength": 1000
+    },
+    "merchant_id": {
+      "type": "string",
+      "description": "Merchant that owns this recipe - REQUIRED"
+    },
+    "dealer_id": {
+      "type": "string",
+      "description": "Dealer ID for multi-tenant isolation"
+    },
+    "product_id": {
+      "type": "string",
+      "description": "Product this recipe belongs to - REQUIRED"
+    },
+    "product_name": {
+      "type": "string",
+      "description": "Denormalized product name for display"
+    },
+    "station": {
+      "type": "string",
+      "enum": [
+        "grill",
+        "fry",
+        "salad",
+        "bar",
+        "prep",
+        "dessert",
+        "general"
+      ],
+      "default": "general",
+      "description": "Kitchen station responsible for this recipe"
+    },
+    "prep_time_minutes": {
+      "type": "number",
+      "default": 10,
+      "description": "Estimated total prep time in minutes"
+    },
+    "servings": {
+      "type": "number",
+      "default": 1,
+      "description": "Number of servings this recipe yields"
+    },
+    "ingredients": {
+      "type": "array",
+      "description": "List of ingredients with quantities",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          }
+        }
+      },
+      "default": []
+    },
+    "steps": {
+      "type": "array",
+      "description": "Ordered preparation steps shown on the kitchen display",
+      "items": {
+        "type": "object",
+        "properties": {
+          "step_number": {
+            "type": "number"
+          },
+          "instruction": {
+            "type": "string"
+          },
+          "time_minutes": {
+            "type": "number"
+          }
+        }
+      },
+      "default": []
+    },
+    "allergens": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Allergen tags (e.g. gluten, dairy, nuts)"
+    },
+    "plating_notes": {
+      "type": "string",
+      "description": "Final plating / presentation instructions"
+    },
+    "display_on_kitchen_display": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether to show this recipe on the kitchen display"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "merchant_id",
+    "product_id"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.merchant_id": "{{user.data.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.merchant_id": "{{user.data.merchant_id}}"
+        },
+        {
+          "data.dealer_id": "{{user.data.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.merchant_id": "{{user.data.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.merchant_id": "{{user.data.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

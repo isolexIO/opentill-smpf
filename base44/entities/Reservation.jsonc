@@ -1,0 +1,166 @@
+{
+  "name": "Reservation",
+  "type": "object",
+  "properties": {
+    "description": {
+      "type": "string",
+      "description": "Optional description for search visibility and SEO (up to 1000 characters)",
+      "maxLength": 1000
+    },
+    "merchant_id": {
+      "type": "string",
+      "description": "Merchant this reservation belongs to - REQUIRED"
+    },
+    "dealer_id": {
+      "type": "string",
+      "description": "Dealer ID for multi-tenant isolation"
+    },
+    "location_id": {
+      "type": "string",
+      "description": "Location ID (null = shared/default location)"
+    },
+    "table_id": {
+      "type": "string",
+      "description": "RestaurantTable reserved (null = any table / to be assigned)"
+    },
+    "table_name": {
+      "type": "string",
+      "description": "Denormalized table name for display"
+    },
+    "customer_name": {
+      "type": "string",
+      "description": "Name of the guest"
+    },
+    "customer_phone": {
+      "type": "string"
+    },
+    "customer_email": {
+      "type": "string",
+      "format": "email"
+    },
+    "party_size": {
+      "type": "number",
+      "default": 2,
+      "description": "Number of guests"
+    },
+    "reservation_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of the reservation (YYYY-MM-DD)"
+    },
+    "reservation_time": {
+      "type": "string",
+      "description": "Time of the reservation (HH:MM, 24h)"
+    },
+    "duration_minutes": {
+      "type": "number",
+      "default": 90,
+      "description": "How long the table is held (minutes)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "confirmed",
+        "cancelled",
+        "seated",
+        "no_show",
+        "completed"
+      ],
+      "default": "pending",
+      "description": "Reservation lifecycle status"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "online",
+        "phone",
+        "walk_in",
+        "staff"
+      ],
+      "default": "online",
+      "description": "How the reservation was created"
+    },
+    "special_requests": {
+      "type": "string",
+      "description": "Guest notes / accommodation requests"
+    },
+    "confirmation_code": {
+      "type": "string",
+      "description": "Unique code shown to the guest"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Internal staff notes"
+    },
+    "seated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "cancelled_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "merchant_id",
+    "customer_name",
+    "party_size",
+    "reservation_date",
+    "reservation_time",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.merchant_id": "{{user.data.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.merchant_id": "{{user.data.merchant_id}}"
+        },
+        {
+          "data.dealer_id": "{{user.data.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.merchant_id": "{{user.data.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.merchant_id": "{{user.data.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -34,7 +34,7 @@ import LanguageSelector from '@/components/i18n/LanguageSelector';
 import { useLanguage } from '@/lib/i18n/useLanguage';
 import { useNavigate } from 'react-router-dom';
 
-const PUBLIC_PAGES = ['Home', 'Login', 'PinLogin', 'EmailLogin', 'WalletLoginPage', 'OnlineMenu', 'CustomerDisplay', 'KitchenDisplay', 'MerchantOnboarding', 'POS', 'PrivacyPolicy', 'TermsOfService', 'License', 'Copyright', 'About', 'Contact', 'DeviceShop', 'DealerLanding', 'DealerDashboard', 'DealerHome', 'SuperAdmin', 'Marketplace', 'ChipDetail', 'Builders', 'BuilderOnboarding', 'DriverDashboard', 'PayInvoice', 'OpenTILLPayments', 'MobileStationDisplay', 'CustomerPortal', 'Community', 'VisionAgent'];
+const PUBLIC_PAGES = ['Home', 'Login', 'PinLogin', 'EmailLogin', 'WalletLoginPage', 'OnlineMenu', 'CustomerDisplay', 'KitchenDisplay', 'MerchantOnboarding', 'POS', 'PrivacyPolicy', 'TermsOfService', 'License', 'Copyright', 'About', 'Contact', 'DeviceShop', 'DealerLanding', 'DealerDashboard', 'DealerHome', 'SuperAdmin', 'Marketplace', 'ChipDetail', 'Builders', 'BuilderOnboarding', 'DriverDashboard', 'PayInvoice', 'OpenTILLPayments', 'MobileStationDisplay', 'CustomerPortal', 'Community', 'VisionAgent', 'OnlineReservations'];
 
 function PublicLayout({ children }) {
   return (
@@ -226,7 +226,7 @@ export default function Layout({ children, currentPageName }) {
   // If user is not authenticated (via base44.auth.me) and is trying to access a non-authentication
   // or non-home page, redirect them to the Home page.
   // Allow root_admin to access dealer pages
-  if (!user && !['EmailLogin', 'MerchantOnboarding', 'PinLogin', 'WalletLoginPage', 'Home', 'PrivacyPolicy', 'TermsOfService', 'License', 'Copyright', 'About', 'Contact', 'CustomerDisplay', 'KitchenDisplay', 'OnlineMenu', 'DeviceShop', 'DealerOnboarding', 'DealerDashboard', 'DealerLanding', 'Marketplace', 'ChipDetail', 'DriverDashboard', 'PayInvoice', 'POS', 'MobileStationDisplay', 'CustomerPortal', 'SystemMenu', 'SuperAdmin', 'Settings', 'Products', 'Inventory', 'Orders', 'Customers', 'Reports', 'Users', 'Departments', 'Modifiers', 'Devices', 'Subscriptions', 'Support', 'Motherboard', 'DUCVault', 'LoyaltyProgram', 'OnlineOrders', 'DeviceMonitor', 'AIAssistant', 'AIWebsiteGenerator', 'ReferralDashboard'].includes(currentPageName)) {
+  if (!user && !['EmailLogin', 'MerchantOnboarding', 'PinLogin', 'WalletLoginPage', 'Home', 'PrivacyPolicy', 'TermsOfService', 'License', 'Copyright', 'About', 'Contact', 'CustomerDisplay', 'KitchenDisplay', 'OnlineMenu', 'DeviceShop', 'DealerOnboarding', 'DealerDashboard', 'DealerLanding', 'Marketplace', 'ChipDetail', 'DriverDashboard', 'PayInvoice', 'POS', 'MobileStationDisplay', 'CustomerPortal', 'SystemMenu', 'SuperAdmin', 'Settings', 'Products', 'Inventory', 'Orders', 'Customers', 'Reports', 'Users', 'Departments', 'Modifiers', 'Devices', 'Subscriptions', 'Support', 'Motherboard', 'DUCVault', 'LoyaltyProgram', 'OnlineOrders', 'DeviceMonitor', 'AIAssistant', 'AIWebsiteGenerator', 'ReferralDashboard', 'TableManager', 'RecipeManager', 'Reservations'].includes(currentPageName)) {
     return <Home />;
   }
 

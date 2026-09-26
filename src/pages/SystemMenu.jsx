@@ -39,7 +39,10 @@ import {
   Wallet,
   Lightbulb,
   Truck,
-  Network
+  Network,
+  Grid3x3,
+  ChefHat,
+  CalendarDays
 } from 'lucide-react';
 import AdvertisingTile from '../components/system-menu/AdvertisingTile';
 import CommunityLinks from '../components/shared/CommunityLinks';
@@ -380,6 +383,36 @@ export default function SystemMenu() {
       path: 'OnlineOrders',
       color: 'from-teal-500 to-teal-600',
       permission: 'process_orders'
+    },
+    {
+      id: 'table_mapping',
+      category: 'catalog',
+      icon: <Grid3x3 className="w-6 h-6" />,
+      title: 'Table Mapping',
+      description: 'Design your floor plan & manage table status',
+      path: 'TableManager',
+      color: 'from-indigo-500 to-purple-600',
+      permission: null
+    },
+    {
+      id: 'recipes',
+      category: 'catalog',
+      icon: <ChefHat className="w-6 h-6" />,
+      title: 'Recipes',
+      description: 'Prep steps & ingredients for the kitchen display',
+      path: 'RecipeManager',
+      color: 'from-orange-500 to-rose-600',
+      permission: null
+    },
+    {
+      id: 'reservations',
+      category: 'customers',
+      icon: <CalendarDays className="w-6 h-6" />,
+      title: 'Reservations',
+      description: 'Manage guest table reservations',
+      path: 'Reservations',
+      color: 'from-emerald-500 to-teal-600',
+      permission: null
     },
     // Payments & Rewards
     {

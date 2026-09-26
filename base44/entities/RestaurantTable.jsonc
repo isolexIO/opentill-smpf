@@ -1,0 +1,148 @@
+{
+  "name": "RestaurantTable",
+  "type": "object",
+  "properties": {
+    "description": {
+      "type": "string",
+      "description": "Optional description for search visibility and SEO (up to 1000 characters)",
+      "maxLength": 1000
+    },
+    "merchant_id": {
+      "type": "string",
+      "description": "Merchant that owns this table - REQUIRED"
+    },
+    "dealer_id": {
+      "type": "string",
+      "description": "Dealer ID for multi-tenant isolation"
+    },
+    "location_id": {
+      "type": "string",
+      "description": "Location ID this table belongs to (null = shared/default location)"
+    },
+    "name": {
+      "type": "string",
+      "description": "Display name (e.g. T1, Patio 5, Bar 2)"
+    },
+    "table_number": {
+      "type": "string",
+      "description": "Numeric or alphanumeric table identifier"
+    },
+    "capacity": {
+      "type": "number",
+      "default": 4,
+      "description": "Number of seats at this table"
+    },
+    "shape": {
+      "type": "string",
+      "enum": [
+        "square",
+        "round",
+        "rectangle"
+      ],
+      "default": "square",
+      "description": "Visual shape on the floor plan"
+    },
+    "section": {
+      "type": "string",
+      "description": "Floor-plan section/zone (e.g. Main, Patio, Bar, Balcony)"
+    },
+    "x": {
+      "type": "number",
+      "default": 0,
+      "description": "Grid column position on the floor plan (0-indexed)"
+    },
+    "y": {
+      "type": "number",
+      "default": 0,
+      "description": "Grid row position on the floor plan (0-indexed)"
+    },
+    "width": {
+      "type": "number",
+      "default": 1,
+      "description": "Width in grid units"
+    },
+    "height": {
+      "type": "number",
+      "default": 1,
+      "description": "Height in grid units"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "available",
+        "occupied",
+        "reserved",
+        "cleaning",
+        "inactive"
+      ],
+      "default": "available",
+      "description": "Current table status"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this table is active on the floor plan"
+    },
+    "sort_order": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "merchant_id",
+    "name"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.merchant_id": "{{user.data.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.merchant_id": "{{user.data.merchant_id}}"
+        },
+        {
+          "data.dealer_id": "{{user.data.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.merchant_id": "{{user.data.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.merchant_id": "{{user.data.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
