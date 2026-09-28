@@ -12,6 +12,7 @@
     },
     "google_email": {
       "type": "string",
+      "default": "",
       "description": "Google account email linked to this user (verified via Google OAuth). Allows Google login even when it differs from the user's platform email."
     },
     "is_active": {
@@ -25,6 +26,7 @@
     },
     "temp_password": {
       "type": "string",
+      "default": "",
       "description": "Temporary password for first login"
     },
     "two_factor_enabled": {
@@ -34,6 +36,7 @@
     },
     "two_factor_secret": {
       "type": "string",
+      "default": "",
       "description": "TOTP secret for 2FA (encrypted)"
     },
     "permissions": {
