@@ -88,9 +88,10 @@ export default function EmployeeManagementPage() {
         station_id: currentUser.pos_settings?.station_id
       });
 
-      await base44.entities.User.update(currentUser.id, {
-        currently_clocked_in: true,
-        current_time_entry_id: timeEntry.id
+      const session_token = localStorage.getItem('pinSessionToken');
+      await base44.functions.invoke('manageEmployee', {
+        action: 'update', merchant_id: currentUser.merchant_id, session_token,
+        id: currentUser.id, data: { currently_clocked_in: true, current_time_entry_id: timeEntry.id }
       });
 
       // Update local storage
@@ -121,13 +122,17 @@ export default function EmployeeManagementPage() {
           status: 'clocked_out'
         });
 
-        await base44.entities.User.update(currentUser.id, {
-          currently_clocked_in: false,
-          current_time_entry_id: null,
-          total_hours_worked: (currentUser.total_hours_worked || 0) + hoursWorked
+        const session_token = localStorage.getItem('pinSessionToken');
+        await base44.functions.invoke('manageEmployee', {
+          action: 'update', merchant_id: currentUser.merchant_id, session_token,
+          id: currentUser.id, data: {
+            currently_clocked_in: false,
+            current_time_entry_id: '',
+            total_hours_worked: (currentUser.total_hours_worked || 0) + hoursWorked
+          }
         });
 
-        const updatedUser = { ...currentUser, currently_clocked_in: false, current_time_entry_id: null };
+        const updatedUser = { ...currentUser, currently_clocked_in: false, current_time_entry_id: null, total_hours_worked: (currentUser.total_hours_worked || 0) + hoursWorked };
         localStorage.setItem('pinLoggedInUser', JSON.stringify(updatedUser));
         setCurrentUser(updatedUser);
 

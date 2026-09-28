@@ -68,31 +68,37 @@ Deno.serve(async (req) => {
       if (merchants?.[0]?.dealer_id) dealer_id = merchants[0].dealer_id;
     } catch { /* leave null */ }
 
+    // Staff records live on the dedicated Employee entity. The built-in User
+    // entity cannot be created via the SDK (the platform blocks User.create and
+    // its custom fields are not filterable), so PIN-based staff must be stored
+    // here — a normal custom entity that is fully queryable.
     if (action === 'list') {
-      const users = await base44.asServiceRole.entities.User.filter({ merchant_id }, 'full_name', 500);
+      const users = await base44.asServiceRole.entities.Employee.filter({ merchant_id }, 'full_name', 500);
       return Response.json({ success: true, users: users || [] });
     }
 
     if (action === 'create') {
       const d = body.data || {};
-      if (!d.full_name || !d.email) {
-        return Response.json({ success: false, error: 'Name and email are required' }, { status: 400 });
+      if (!d.full_name) {
+        return Response.json({ success: false, error: 'Name is required' }, { status: 400 });
       }
       // Enforce PIN uniqueness within the merchant so authenticatePinUser
       // (which picks the first match) never collides between two staff.
       let pin = String(d.pin || Math.floor(1000 + Math.random() * 9000));
-      const pinInUse = await base44.asServiceRole.entities.User.filter({ pin, merchant_id });
+      const pinInUse = await base44.asServiceRole.entities.Employee.filter({ pin, merchant_id });
       if (pinInUse && pinInUse.length > 0) {
         pin = String(100000 + Math.floor(Math.random() * 900000));
       }
-      // Don't create a duplicate user for an existing email in this merchant.
-      const existing = await base44.asServiceRole.entities.User.filter({ merchant_id, email: String(d.email).toLowerCase().trim() });
-      if (existing && existing.length > 0) {
-        return Response.json({ success: false, error: 'A staff member with that email already exists.' }, { status: 409 });
+      // Don't create a duplicate for an existing email in this merchant.
+      if (d.email) {
+        const existing = await base44.asServiceRole.entities.Employee.filter({ merchant_id, email: String(d.email).toLowerCase().trim() });
+        if (existing && existing.length > 0) {
+          return Response.json({ success: false, error: 'A staff member with that email already exists.' }, { status: 409 });
+        }
       }
-      const user = await base44.asServiceRole.entities.User.create({
+      const user = await base44.asServiceRole.entities.Employee.create({
         full_name: d.full_name,
-        email: String(d.email).toLowerCase().trim(),
+        email: d.email ? String(d.email).toLowerCase().trim() : '',
         phone: d.phone || '',
         role: d.role || 'user',
         employee_id: d.employee_id || '',
@@ -109,7 +115,8 @@ Deno.serve(async (req) => {
         total_sales: 0,
         total_orders: 0,
         total_hours_worked: 0,
-        currently_clocked_in: false
+        currently_clocked_in: false,
+        current_time_entry_id: ''
       });
       return Response.json({ success: true, user, pin });
     }
@@ -120,28 +127,29 @@ Deno.serve(async (req) => {
         return Response.json({ success: false, error: 'id and data are required' }, { status: 400 });
       }
       // Ensure the target belongs to the same merchant (no cross-tenant edits).
-      const existing = await base44.asServiceRole.entities.User.filter({ id, merchant_id });
+      const existing = await base44.asServiceRole.entities.Employee.filter({ id, merchant_id });
       if (!existing || existing.length === 0) {
         return Response.json({ success: false, error: 'Employee not found' }, { status: 404 });
       }
       const update: any = { ...data };
       // If pin is cleared, keep the existing one so login doesn't break.
       if (update.pin === '') delete update.pin;
-      // Never let a staff edit escalate themselves to platform admin.
+      // Never let a staff edit change their own merchant or email identity here.
+      delete update.merchant_id;
       delete update.email;
-      const updated = await base44.asServiceRole.entities.User.update(id, update);
+      const updated = await base44.asServiceRole.entities.Employee.update(id, update);
       return Response.json({ success: true, user: updated });
     }
 
     if (action === 'delete') {
       const { id } = body;
       if (!id) return Response.json({ success: false, error: 'id is required' }, { status: 400 });
-      const existing = await base44.asServiceRole.entities.User.filter({ id, merchant_id });
+      const existing = await base44.asServiceRole.entities.Employee.filter({ id, merchant_id });
       if (!existing || existing.length === 0) {
         return Response.json({ success: false, error: 'Employee not found' }, { status: 404 });
       }
       // Deactivate rather than hard-delete to preserve order/audit references.
-      await base44.asServiceRole.entities.User.update(id, { is_active: false });
+      await base44.asServiceRole.entities.Employee.update(id, { is_active: false });
       return Response.json({ success: true });
     }
 

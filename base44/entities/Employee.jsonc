@@ -1,0 +1,190 @@
+{
+  "name": "Employee",
+  "type": "object",
+  "properties": {
+    "description": {
+      "type": "string",
+      "description": "Optional description for search visibility and SEO (up to 1000 characters)",
+      "maxLength": 1000
+    },
+    "merchant_id": {
+      "type": "string",
+      "description": "Merchant that owns this employee - REQUIRED"
+    },
+    "dealer_id": {
+      "type": "string",
+      "description": "Dealer ID for multi-tenant isolation"
+    },
+    "full_name": {
+      "type": "string",
+      "description": "Employee display name"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "Employee email (unique within merchant)"
+    },
+    "phone": {
+      "type": "string",
+      "default": ""
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "user",
+        "manager",
+        "admin",
+        "merchant_admin",
+        "driver"
+      ],
+      "default": "user",
+      "description": "Staff role (merchant-scoped, not platform-wide)"
+    },
+    "employee_id": {
+      "type": "string",
+      "default": "",
+      "description": "Internal employee ID label"
+    },
+    "pin": {
+      "type": "string",
+      "description": "POS quick-login PIN (unique within merchant)"
+    },
+    "hourly_rate": {
+      "type": "number",
+      "default": 0
+    },
+    "commission_rate": {
+      "type": "number",
+      "default": 0
+    },
+    "hire_date": {
+      "type": "string",
+      "default": ""
+    },
+    "permissions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [
+        "process_orders"
+      ],
+      "description": "Granular POS permissions"
+    },
+    "emergency_contact": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "default": ""
+        },
+        "phone": {
+          "type": "string",
+          "default": ""
+        },
+        "relationship": {
+          "type": "string",
+          "default": ""
+        }
+      },
+      "default": {
+        "name": "",
+        "phone": "",
+        "relationship": ""
+      }
+    },
+    "performance_notes": {
+      "type": "string",
+      "default": ""
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "total_sales": {
+      "type": "number",
+      "default": 0
+    },
+    "total_orders": {
+      "type": "number",
+      "default": 0
+    },
+    "total_hours_worked": {
+      "type": "number",
+      "default": 0
+    },
+    "currently_clocked_in": {
+      "type": "boolean",
+      "default": false
+    },
+    "current_time_entry_id": {
+      "type": "string",
+      "default": ""
+    },
+    "termination_date": {
+      "type": "string",
+      "default": ""
+    },
+    "last_login": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "merchant_id",
+    "full_name"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.merchant_id": "{{user.data.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.merchant_id": "{{user.data.merchant_id}}"
+        },
+        {
+          "data.dealer_id": "{{user.data.dealer_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.merchant_id": "{{user.data.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.merchant_id": "{{user.data.merchant_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

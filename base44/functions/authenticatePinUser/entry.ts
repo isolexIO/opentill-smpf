@@ -96,7 +96,10 @@ Deno.serve(async (req) => {
     let user;
     let isVirtualUser = false;
     try {
-      const users = await base44.asServiceRole.entities.User.filter({ pin, merchant_id });
+      // Staff PINs live on the dedicated Employee entity (the built-in User
+      // entity cannot be created via the SDK and its custom fields are not
+      // filterable). The merchant owner's admin_pin is the fallback below.
+      const users = await base44.asServiceRole.entities.Employee.filter({ pin, merchant_id });
 
       if (users && users.length > 0) {
         user = users[0];
@@ -146,10 +149,10 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Update last login (only for real User records)
+    // Update last login (only for real Employee records)
     if (!isVirtualUser) {
       try {
-        await base44.asServiceRole.entities.User.update(user.id, {
+        await base44.asServiceRole.entities.Employee.update(user.id, {
           last_login: new Date().toISOString()
         });
       } catch (e) {
@@ -189,6 +192,7 @@ Deno.serve(async (req) => {
         merchant_id: user.merchant_id,
         dealer_id: user.dealer_id,
         is_active: user.is_active,
+        permissions: user.permissions || ['process_orders'],
       }
     });
     
