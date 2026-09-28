@@ -43,12 +43,28 @@ export default function EmployeeManagementPage() {
       setLoading(true);
       const user = JSON.parse(localStorage.getItem('pinLoggedInUser')) || await base44.auth.me();
       setCurrentUser(user);
-      
-      const [employeesList, timeEntriesList, ordersList] = await Promise.all([
-        base44.entities.User.filter({ merchant_id: user.merchant_id }),
+
+      const [timeEntriesList, ordersList] = await Promise.all([
         base44.entities.TimeEntry.filter({ merchant_id: user.merchant_id }, '-created_date', 100),
         base44.entities.Order.filter({ merchant_id: user.merchant_id, status: 'completed' }, '-created_date', 200)
       ]);
+
+      // Staff records are platform Users — client-side User.filter is blocked
+      // for non-admin merchants by RLS, so load them through the server-side
+      // manageEmployee function (which runs as the service role).
+      const session_token = localStorage.getItem('pinSessionToken');
+      let employeesList = [];
+      try {
+        const { data } = await base44.functions.invoke('manageEmployee', {
+          action: 'list',
+          merchant_id: user.merchant_id,
+          session_token
+        });
+        employeesList = data?.users || [];
+      } catch (empError) {
+        console.warn('Could not load employees via manageEmployee, falling back:', empError);
+        employeesList = await base44.entities.User.filter({ merchant_id: user.merchant_id });
+      }
 
       setEmployees(employeesList);
       setTimeEntries(timeEntriesList);

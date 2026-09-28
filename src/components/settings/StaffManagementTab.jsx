@@ -289,51 +289,47 @@ function StaffFormDialog({ isOpen, onClose, employee, onSave, currentUser }) {
       setMsg({ type: 'error', text: 'PIN must be at least 4 digits' }); return;
     }
     setSaving(true);
+    const session_token = localStorage.getItem('pinSessionToken');
     try {
       if (isEdit) {
-        await base44.entities.User.update(employee.id, {
-          full_name: form.full_name,
-          role: form.role,
-          pin: form.pin || employee.pin,
-          employee_id: form.employee_id,
-          hourly_rate: form.hourly_rate,
-          permissions: form.permissions,
+        const { data } = await base44.functions.invoke('manageEmployee', {
+          action: 'update', merchant_id: currentUser.merchant_id, session_token,
+          id: employee.id,
+          data: {
+            full_name: form.full_name,
+            role: form.role,
+            pin: form.pin || undefined,
+            employee_id: form.employee_id,
+            hourly_rate: form.hourly_rate,
+            permissions: form.permissions,
+          }
         });
+        if (!data?.success) throw new Error(data?.error || 'Failed to update');
         setMsg({ type: 'success', text: 'Staff member updated!' });
       } else if (inviteByEmail) {
-        // Invite via platform
+        // Invite via platform so the staff member gets an email invitation,
+        // then create the server-side User record (with PIN) via manageEmployee.
         await base44.users.inviteUser(form.email, form.role === 'merchant_admin' ? 'admin' : 'user');
-        // Also create a User record pre-populated
-        await base44.entities.User.create({
-          full_name: form.full_name || form.email.split('@')[0],
-          email: form.email,
-          role: form.role,
-          employee_id: form.employee_id,
-          hourly_rate: form.hourly_rate,
-          permissions: form.permissions,
-          merchant_id: currentUser.merchant_id,
-          dealer_id: currentUser.dealer_id,
-          is_active: true,
-          total_sales: 0,
-          total_orders: 0,
-          total_hours_worked: 0,
-          currently_clocked_in: false,
+        const { data } = await base44.functions.invoke('manageEmployee', {
+          action: 'create', merchant_id: currentUser.merchant_id, session_token,
+          data: {
+            full_name: form.full_name || form.email.split('@')[0],
+            email: form.email,
+            role: form.role,
+            employee_id: form.employee_id,
+            hourly_rate: form.hourly_rate,
+            permissions: form.permissions,
+          }
         });
+        if (!data?.success) throw new Error(data?.error || 'Failed to create staff record');
         setMsg({ type: 'success', text: `Invitation sent to ${form.email}!` });
       } else {
-        const pin = form.pin || Math.floor(1000 + Math.random() * 9000).toString();
-        await base44.entities.User.create({
-          ...form,
-          pin,
-          merchant_id: currentUser.merchant_id,
-          dealer_id: currentUser.dealer_id,
-          is_active: true,
-          total_sales: 0,
-          total_orders: 0,
-          total_hours_worked: 0,
-          currently_clocked_in: false,
+        const { data } = await base44.functions.invoke('manageEmployee', {
+          action: 'create', merchant_id: currentUser.merchant_id, session_token,
+          data: { ...form }
         });
-        setMsg({ type: 'success', text: `Staff member created! PIN: ${pin}` });
+        if (!data?.success) throw new Error(data?.error || 'Failed to create staff member');
+        setMsg({ type: 'success', text: `Staff member created! PIN: ${data.pin}` });
       }
       setTimeout(() => { onSave(); onClose(); }, 1200);
     } catch (err) {
@@ -476,7 +472,16 @@ export default function StaffManagementTab({ merchant }) {
     try {
       const u = JSON.parse(localStorage.getItem('pinLoggedInUser')) || await base44.auth.me();
       setCurrentUser(u);
-      const list = await base44.entities.User.filter({ merchant_id: u.merchant_id });
+      const session_token = localStorage.getItem('pinSessionToken');
+      let list = [];
+      try {
+        const { data } = await base44.functions.invoke('manageEmployee', {
+          action: 'list', merchant_id: u.merchant_id, session_token
+        });
+        list = data?.users || [];
+      } catch {
+        list = await base44.entities.User.filter({ merchant_id: u.merchant_id });
+      }
       setStaff(list);
     } catch (err) {
       console.error(err);
@@ -486,7 +491,11 @@ export default function StaffManagementTab({ merchant }) {
   };
 
   const handleToggleActive = async (employee) => {
-    await base44.entities.User.update(employee.id, { is_active: !employee.is_active });
+    const session_token = localStorage.getItem('pinSessionToken');
+    await base44.functions.invoke('manageEmployee', {
+      action: 'update', merchant_id: currentUser.merchant_id, session_token,
+      id: employee.id, data: { is_active: !employee.is_active }
+    });
     loadData();
   };
 

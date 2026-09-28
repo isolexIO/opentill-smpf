@@ -65,33 +65,33 @@ export default function EmployeeForm({ employee, isOpen, onClose, onSave, curren
     e.preventDefault();
     setLoading(true);
 
+    const session_token = localStorage.getItem('pinSessionToken');
     try {
       if (employee) {
-        await base44.entities.User.update(employee.id, formData);
-      } else {
-        // Generate PIN if not provided
-        const pin = formData.pin || Math.floor(1000 + Math.random() * 9000).toString();
-        
-        await base44.entities.User.create({
-          ...formData,
+        const { data } = await base44.functions.invoke('manageEmployee', {
+          action: 'update',
           merchant_id: currentUser.merchant_id,
-          dealer_id: currentUser.dealer_id,
-          pin,
-          is_active: true,
-          total_sales: 0,
-          total_orders: 0,
-          total_hours_worked: 0,
-          currently_clocked_in: false
+          session_token,
+          id: employee.id,
+          data: formData
         });
-
-        alert(`Employee created successfully! PIN: ${pin}`);
+        if (!data?.success) throw new Error(data?.error || 'Failed to update employee');
+      } else {
+        const { data } = await base44.functions.invoke('manageEmployee', {
+          action: 'create',
+          merchant_id: currentUser.merchant_id,
+          session_token,
+          data: formData
+        });
+        if (!data?.success) throw new Error(data?.error || 'Failed to create employee');
+        alert(`Employee created successfully! PIN: ${data.pin}`);
       }
 
       onSave();
       onClose();
     } catch (error) {
       console.error('Error saving employee:', error);
-      alert('Failed to save employee');
+      alert(error.message || 'Failed to save employee');
     } finally {
       setLoading(false);
     }

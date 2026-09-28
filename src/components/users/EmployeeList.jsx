@@ -9,14 +9,23 @@ export default function EmployeeList({ employees, onEdit, onRefresh }) {
     if (!confirm(`Are you sure you want to remove ${employee.full_name}?`)) return;
 
     try {
-      await base44.entities.User.update(employee.id, {
-        is_active: false,
-        termination_date: new Date().toISOString().split('T')[0]
+      const pinUser = JSON.parse(localStorage.getItem('pinLoggedInUser') || '{}');
+      const session_token = localStorage.getItem('pinSessionToken');
+      const { data } = await base44.functions.invoke('manageEmployee', {
+        action: 'update',
+        merchant_id: pinUser.merchant_id,
+        session_token,
+        id: employee.id,
+        data: {
+          is_active: false,
+          termination_date: new Date().toISOString().split('T')[0]
+        }
       });
+      if (!data?.success) throw new Error(data?.error || 'Failed to remove employee');
       onRefresh();
     } catch (error) {
       console.error('Error deleting employee:', error);
-      alert('Failed to remove employee');
+      alert(error.message || 'Failed to remove employee');
     }
   };
 
