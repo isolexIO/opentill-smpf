@@ -92,17 +92,21 @@ export default function DealerMerchantManagement({ dealerId }) {
 
     try {
       const token = localStorage.getItem('dealerToken');
-      await base44.functions.invoke('sendAmbassadorInvite', {
+      const res = await base44.functions.invoke('sendAmbassadorInvite', {
         token,
         to: inviteEmail,
         dealer_id: dealerId
       });
-
+      if (res?.data?.success === false) {
+        alert('Failed to send invitation: ' + (res.data.error || 'Unknown error'));
+        return;
+      }
       alert('Invitation sent successfully!');
       setInviteEmail('');
       setShowInviteDialog(false);
     } catch (error) {
-      alert('Failed to send invitation: ' + error.message);
+      const msg = error?.response?.data?.error || error.message;
+      alert('Failed to send invitation: ' + msg);
     }
   };
 
