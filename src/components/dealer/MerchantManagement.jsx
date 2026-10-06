@@ -136,22 +136,11 @@ export default function MerchantManagement({ dealerId, initialMerchants }) {
     }
 
     try {
-      const inviteLink = `${window.location.origin}${createPageUrl('Home')}?dealer_id=${dealerId}`;
-      
-      await base44.functions.invoke('sendEmail', {
+      const token = localStorage.getItem('dealerToken');
+      await base44.functions.invoke('sendAmbassadorInvite', {
+        token,
         to: inviteEmail,
-        subject: 'Join Our Network - openTILL POS',
-        text: `Hi,
-
-You're invited to sign up for openTILL POS and join our merchant network.
-
-Click the link below to learn more and get started:
-${inviteLink}
-
-This link will automatically associate your account with our network.
-
-Best regards,
-openTILL POS Team`
+        dealer_id: dealerId
       });
 
       alert('Invitation sent successfully!');
