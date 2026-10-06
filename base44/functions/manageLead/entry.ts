@@ -98,17 +98,12 @@ Deno.serve(async (req) => {
 
     const base44 = createClientFromRequest(req);
 
-    // Validate invite links point to our own app origin (prevents branded
-    // phishing emails with attacker-controlled external URLs).
+    // Build invite links server-side from the verified dealer_id so the caller
+    // can't inject a phishing URL. The base is the function's own origin (the
+    // app domain), which always resolves correctly regardless of which custom
+    // domain the ambassador opened the dashboard from.
     const appOrigin = new URL(req.url).origin;
-    const validateInviteLink = (link) => {
-      if (!link || typeof link !== 'string') return null;
-      try {
-        const u = new URL(link);
-        if ((u.protocol === 'https:' || u.protocol === 'http:') && u.origin === appOrigin) return link;
-      } catch {}
-      return null;
-    };
+    const buildInviteLink = (dealerId) => `${appOrigin}/Home?dealer_id=${encodeURIComponent(dealerId)}`;
 
     // Resolve dealer_id from a verified identity only — never trust the
     // client-supplied `dealer_id` directly (would allow cross-dealer access).
@@ -294,10 +289,7 @@ Deno.serve(async (req) => {
         return Response.json({ success: false, error: 'No email on file' }, { status: 400 });
       }
 
-      const safeInviteLink = validateInviteLink(invite_link);
-      if (!safeInviteLink) {
-        return Response.json({ success: false, error: 'Invite link must point to the application domain' }, { status: 400 });
-      }
+      const safeInviteLink = buildInviteLink(resolvedDealerId);
 
       await sendEmail(
         base44,
@@ -500,10 +492,7 @@ Deno.serve(async (req) => {
       if (!matching) {
         return Response.json({ success: false, error: 'No matching leads' }, { status: 404 });
       }
-      const safeInviteLink = validateInviteLink(invite_link);
-      if (!safeInviteLink) {
-        return Response.json({ success: false, error: 'Invite link must point to the application domain' }, { status: 400 });
-      }
+      const safeInviteLink = buildInviteLink(resolvedDealerId);
       let sent = 0;
       const now = new Date().toISOString();
       const updatesBatch = [];
