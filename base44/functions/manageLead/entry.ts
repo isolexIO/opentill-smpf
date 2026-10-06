@@ -32,46 +32,49 @@ const brandedEmail = (innerHtml) => `<!DOCTYPE html>
 <tr><td style="height:6px;background:linear-gradient(90deg,#0FD17A 0%,#7B2FD6 100%);font-size:0;line-height:0;">&nbsp;</td></tr>
 </table></td></tr></table></body></html>`;
 
-// Send via SMTP directly so emails reach leads who may not be registered Base44
-// users (Core.SendEmail has per-recipient daily limits). Falls back to
-// Core.SendEmail if SMTP is not configured.
+// Invitations use the configured mail provider. Never hide its failure behind
+// another service's success response or claim that acceptance means delivery.
 const sendEmail = async (base44, to, subject, htmlBody) => {
-  const html = brandedEmail(htmlBody);
+  const recipient = String(to || '').trim();
+  if (/[\r\n,;]/.test(recipient) || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipient)) {
+    throw new Error('The lead needs one valid email address before an invitation can be sent.');
+  }
   const smtpHost = Deno.env.get('SMTP_HOST');
-  const smtpPort = Deno.env.get('SMTP_PORT');
   const smtpUser = Deno.env.get('SMTP_USER');
   const smtpPass = Deno.env.get('SMTP_PASS');
-
-  if (smtpHost && smtpUser && smtpPass) {
-    try {
-      const nodemailer = await import('npm:nodemailer@6.9.7');
-      const smtpPortNum = parseInt(smtpPort || '465');
-      const transporter = nodemailer.default.createTransport({
-        host: smtpHost,
-        port: smtpPortNum,
-        secure: smtpPortNum === 465,
-        requireTLS: smtpPortNum !== 465,
-        connectionTimeout: 15000,
-        greetingTimeout: 15000,
-        socketTimeout: 15000,
-        auth: { user: smtpUser, pass: smtpPass }
-      });
-      await transporter.sendMail({
-        from: `"openTILL SMPF" <${smtpUser}>`,
-        to,
-        subject,
-        html,
-        text: html.replace(/<[^>]+>/g, '')
-      });
-      console.log(`Email sent via SMTP to ${to}: ${subject}`);
-      return;
-    } catch (smtpError) {
-      console.error(`SMTP send failed for ${to}, falling back to Core.SendEmail:`, smtpError);
-    }
+  if (!smtpHost || !smtpUser || !smtpPass) {
+    throw new Error('The sender mailbox is not configured. No invitation was sent.');
   }
-
-  // Fallback: Core.SendEmail
-  await base44.asServiceRole.integrations.Core.SendEmail({ to, subject, body: html });
+  const nodemailer = await import('npm:nodemailer@6.9.7');
+  const smtpPortNum = parseInt(Deno.env.get('SMTP_PORT') || '465');
+  const transporter = nodemailer.default.createTransport({
+    host: smtpHost, port: smtpPortNum,
+    secure: smtpPortNum === 465, requireTLS: smtpPortNum !== 465,
+    connectionTimeout: 15000, greetingTimeout: 15000, socketTimeout: 15000,
+    auth: { user: smtpUser, pass: smtpPass }
+  });
+  let info;
+  try {
+    const html = brandedEmail(htmlBody);
+    info = await transporter.sendMail({
+      from: { name: 'openTILL SMPF', address: smtpUser },
+      to: recipient, subject, html, text: htmlBody.replace(/<[^>]+>/g, '')
+    });
+  } catch (error) {
+    console.error('Invitation mail provider failure:', error.code, error.responseCode);
+    if (error.code === 'EAUTH' || error.responseCode === 535) {
+      throw new Error('Your email provider rejected the sender login (535). Update the sender mailbox username and password before retrying. No invitation was sent.');
+    }
+    throw new Error(`The email provider could not accept the invitation${error.responseCode ? ` (${error.responseCode})` : ''}. No invitation was sent.`);
+  } finally {
+    transporter.close();
+  }
+  const accepted = (info.accepted || []).some(address => String(address).toLowerCase() === recipient.toLowerCase());
+  if (!accepted || (info.rejected || []).length) {
+    throw new Error('The email provider rejected the recipient. No invitation was sent.');
+  }
+  console.log('Invitation accepted by mail server:', info.messageId);
+  return { via: 'smtp', delivery_status: 'server_accepted', messageId: info.messageId, recipient };
 };
 
 async function verifyToken(token) {
@@ -291,7 +294,7 @@ Deno.serve(async (req) => {
 
       const safeInviteLink = buildInviteLink(resolvedDealerId);
 
-      await sendEmail(
+      const delivery = await sendEmail(
         base44,
         lead.email,
         'Join Our Network - openTILL POS',
@@ -321,7 +324,7 @@ Deno.serve(async (req) => {
       const activities = lead.activities || [];
       activities.push({
         type: 'email',
-        text: 'Invitation email sent',
+        text: `Invitation accepted by mail server for ${delivery.recipient}. Inbox delivery not confirmed. Reference: ${delivery.messageId}`,
         timestamp: new Date().toISOString(),
         author: authorEmail,
       });
@@ -331,7 +334,7 @@ Deno.serve(async (req) => {
         last_contacted_at: new Date().toISOString(),
         activities,
       });
-      return Response.json({ success: true, lead: updated });
+      return Response.json({ success: true, lead: updated, ...delivery });
     }
 
     // LOG CALL
@@ -494,12 +497,14 @@ Deno.serve(async (req) => {
       }
       const safeInviteLink = buildInviteLink(resolvedDealerId);
       let sent = 0;
+      let skipped = 0;
+      const failures = [];
       const now = new Date().toISOString();
       const updatesBatch = [];
       for (const lead of matching) {
-        if (!lead.email) continue;
+        if (!lead.email) { skipped++; continue; }
         try {
-          await sendEmail(
+          const delivery = await sendEmail(
             base44,
             lead.email,
             'Join Our Network - openTILL POS',
@@ -526,7 +531,7 @@ Deno.serve(async (req) => {
             `
           );
           const activities = lead.activities || [];
-          activities.push({ type: 'email', text: 'Invitation email sent (bulk)', timestamp: now, author: authorEmail });
+          activities.push({ type: 'email', text: `Invitation accepted by mail server for ${delivery.recipient} (bulk). Inbox delivery not confirmed. Reference: ${delivery.messageId}`, timestamp: now, author: authorEmail });
           updatesBatch.push({
             id: lead.id,
             status: lead.status === 'new' ? 'contacted' : lead.status,
@@ -535,13 +540,14 @@ Deno.serve(async (req) => {
           });
           sent++;
         } catch (e) {
-          console.error(`Bulk invite failed for ${lead.email}:`, e);
+          failures.push({ lead_id: lead.id, email: lead.email, error: e.message });
+          console.error('Bulk invitation failed:', e.message);
         }
       }
       if (updatesBatch.length > 0) {
         await base44.asServiceRole.entities.Lead.bulkUpdate(updatesBatch);
       }
-      return Response.json({ success: true, sent });
+      return Response.json({ success: failures.length === 0 && sent > 0, sent, failed: failures.length, skipped, failures, delivery_status: sent > 0 ? 'server_accepted' : 'failed' });
     }
 
     // LIST CRUD — LeadList entity

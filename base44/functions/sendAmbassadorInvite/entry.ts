@@ -101,55 +101,45 @@ ${senderName}`;
       <p style="font-size:13px;color:#737373;">Best regards,<br/>${senderName}</p>
     </div>`;
 
-    // Send via SMTP, fall back to the platform Core.SendEmail integration.
+    // An invitation is successful only when the configured mail provider
+    // accepts this recipient. Do not hide sender-login failures with a fallback.
     const smtpHost = Deno.env.get('SMTP_HOST');
     const smtpUser = Deno.env.get('SMTP_USER');
     const smtpPass = Deno.env.get('SMTP_PASS');
-
-    if (smtpHost && smtpUser && smtpPass) {
-      const smtpPortNum = parseInt(Deno.env.get('SMTP_PORT') || '465');
-      const transporter = nodemailer.createTransport({
-        host: smtpHost,
-        port: smtpPortNum,
-        secure: smtpPortNum === 465,
-        requireTLS: smtpPortNum !== 465,
-        connectionTimeout: 15000,
-        greetingTimeout: 15000,
-        socketTimeout: 15000,
-        auth: { user: smtpUser, pass: smtpPass }
-      });
-      try {
-        const info = await transporter.sendMail({
-          from: `"${senderName}" <${smtpUser}>`,
-          to: toStr,
-          subject,
-          text: textBody,
-          html: htmlBody
-        });
-        console.log('Ambassador invite sent via SMTP:', info.messageId);
-        return Response.json({ success: true, via: 'smtp', messageId: info.messageId });
-      } catch (err) {
-        console.error('SMTP send failed, falling back to Core.SendEmail:', err);
-      }
+    if (!smtpHost || !smtpUser || !smtpPass) {
+      return Response.json({ success: false, error: 'The sender mailbox is not configured. No invitation was sent.' }, { status: 503 });
     }
-
-    // Core.SendEmail fallback. Reaches registered app users always; unregistered
-    // recipients require a paid plan + custom domain — surface that to the caller.
+    const smtpPortNum = parseInt(Deno.env.get('SMTP_PORT') || '465');
+    const transporter = nodemailer.createTransport({
+      host: smtpHost, port: smtpPortNum,
+      secure: smtpPortNum === 465, requireTLS: smtpPortNum !== 465,
+      connectionTimeout: 15000, greetingTimeout: 15000, socketTimeout: 15000,
+      auth: { user: smtpUser, pass: smtpPass }
+    });
+    let info;
     try {
-      await base44.asServiceRole.integrations.Core.SendEmail({
-        to: toStr,
-        subject,
-        html: htmlBody,
-        text: textBody
+      info = await transporter.sendMail({
+        from: { name: senderName, address: smtpUser },
+        to: toStr, subject, text: textBody, html: htmlBody
       });
-      return Response.json({ success: true, via: 'core' });
-    } catch (coreError) {
-      console.error('Core.SendEmail also failed:', coreError);
+    } catch (error) {
+      console.error('Invitation mail provider failure:', error.code, error.responseCode);
+      const authenticationFailed = error.code === 'EAUTH' || error.responseCode === 535;
       return Response.json({
         success: false,
-        error: coreError.message || 'Failed to send invitation email'
-      }, { status: 500 });
+        error: authenticationFailed
+          ? 'Your email provider rejected the sender login (535). Update the sender mailbox username and password before retrying. No invitation was sent.'
+          : `The email provider could not accept the invitation${error.responseCode ? ` (${error.responseCode})` : ''}. No invitation was sent.`
+      }, { status: 502 });
+    } finally {
+      transporter.close();
     }
+    const accepted = (info.accepted || []).some(address => String(address).toLowerCase() === toStr.toLowerCase());
+    if (!accepted || (info.rejected || []).length) {
+      return Response.json({ success: false, error: 'The email provider rejected the recipient. No invitation was sent.' }, { status: 502 });
+    }
+    console.log('Ambassador invitation accepted by mail server:', info.messageId);
+    return Response.json({ success: true, via: 'smtp', delivery_status: 'server_accepted', messageId: info.messageId, recipient: toStr });
   } catch (error) {
     console.error('sendAmbassadorInvite error:', error);
     return Response.json({ success: false, error: error.message || 'Failed to send invitation' }, { status: 500 });

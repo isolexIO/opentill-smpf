@@ -319,17 +319,17 @@ export default function LeadManagement({ dealerId }) {
       return;
     }
     try {
-      await base44.functions.invoke('manageLead', {
-        action: 'send_invite',
-        token,
-        dealer_id: dealerId,
-        lead_id: lead.id,
-        invite_link: getInviteLink(),
+      const res = await base44.functions.invoke('manageLead', {
+        action: 'send_invite', token, dealer_id: dealerId, lead_id: lead.id,
       });
+      if (!res.data?.success || res.data.delivery_status !== 'server_accepted') {
+        throw new Error(res.data?.error || 'The email provider has not confirmed acceptance.');
+      }
+      if (selectedLead?.id === lead.id) setSelectedLead(res.data.lead);
       await loadLeads();
-      alert('Invitation sent successfully!');
+      alert(`Invitation accepted by the mail server for ${res.data.recipient}. Delivery to the inbox is not confirmed.`);
     } catch (error) {
-      alert('Failed to send invitation: ' + error.message);
+      alert('Failed to send invitation: ' + (error?.response?.data?.error || error.message));
     }
   };
 
@@ -395,12 +395,14 @@ export default function LeadManagement({ dealerId }) {
     const ids = Array.from(selectedLeadIds);
     setBulkBusy(true);
     try {
-      const res = await base44.functions.invoke('manageLead', { action: 'bulk_send_invite', token, dealer_id: dealerId, lead_ids: ids, invite_link: getInviteLink() });
-      const sent = res.data?.sent || 0;
-      alert(`Sent ${sent} invitation${sent !== 1 ? 's' : ''}.`);
-      clearSelection();
+      const res = await base44.functions.invoke('manageLead', { action: 'bulk_send_invite', token, dealer_id: dealerId, lead_ids: ids });
+      const { sent = 0, failed = 0, skipped = 0, failures = [] } = res.data || {};
+      const summary = `${sent} invitation${sent !== 1 ? 's' : ''} accepted by the mail server; ${failed} failed; ${skipped} skipped (no email address).`;
+      alert(summary + (sent ? '\nDelivery to inboxes is not confirmed.' : '') + (failures[0] ? `\n${failures[0].error}` : ''));
+      if (failed) setSelectedLeadIds(new Set(failures.map(failure => failure.lead_id)));
+      else clearSelection();
       await loadLeads();
-    } catch (e) { alert('Bulk invite failed: ' + e.message); }
+    } catch (e) { alert('Bulk invite failed: ' + (e?.response?.data?.error || e.message)); }
     finally { setBulkBusy(false); }
   };
 

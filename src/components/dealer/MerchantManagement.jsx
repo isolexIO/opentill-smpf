@@ -142,11 +142,11 @@ export default function MerchantManagement({ dealerId, initialMerchants }) {
         to: inviteEmail,
         dealer_id: dealerId
       });
-      if (res?.data?.success === false) {
-        alert('Failed to send invitation: ' + (res.data.error || 'Unknown error'));
+      if (!res?.data?.success || res.data.delivery_status !== 'server_accepted') {
+        alert('Failed to send invitation: ' + (res.data?.error || 'The email provider has not confirmed acceptance.'));
         return;
       }
-      alert('Invitation sent successfully!');
+      alert(`Invitation accepted by the mail server for ${res.data.recipient}. Delivery to the inbox is not confirmed.`);
       setInviteEmail('');
       setShowInviteDialog(false);
     } catch (error) {
