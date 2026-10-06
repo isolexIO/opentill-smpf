@@ -102,11 +102,10 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
 
     // Build invite links server-side from the verified dealer_id so the caller
-    // can't inject a phishing URL. The base is the function's own origin (the
-    // app domain), which always resolves correctly regardless of which custom
-    // domain the ambassador opened the dashboard from.
-    const appOrigin = new URL(req.url).origin;
-    const buildInviteLink = (dealerId) => `${appOrigin}/Home?dealer_id=${encodeURIComponent(dealerId)}`;
+    // can't inject a phishing URL. Use the published app domain, not the
+    // backend function host, so recipients land in the web app.
+    const appOrigin = 'https://opentill.base44.app';
+    const buildInviteLink = (dealerId) => `${appOrigin}/?dealer_id=${encodeURIComponent(dealerId)}`;
 
     // Resolve dealer_id from a verified identity only — never trust the
     // client-supplied `dealer_id` directly (would allow cross-dealer access).

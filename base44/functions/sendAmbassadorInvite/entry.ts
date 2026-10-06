@@ -74,8 +74,9 @@ Deno.serve(async (req) => {
     }
 
     // Build the invite link server-side so the caller can't inject a phishing URL.
-    const origin = (req.headers.get('origin') || req.headers.get('referer') || 'https://opentill.base44.app').replace(/\/$/, '');
-    const inviteLink = `${origin}/Home?dealer_id=${encodeURIComponent(dealerId)}`;
+    // Use the published app domain, not the backend function host, so recipients land in the web app.
+    const origin = 'https://opentill.base44.app';
+    const inviteLink = `${origin}/?dealer_id=${encodeURIComponent(dealerId)}`;
 
     const subject = `You're invited to join ${senderName} on openTILL POS`;
     const textBody = `Hi,
